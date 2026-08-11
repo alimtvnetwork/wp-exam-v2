@@ -1,6 +1,6 @@
 # Specification Root
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** 2026-04-16  
 **AI Confidence:** Production-Ready  
 **Ambiguity:** None
@@ -28,11 +28,11 @@ Root index for the entire specification tree. Each top-level folder contains a d
 | 07 | [Design System](./07-design-system/00-overview.md) | Theme variables, typography, spacing, and component patterns |
 | 08 | [Docs Viewer UI](./08-docs-viewer-ui/00-overview.md) | Specification viewer React application |
 | 09 | [Code Block System](./09-code-block-system/00-overview.md) | Rich code block rendering — syntax highlighting, interactions, styling |
-| 10 | [PowerShell Integration](./10-powershell-integration/00-overview.md) | PowerShell scripting conventions, cross-platform automation |
-| 11 | [Research](./11-research/00-overview.md) | Comparative studies, technology evaluations, exploratory notes |
-| 12 | [Consolidated Guidelines](./12-consolidated-guidelines/00-overview.md) | AI-readable summaries of every major spec module |
-| 13 | [CI/CD Pipeline Workflows](./13-cicd-pipeline-workflows/00-overview.md) | CI/CD pipeline specs, deployment workflows, automation |
-| 14 | [Self-Update & App Update](./14-self-update-app-update/00-overview.md) | Rename-first deployment, release pipeline, cross-compilation |
+| 10 | [PowerShell Integration](./11-powershell-integration/00-overview.md) | PowerShell scripting conventions, cross-platform automation |
+| 11 | [Research](./10-research/00-overview.md) | Comparative studies, technology evaluations, exploratory notes |
+| 12 | [Consolidated Guidelines](./17-consolidated-guidelines/00-overview.md) | AI-readable summaries of every major spec module |
+| 13 | [CI/CD Pipeline Workflows](./12-cicd-pipeline-workflows/00-overview.md) | CI/CD pipeline specs, deployment workflows, automation |
+| 14 | [Self-Update & App Update](./14-update/00-overview.md) | Rename-first deployment, release pipeline, cross-compilation |
 
 ### App-Specific (21+)
 
@@ -40,8 +40,8 @@ Root index for the entire specification tree. Each top-level folder contains a d
 |---|--------|-------------|
 | 21 | [App](./21-app/00-overview.md) | App-specific specs: features, workflows, architecture |
 | 22 | [App Issues](./22-app-issues/00-overview.md) | App bug analysis, root cause analysis, fix documentation |
-| 23 | [App Database](./23-app-database/00-overview.md) | App-specific data model, table designs, migration strategies |
-| 24 | [App Design System & UI](./24-app-design-system-and-ui/00-overview.md) | App-specific design system, theming, component patterns |
+| 23 | [App DB](./23-app-db/00-overview.md) | App-specific data model, table designs, migration strategies |
+| 24 | [App UI — Design System](./24-app-ui-design-system/00-overview.md) | App-specific UI, design system, theming, component patterns |
 
 ---
 
@@ -64,4 +64,4 @@ Root index for the entire specification tree. Each top-level folder contains a d
 | Spec Authoring Guide | `./01-spec-authoring-guide/00-overview.md` |
 | Coding Guidelines | `./02-coding-guidelines/00-overview.md` |
 | Error Management | `./03-error-manage/00-overview.md` |
-| Design System | `./06-design-system/00-overview.md` |
+| Design System | `./07-design-system/00-overview.md` |

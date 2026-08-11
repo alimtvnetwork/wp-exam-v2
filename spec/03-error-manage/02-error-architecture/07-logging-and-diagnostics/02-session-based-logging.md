@@ -1,6 +1,6 @@
 # Specification: Session-Based Logging System
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Created:** 2026-02-06  
 **Updated:** 2026-04-16  
 **Status:** Implemented
@@ -24,14 +24,14 @@ The session-based logging system provides complete request/response traceability
 | F3 | Response status, body, and timing must be captured | MUST |
 | F4 | Sensitive headers must be redacted before storage | MUST |
 | F5 | Sessions must be retrievable via API | MUST |
-| F6 | Sessions must be filterable by method, path, status | SHOULD |
+| F6 | Sessions must be filterable by method, path, status | MUST |
 | F7 | Error sessions must be easily identifiable | MUST |
-| F8 | Sessions must auto-expire after retention period | SHOULD |
+| F8 | Sessions must auto-expire after retention period | MUST |
 | F9 | Session logging must be toggleable via config | MUST |
 | F10 | Health check endpoints must be excluded | MUST |
 | F11 | Delegated request metadata must be captured when proxying | MUST |
 | F12 | Session ID must be linkable to error envelope `Attributes.SessionId` | MUST |
-| F13 | Delegated server stack traces must be captured in session | SHOULD |
+| F13 | Delegated server stack traces must be captured in session | MUST |
 
 ### 2.2 Non-Functional Requirements
 

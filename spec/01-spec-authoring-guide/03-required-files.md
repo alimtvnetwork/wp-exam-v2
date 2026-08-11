@@ -1,6 +1,6 @@
 # Required Files
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** 2026-04-16
 
 ---
@@ -52,7 +52,7 @@ The health dashboard scores each module on four equally weighted criteria:
 ```markdown
 # Module Name
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** YYYY-MM-DD  
 **Status:** Draft | Planned | Active | Complete  
 **AI Confidence:** Low | Medium | High | Production-Ready  
@@ -99,7 +99,7 @@ The health dashboard scores each module on four equally weighted criteria:
 | Reference | Location |
 |-----------|----------|
 | Related Module | `../XX-module-name/00-overview.md` |
-| Coding Guidelines | `../03-coding-guidelines/00-overview.md` |
+| Coding Guidelines | `../02-coding-guidelines/00-overview.md` |
 ```
 
 ### 97-acceptance-criteria.md Template
@@ -107,7 +107,7 @@ The health dashboard scores each module on four equally weighted criteria:
 ```markdown
 # Acceptance Criteria — Module Name
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** YYYY-MM-DD
 
 ---
@@ -139,7 +139,7 @@ The health dashboard scores each module on four equally weighted criteria:
 ```markdown
 # Changelog — Module Name
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** YYYY-MM-DD
 
 ---
@@ -156,7 +156,7 @@ The health dashboard scores each module on four equally weighted criteria:
 ```markdown
 # Consistency Report — Module Name
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Last Updated:** YYYY-MM-DD
 
 ---

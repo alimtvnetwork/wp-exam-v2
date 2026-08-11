@@ -268,4 +268,3 @@ func (h *Handler) ListPlugins(w http.ResponseWriter, r *http.Request) {
 ```
 
 ---
-

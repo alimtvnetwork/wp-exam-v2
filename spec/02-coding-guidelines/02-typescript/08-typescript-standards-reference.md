@@ -508,9 +508,11 @@ if (action.type === ActionType.AddToast) { ... }
 ### Rule 8.3: Enum values MUST be PascalCase
 
 ```typescript
-// ❌ FORBIDDEN — UPPER_SNAKE_CASE
+// ❌ FORBIDDEN — UPPER_SNAKE_CASE, camelCase, or _camelCase
 enum ActionType {
   ADD_TOAST = "ADD_TOAST",
+  addToast = "addToast",
+  _addToast = "_addToast",
 }
 
 // ✅ REQUIRED — PascalCase

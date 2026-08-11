@@ -1,6 +1,6 @@
 # Rust Naming Conventions
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** 2026-04-16
 
 ---
@@ -78,6 +78,7 @@ All database identifiers MUST use PascalCase regardless of Rust's naming convent
 
 ```sql
 -- ✅ Correct — PascalCase for all database identifiers
+-- linter-waive: MISSING-DESC-001 reason="Cross-language naming example; not a real schema"
 CREATE TABLE BrowserActivities (
     BrowserActivitiesId  INTEGER PRIMARY KEY AUTOINCREMENT,
     SessionId            INTEGER NOT NULL,
@@ -404,8 +405,8 @@ Use this table to instantly decide which casing to apply:
 | Cross-Language Guidelines | `../01-cross-language/00-overview.md` |
 | PascalCase Key Naming (Other Languages) | `../01-cross-language/11-key-naming-pascalcase.md` |
 | Boolean Flag Method Splitting | `../01-cross-language/24-boolean-flag-methods.md` |
-| Enum Standards (Cross-Language) | `../../../../11-consolidated-guidelines/04-enum-standards.md` |
+| Enum Standards (Cross-Language) | `../../../../17-consolidated-guidelines/04-enum-standards.md` |
 
 ---
 
-*Rust naming conventions — v3.1.0 — 2026-04-11*
+*Rust naming conventions — v3.2.0 — 2026-04-11*

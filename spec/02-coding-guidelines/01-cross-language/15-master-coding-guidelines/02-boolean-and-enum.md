@@ -166,11 +166,10 @@ if (isDefined(config)) {
 > **TypeScript-specific:** [TypeScript Enums](../../02-typescript/00-overview.md)
 
 **Key rules (all languages):**
-- PascalCase members/cases — no magic strings
+- PascalCase members/cases for TypeScript, GoLang, and C# (no magic strings). `camelCase` and `_camelCase` are strictly forbidden. For Rust or other languages, follow the ecosystem's dominant convention.
 - Exhaustive `default` branch in every switch/match
 - Use comparison methods (`isEqual()` in PHP, `Is{Value}()` in Go, `=== Enum.Member` in TS)
 
 See the canonical sources above for full declaration patterns, required methods, and folder structure.
 
 ---
-

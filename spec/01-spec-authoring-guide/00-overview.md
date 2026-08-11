@@ -1,6 +1,6 @@
 # Spec Authoring Guide
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** 2026-04-16  
 **Status:** Active  
 **AI Confidence:** Production-Ready  
@@ -184,6 +184,7 @@ spec/13-wp-plugin/03-exam-manager/
 | 08 | [08-cross-references.md](./08-cross-references.md) | Rules | How to write cross-references, relative paths, and link integrity rules |
 | 09 | [09-exceptions.md](./09-exceptions.md) | Rules | All known exception cases with folder structure examples |
 | 10 | [10-mandatory-linter-infrastructure.md](./10-mandatory-linter-infrastructure.md) | Rules | Mandatory linter scripts — AI must verify presence before validation |
+| 11 | [11-root-readme-conventions.md](./11-root-readme-conventions.md) | Rules | **MANDATORY** root `readme.md` format — centered icon, hero block, author/company template, badges, §9 release-blocker checklist |
 
 ## File Naming Convention (Quick Reference)
 
@@ -224,7 +225,7 @@ See [08-cross-references.md](./08-cross-references.md) for full syntax and examp
 
 ## Reliability Check Report
 
-Every module SHOULD include a **reliability risk assessment** to evaluate implementation feasibility before coding begins. These reports are stored in `spec/validation-reports/` or inline within the module.
+Every module MUST include a **reliability risk assessment** to evaluate implementation feasibility before coding begins. Reports are stored in `spec/validation-reports/` or inline within the module. The only allowed exception: pure-documentation modules with no implementable surface (e.g. `spec/_template.md`, `spec/folder-structure-root.md`) MAY omit the assessment when an `<!-- AUTHORING-WAIVER: documentation-only -->` comment is present near the title.
 
 ### What It Covers
 
@@ -438,3 +439,25 @@ All specifications in this repository are authored by **Md. Alim Ul Karim** — 
 | Reliability Reports | `../validation-reports/` |
 | Required Files | `./03-required-files.md` |
 | Cross-Reference Rules | `./08-cross-references.md` |
+
+---
+
+## Verification
+
+_Auto-generated section — see `spec/01-spec-authoring-guide/97-acceptance-criteria.md` for the full criteria index._
+
+### AC-SAG-000: Conformance check for spec authoring rule: Overview
+
+**Given** Run the spec-structure linter against `spec/`.  
+**When** Run the verification command shown below.  
+**Then** Every folder MUST contain a valid `00-overview.md`, follow kebab-case numeric prefixes, and resolve all internal links.
+
+**Verification command:**
+
+```bash
+python3 linter-scripts/check-spec-folder-refs.py && python3 linter-scripts/check-spec-cross-links.py --root spec --repo-root .
+```
+
+**Expected:** exit 0. Any non-zero exit is a hard fail and blocks merge.
+
+_Verification section last updated: 2026-04-21_

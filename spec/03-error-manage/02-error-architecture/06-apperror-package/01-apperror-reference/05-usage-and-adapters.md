@@ -272,4 +272,3 @@ type OperationLog struct {
 | PublishHistory | `Record`, `List`, `GetById`, `GetStats`, `Clear` | `adapter_history.go` |
 
 ---
-

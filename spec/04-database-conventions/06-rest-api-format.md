@@ -1,6 +1,6 @@
 # REST API Response Format
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** 2026-04-16
 
 ---
@@ -489,3 +489,48 @@ type TransactionListResponse = ApiResponse<Transaction>;
 | Schema design | [./02-schema-design.md](./02-schema-design.md) |
 | Key naming PascalCase | [../02-coding-guidelines/01-cross-language/11-key-naming-pascalcase.md](../02-coding-guidelines/01-cross-language/11-key-naming-pascalcase.md) |
 | Slug conventions | [../02-coding-guidelines/01-cross-language/28-slug-conventions.md](../02-coding-guidelines/01-cross-language/28-slug-conventions.md) |
+
+---
+
+## Required Request & Response Headers
+
+**Added:** 2026-05-04 (resolves spec/19 audit F-X-10, F-A-22 — top-10 fix #8). Authoritative for ALL REST APIs across every spec, not just spec/19.
+
+### Inbound headers (request)
+
+| Header | Required when | Format | Notes |
+|---|---|---|---|
+| `X-Correlation-Id` | Always (every request) | ULID (26 chars) — server-generates if missing and echoes in response | Single id propagates across tier hops (Main → Worker, etc.) and into log lines. |
+| `X-Idempotency-Key` | All `POST`, `PUT`, `PATCH` | ULID (26 chars), max 64 chars | Server stores result for `IdempotencyKeyTtlSeconds` (per `spec/19-main-worker-service/15-tunable-constants.md` §2.2). Replay returns cached result. |
+| `X-Auth-Action` | When endpoint is multi-step (e.g. login flows) | PascalCase action name, max 64 chars | Distinguishes step-1 (`SignInBegin`) from step-2 (`Verify2FA`) under one correlation id. |
+| `Authorization` | Per endpoint auth requirement | `Bearer <token>` | Token format defined per spec (e.g. spec/19/12 for Worker JWT). |
+| `Content-Type` | Always for body-bearing methods | `application/json; charset=utf-8` | Reject other types with `400`. |
+
+### Outbound headers (response)
+
+| Header | Set when | Format |
+|---|---|---|
+| `X-Correlation-Id` | Always | Same value as inbound (or server-generated if inbound was missing). |
+| `X-Idempotency-Key` | When inbound carried one | Echoed verbatim. |
+| `X-Idempotency-Replay` | Only if response is a cached replay | `true`. Absent on first execution. |
+| `Retry-After` | On 429 / 503 | Seconds (integer). |
+
+### Validation rules
+
+1. Missing `X-Idempotency-Key` on `POST/PUT/PATCH` → `400` with envelope error code `WORKER-300-01` (spec/19 tier) or analogous code in other specs.
+2. Missing `X-Correlation-Id` → server generates, no error. NEVER reject solely for absent correlation id.
+3. `X-Auth-Action` is REQUIRED on endpoints whose path matches `/Auth/*` (multi-step flows). Optional elsewhere.
+4. Header names are case-insensitive on the wire (per RFC 9110); spec uses canonical casing for documentation.
+
+### Why these three?
+
+- `X-Correlation-Id` makes cross-tier debugging tractable.
+- `X-Idempotency-Key` prevents double-charge / double-create on retries.
+- `X-Auth-Action` lets server pin which step of a multi-step flow this request belongs to (resolves spec/19 audit gap where 2FA step-2 could not be distinguished from a login replay).
+
+### Cross-references
+
+- `spec/19-main-worker-service/06-core-api-endpoints.md` §1 — first introduced these headers.
+- `spec/19-main-worker-service/15-tunable-constants.md` §2.2 — TTL + max-length values.
+- `spec/19-main-worker-service/13-error-codes.md` — error codes for header-validation failures.
+- `spec/03-error-manage/02-error-architecture/05-response-envelope/` — envelope shape that carries these headers' echoes.

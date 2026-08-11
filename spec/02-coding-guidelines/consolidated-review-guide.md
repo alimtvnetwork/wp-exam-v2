@@ -1,6 +1,6 @@
 # Consolidated Code Review Guide
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** 2026-04-16  
 **Scope:** All Languages (Go, TypeScript, PHP, C#, Rust)
 
@@ -8,12 +8,12 @@
 
 ## Table of Contents
 
-1. [Workflow & Process](#1-workflow-process)
-2. [Function & File Size](#2-function-file-size)
-3. [Parameters & Returns](#3-parameters-returns)
+1. [Workflow & Process](#1-workflow--process)
+2. [Function & File Size](#2-function--file-size)
+3. [Parameters & Returns](#3-parameters--returns)
 4. [Naming Conventions](#4-naming-conventions)
-5. [Boolean & Conditionals](#5-boolean-conditionals)
-6. [Enums & Constants](#6-enums-constants)
+5. [Boolean & Conditionals](#5-boolean--conditionals)
+6. [Enums & Constants](#6-enums--constants)
 7. [Error Handling](#7-error-handling)
 8. [Type Safety](#8-type-safety)
 9. [Parallel Execution](#9-parallel-execution)
@@ -548,6 +548,7 @@ if err := g.Wait(); err != nil {
 
 ```sql
 -- ✅ Correct table definition
+-- linter-waive: MISSING-DESC-001 reason="Cross-language review example; not a real schema"
 CREATE TABLE User (
     UserId     INTEGER PRIMARY KEY AUTOINCREMENT,
     FirstName   TEXT NOT NULL,
@@ -557,6 +558,7 @@ CREATE TABLE User (
 );
 
 -- ✅ Foreign key references the exact PK name
+-- linter-waive: MISSING-DESC-001 reason="Cross-language review example; not a real schema"
 CREATE TABLE Order (
     OrderId    INTEGER PRIMARY KEY AUTOINCREMENT,
     UserId     INTEGER NOT NULL REFERENCES User(UserId),

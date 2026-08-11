@@ -119,4 +119,3 @@ func GetById(ctx context.Context, id int64) apperror.Result[Model]
 ```
 
 ---
-

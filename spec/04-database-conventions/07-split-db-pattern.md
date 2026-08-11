@@ -1,6 +1,6 @@
 # Split DB Pattern
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** 2026-04-16
 
 ---
@@ -189,6 +189,7 @@ Domains reference each other via **ID only**. The foreign key is stored but NOT 
 
 ```sql
 -- In transactions.db
+-- linter-waive: MISSING-DESC-001 reason="Split-DB pattern example; focus on cross-DB references"
 CREATE TABLE Transaction (
     TransactionId   INTEGER PRIMARY KEY AUTOINCREMENT,
     AgentSiteId     INTEGER NOT NULL,  -- References agent-sites.db but NO FK constraint

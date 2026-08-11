@@ -224,4 +224,3 @@ config.go           → Config + ServerConfig + WatcherConfig + BackupConfig
 - [Boolean Flag Method Splitting](../../01-cross-language/24-boolean-flag-methods.md) — Split bool-flag methods into two named methods (Go examples included)
 
 ---
-

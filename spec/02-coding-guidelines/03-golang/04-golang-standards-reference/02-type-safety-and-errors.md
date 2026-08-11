@@ -358,4 +358,3 @@ func (h *Handler) GetPlugin(w http.ResponseWriter, r *http.Request) {
 > ```
 
 ---
-

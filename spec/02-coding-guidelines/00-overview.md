@@ -1,6 +1,6 @@
 # Coding Guidelines
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Status:** Active  
 **Updated:** 2026-04-16  
 **AI Confidence:** Production-Ready  
@@ -24,6 +24,7 @@ Consolidated coding standards and conventions organized by category. This folder
 > 4. **Database conventions** — Singular table names (`User` not `Users`), PascalCase everywhere, `{TableName}Id` as `INTEGER PRIMARY KEY AUTOINCREMENT`, FK uses the exact PK name. See [Database Conventions](../04-database-conventions/00-overview.md).
 > 5. **Never hallucinate** — If a requirement is unclear or missing, **ask a clarifying question** instead of guessing. Wrong assumptions cause rewrites.
 > 6. **Function metrics** — Functions: 8–15 lines. Files: < 300 lines. React components: < 100 lines.
+> 7. **No Generated Artifacts** — Never commit test results, test reports, or compiled binaries. See [No Generated Artifacts](./01-cross-language/29-no-generated-artifacts.md).
 >
 > These rules are **CODE RED** — violations are treated as bugs and must be fixed before merge.
 
@@ -152,8 +153,8 @@ IMPORTANT — AI INSTRUCTION:
 |---|----------|-------------|-------|
 | 21 | [App](./21-app/00-overview.md) | App-specific specs: features, workflows, architecture decisions | 0 |
 | 22 | [App Issues](./22-app-issues/00-overview.md) | App bug analysis, root cause analysis, fix documentation | 0 |
-| 23 | [App Database](./23-app-database/00-overview.md) | App-specific data model, table designs, migration strategies | 0 |
-| 24 | [App Design System & UI](./24-app-design-system-and-ui/00-overview.md) | App-specific design system, theming, component patterns, layout | 0 |
+| 23 | [App DB](./23-app-db/00-overview.md) | App-specific data model, table designs, migration strategies | 0 |
+| 24 | [App UI — Design System](./24-app-ui-design-system/00-overview.md) | App-specific design system, theming, component patterns, layout | 0 |
 
 ---
 
@@ -197,3 +198,25 @@ IMPORTANT — AI INSTRUCTION:
 ---
 
 *Coding guidelines v1.1.0 — 2026-04-16*
+
+---
+
+## Verification
+
+_Auto-generated section — see `spec/02-coding-guidelines/97-acceptance-criteria.md` for the full criteria index._
+
+### AC-CG-000: Coding guideline conformance: Overview
+
+**Given** Run the cross-language coding-guidelines validator against `src/` and language-specific source roots.  
+**When** Run the verification command shown below.  
+**Then** Zero CODE-RED violations are reported (functions ≤ 15 lines, files ≤ 300 lines, no nested ifs, max 2 boolean operands).
+
+**Verification command:**
+
+```bash
+go run linter-scripts/validate-guidelines.go --path spec --max-lines 15 && python3 linter-scripts/validate-guidelines.py spec
+```
+
+**Expected:** exit 0. Any non-zero exit is a hard fail and blocks merge.
+
+_Verification section last updated: 2026-04-21_

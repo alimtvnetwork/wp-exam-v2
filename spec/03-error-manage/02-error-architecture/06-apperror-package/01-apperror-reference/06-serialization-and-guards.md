@@ -356,4 +356,3 @@ return $execResult->affectedRows() > 0;
 - [ ] Cross-service callers (direct `*service.Service` refs) guard results the same way
 
 ---
-

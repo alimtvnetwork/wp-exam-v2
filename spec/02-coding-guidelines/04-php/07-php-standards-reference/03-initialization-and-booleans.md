@@ -248,4 +248,3 @@ public function update(UpdateSiteInput $input): AppResult
 ```
 
 ---
-

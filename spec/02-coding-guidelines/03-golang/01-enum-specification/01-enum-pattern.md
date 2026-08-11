@@ -1,6 +1,6 @@
 # Enum Pattern
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Status:** Complete  
 **Updated:** 2026-04-16
 
@@ -79,7 +79,7 @@ const (
 
 ### 4. PascalCase for Variant Names and Values
 
-> **Rule:** For non-string enums (byte/int-based), both the constant name AND its serialized label MUST use **PascalCase**. This applies across all languages — Go, TypeScript, C#, Rust.
+> **Rule:** For non-string enums (byte/int-based), both the constant name AND its serialized label MUST use **PascalCase**. This applies to GoLang, TypeScript, and C#. `camelCase` and `_camelCase` are strictly forbidden. For Rust or other languages, follow the ecosystem's dominant convention.
 
 ```go
 // ✅ Correct — PascalCase names

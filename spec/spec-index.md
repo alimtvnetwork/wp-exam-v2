@@ -24,10 +24,10 @@
 - [🔬 Research](#research) (1 file)
 - [📱 App](#app) (1 file)
 - [🔄 CI/CD Pipeline Workflows](#cicd-pipeline-workflows) (18 files)
-- [🔄 Self-Update & App Update](#self-update-app-update) (11 files)
+- [🔄 Self-Update & App Update](#self-update--app-update) (11 files)
 - [🐛 App Issues](#app-issues) (1 file)
-- [🗄️ App Database](#app-database) (1 file)
-- [🎨 App Design System & UI](#app-design-system-ui) (1 file)
+- [🗄️ App DB](#app-db) (1 file)
+- [🎨 App UI — Design System](#app-ui--design-system) (1 file)
 
 ---
 
@@ -95,7 +95,7 @@
 | `spec/02-coding-guidelines/01-cross-language/27-types-folder-convention.md` | Types Folder Convention & Common Type Aliases | 1.0.0 |
 | `spec/02-coding-guidelines/01-cross-language/28-slug-conventions.md` | Slug Conventions | 1.0.0 |
 | `spec/02-coding-guidelines/01-cross-language/97-acceptance-criteria.md` | Coding Guidelines — Acceptance Criteria | 1.0.0 |
-| `spec/02-coding-guidelines/01-cross-language/98-changelog.md` | Coding Guidelines — Changelog | 3.1.0 |
+| `spec/02-coding-guidelines/01-cross-language/98-changelog.md` | Coding Guidelines — Changelog | 3.2.0 |
 | `spec/02-coding-guidelines/01-cross-language/99-consistency-report.md` | Consistency Report: Cross-Language Guidelines | 5.0.0 |
 | `spec/02-coding-guidelines/01-cross-language/02-boolean-principles/00-overview.md` | Boolean Principles | 2.6.0 |
 | `spec/02-coding-guidelines/01-cross-language/02-boolean-principles/01-naming-prefixes.md` | Boolean Principles — P1: is/has prefixes, P2: no negative words | 2.6.0 |
@@ -161,7 +161,7 @@
 | `spec/02-coding-guidelines/03-golang/08-pathutil-fileutil-spec.md` | Go Utility Packages: `pathutil` and `fileutil` | 1.0.0 |
 | `spec/02-coding-guidelines/03-golang/97-acceptance-criteria.md` | Golang Standards — Acceptance Criteria | 1.0.0 |
 | `spec/02-coding-guidelines/03-golang/98-changelog.md` | Golang Standards — Changelog | 2.1.0 |
-| `spec/02-coding-guidelines/03-golang/99-consistency-report.md` | Consistency Report: Golang Standards | 3.1.0 |
+| `spec/02-coding-guidelines/03-golang/99-consistency-report.md` | Consistency Report: Golang Standards | 3.2.0 |
 | `spec/02-coding-guidelines/03-golang/01-enum-specification/00-overview.md` | Enum Specification | 4.1.0 |
 | `spec/02-coding-guidelines/03-golang/01-enum-specification/01-enum-pattern.md` | Enum Pattern | 4.0.0 |
 | `spec/02-coding-guidelines/03-golang/01-enum-specification/02-required-methods.md` | Required Methods | 5.0.0 |
@@ -228,8 +228,8 @@
 | `spec/02-coding-guidelines/08-file-folder-naming/04-typescript-javascript.md` | File & Folder Naming — TypeScript / JavaScript | 1.0.0 |
 | `spec/02-coding-guidelines/08-file-folder-naming/05-rust-csharp.md` | File & Folder Naming — Rust / C# | 1.0.0 |
 | `spec/02-coding-guidelines/08-file-folder-naming/99-consistency-report.md` | Consistency Report — File & Folder Naming | 1.0.0 |
-| `spec/02-coding-guidelines/10-powershell-integration/00-overview.md` | PowerShell Integration | 1.0.0 |
-| `spec/02-coding-guidelines/11-research/00-overview.md` | Research | 1.0.0 |
+| `spec/02-coding-guidelines/11-powershell-integration/00-overview.md` | PowerShell Integration | 1.0.0 |
+| `spec/02-coding-guidelines/10-research/00-overview.md` | Research | 1.0.0 |
 | `spec/02-coding-guidelines/11-security/00-overview.md` | Security Guidelines | 1.0.0 |
 | `spec/02-coding-guidelines/11-security/99-consistency-report.md` | Consistency Report — Security Guidelines | 1.0.0 |
 | `spec/02-coding-guidelines/11-security/01-axios-version-control/00-overview.md` | Axios Version Control Policy | 1.1.0 |
@@ -291,26 +291,26 @@
 | `spec/03-error-manage/02-error-architecture/04-error-modal/05-error-history-persistence.md` | Error Modal — Error History Persistence | 1.1.0 |
 | `spec/03-error-manage/02-error-architecture/04-error-modal/06-suppress-global-error.md` | Error Modal — suppressGlobalError Meta Pattern | 1.2.0 |
 | `spec/03-error-manage/02-error-architecture/04-error-modal/99-consistency-report.md` | Consistency Report: Error Modal | 4.0.0 |
-| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/00-overview.md` | Error Modal — Copy & Export Formats (Index) | 3.1.0 |
-| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/01-compact-report.md` | Compact Report (Markdown) — DEFAULT Copy Format | 3.1.0 |
-| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/02-full-report.md` | Full Report (Markdown) | 3.1.0 |
-| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/03-full-report-with-backend-logs.md` | Full Report with Backend Logs | 3.1.0 |
-| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/04-error-log-txt.md` | error.log.txt (Backend Error Log) | 3.1.0 |
-| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/05-full-log-txt.md` | log.txt (Backend Full Log) | 3.1.0 |
-| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/06-error-log-with-delegated-info.md` | Backend error.log.txt with Delegated Server Info | 3.1.0 |
-| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/07-envelope-error-response.md` | Envelope Error Response (JSON) | 3.1.0 |
-| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/08-session-diagnostics.md` | Session Diagnostics (JSON) | 3.1.0 |
-| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/09-generator-code-reference.md` | Generator Code Reference | 3.1.0 |
+| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/00-overview.md` | Error Modal — Copy & Export Formats (Index) | 3.2.0 |
+| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/01-compact-report.md` | Compact Report (Markdown) — DEFAULT Copy Format | 3.2.0 |
+| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/02-full-report.md` | Full Report (Markdown) | 3.2.0 |
+| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/03-full-report-with-backend-logs.md` | Full Report with Backend Logs | 3.2.0 |
+| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/04-error-log-txt.md` | error.log.txt (Backend Error Log) | 3.2.0 |
+| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/05-full-log-txt.md` | log.txt (Backend Full Log) | 3.2.0 |
+| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/06-error-log-with-delegated-info.md` | Backend error.log.txt with Delegated Server Info | 3.2.0 |
+| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/07-envelope-error-response.md` | Envelope Error Response (JSON) | 3.2.0 |
+| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/08-session-diagnostics.md` | Session Diagnostics (JSON) | 3.2.0 |
+| `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/09-generator-code-reference.md` | Generator Code Reference | 3.2.0 |
 | `spec/03-error-manage/02-error-architecture/04-error-modal/01-copy-formats/99-consistency-report.md` | Consistency Report: Copy Formats | 1.0.0 |
 | `spec/03-error-manage/02-error-architecture/04-error-modal/02-react-components/00-overview.md` | Error Modal — Reusable React Components (Index) | 4.0.0 |
 | `spec/03-error-manage/02-error-architecture/04-error-modal/02-react-components/01-typescript-interfaces.md` | TypeScript Interfaces | 4.0.0 |
 | `spec/03-error-manage/02-error-architecture/04-error-modal/02-react-components/02-error-store.md` | Error Store (Zustand) | 4.0.0 |
 | `spec/03-error-manage/02-error-architecture/04-error-modal/02-react-components/03-api-types.md` | API Types & Methods | 4.0.0 |
 | `spec/03-error-manage/02-error-architecture/04-error-modal/02-react-components/04-hooks.md` | Hooks | 4.0.0 |
-| `spec/03-error-manage/02-error-architecture/04-error-modal/02-react-components/05-component-hierarchy.md` | Component Hierarchy | 3.1.0 |
+| `spec/03-error-manage/02-error-architecture/04-error-modal/02-react-components/05-component-hierarchy.md` | Component Hierarchy | 3.2.0 |
 | `spec/03-error-manage/02-error-architecture/04-error-modal/02-react-components/06-component-source.md` | Component Source Code | 4.0.0 |
 | `spec/03-error-manage/02-error-architecture/04-error-modal/02-react-components/07-report-generator.md` | Error Report Generator | 4.0.0 |
-| `spec/03-error-manage/02-error-architecture/04-error-modal/02-react-components/08-integration-guide.md` | Integration Guide | 3.1.0 |
+| `spec/03-error-manage/02-error-architecture/04-error-modal/02-react-components/08-integration-guide.md` | Integration Guide | 3.2.0 |
 | `spec/03-error-manage/02-error-architecture/04-error-modal/02-react-components/99-consistency-report.md` | Consistency Report: React Components | 1.0.0 |
 | `spec/03-error-manage/02-error-architecture/04-error-modal/03-error-modal-reference/00-overview.md` | Error Modal — Frontend Specification (Index) | 2.2.0 |
 | `spec/03-error-manage/02-error-architecture/04-error-modal/03-error-modal-reference/01-data-model.md` | Data Model: CapturedError | 2.2.0 |
@@ -488,89 +488,89 @@
 
 | File | Title | Version |
 |------|-------|---------|
-| `spec/12-consolidated-guidelines/00-overview.md` | Consolidated Guidelines | 1.0.0 |
-| `spec/12-consolidated-guidelines/01-spec-authoring.md` | Consolidated: Spec Authoring Guide | 1.0.0 |
-| `spec/12-consolidated-guidelines/02-coding-guidelines.md` | Consolidated: Coding Guidelines | 1.0.0 |
-| `spec/12-consolidated-guidelines/03-error-management.md` | Consolidated: Error Management | 1.0.0 |
-| `spec/12-consolidated-guidelines/05-split-db-architecture.md` | Consolidated: Split DB Architecture | 1.0.0 |
-| `spec/12-consolidated-guidelines/06-seedable-config.md` | Consolidated: Seedable Config | 1.0.0 |
-| `spec/12-consolidated-guidelines/07-design-system.md` | Consolidated: Design System | 1.0.0 |
-| `spec/12-consolidated-guidelines/08-docs-viewer-ui.md` | Consolidated: Docs Viewer UI | 1.0.0 |
-| `spec/12-consolidated-guidelines/09-code-block-system.md` | Consolidated: Code Block System | 1.0.0 |
-| `spec/12-consolidated-guidelines/10-powershell-integration.md` | Consolidated: PowerShell Integration | 1.0.0 |
-| `spec/12-consolidated-guidelines/11-research.md` | Consolidated: Research | 1.0.0 |
-| `spec/12-consolidated-guidelines/11-root-research.md` | Consolidated: Root-Level Research | 1.0.0 |
-| `spec/12-consolidated-guidelines/12-app.md` | Consolidated: App | 1.0.0 |
-| `spec/12-consolidated-guidelines/13-app-issues.md` | Consolidated: App Issues | 1.0.0 |
-| `spec/12-consolidated-guidelines/99-consistency-report.md` | Consistency Report | 1.0.0 |
+| `spec/17-consolidated-guidelines/00-overview.md` | Consolidated Guidelines | 1.0.0 |
+| `spec/17-consolidated-guidelines/01-spec-authoring.md` | Consolidated: Spec Authoring Guide | 1.0.0 |
+| `spec/17-consolidated-guidelines/02-coding-guidelines.md` | Redirect Stub (see file 31) | 1.0.0 |
+| `spec/17-consolidated-guidelines/03-error-management.md` | Consolidated: Error Management | 1.0.0 |
+| `spec/17-consolidated-guidelines/05-split-db-architecture.md` | Consolidated: Split DB Architecture | 1.0.0 |
+| `spec/17-consolidated-guidelines/06-seedable-config.md` | Consolidated: Seedable Config | 1.0.0 |
+| `spec/17-consolidated-guidelines/07-design-system.md` | Consolidated: Design System | 1.0.0 |
+| `spec/17-consolidated-guidelines/08-docs-viewer-ui.md` | Consolidated: Docs Viewer UI | 1.0.0 |
+| `spec/17-consolidated-guidelines/09-code-block-system.md` | Consolidated: Code Block System | 1.0.0 |
+| `spec/17-consolidated-guidelines/11-powershell-integration.md` | Consolidated: PowerShell Integration | 1.0.0 |
+| `spec/17-consolidated-guidelines/10-research.md` | Consolidated: Research | 1.0.0 |
+| `spec/17-consolidated-guidelines/11-root-research.md` | Consolidated: Root-Level Research | 1.0.0 |
+| `spec/17-consolidated-guidelines/12-app.md` | Consolidated: App | 1.0.0 |
+| `spec/17-consolidated-guidelines/13-app-issues.md` | Consolidated: App Issues | 1.0.0 |
+| `spec/17-consolidated-guidelines/99-consistency-report.md` | Consistency Report | 1.0.0 |
 
 ## ⚡ PowerShell Integration
 
 | File | Title | Version |
 |------|-------|---------|
-| `spec/10-powershell-integration/00-overview.md` | PowerShell Integration | 2.25.0 |
-| `spec/10-powershell-integration/01-configuration-schema.md` | Configuration Schema | — |
-| `spec/10-powershell-integration/01-template-vs-project-differences.md` | Template vs Project Differences | — |
-| `spec/10-powershell-integration/02-script-reference.md` | Script Reference | — |
-| `spec/10-powershell-integration/03-integration-guide.md` | Integration Guide | — |
-| `spec/10-powershell-integration/04-error-codes.md` | Error Codes | — |
-| `spec/10-powershell-integration/05-firewall-rules.md` | Firewall Rules | — |
-| `spec/10-powershell-integration/06-php-known-issues.md` | PHP Known Issues | — |
-| `spec/10-powershell-integration/25-multi-site-deployment.md` | Multi-Site Deployment | — |
-| `spec/10-powershell-integration/readme.md` | README | — |
-| `spec/10-powershell-integration/changelog.md` | Changelog | — |
-| `spec/10-powershell-integration/parallel-work-sync-output.md` | Parallel Work Sync Output | — |
-| `spec/10-powershell-integration/99-consistency-report.md` | Consistency Report | 1.0.0 |
+| `spec/11-powershell-integration/00-overview.md` | PowerShell Integration | 2.25.0 |
+| `spec/11-powershell-integration/01-configuration-schema.md` | Configuration Schema | — |
+| `spec/11-powershell-integration/01-template-vs-project-differences.md` | Template vs Project Differences | — |
+| `spec/11-powershell-integration/02-script-reference.md` | Script Reference | — |
+| `spec/11-powershell-integration/03-integration-guide.md` | Integration Guide | — |
+| `spec/11-powershell-integration/04-error-codes.md` | Error Codes | — |
+| `spec/11-powershell-integration/05-firewall-rules.md` | Firewall Rules | — |
+| `spec/11-powershell-integration/06-php-known-issues.md` | PHP Known Issues | — |
+| `spec/11-powershell-integration/25-multi-site-deployment.md` | Multi-Site Deployment | — |
+| `spec/11-powershell-integration/readme.md` | README | — |
+| `spec/11-powershell-integration/changelog.md` | Changelog | — |
+| `spec/11-powershell-integration/parallel-work-sync-output.md` | Parallel Work Sync Output | — |
+| `spec/11-powershell-integration/99-consistency-report.md` | Consistency Report | 1.0.0 |
 
 ## 🔬 Research
 
 | File | Title | Version |
 |------|-------|---------|
-| `spec/11-research/00-overview.md` | Research | 1.0.0 |
+| `spec/10-research/00-overview.md` | Research | 1.0.0 |
 
 ## 🔄 CI/CD Pipeline Workflows
 
 | File | Title | Version |
 |------|-------|---------|
-| `spec/13-cicd-pipeline-workflows/00-overview.md` | CI/CD Pipeline Workflows | 2.0.0 |
-| `spec/13-cicd-pipeline-workflows/01-shared-conventions.md` | Shared Pipeline Conventions | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/02-github-release-standard.md` | GitHub Release Standard | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/03-vulnerability-scanning.md` | Vulnerability Scanning | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/04-install-script-generation.md` | Install Script Generation | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/05-code-signing.md` | Code Signing | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/06-self-update-mechanism.md` | Self-Update Mechanism | 2.0.0 |
-| `spec/13-cicd-pipeline-workflows/07-release-body-and-changelog.md` | Release Body and Changelog | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/08-installation-flow.md` | Installation Flow | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/09-changelog-integration.md` | Changelog Integration | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/10-version-and-help.md` | Version Display and Help System | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/11-environment-variable-setup.md` | Environment Variable Setup | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/12-terminal-output-standards.md` | Terminal Output Standards | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/13-binary-icon-branding.md` | Binary Icon & Windows Resource Embedding | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/01-browser-extension-deploy/00-overview.md` | Browser Extension Deploy — Overview | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/01-browser-extension-deploy/01-ci-pipeline.md` | Browser Extension — CI Pipeline | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/01-browser-extension-deploy/02-release-pipeline.md` | Browser Extension — Release Pipeline | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/01-browser-extension-deploy/99-consistency-report.md` | Consistency Report — Browser Extension Deploy | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/02-go-binary-deploy/00-overview.md` | Go Binary Deploy — Overview | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/02-go-binary-deploy/01-ci-pipeline.md` | Go Binary — CI Pipeline | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/02-go-binary-deploy/02-release-pipeline.md` | Go Binary — Release Pipeline | 2.0.0 |
-| `spec/13-cicd-pipeline-workflows/02-go-binary-deploy/99-consistency-report.md` | Consistency Report — Go Binary Deploy | 1.0.0 |
-| `spec/13-cicd-pipeline-workflows/99-consistency-report.md` | Consistency Report — CI/CD Pipeline Workflows | 4.0.0 |
+| `spec/12-cicd-pipeline-workflows/00-overview.md` | CI/CD Pipeline Workflows | 2.0.0 |
+| `spec/12-cicd-pipeline-workflows/01-shared-conventions.md` | Shared Pipeline Conventions | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/02-github-release-standard.md` | GitHub Release Standard | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/03-vulnerability-scanning.md` | Vulnerability Scanning | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/04-install-script-generation.md` | Install Script Generation | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/05-code-signing.md` | Code Signing | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/06-self-update-mechanism.md` | Self-Update Mechanism | 2.0.0 |
+| `spec/12-cicd-pipeline-workflows/07-release-body-and-changelog.md` | Release Body and Changelog | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/08-installation-flow.md` | Installation Flow | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/09-changelog-integration.md` | Changelog Integration | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/10-version-and-help.md` | Version Display and Help System | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/11-environment-variable-setup.md` | Environment Variable Setup | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/12-terminal-output-standards.md` | Terminal Output Standards | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/13-binary-icon-branding.md` | Binary Icon & Windows Resource Embedding | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/01-browser-extension-deploy/00-overview.md` | Browser Extension Deploy — Overview | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/01-browser-extension-deploy/01-ci-pipeline.md` | Browser Extension — CI Pipeline | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/01-browser-extension-deploy/02-release-pipeline.md` | Browser Extension — Release Pipeline | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/01-browser-extension-deploy/99-consistency-report.md` | Consistency Report — Browser Extension Deploy | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/02-go-binary-deploy/00-overview.md` | Go Binary Deploy — Overview | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/02-go-binary-deploy/01-ci-pipeline.md` | Go Binary — CI Pipeline | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/02-go-binary-deploy/02-release-pipeline.md` | Go Binary — Release Pipeline | 2.0.0 |
+| `spec/12-cicd-pipeline-workflows/02-go-binary-deploy/99-consistency-report.md` | Consistency Report — Go Binary Deploy | 1.0.0 |
+| `spec/12-cicd-pipeline-workflows/99-consistency-report.md` | Consistency Report — CI/CD Pipeline Workflows | 4.0.0 |
 
 ## 🔄 Self-Update & App Update
 
 | File | Title | Version |
 |------|-------|---------|
-| `spec/14-self-update-app-update/00-overview.md` | Self-Update & App Update | 1.0.0 |
-| `spec/14-self-update-app-update/01-self-update-overview.md` | Self-Update Overview | 1.0.0 |
-| `spec/14-self-update-app-update/02-deploy-path-resolution.md` | Deploy Path Resolution | 1.0.0 |
-| `spec/14-self-update-app-update/03-rename-first-deploy.md` | Rename-First Deploy Strategy | 1.0.0 |
-| `spec/14-self-update-app-update/04-build-scripts.md` | Build Scripts | 1.0.0 |
-| `spec/14-self-update-app-update/05-handoff-mechanism.md` | Handoff Mechanism (Windows) | 1.0.0 |
-| `spec/14-self-update-app-update/06-cleanup.md` | Cleanup | 1.0.0 |
-| `spec/14-self-update-app-update/07-release-assets.md` | Release Assets | 1.0.0 |
-| `spec/14-self-update-app-update/08-checksums-verification.md` | Checksums & Verification | 1.0.0 |
-| `spec/14-self-update-app-update/09-release-versioning.md` | Release Versioning | 1.0.0 |
-| `spec/14-self-update-app-update/99-consistency-report.md` | Consistency Report — Self-Update & App Update | 1.0.0 |
+| `spec/14-update/00-overview.md` | Self-Update & App Update | 1.0.0 |
+| `spec/14-update/01-self-update-overview.md` | Self-Update Overview | 1.0.0 |
+| `spec/14-update/02-deploy-path-resolution.md` | Deploy Path Resolution | 1.0.0 |
+| `spec/14-update/03-rename-first-deploy.md` | Rename-First Deploy Strategy | 1.0.0 |
+| `spec/14-update/04-build-scripts.md` | Build Scripts | 1.0.0 |
+| `spec/14-update/05-handoff-mechanism.md` | Handoff Mechanism (Windows) | 1.0.0 |
+| `spec/14-update/06-cleanup.md` | Cleanup | 1.0.0 |
+| `spec/14-update/13-release-assets.md` | Release Assets | 1.0.0 |
+| `spec/14-update/14-checksums-verification.md` | Checksums & Verification | 1.0.0 |
+| `spec/14-update/15-release-versioning.md` | Release Versioning | 1.0.0 |
+| `spec/14-update/99-consistency-report.md` | Consistency Report — Self-Update & App Update | 1.0.0 |
 
 ## 📱 App
 
@@ -584,17 +584,17 @@
 |------|-------|---------|
 | `spec/22-app-issues/00-overview.md` | App Issues | 1.0.0 |
 
-## 🗄️ App Database
+## 🗄️ App DB
 
 | File | Title | Version |
 |------|-------|---------|
-| `spec/23-app-database/00-overview.md` | App Database | 3.2.0 |
+| `spec/23-app-db/00-overview.md` | App DB | 3.2.0 |
 
-## 🎨 App Design System & UI
+## 🎨 App UI — Design System
 
 | File | Title | Version |
 |------|-------|---------|
-| `spec/24-app-design-system-and-ui/00-overview.md` | App Design System & UI | 3.2.0 |
+| `spec/24-app-ui-design-system/00-overview.md` | App UI — Design System | 3.2.0 |
 
 ---
 

@@ -1,6 +1,6 @@
 # Database Conventions
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Status:** Active  
 **Updated:** 2026-04-16  
 **AI Confidence:** Production-Ready  
@@ -113,8 +113,30 @@ Comprehensive database design and implementation conventions covering naming, sc
 | Coding Guidelines | [../02-coding-guidelines/00-overview.md](../02-coding-guidelines/00-overview.md) |
 | Cross-Language DB Naming | [../02-coding-guidelines/01-cross-language/07-database-naming.md](../02-coding-guidelines/01-cross-language/07-database-naming.md) |
 | Split DB Architecture | [../05-split-db-architecture/00-overview.md](../05-split-db-architecture/00-overview.md) |
-| Consolidated DB Conventions | [../12-consolidated-guidelines/18-database-conventions.md](../12-consolidated-guidelines/18-database-conventions.md) |
+| Consolidated DB Conventions | [../17-consolidated-guidelines/18-database-conventions.md](../17-consolidated-guidelines/18-database-conventions.md) |
 
 ---
 
 *Single source of truth for database design and conventions across all languages.*
+
+---
+
+## Verification
+
+_Auto-generated section — see `spec/04-database-conventions/97-acceptance-criteria.md` for the full criteria index._
+
+### AC-DB-000: Database convention conformance: Overview
+
+**Given** Run the SQL schema linter against your DDL files.  
+**When** Run the verification command shown below.  
+**Then** Every table is PascalCase singular; PK is `<TableName>Id INTEGER PRIMARY KEY AUTOINCREMENT`; columns are `NOT NULL` unless waived; no `createdAt`, `created_at`, `UUID` tokens.
+
+**Verification command:**
+
+```bash
+python3 linter-scripts/check-forbidden-strings.py
+```
+
+**Expected:** exit 0. Any non-zero exit is a hard fail and blocks merge.
+
+_Verification section last updated: 2026-04-21_

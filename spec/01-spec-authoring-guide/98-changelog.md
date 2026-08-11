@@ -1,6 +1,6 @@
 # Spec Authoring Guide — Changelog
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Last Updated:** 2026-04-16
 
 ---
@@ -34,8 +34,8 @@ Upgraded all `00-overview.md` files across the entire spec tree to include the f
 
 | File | Module |
 |------|--------|
-| `spec/03-coding-guidelines/05-rust/97-acceptance-criteria.md` | Rust Coding Standards |
-| `spec/03-coding-guidelines/05-rust/99-consistency-report.md` | Rust Coding Standards |
+| `spec/02-coding-guidelines/05-rust/97-acceptance-criteria.md` | Rust Coding Standards |
+| `spec/02-coding-guidelines/05-rust/99-consistency-report.md` | Rust Coding Standards |
 
 ### Method
 

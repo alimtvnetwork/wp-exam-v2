@@ -1,6 +1,6 @@
 # Boolean Principles
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** 2026-04-16  
 **AI Confidence:** Production-Ready  
 **Ambiguity:** None
@@ -45,14 +45,31 @@ Previously a single 858-line file, now split into focused modules under 300 line
 | — | 99-consistency-report.md | — | — |
 ---
 
+## Database ↔ Code Inverse Pattern (Rule 9)
+
+When a boolean originates in the **database**, the storage layer holds the
+canonical positive form (e.g. `IsActive`) and the **inverted sibling**
+(e.g. `IsInactive`) is auto-generated as a computed property in code —
+never as a second column. This is the database-side counterpart to the
+in-memory semantic-inverse pairs documented in
+[`12-no-negatives.md`](../12-no-negatives.md#object-level-semantic-inverses).
+
+> **Authoritative spec:** [Database Naming Conventions — Rule 9: Auto-Generated Inverted (Computed) Fields](../../../04-database-conventions/01-naming-conventions.md#rule-9-auto-generated-inverted-computed-fields-in-code)
+>
+> **Codegen tool:** [`linters-cicd/codegen/`](../../../../linters-cicd/codegen/README.md) — emits Go methods, PHP traits, and TypeScript getters from `Is*`/`Has*` db-tagged fields.
+>
+> **Linter:** `BOOL-NEG-001` rejects `Not`/`No`-prefixed column names (`IsNotActive`, `HasNoLicense`) at CI time.
+
+---
+
 ## Cross-References
 
 - [No Raw Negations](../12-no-negatives.md) — Full guard function inventory
+- [Database Naming — Rule 9 (Inverted Fields)](../../../04-database-conventions/01-naming-conventions.md#rule-9-auto-generated-inverted-computed-fields-in-code) — DB-side inverse contract
 - [Code Style — Rule 3](../04-code-style/00-overview.md) — Complex condition extraction
 - [Function Naming](../10-function-naming.md) — No boolean flag parameters
 - [PHP Boolean Guard Inventory](../../04-php/07-php-standards-reference/00-overview.md) — PHP-specific helpers
 - [Go Boolean Standards](../../03-golang/02-boolean-standards.md) — Go-specific rules and exemptions (P7, P8)
 - [Master Coding Guidelines](../15-master-coding-guidelines/00-overview.md) — Consolidated reference
 - [Issues & Fixes Log](../01-issues-and-fixes-log.md) — Historical fixes
-- [apperror Package — Result Guard Rule](../../../03-error-manage/02-error-architecture/06-apperror-package/01-apperror-reference/06-serialization-and-guards.md#12-result-guard-rule-mandatory-error-check-before-value-access)
-
+- [apperror Package — Result Guard Rule](../../../03-error-manage/02-error-architecture/06-apperror-package/01-apperror-reference/06-serialization-and-guards.md#12-result-guard-rule--mandatory-error-check-before-value-access)

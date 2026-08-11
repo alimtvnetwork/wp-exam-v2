@@ -1,6 +1,6 @@
 # AppError Package Reference
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** 2026-04-16  
 **AI Confidence:** Production-Ready  
 **Ambiguity:** None
@@ -52,4 +52,3 @@ Previously a single 1022-line file, now split into focused modules under 300 lin
 - [Golang Coding Standards](../../../../02-coding-guidelines/03-golang/04-golang-standards-reference/00-overview.md) — File size, function size, type safety, file naming
 - [Cross-Language Code Style](../../../../02-coding-guidelines/01-cross-language/04-code-style/00-overview.md) — Braces, nesting, spacing
 - [Enum Specification](../../../../02-coding-guidelines/03-golang/01-enum-specification/00-overview.md) — Byte-based enum pattern with mandatory JSON marshal
-

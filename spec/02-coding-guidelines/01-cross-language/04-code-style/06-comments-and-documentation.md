@@ -127,44 +127,85 @@ func fetchData(ctx context.Context) error {
 
 ---
 
-## Rule 16: Method and Function Documentation
+## Rule 16: Method and Function Documentation (When To Write, When Not To)
 
-Every **exported/public** function or method **must** have a doc comment describing its purpose. Internal/private helpers are encouraged but not required.
+Core rule: simple methods do NOT require documentation. Do not write verbose comments. Comments lie, code does not. The name and the signature are the primary documentation. If you feel the need to explain what a method does in prose, first try to rename it or split it until the code explains itself.
 
-```php
-// ── PHP ──────────────────────────────────────────────────────
+Method documentation is required ONLY when at least one of these is true, and even then the preferred fix is to refactor so the doc is no longer needed:
 
-// ❌ FORBIDDEN: No doc comment on public method
-public function processUpload(UploadRequest $request): UploadResult {
+1. The method is doing multiple non-obvious things that could not be expressed in the name (which itself is a smell, refactor first).
+2. The method processes or transforms data in a way where a short example clarifies the contract. Example: `path.Clean` performs path cleaning and normalization, so a one-line example is worth more than prose.
+3. The code is adapted or copied from another source. Citation is mandatory (link plus license note).
+4. The team runs an automated doc generator (godoc, TypeDoc, phpDocumentor) against the codebase. In that case public/exported APIs get one-line doc comments so the generated docs are usable.
 
-// ✅ REQUIRED
-/**
- * Validates and executes the upload, returning the stored file metadata.
- */
-public function processUpload(UploadRequest $request): UploadResult {
+Reference for the Go convention (doc comment starts with the identifier name, no blank line between doc and declaration): https://go.dev/src/go/doc/example.go
+
+```go
+// ── Go (canonical example) ───────────────────────────────────
+
+// ❌ AVOID: verbose prose that repeats the code
+// GetUser gets a user by id. It takes an id and returns the user
+// object from the database, and if there is an error it returns
+// the error.
+func GetUser(id int64) (User, error) { ... }
+
+// ❌ AVOID: doc on a trivially named simple method
+// Add adds a and b and returns the sum.
+func Add(a, b int) int { return a + b }
+
+// ✅ OK: exported, non-trivial behavior, includes a usage example.
+// Clean returns the shortest path name equivalent to path by purely
+// lexical processing. It applies the following rules iteratively
+// until no further processing can be done:
+//   1. Replace multiple slashes with a single slash.
+//   2. Eliminate each . path name element.
+//   3. Eliminate each inner .. path name element.
+//   4. Eliminate .. elements that begin a rooted path.
+func Clean(path string) string { ... }
 ```
+
+The same principle applies to every language: TypeScript, PHP, Rust, C#, PowerShell, Python. Only the syntax of the comment changes.
 
 ```typescript
 // ── TypeScript ───────────────────────────────────────────────
 
-// ❌ FORBIDDEN: No doc comment on exported function
-export const calculateDiscount = (price: number, tier: PricingTier): number => {
+// ❌ AVOID: doc on a self-explanatory function
+/** Returns the total price. */
+export const getTotalPrice = (items: Item[]): number =>
+  items.reduce((sum, i) => sum + i.price, 0);
 
-// ✅ REQUIRED
-/** Calculates the discount amount based on the customer pricing tier. */
-export const calculateDiscount = (price: number, tier: PricingTier): number => {
+// ✅ OK: non-obvious behavior worth documenting once
+/**
+ * Applies the tier discount then the promo code, in that order.
+ * Order matters: promo codes stack on the already-discounted price.
+ */
+export const applyPricing = (price: number, tier: Tier, promo?: Promo): number => { ... }
 ```
 
-```go
-// ── Go ───────────────────────────────────────────────────────
+```php
+// ── PHP ──────────────────────────────────────────────────────
 
-// ❌ FORBIDDEN: No doc comment on exported function
-func ProcessUpload(ctx context.Context, req UploadRequest) (UploadResult, error) {
+// ❌ AVOID: restating the signature
+/** Returns the user by id. */
+public function getUser(int $id): User { ... }
 
-// ✅ REQUIRED — Go convention: comment starts with function name
-// ProcessUpload validates and executes the upload request.
-func ProcessUpload(ctx context.Context, req UploadRequest) (UploadResult, error) {
+// ✅ OK: adapted code with a citation
+/**
+ * Levenshtein distance with an early-exit threshold.
+ * Adapted from https://en.wikipedia.org/wiki/Levenshtein_distance (CC-BY-SA).
+ */
+public function distance(string $a, string $b, int $maxDistance): int { ... }
 ```
+
+### Decision Checklist (apply before writing any doc comment)
+
+1. Can I rename the method so the doc becomes redundant? If yes, rename and delete the doc.
+2. Can I split the method so each piece is trivially named? If yes, split and delete the doc.
+3. Does the doc restate the signature or parameter names? If yes, delete it.
+4. Is the doc explaining WHY (business rule, ordering constraint, cited source) or a non-obvious example? If yes, keep it, short.
+5. Does the team run automated doc generation? If yes, one-liner on exported APIs is fine.
+
+Trivial getters, setters, single-expression helpers, and any function whose name fully describes its behavior get no doc comment. Adding one is a review-blocking violation of "comments lie, code does not".
 
 ---
 

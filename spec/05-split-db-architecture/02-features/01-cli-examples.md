@@ -1,6 +1,6 @@
 # Split DB Architecture: CLI Examples
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** 2026-04-16  
 **Status:** Active  
 **Parent:** [00-overview.md](../00-overview.md)
@@ -78,6 +78,7 @@ CREATE TABLE Application (
 );
 
 -- Sequence counters
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE Counter (
     CounterId INTEGER PRIMARY KEY AUTOINCREMENT,
     ApplicationId INTEGER NOT NULL,
@@ -90,6 +91,7 @@ CREATE TABLE Counter (
 );
 
 -- Database registry
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE DbRegistry (
     DbRegistryId INTEGER PRIMARY KEY AUTOINCREMENT,
     ApplicationId INTEGER NOT NULL,
@@ -114,6 +116,7 @@ CREATE TABLE DbRegistry (
 
 ```sql
 -- Session metadata
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE SessionMeta (
     SessionMetaId INTEGER PRIMARY KEY AUTOINCREMENT,
     SessionId TEXT UNIQUE NOT NULL,
@@ -133,6 +136,7 @@ CREATE TABLE SessionMeta (
 );
 
 -- Messages (conversation history)
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE Message (
     MessageId INTEGER PRIMARY KEY AUTOINCREMENT,
     SequenceNum INTEGER NOT NULL,
@@ -148,6 +152,7 @@ CREATE TABLE Message (
 );
 
 -- Tool calls
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE ToolCalls (
     ToolCallsId INTEGER PRIMARY KEY AUTOINCREMENT,
     MessageId INTEGER NOT NULL,
@@ -198,6 +203,7 @@ data/
 
 ```sql
 -- Settings
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE Setting (
     SettingId INTEGER PRIMARY KEY AUTOINCREMENT,
     Key TEXT UNIQUE NOT NULL,
@@ -214,6 +220,7 @@ INSERT INTO Setting (Key, Value, ValueType, Source) VALUES
 ('Search.MaxResults', '10', 'int', 'seed');
 
 -- Counters
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE Counter (
     CounterId INTEGER PRIMARY KEY AUTOINCREMENT,
     Category TEXT NOT NULL,
@@ -222,6 +229,7 @@ CREATE TABLE Counter (
 );
 
 -- Database registry
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE DbRegistry (
     DbRegistryId INTEGER PRIMARY KEY AUTOINCREMENT,
     Category TEXT NOT NULL,
@@ -238,6 +246,7 @@ CREATE TABLE DbRegistry (
 ### Search History DB (`searches/search.db`)
 
 ```sql
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE SearchLog (
     SearchLogId INTEGER PRIMARY KEY AUTOINCREMENT,
     Query TEXT NOT NULL,
@@ -260,6 +269,7 @@ CREATE INDEX IdxSearchLogTime ON SearchLog(SearchedAt DESC);
 ### Cache DB Schema (`searches/cache/001-{slug}.db`)
 
 ```sql
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE CacheMeta (
     CacheMetaId INTEGER PRIMARY KEY AUTOINCREMENT,
     Query TEXT NOT NULL,
@@ -274,6 +284,7 @@ CREATE TABLE CacheMeta (
     Status TEXT DEFAULT 'active'
 );
 
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE Result (
     ResultId INTEGER PRIMARY KEY AUTOINCREMENT,
     Rank INTEGER NOT NULL,
@@ -307,6 +318,7 @@ data/
 
 ```sql
 -- Settings
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE Setting (
     SettingId INTEGER PRIMARY KEY AUTOINCREMENT,
     Key TEXT UNIQUE NOT NULL,
@@ -321,6 +333,7 @@ INSERT INTO Setting (Key, Value, ValueType, Source) VALUES
 ('Runs.VacuumInterval', '24h', 'string', 'seed');
 
 -- Profiles
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE Profile (
     ProfileId INTEGER PRIMARY KEY AUTOINCREMENT,
     Name TEXT UNIQUE NOT NULL,
@@ -332,6 +345,7 @@ CREATE TABLE Profile (
 );
 
 -- Counters
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE Counter (
     CounterId INTEGER PRIMARY KEY AUTOINCREMENT,
     Category TEXT NOT NULL,
@@ -340,6 +354,7 @@ CREATE TABLE Counter (
 );
 
 -- Database registry
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE DbRegistry (
     DbRegistryId INTEGER PRIMARY KEY AUTOINCREMENT,
     Category TEXT NOT NULL,
@@ -354,6 +369,7 @@ CREATE TABLE DbRegistry (
 ### Run Session DB (`runs/001-{id}.db`)
 
 ```sql
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE BuildRun (
     BuildRunId INTEGER PRIMARY KEY AUTOINCREMENT,
     RunId TEXT UNIQUE NOT NULL,
@@ -373,6 +389,7 @@ CREATE TABLE BuildRun (
     CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE BuildErrors (
     BuildErrorsId INTEGER PRIMARY KEY AUTOINCREMENT,
     BuildRunId INTEGER NOT NULL,
@@ -387,6 +404,7 @@ CREATE TABLE BuildErrors (
     FOREIGN KEY (BuildRunId) REFERENCES BuildRun(BuildRunId)
 );
 
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE AssetOperations (
     AssetOperationsId INTEGER PRIMARY KEY AUTOINCREMENT,
     BuildRunId INTEGER NOT NULL,
@@ -435,6 +453,7 @@ data/
 
 ```sql
 -- Settings
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE Setting (
     SettingId INTEGER PRIMARY KEY AUTOINCREMENT,
     Key TEXT UNIQUE NOT NULL,
@@ -461,6 +480,7 @@ CREATE TABLE Pipeline (
 );
 
 -- Counters
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE Counter (
     CounterId INTEGER PRIMARY KEY AUTOINCREMENT,
     PipelineId INTEGER,
@@ -470,6 +490,7 @@ CREATE TABLE Counter (
 );
 
 -- Database registry
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE DbRegistry (
     DbRegistryId INTEGER PRIMARY KEY AUTOINCREMENT,
     PipelineId INTEGER NOT NULL,
@@ -486,6 +507,7 @@ CREATE TABLE DbRegistry (
 ### Execution Session DB (`workflows/pipeline-001/executions/001-{id}.db`)
 
 ```sql
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE ExecutionMeta (
     ExecutionMetaId INTEGER PRIMARY KEY AUTOINCREMENT,
     ExecutionId TEXT UNIQUE NOT NULL,
@@ -499,6 +521,7 @@ CREATE TABLE ExecutionMeta (
     ErrorMessage TEXT
 );
 
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE BlockExecutions (
     BlockExecutionsId INTEGER PRIMARY KEY AUTOINCREMENT,
     ExecutionId TEXT NOT NULL,
@@ -514,6 +537,7 @@ CREATE TABLE BlockExecutions (
     RetryCount INTEGER DEFAULT 0
 );
 
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE BlockLogs (
     BlockLogsId INTEGER PRIMARY KEY AUTOINCREMENT,
     BlockExecutionsId INTEGER NOT NULL,
@@ -586,6 +610,7 @@ All CLI root databases include the following table for 2-step reset confirmation
 ### ResetRequests Table Schema (PascalCase)
 
 ```sql
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE ResetRequests (
     ResetRequestsId INTEGER PRIMARY KEY AUTOINCREMENT,                           -- rst_{uuid}
     Scope TEXT NOT NULL,                           -- "all", "app", "cache", etc.

@@ -128,4 +128,3 @@ wrapped := apperror.Wrap(
 ```
 
 ---
-

@@ -1,6 +1,6 @@
 # Golang Coding Standards
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** 2026-04-16  
 **AI Confidence:** Production-Ready  
 **Ambiguity:** None
@@ -54,9 +54,8 @@ Previously a single 1281-line file, now split into focused modules under 300 lin
 - [Strict Typing](../../01-cross-language/13-strict-typing.md) — Type declarations & docblock rules
 - [DRY Principles](../../01-cross-language/08-dry-principles.md)
 - [Boolean Standards](../02-boolean-standards.md) — Go-specific positive logic rules and exemptions
-- apperror Package Spec — Full StackTrace, AppError, Result types specification <!-- external: spec/18-error-resolution/10-apperror-package/01-apperror-reference.md -->
+- apperror Package Spec — Full StackTrace, AppError, Result types specification <!-- external: spec/03-error-manage/01-error-resolution/10-apperror-package/01-apperror-reference.md -->
 - [Enum Specification](../01-enum-specification/00-overview.md) — Byte-based enum pattern, required methods, folder structure
 - [Master Coding Guidelines](../../01-cross-language/15-master-coding-guidelines/00-overview.md) — Consolidated cross-language reference
 - [Issues & Fixes Log](../../01-cross-language/01-issues-and-fixes-log.md) — Full historical fixes
 - [golangci-lint Enforcement](../../01-cross-language/16-static-analysis/02-go-golangci-lint.md) — Linter rule mapping for Go guidelines
-

@@ -3,7 +3,7 @@
 > **Status:** 100% Complete  
 > **Duration:** 10 Phases  
 > **Updated:** 2026-03-09  
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 
 ---
 
@@ -171,10 +171,10 @@ The 10-phase DRY (Don't Repeat Yourself) refactoring initiative modernized the f
 
 ## Cross-References
 
-- Response Envelope Spec <!-- external: spec/18-error-resolution/09-response-envelope/04-response-envelope-reference.md -->
-- Envelope JSON Schema <!-- external: spec/18-error-resolution/09-response-envelope/envelope.schema.json -->
-- ADR #7: JSON Schema Strategy <!-- external: spec/18-error-resolution/09-response-envelope/01-adr.md -->
-- Response Envelope Overview <!-- external: spec/18-error-resolution/09-response-envelope/00-overview.md -->
+- Response Envelope Spec <!-- external: spec/03-error-manage/01-error-resolution/09-response-envelope/04-response-envelope-reference.md -->
+- Envelope JSON Schema <!-- external: spec/03-error-manage/01-error-resolution/09-response-envelope/envelope.schema.json -->
+- ADR #7: JSON Schema Strategy <!-- external: spec/03-error-manage/01-error-resolution/09-response-envelope/01-adr.md -->
+- Response Envelope Overview <!-- external: spec/03-error-manage/01-error-resolution/09-response-envelope/00-overview.md -->
 
 ---
 

@@ -1,6 +1,6 @@
 # PHP Coding Standards
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** 2026-04-16  
 **AI Confidence:** Production-Ready  
 **Ambiguity:** None
@@ -54,4 +54,3 @@ Previously a single 841-line file, now split into focused modules under 300 line
 - [Cross-Language Code Style](../../01-cross-language/04-code-style/00-overview.md) — Braces, nesting & spacing rules (canonical)
 - [Function Naming](../../01-cross-language/10-function-naming.md) — No boolean flag parameters (all languages)
 - [Strict Typing](../../01-cross-language/13-strict-typing.md) — Type declarations & docblock rules (all languages)
-

@@ -61,4 +61,3 @@ func (c *Client) CleanupSnapshots(opts SnapshotCleanupOptions) apperror.Result[S
 | Repeated string constants | Typed const blocks with `Type` suffix |
 
 ---
-

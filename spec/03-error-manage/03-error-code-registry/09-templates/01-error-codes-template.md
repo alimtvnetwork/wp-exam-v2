@@ -3,7 +3,7 @@
 > **Project Prefix:** `XX`  
 > **Range:** X000-X999  
 > **Last Updated:** YYYY-MM-DD
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Last Updated:** 2026-04-16  
 
 ---
@@ -112,4 +112,4 @@ throw new AppError(ErrorCodes.XX_000_01, "Description");
 ## Registration
 
 This error code range is registered in:
-`spec/07-error-code-registry/01-registry.md`
+`spec/03-error-manage/03-error-code-registry/01-registry.md`

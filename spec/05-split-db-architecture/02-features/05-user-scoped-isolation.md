@@ -1,6 +1,6 @@
 # Split DB Architecture: User-Scoped Isolation
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Created:** 2026-03-09  
 **Status:** Active  
 **Parent:** [00-overview.md](../00-overview.md)
@@ -145,6 +145,7 @@ data/
 ### User Registry Table (in Root or App DB)
 
 ```sql
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE User (
     UserId INTEGER PRIMARY KEY AUTOINCREMENT,
     ExternalId TEXT UNIQUE,                    -- External auth provider ID
@@ -191,6 +192,7 @@ INSERT INTO Settings (Key, Value, ValueType, Source) VALUES
 ### User Database Registry (in Root DB)
 
 ```sql
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE UserDbRegistry (
     UserDbRegistryId INTEGER PRIMARY KEY AUTOINCREMENT,
     UserId INTEGER NOT NULL,
@@ -527,6 +529,7 @@ sessionDb.Exec(`
 ### Session Database Schema
 
 ```sql
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE SessionMeta (
     SessionMetaId INTEGER PRIMARY KEY AUTOINCREMENT,
     SessionId TEXT UNIQUE NOT NULL,
@@ -538,6 +541,7 @@ CREATE TABLE SessionMeta (
     Status TEXT DEFAULT 'active'               -- active, expired, revoked
 );
 
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE SessionActivity (
     SessionActivityId INTEGER PRIMARY KEY AUTOINCREMENT,
     Action TEXT NOT NULL,

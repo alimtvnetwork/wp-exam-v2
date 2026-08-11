@@ -1,6 +1,6 @@
 # Exceptions & Special Cases
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** 2026-04-16
 
 ---
@@ -206,3 +206,32 @@ spec/
 2. **Include reason** — Why the standard cannot be followed
 3. **Mark as permanent or temporary** — Temporary exceptions should have a remediation plan
 4. **Update the consistency report** — Note the exception so it doesn't flag as an error
+
+---
+
+## Strictly Prohibited
+
+> 🔴 Hard prohibitions for spec authoring. Numbered for stable reference —
+> never renumber, only append. Mirrors `.lovable/strictly-avoid.md` →
+> "Strictly Prohibited" and `.lovable/memory/avoid/`.
+>
+> 🧠 **Memory directive:** Once an AI agent reads this section, it MUST
+> retain every numbered prohibition in its strictly-avoid working memory
+> for the rest of the session and across future sessions. Never
+> re-propose, re-suggest, or "double-check" any prohibited behaviour.
+> Silence is the required response.
+
+### Sequence 01 — `readme.txt` time suggestions
+
+- **Never** suggest, recommend, hint at, ask about, or auto-add anything
+  related to timestamps inside `readme.txt`.
+- **Never** mention "git update time", commit time, last-modified time,
+  scheduled regeneration, cron jobs, or any time-flavoured workflow in
+  or about `readme.txt`.
+- **Never** propose helper scripts, hooks, or CI tasks whose purpose is
+  to keep `readme.txt` time fresh.
+- **Only** modify `readme.txt` when the user explicitly asks in that
+  exact turn, using the format the user dictates.
+- **No follow-up offers** about time after writing `readme.txt`.
+- Cross-reference: `.lovable/memory/avoid/02-no-time-suggestions-in-readme-txt.md`
+  and `.lovable/strictly-avoid.md` → "Strictly Prohibited" → Sequence 01.

@@ -256,9 +256,30 @@ if user.LacksPermission("admin") { ... }
 if session.IsUnlocked() { ... }
 ```
 
+### Database-Backed Inverses (Rule 9)
+
+When the underlying boolean lives in a **database column**, the same
+inverse-pair philosophy applies — but with a hard storage rule: the DB
+stores **only the positive (canonical) form**, and the inverted accessor
+is **auto-generated as a computed method/getter** in the model, never as
+a second column.
+
+| Stored DB column | Auto-derived code accessor | Derivation |
+|------------------|----------------------------|-----------|
+| `IsActive`       | `IsInactive()` / `isInactive()` | `!IsActive` |
+| `IsEnabled`      | `IsDisabled()`              | `!IsEnabled` |
+| `HasLicense`     | `HasNoLicense()`            | `!HasLicense` |
+
+> **Spec:** [Database Naming Conventions — Rule 9: Auto-Generated Inverted (Computed) Fields](../../04-database-conventions/01-naming-conventions.md#rule-9-auto-generated-inverted-computed-fields-in-code)
+>
+> **Codegen:** [`linters-cicd/codegen/`](../../../linters-cicd/codegen/README.md) emits the inverse methods/traits/getters for Go, PHP, and TypeScript automatically.
+>
+> **Linter:** `BOOL-NEG-001` blocks `Not`/`No`-prefixed column names from being introduced via migration.
+
 ---
 
 ## When Raw `!` Is Still Acceptable
+
 
 Raw negation is **only** acceptable for:
 
@@ -303,6 +324,8 @@ Raw negation is **only** acceptable for:
 
 ## Cross-References
 
+- [Boolean Principles Overview](./02-boolean-principles/00-overview.md) — Is/Has prefix rules and parent index
+- [Database Naming — Rule 9 (Inverted Fields)](../../04-database-conventions/01-naming-conventions.md#rule-9-auto-generated-inverted-computed-fields-in-code) — DB-side inverse contract + codegen
 - [PHP Boolean Logic](../04-php/07-php-standards-reference/03-initialization-and-booleans.md#boolean-logic) — PHP-specific helpers
 - [PHP Forbidden Patterns](../04-php/02-forbidden-patterns.md) — Pattern 4.x
 - [Cross-Language Code Style](./04-code-style/00-overview.md) — Braces, nesting, spacing
@@ -311,4 +334,4 @@ Raw negation is **only** acceptable for:
 
 ---
 
-*No-negatives specification v2.1.0 — 2026-03-31*
+*No-negatives specification v2.2.0 — 2026-04-19*

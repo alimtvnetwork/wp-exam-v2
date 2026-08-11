@@ -37,4 +37,3 @@
 ---
 
 *Master coding guidelines v2.0.0 — 2026-03-31*
-

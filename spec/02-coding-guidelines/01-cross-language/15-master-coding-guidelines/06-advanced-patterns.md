@@ -173,4 +173,3 @@ Supplements Code Style rules R4, R5, R10, R12, R13 with detailed before/after ex
 | D3 | Need multiple defers? Extract into separate functions, each with its own single defer |
 
 ---
-

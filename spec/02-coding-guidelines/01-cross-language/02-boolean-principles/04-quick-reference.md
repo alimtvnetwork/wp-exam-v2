@@ -151,4 +151,3 @@ These patterns are **exempt** from the no-negation rule in Go:
 - `if v, ok := m[k]; ok {` — inline comma-ok (exempt from P7)
 
 ---
-

@@ -1,6 +1,6 @@
 # Database Relationship Diagrams
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Updated:** 2026-04-16
 
 ---
@@ -188,16 +188,19 @@ Copy-paste-ready SQL showing all conventions together:
 -- LOOKUP TABLES (SMALLINT PKs — under 32K rows expected)
 -- ============================================================
 
+-- linter-waive: MISSING-DESC-001 reason="Relationship-diagram example; focus on FK structure, not free-text columns"
 CREATE TABLE StatusType (
     StatusTypeId SMALLINT PRIMARY KEY,
     Name         TEXT NOT NULL UNIQUE
 );
 
+-- linter-waive: MISSING-DESC-001 reason="Relationship-diagram example; focus on FK structure, not free-text columns"
 CREATE TABLE FileType (
     FileTypeId SMALLINT PRIMARY KEY,
     Name       TEXT NOT NULL UNIQUE
 );
 
+-- linter-waive: MISSING-DESC-001 reason="Relationship-diagram example; focus on FK structure, not free-text columns"
 CREATE TABLE Role (
     RoleId SMALLINT PRIMARY KEY,
     Name   TEXT NOT NULL UNIQUE
@@ -207,6 +210,7 @@ CREATE TABLE Role (
 -- ENTITY TABLES (INTEGER PKs — under 2B rows expected)
 -- ============================================================
 
+-- linter-waive: MISSING-DESC-001 reason="Relationship-diagram example; focus on FK structure, not free-text columns"
 CREATE TABLE AgentSite (
     AgentSiteId INTEGER PRIMARY KEY AUTOINCREMENT,
     SiteName    TEXT NOT NULL,
@@ -215,6 +219,7 @@ CREATE TABLE AgentSite (
     CreatedAt   TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- linter-waive: MISSING-DESC-001 reason="Relationship-diagram example; focus on FK structure, not free-text columns"
 CREATE TABLE User (
     UserId     INTEGER PRIMARY KEY AUTOINCREMENT,
     Name       TEXT NOT NULL,
@@ -225,6 +230,7 @@ CREATE TABLE User (
     CreatedAt  TEXT NOT NULL DEFAULT (datetime('now'))
 );
 
+-- linter-waive: MISSING-DESC-001 reason="Relationship-diagram example; focus on FK structure, not free-text columns"
 CREATE TABLE Transaction (
     TransactionId INTEGER PRIMARY KEY AUTOINCREMENT,
     AgentSiteId   INTEGER NOT NULL,
@@ -243,6 +249,7 @@ CREATE TABLE Transaction (
 -- JUNCTION TABLE (N-to-M relationship)
 -- ============================================================
 
+-- linter-waive: MISSING-DESC-001 reason="Relationship-diagram example; focus on FK structure, not free-text columns"
 CREATE TABLE UserRole (
     UserRoleId INTEGER PRIMARY KEY AUTOINCREMENT,
     UserId     INTEGER NOT NULL,

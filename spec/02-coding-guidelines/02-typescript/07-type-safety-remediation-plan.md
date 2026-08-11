@@ -1,9 +1,9 @@
 # Codebase Type Safety Remediation Plan
 
 > **Created:** 2026-02-12  
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 > **Priority:** CRITICAL  
-> **Spec Reference:** `spec/03-coding-guidelines/02-typescript/08-typescript-standards-reference.md` v2.0.0  
+> **Spec Reference:** `spec/02-coding-guidelines/02-typescript/08-typescript-standards-reference.md` v2.0.0  
 > **Goal:** Eliminate all `any`, `unknown`, `Record<string, unknown>`, string union types, and magic strings/numbers — use proper enums with PascalCase values and typed generics
 
 ---
@@ -352,18 +352,3 @@ type ActivityEntry =
 | 6 | P4 — Generic envelope | Small | None |
 | 7 | P5.2 — Magic string migration | Large | P5.1 |
 | 8 | P6 — Activity metadata | Medium | P5.1 |
-
----
-
-## Verification
-
-After each phase:
-1. `tsc --noEmit` — zero type errors
-2. Search for `\bany\b` in `src/` — zero matches (excluding comments with "any" as English word)
-3. Search for `as any` — zero matches
-4. Search for `catch.*any` — zero matches
-5. Search for `Record<string, unknown>` in API signatures — zero matches
-
----
-
-*Remediation plan v1.0.0 — 2026-02-12*

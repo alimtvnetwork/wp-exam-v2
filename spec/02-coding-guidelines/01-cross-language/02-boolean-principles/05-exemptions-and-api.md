@@ -1,8 +1,8 @@
 # Boolean Principles — Static factory exemption, Result wrapper API
 
 > **Parent:** [Boolean Principles](./00-overview.md)  
-> **Version:** 2.6.0  
-> **Updated:** 2026-03-31
+> **Version:** 2.7.0  
+> **Updated:** 2026-04-19
 
 ---
 
@@ -20,6 +20,53 @@ Boolean query methods on the **same classes** — such as `isEmpty()`, `isDefine
 | `$result->hasError()` | Boolean query | ✅ Yes |
 | `$result->isDefined()` | Boolean query | ✅ Yes |
 | `result.IsSafe()` | Boolean query | ✅ Yes |
+
+---
+
+## Linter Exempt-Name Audit (CODE-RED-002)
+
+The reference linter (`linter-scripts/validate-guidelines.py` and its Go twin `validate-guidelines.go`) suppresses the **P1 prefix requirement** for a fixed allowlist of identifier names. Each entry was audited on **2026-04-19** against this spec.
+
+**Source:** `linter-scripts/validate-guidelines.py:133`, `linter-scripts/validate-guidelines.go:104-110`
+
+| Name | P1 Exempt? | Scope | Justification |
+|------|-----------|-------|---------------|
+| `ok` | ✅ Valid | Go (idiomatic) | Go comma-ok pattern: `v, ok := m[k]`. Forcing `isOk` would violate Go community convention and break linter consistency with `gofmt`/`golint`. Aligns with **P7 exemption** for comma-ok already documented above. |
+| `done` | ⚠️ Go-only | Go (channel idiom) | Standard channel completion signal: `done := make(chan struct{})`. **Outside Go**, a state flag must use `isDone`. |
+| `found` | ⚠️ Go-only | Go (lookup return) | Idiomatic lookup-result name: `v, found := lookup(k)`. **Outside Go**, prefer `isFound` / `hasMatch`. |
+| `exists` | ⚠️ Go-only | Go (existence return) | Idiomatic existence-check return: `_, exists := registry[k]`. **Outside Go**, prefer `isExisting` / `hasEntry`. |
+| `err` | ✅ Valid | All languages | Holds an error value, not a boolean. Listed only to suppress false positives from defensive init patterns like `err := false`. |
+| `error` | ✅ Valid | All languages | Same rationale as `err`. Defensive entry for legacy code paths. |
+| `true` | ✅ Valid | All languages | Reserved literal, not an identifier. Defensive entry. |
+| `false` | ✅ Valid | All languages | Reserved literal, not an identifier. Defensive entry. |
+
+### Audit Verdict
+
+| Status | Names | Action |
+|--------|-------|--------|
+| ✅ **Confirmed valid (cross-language)** | `ok`, `err`, `error`, `true`, `false` | Keep as-is |
+| ⚠️ **Valid only in Go** | `done`, `found`, `exists` | **Recommendation:** language-scope these in `check_boolean_naming` so TS/PHP code receives the P1 violation. Tracked as linter enhancement. |
+
+### Recommended Linter Change (non-breaking)
+
+```python
+# linter-scripts/validate-guidelines.py
+GO_ONLY_EXEMPT = {"done", "found", "exists"}
+UNIVERSAL_EXEMPT = {"ok", "err", "error", "true", "false"}
+
+def check_boolean_naming(lines, filepath, lang):
+    exempt = UNIVERSAL_EXEMPT if lang != "go" else UNIVERSAL_EXEMPT | GO_ONLY_EXEMPT
+    # ...
+```
+
+This split preserves the existing Go behavior while restoring P1 enforcement for TypeScript and PHP. **No current codebase violation** would be triggered by this change (verified: `validate-guidelines.py` audit on 2026-04-19 reported 0 CODE-RED-002 violations).
+
+### Cross-References
+
+- [P1 — Naming prefixes](./01-naming-prefixes.md)
+- [P7 — No assignments in conditions (comma-ok exemption)](./03-parameters-and-conditions.md)
+- [Linter source — `validate-guidelines.py`](../../../../linter-scripts/validate-guidelines.py)
+- [Linter source — `validate-guidelines.go`](../../../../linter-scripts/validate-guidelines.go)
 
 ---
 
@@ -135,4 +182,3 @@ Boolean query methods on the **same classes** — such as `isEmpty()`, `isDefine
 | `stackTrace()` | `string` | Captured stack trace if error occurred |
 
 ---
-

@@ -90,4 +90,3 @@ echo $res->affectedRows();
 Callers provide a `Closure(array): T` mapper for type-safe row mapping (equivalent to Go's scanner functions). Use static `fromRow()` factory methods on domain models for consistency.
 
 ---
-

@@ -14,7 +14,7 @@ Discriminated unions must use **named types** for each variant — never inline 
 
 ## 1. Enum Values — PascalCase Only
 
-Enum values must use **PascalCase**. `UPPER_SNAKE_CASE` is prohibited.
+Enum values must use **PascalCase**. `UPPER_SNAKE_CASE`, `camelCase`, and `_camelCase` are strictly prohibited.
 
 ```typescript
 // ❌ PROHIBITED — UPPER_SNAKE_CASE values

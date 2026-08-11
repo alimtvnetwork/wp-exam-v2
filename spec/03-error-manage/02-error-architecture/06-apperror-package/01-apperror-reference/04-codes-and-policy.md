@@ -151,4 +151,3 @@ The table below shows what each constructor passes to its underlying `CaptureSta
 | 300 lines | 400 lines | All files target 300 lines. Up to 400 is acceptable but marked `// NOTE: Needs refactor — exceeds 300-line target` at the top. |
 
 ---
-

@@ -1,6 +1,6 @@
 # Split DB Architecture: Reset API Standard
 
-**Version:** 3.1.0  
+**Version:** 3.2.0  
 **Status:** Active  
 **Updated:** 2026-04-16  
 **Parent:** [00-overview.md](../00-overview.md)
@@ -146,6 +146,7 @@ Response:
 Every CLI's root database must include this table:
 
 ```sql
+-- linter-waive: MISSING-DESC-001 reason="Split-DB architecture example; focus on per-DB isolation, not free-text columns"
 CREATE TABLE ResetRequest (
     ResetRequestId INTEGER PRIMARY KEY AUTOINCREMENT,
     ResetToken TEXT UNIQUE NOT NULL,               -- rst_{uuid}

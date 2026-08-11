@@ -142,4 +142,3 @@ $path = PathHelper::getRootDb();
 > **Rule:** If a path does not have a typed accessor in `PathHelper`, create one before using it. See [PHP Enum Spec](../01-enums.md) for full `PathEnum` and `PathHelper` listings.
 
 ---
-

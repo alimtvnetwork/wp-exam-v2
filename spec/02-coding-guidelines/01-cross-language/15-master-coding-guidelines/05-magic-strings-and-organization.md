@@ -123,4 +123,3 @@ $this->db->insert(TableType::Transactions->value, array('PluginSlug' => $slug));
 ```
 
 ---
-
