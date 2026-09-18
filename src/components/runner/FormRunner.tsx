@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FormModel, FormField } from '@/lib/types/form';
+import { FormModel, FormField, FormSubmissionResult } from '@/lib/types/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -14,17 +14,17 @@ interface FormRunnerProps {
 
 export const FormRunner: React.FC<FormRunnerProps> = ({ form, onClose }) => {
   const [currentStep, setCurrentStep] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, any>>({});
+  const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [guestName, setGuestName] = useState('');
   const [guestEmail, setGuestEmail] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<FormSubmissionResult | null>(null);
 
   const fields = form.fields || [];
   const isSequential = form.isSequential && fields.length > 1;
   const currentField = fields[currentStep];
 
-  const handleAnswerChange = (fieldId: string, value: any) => {
+  const handleAnswerChange = (fieldId: string, value: unknown) => {
     setAnswers((prev) => ({ ...prev, [fieldId]: value }));
   };
 
@@ -208,11 +208,12 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form, onClose }) => {
   );
 };
 
-function renderFieldInput(field: FormField, value: any, onChange: (val: any) => void) {
+function renderFieldInput(field: FormField, value: unknown, onChange: (val: unknown) => void) {
+  const strValue = typeof value === 'string' ? value : '';
   switch (field.type) {
     case 'multiple_choice':
     case 'single_choice':
-    case 'true_false':
+    case 'true_false': {
       const options = field.options || ['Option 1', 'Option 2'];
       return (
         <div className="space-y-2 mt-2">
@@ -236,11 +237,12 @@ function renderFieldInput(field: FormField, value: any, onChange: (val: any) => 
           ))}
         </div>
       );
+    }
 
     case 'dropdown':
       return (
         <select
-          value={value || ''}
+          value={strValue}
           onChange={(e) => onChange(e.target.value)}
           className="w-full p-2 border rounded-md bg-background text-sm"
         >
@@ -254,7 +256,7 @@ function renderFieldInput(field: FormField, value: any, onChange: (val: any) => 
     case 'paragraph':
       return (
         <Textarea
-          value={value || ''}
+          value={strValue}
           onChange={(e) => onChange(e.target.value)}
           placeholder={field.placeholder || 'Enter details...'}
           rows={3}
@@ -265,7 +267,7 @@ function renderFieldInput(field: FormField, value: any, onChange: (val: any) => 
       return (
         <Input
           type="email"
-          value={value || ''}
+          value={strValue}
           onChange={(e) => onChange(e.target.value)}
           placeholder={field.placeholder || 'name@example.com'}
         />
@@ -275,7 +277,7 @@ function renderFieldInput(field: FormField, value: any, onChange: (val: any) => 
       return (
         <Input
           type="tel"
-          value={value || ''}
+          value={strValue}
           onChange={(e) => onChange(e.target.value)}
           placeholder={field.placeholder || '+1 (555) 000-0000'}
         />
@@ -307,7 +309,7 @@ function renderFieldInput(field: FormField, value: any, onChange: (val: any) => 
             onChange={(e) => onChange(e.target.files?.[0]?.name || '')}
             className="block w-full text-xs"
           />
-          {value && <div className="mt-2 text-primary font-medium">Selected: {value}</div>}
+          {strValue ? <div className="mt-2 text-primary font-medium">Selected: {strValue}</div> : null}
         </div>
       );
 
@@ -315,7 +317,7 @@ function renderFieldInput(field: FormField, value: any, onChange: (val: any) => 
     default:
       return (
         <Input
-          value={value || ''}
+          value={strValue}
           onChange={(e) => onChange(e.target.value)}
           placeholder={field.placeholder || 'Your answer...'}
         />

@@ -46,7 +46,7 @@ export interface FormModel {
 export interface FormSubmissionPayload {
   guestName?: string;
   guestEmail?: string;
-  answers: Record<string, any>;
+  answers: Record<string, unknown>;
 }
 
 export interface FormSubmissionResult {

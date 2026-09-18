@@ -37,8 +37,8 @@ interface QuizState {
   setQuestions: (questions: FormField[]) => void;
 
   resetForm: () => void;
-  saveForm: () => Promise<any>;
-  saveQuiz: () => Promise<any>;
+  saveForm: () => Promise<unknown>;
+  saveQuiz: () => Promise<unknown>;
 }
 
 const initialSettings: FormSettings = {
@@ -138,7 +138,7 @@ export const useQuizStore = create<QuizState>((set, get) => ({
   saveForm: async () => {
     set({ isSaving: true });
     const state = get();
-    const wpSettings = (window as any).wpExamSettings || {
+    const wpSettings = (window as unknown as { wpExamSettings?: { root: string; nonce: string } }).wpExamSettings || {
       root: '/wp-json/',
       nonce: '',
     };

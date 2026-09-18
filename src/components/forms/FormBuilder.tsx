@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
-import { FormField, FieldType, FormType } from '@/lib/types/form';
+import { FormField, FieldType, FormType, FormAccessType } from '@/lib/types/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -328,8 +328,9 @@ export const FormBuilder = () => {
       await saveForm();
       setSaveStatus('Form saved successfully!');
       setTimeout(() => setSaveStatus(null), 3500);
-    } catch (err: any) {
-      setSaveStatus(`Saved locally (API simulated: ${err.message})`);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      setSaveStatus(`Saved locally (API simulated: ${message})`);
       setTimeout(() => setSaveStatus(null), 4000);
     }
   };
@@ -386,7 +387,7 @@ export const FormBuilder = () => {
               <Label className="text-xs font-semibold block mb-1">Access Control</Label>
               <select
                 value={formAccess}
-                onChange={(e) => setFormAccess(e.target.value as any)}
+                onChange={(e) => setFormAccess(e.target.value as FormAccessType)}
                 className="w-full p-2 border rounded-md text-sm bg-background"
               >
                 <option value="public">Public (Open to Guests & Visitors)</option>

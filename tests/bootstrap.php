@@ -149,3 +149,8 @@ $GLOBALS['wpdb'] = new wpdb();
 
 // Load plugin autoloader
 require_once dirname(__DIR__) . '/includes/Autoloader.php';
+
+// Fallback TestCase stub for environments without PHPUnit
+if (!class_exists('PHPUnit\\Framework\\TestCase')) {
+    require_once __DIR__ . '/stubs/testcase.php';
+}

@@ -49,4 +49,3 @@ Compact registry of the last 20 tasks, transaction logs, and milestone plans. Ev
 20. **Task 07:** [Bytes[T] Monadic Wrapper & *appfault.AppError Standard](05-changes-history/07-bytes-wrapper-and-apperror-standard/01-transaction-log.md) (2026-09-04) — Replaced raw ([]byte, error) with monadic Bytes[T] and standardized structured AppError returns.
 
 - [01-rename-lovable-to-ai-memory.md](completed/01-rename-lovable-to-ai-memory.md): Renamed .lovable to .ai-memory everywhere.
-- [05-wp-exam-migration-and-quiz-feature.md](pending/05-wp-exam-migration-and-quiz-feature.md): Migrate guidelines and add quiz feature to WP exam.
