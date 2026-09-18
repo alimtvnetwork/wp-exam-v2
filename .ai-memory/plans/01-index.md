@@ -12,6 +12,7 @@ Master directory of architectural and execution plans.
 
 ## Completed Plans
 
+- [27-orchestration-compliance-and-verification.md](completed/27-orchestration-compliance-and-verification.md): Complete audit and end-to-end verification of local runners, remote uploader, recursive sub-projects, split SQLite DBs, focus quiz runner, and bug triage.
 - [26-final-compliance-and-task-deliverables-audit.md](completed/26-final-compliance-and-task-deliverables-audit.md): Final compliance audit and end-to-end verification of local runners, remote uploader, recursive sub-projects, split SQLite DBs, focus quiz runner, and bug triage.
 - [25-verification-and-audit-certification.md](completed/25-verification-and-audit-certification.md): Complete audit and end-to-end verification of local runners, remote uploader, recursive sub-projects, split SQLite DBs, focus quiz runner, and bug triage.
 - [24-full-audit-and-end-to-end-verification.md](completed/24-full-audit-and-end-to-end-verification.md): Full audit and end-to-end verification of local runners, remote uploader, recursive sub-projects, split SQLite DBs, focus quiz runner, and bug triage.
