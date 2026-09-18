@@ -5,8 +5,10 @@ import { Textarea } from '@/components/ui/textarea';
 import { toast } from 'sonner';
 
 export const AIInstructionStudio: React.FC = () => {
-  const [copied, setCopied] = useState<boolean>(false);
-  const [selectedPromptType, setSelectedPromptType] = useState<'onboarding' | 'exam' | 'screenshot'>('onboarding');
+  const [isCopied, setIsCopied] = useState<boolean>(false);
+  const [selectedPromptType, setSelectedPromptType] = useState<
+    'onboarding' | 'exam' | 'screenshot' | 'conditional_routing'
+  >('onboarding');
   const [testJsonInput, setTestJsonInput] = useState<string>('');
   const [validationResult, setValidationResult] = useState<{
     isValid: boolean;
@@ -15,6 +17,61 @@ export const AIInstructionStudio: React.FC = () => {
   } | null>(null);
 
   const getSystemPrompt = () => {
+    if (selectedPromptType === 'conditional_routing') {
+      return `You are a conditional logic and branching schema architect for WP Exam.
+Given the assessment requirement, construct a quiz with Google Forms-style dynamic branch targets where a candidate's answer choices route them directly to specific downstream questions or sections.
+
+SCHEMA CONTRACT:
+{
+  "project_id": "proj_conditional_flow",
+  "title": "Branching & Adaptive Assessment",
+  "questions": [
+    {
+      "id": "q1",
+      "type": "mcq",
+      "title": "What is your primary **technical focus**?",
+      "subtitle": "Select one to determine your path",
+      "options": [
+        { "label": "Frontend (React / TypeScript)", "icon": "⚛️", "branchTarget": "q_frontend" },
+        { "label": "Backend (Go / PHP / SQLite)", "icon": "⚙️", "branchTarget": "q_backend" },
+        { "label": "DevOps (CI/CD / Docker)", "icon": "🚀", "branchTarget": "q_devops" }
+      ],
+      "correctAnswer": "Frontend (React / TypeScript)",
+      "points": 10
+    },
+    {
+      "id": "q_frontend",
+      "type": "mcq",
+      "title": "Which state management pattern do you use in **React**?",
+      "options": ["Zustand / Redux", "Context API only", "URL State / TanStack Query"],
+      "branchTarget": "q_final_review"
+    },
+    {
+      "id": "q_backend",
+      "type": "paragraph",
+      "title": "Explain how you manage **database transaction rollbacks** in SQLite:",
+      "validationType": "regex",
+      "validationRule": {
+        "pattern": "^.{20,}$",
+        "errorMessage": "Answer must contain at least 20 characters explaining rollback logic."
+      },
+      "branchTarget": "q_final_review"
+    },
+    {
+      "id": "q_final_review",
+      "type": "mcq",
+      "title": "Ready to submit your **adaptive assessment**?",
+      "options": ["Yes, submit final responses", "Review answers"]
+    }
+  ]
+}
+
+BRANCHING RULES:
+1. Each option in 'options' can specify 'branchTarget' matching the 'id' of another question.
+2. A question-level 'branchTarget' routes to the target question when the candidate answers that question.
+3. Ensure every branch target 'id' exists in the questions array to prevent dead links.`;
+    }
+
     if (selectedPromptType === 'onboarding') {
       return `You are an expert instructional designer and exam creator for WP Exam.
 Given the company documentation or reading material, construct a comprehensive 3-stage onboarding curriculum in JSON.
@@ -90,9 +147,9 @@ Provide helpful hints and anti-cheat scoring rules.`;
 
   const handleCopyPrompt = () => {
     navigator.clipboard.writeText(getSystemPrompt());
-    setCopied(true);
+    setIsCopied(true);
     toast.success('Prompt copied to clipboard! Paste it into ChatGPT, Claude, or Gemini.');
-    setTimeout(() => setCopied(false), 2000);
+    setTimeout(() => setIsCopied(false), 2000);
   };
 
   const handleValidateJson = () => {
@@ -142,14 +199,14 @@ Provide helpful hints and anti-cheat scoring rules.`;
       </div>
 
       {/* Preset Selector */}
-      <div className="flex items-center gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         <Button
           size="sm"
           variant={selectedPromptType === 'onboarding' ? 'default' : 'outline'}
           onClick={() => setSelectedPromptType('onboarding')}
           className={selectedPromptType === 'onboarding' ? 'bg-indigo-600 text-white' : 'border-slate-800 text-slate-300'}
         >
-          Curriculum & Onboarding Prompt
+          Curriculum & Onboarding
         </Button>
         <Button
           size="sm"
@@ -157,7 +214,7 @@ Provide helpful hints and anti-cheat scoring rules.`;
           onClick={() => setSelectedPromptType('screenshot')}
           className={selectedPromptType === 'screenshot' ? 'bg-indigo-600 text-white' : 'border-slate-800 text-slate-300'}
         >
-          Screenshot to Focus UI Prompt
+          Screenshot to Focus UI
         </Button>
         <Button
           size="sm"
@@ -165,7 +222,15 @@ Provide helpful hints and anti-cheat scoring rules.`;
           onClick={() => setSelectedPromptType('exam')}
           className={selectedPromptType === 'exam' ? 'bg-indigo-600 text-white' : 'border-slate-800 text-slate-300'}
         >
-          Technical Exam Prompt
+          Technical Exam
+        </Button>
+        <Button
+          size="sm"
+          variant={selectedPromptType === 'conditional_routing' ? 'default' : 'outline'}
+          onClick={() => setSelectedPromptType('conditional_routing')}
+          className={selectedPromptType === 'conditional_routing' ? 'bg-indigo-600 text-white' : 'border-slate-800 text-slate-300'}
+        >
+          Conditional Branching & Logic
         </Button>
       </div>
 
@@ -182,8 +247,8 @@ Provide helpful hints and anti-cheat scoring rules.`;
             onClick={handleCopyPrompt}
             className="bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold"
           >
-            {copied ? <Check className="w-3.5 h-3.5 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
-            {copied ? 'Copied!' : 'Copy AI Prompt'}
+            {isCopied ? <Check className="w-3.5 h-3.5 mr-1" /> : <Copy className="w-3.5 h-3.5 mr-1" />}
+            {isCopied ? 'Copied!' : 'Copy AI Prompt'}
           </Button>
         </div>
 

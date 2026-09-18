@@ -16,6 +16,11 @@ import {
   AlertCircle,
   FileText,
   Upload,
+  Volume2,
+  Share2,
+  Video,
+  Copy,
+  GitBranch,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -29,10 +34,21 @@ export interface FocusQuestion {
   type: 'mcq' | 'multiselect' | 'paragraph' | 'url_submission' | 'mindmap' | 'file_upload';
   title: string;
   subtitle?: string;
-  options?: Array<{ label: string; icon?: string; isFullWidth?: boolean } | string>;
+  options?: Array<{ label: string; icon?: string; isFullWidth?: boolean; branchTarget?: string } | string>;
   correctAnswer?: string | string[];
   hint?: string;
   mediaUrl?: string;
+  audioUrl?: string;
+  videoUrl?: string;
+  youtubeUrl?: string;
+  validationType?: 'number' | 'email' | 'regex' | 'none';
+  validationRule?: {
+    min?: number;
+    max?: number;
+    pattern?: string;
+    errorMessage?: string;
+  };
+  branchTarget?: string;
   verificationType?: 'google_docs' | 'workflowy' | 'xmind' | 'figma' | 'url' | 'any';
   layout?: '1-column' | '2-column';
   points?: number;
@@ -281,6 +297,22 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [showHint, setShowHint] = useState<boolean>(false);
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
+  const [showShareModal, setShowShareModal] = useState<boolean>(false);
+  const [isCopied, setIsCopied] = useState<boolean>(false);
+
+  const handleCopyShareLink = () => {
+    const shareUrl = typeof window !== 'undefined'
+      ? `${window.location.origin}${window.location.pathname}?quiz=${config.id}&q=${currentQuestionIndex + 1}`
+      : `https://wpexam.io/quiz/${config.id}?q=${currentQuestionIndex + 1}`;
+
+    navigator.clipboard.writeText(shareUrl);
+    setIsCopied(true);
+    toast.success('Question link copied to clipboard!');
+
+    setTimeout(() => {
+      setIsCopied(false);
+    }, 2000);
+  };
   const [reportText, setReportText] = useState<string>('');
   const [reportType, setReportType] = useState<'feedback' | 'bug' | 'typo' | 'dispute'>('feedback');
   const [reporterEmail, setReporterEmail] = useState<string>('');
@@ -390,6 +422,88 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
     return { isValid: true, message: '✓ Valid URL verified' };
   };
 
+  const getYouTubeEmbedUrl = (url?: string): string | null => {
+    const hasUrl = Boolean(url);
+    if (!hasUrl) {
+      return null;
+    }
+
+    const match = url?.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w-]{11})/);
+    const hasMatch = Boolean(match && match[1]);
+
+    if (hasMatch && match) {
+      return `https://www.youtube-nocookie.com/embed/${match[1]}`;
+    }
+
+    return null;
+  };
+
+  const validateFieldValue = (
+    value: string,
+    vType?: 'number' | 'email' | 'regex' | 'none',
+    rule?: { min?: number; max?: number; pattern?: string; errorMessage?: string }
+  ): { isValid: boolean; message: string } => {
+    const isNone = !vType || vType === 'none';
+    if (isNone) {
+      return { isValid: true, message: '' };
+    }
+
+    const hasValue = Boolean(value && value.trim());
+    if (!hasValue) {
+      return { isValid: false, message: 'Value is required' };
+    }
+
+    const trimmed = value.trim();
+
+    if (vType === 'number') {
+      const num = Number(trimmed);
+      const isNumNaN = isNaN(num);
+      if (isNumNaN) {
+        return { isValid: false, message: 'Must be a valid number' };
+      }
+
+      const hasMin = rule?.min !== undefined;
+      if (hasMin && rule && rule.min !== undefined && num < rule.min) {
+        return { isValid: false, message: rule.errorMessage || `Minimum value is ${rule.min}` };
+      }
+
+      const hasMax = rule?.max !== undefined;
+      if (hasMax && rule && rule.max !== undefined && num > rule.max) {
+        return { isValid: false, message: rule.errorMessage || `Maximum value is ${rule.max}` };
+      }
+
+      return { isValid: true, message: 'Valid number' };
+    }
+
+    if (vType === 'email') {
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
+      if (!isEmail) {
+        return { isValid: false, message: rule?.errorMessage || 'Must be a valid email address' };
+      }
+
+      return { isValid: true, message: 'Valid email format' };
+    }
+
+    if (vType === 'regex') {
+      const hasPattern = Boolean(rule?.pattern);
+      if (hasPattern && rule?.pattern) {
+        try {
+          const regex = new RegExp(rule.pattern);
+          const isMatched = regex.test(trimmed);
+          if (!isMatched) {
+            return { isValid: false, message: rule.errorMessage || 'Invalid format' };
+          }
+
+          return { isValid: true, message: 'Matches required pattern' };
+        } catch {
+          return { isValid: true, message: '' };
+        }
+      }
+    }
+
+    return { isValid: true, message: '' };
+  };
+
   const handleSelectOption = (questionId: string, optionLabel: string, isMulti: boolean) => {
     recordClickTelemetry(`select_option_${questionId}`);
 
@@ -458,7 +572,32 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
     }
 
     if (currentStage === 'quiz') {
-      if (currentQuestionIndex < totalQuestions - 1) {
+      const currentAns = answers[currentQuestion.id];
+      const hasStringAns = typeof currentAns === 'string';
+      const hasOptions = Boolean(currentQuestion.options);
+
+      if (hasStringAns && hasOptions && currentQuestion.options) {
+        const selectedOpt = currentQuestion.options.find(
+          (o) => (typeof o === 'string' ? o : o.label) === currentAns
+        );
+        const isObjectOpt = typeof selectedOpt === 'object' && selectedOpt !== null;
+        const hasBranchTarget = Boolean(isObjectOpt && selectedOpt && selectedOpt.branchTarget);
+
+        if (hasBranchTarget && isObjectOpt && selectedOpt && selectedOpt.branchTarget) {
+          const targetIndex = activeQuestions.findIndex((q) => q.id === selectedOpt.branchTarget);
+          const hasValidTarget = targetIndex !== -1;
+
+          if (hasValidTarget) {
+            setCurrentQuestionIndex(targetIndex);
+            setShowHint(false);
+            return;
+          }
+        }
+      }
+
+      const hasNextQuestion = currentQuestionIndex < totalQuestions - 1;
+
+      if (hasNextQuestion) {
         setCurrentQuestionIndex(currentQuestionIndex + 1);
         setShowHint(false);
       } else {
@@ -893,15 +1032,27 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
         {currentStage === 'quiz' && currentQuestion && (
           <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-200">
             <div className="space-y-2 text-center">
-              <div className="flex items-center justify-center gap-2">
-                <Badge variant="outline" className="text-[10px] uppercase font-mono">
-                  Question {currentQuestionIndex + 1} of {totalQuestions}
-                </Badge>
-                {isRandomized && (
-                  <Badge variant="secondary" className="text-[10px]">
-                    🔀 Shuffled
+              <div className="flex items-center justify-between gap-2 pb-1">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] uppercase font-mono">
+                    Question {currentQuestionIndex + 1} of {totalQuestions}
                   </Badge>
-                )}
+                  {isRandomized && (
+                    <Badge variant="secondary" className="text-[10px]">
+                      🔀 Shuffled
+                    </Badge>
+                  )}
+                </div>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setShowShareModal(true)}
+                  className="h-7 px-2 text-xs flex items-center gap-1.5 opacity-70 hover:opacity-100"
+                  style={{ color: theme.colors.textSecondary }}
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>Share</span>
+                </Button>
               </div>
 
               <h2 className="text-2xl font-black leading-tight">
@@ -915,8 +1066,49 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
               )}
             </div>
 
-            {/* Media Embed if available */}
-            {currentQuestion.mediaUrl && (
+            {/* Audio Embed if available */}
+            {currentQuestion.audioUrl && (
+              <div
+                className="p-3 rounded-2xl border flex flex-col space-y-2"
+                style={{
+                  backgroundColor: theme.colors.cardBg,
+                  borderColor: theme.colors.cardBorder,
+                }}
+              >
+                <div className="flex items-center gap-2 text-xs font-semibold" style={{ color: theme.colors.highlightWord }}>
+                  <Volume2 className="w-4 h-4" />
+                  <span>Listen to Audio Instruction / Question Prompt</span>
+                </div>
+                <audio controls className="w-full h-8" src={currentQuestion.audioUrl}>
+                  Your browser does not support audio playback.
+                </audio>
+              </div>
+            )}
+
+            {/* Video / YouTube embed */}
+            {(currentQuestion.youtubeUrl || getYouTubeEmbedUrl(currentQuestion.mediaUrl)) ? (
+              <div
+                className="w-full aspect-video rounded-2xl overflow-hidden border shadow"
+                style={{ borderColor: theme.colors.cardBorder }}
+              >
+                <iframe
+                  className="w-full h-full"
+                  src={getYouTubeEmbedUrl(currentQuestion.youtubeUrl || currentQuestion.mediaUrl) || ''}
+                  title="Question Video Embed"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  allowFullScreen
+                />
+              </div>
+            ) : currentQuestion.videoUrl ? (
+              <div
+                className="w-full aspect-video rounded-2xl overflow-hidden border shadow"
+                style={{ borderColor: theme.colors.cardBorder }}
+              >
+                <video controls className="w-full h-full object-cover" src={currentQuestion.videoUrl}>
+                  Your browser does not support video playback.
+                </video>
+              </div>
+            ) : currentQuestion.mediaUrl && (
               <div
                 className="w-full h-44 rounded-2xl overflow-hidden border shadow"
                 style={{ borderColor: theme.colors.cardBorder }}
@@ -943,6 +1135,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                     const optLabel = typeof opt === 'string' ? opt : opt.label;
                     const optIcon = typeof opt === 'object' ? opt.icon : undefined;
                     const isFullWidth = typeof opt === 'object' ? opt.isFullWidth : false;
+                    const branchTarget = typeof opt === 'object' ? opt.branchTarget : undefined;
 
                     const userSelected = answers[currentQuestion.id];
                     const isSelected =
@@ -973,7 +1166,14 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                       >
                         <div className="flex items-center gap-3">
                           {optIcon && <span className="text-xl">{optIcon}</span>}
-                          <span className="font-semibold text-sm leading-snug">{optLabel}</span>
+                          <div>
+                            <span className="font-semibold text-sm leading-snug block">{optLabel}</span>
+                            {branchTarget && (
+                              <span className="text-[10px] text-amber-400 font-mono flex items-center gap-1 mt-0.5">
+                                <GitBranch className="w-2.5 h-2.5" /> Branches to: {branchTarget}
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         <div
@@ -1085,7 +1285,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
               </div>
             )}
 
-            {/* Paragraph / Text Area */}
+            {/* Paragraph / Text Area with Live Validations */}
             {currentQuestion.type === 'paragraph' && (
               <div
                 className="p-4 rounded-2xl border space-y-2"
@@ -1105,6 +1305,42 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                     borderColor: theme.colors.cardBorder,
                   }}
                 />
+
+                {/* Live Field Validation Indicator */}
+                {Boolean(currentQuestion.validationType && currentQuestion.validationType !== 'none') && (
+                  <div className="pt-1 text-xs">
+                    {(() => {
+                      const validation = validateFieldValue(
+                        String(answers[currentQuestion.id] || ''),
+                        currentQuestion.validationType,
+                        currentQuestion.validationRule
+                      );
+                      const hasAnswer = Boolean(answers[currentQuestion.id]);
+
+                      if (validation.isValid && hasAnswer) {
+                        return (
+                          <span className="text-emerald-400 font-medium flex items-center gap-1">
+                            <Check className="w-3.5 h-3.5" />
+                            {validation.message || 'Validation passed'}
+                          </span>
+                        );
+                      }
+
+                      const isInvalid = !validation.isValid;
+
+                      if (isInvalid) {
+                        return (
+                          <span className="text-rose-400 font-medium flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            {validation.message}
+                          </span>
+                        );
+                      }
+
+                      return null;
+                    })()}
+                  </div>
+                )}
               </div>
             )}
 
@@ -1412,6 +1648,131 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
               <Button size="sm" onClick={submitReport} className="flex items-center gap-1 text-xs">
                 <Send className="w-3.5 h-3.5" />
                 Submit Report
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share / OpenGraph Preview Modal */}
+      {showShareModal && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div
+            className="w-full max-w-md rounded-3xl border p-6 space-y-4 shadow-2xl animate-in zoom-in-95 duration-150"
+            style={{
+              backgroundColor: theme.colors.cardBg,
+              borderColor: theme.colors.cardBorder,
+              color: theme.colors.textPrimary,
+            }}
+          >
+            <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: theme.colors.cardBorder }}>
+              <div className="flex items-center gap-2">
+                <Share2 className="w-4 h-4 text-indigo-400" />
+                <h3 className="font-bold text-sm">Share Question & SEO Preview</h3>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-7 w-7 p-0 rounded-full text-slate-400 hover:text-white"
+                onClick={() => setShowShareModal(false)}
+              >
+                ✕
+              </Button>
+            </div>
+
+            {/* OpenGraph / Social Card Preview */}
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-slate-400 block">OpenGraph / Twitter Card Preview:</label>
+              <div
+                className="rounded-2xl border overflow-hidden p-4 space-y-2.5 bg-slate-900/60"
+                style={{ borderColor: theme.colors.cardBorder }}
+              >
+                {currentQuestion?.mediaUrl && (
+                  <div className="w-full h-32 rounded-xl overflow-hidden border border-slate-700/50">
+                    <img
+                      src={currentQuestion.mediaUrl}
+                      alt="SEO Social Preview"
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                )}
+                <div className="space-y-1">
+                  <div className="text-[10px] uppercase font-bold tracking-wider text-indigo-400">
+                    WP Exam Autonomous Assessment
+                  </div>
+                  <div className="text-sm font-bold leading-snug line-clamp-2">
+                    {currentQuestion ? currentQuestion.title.replace(/\*\*/g, '') : config.title}
+                  </div>
+                  <div className="text-xs text-slate-400 line-clamp-2">
+                    {currentQuestion?.subtitle || 'Interactive quiz assessment question powered by WP Exam.'}
+                  </div>
+                  <div className="text-[10px] text-slate-500 pt-1 font-mono">
+                    wpexam.io/quiz/{config.id}?q={currentQuestionIndex + 1}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sharing Action Buttons */}
+            <div className="space-y-2 pt-1">
+              <label className="text-[11px] font-semibold text-slate-400 block">Share to Social Platforms:</label>
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const shareTitle = currentQuestion ? currentQuestion.title.replace(/\*\*/g, '') : config.title;
+                    const shareUrl = typeof window !== 'undefined'
+                      ? `${window.location.origin}${window.location.pathname}?quiz=${config.id}&q=${currentQuestionIndex + 1}`
+                      : `https://wpexam.io/quiz/${config.id}?q=${currentQuestionIndex + 1}`;
+                    window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
+                  }}
+                  className="w-full flex items-center justify-center gap-1.5 text-xs rounded-xl"
+                  style={{ borderColor: theme.colors.cardBorder }}
+                >
+                  <span>𝕏 / Twitter</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const shareUrl = typeof window !== 'undefined'
+                      ? `${window.location.origin}${window.location.pathname}?quiz=${config.id}&q=${currentQuestionIndex + 1}`
+                      : `https://wpexam.io/quiz/${config.id}?q=${currentQuestionIndex + 1}`;
+                    window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank');
+                  }}
+                  className="w-full flex items-center justify-center gap-1.5 text-xs rounded-xl"
+                  style={{ borderColor: theme.colors.cardBorder }}
+                >
+                  <span>💼 LinkedIn</span>
+                </Button>
+              </div>
+
+              <div className="pt-2 flex items-center gap-2">
+                <Input
+                  readOnly
+                  value={typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}?quiz=${config.id}&q=${currentQuestionIndex + 1}` : ''}
+                  className="text-xs rounded-xl font-mono p-2 h-9 flex-1"
+                  style={{
+                    backgroundColor: theme.colors.background,
+                    borderColor: theme.colors.cardBorder,
+                  }}
+                />
+                <Button
+                  size="sm"
+                  onClick={handleCopyShareLink}
+                  className="h-9 px-3 text-xs rounded-xl flex items-center gap-1.5"
+                >
+                  {isCopied ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+                  <span>{isCopied ? 'Copied' : 'Copy'}</span>
+                </Button>
+              </div>
+            </div>
+
+            <div className="flex justify-end pt-1">
+              <Button variant="ghost" size="sm" onClick={() => setShowShareModal(false)}>
+                Close
               </Button>
             </div>
           </div>

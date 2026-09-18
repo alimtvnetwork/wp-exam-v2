@@ -38,6 +38,15 @@ if (!class_exists('WpExamAutoloader', false)) {
         $isFileMissing = !file_exists($file);
 
         if ($isFileMissing) {
+            $lowerFile = __DIR__ . '/' . strtolower(str_replace('\\', '/', $relativeClass)) . '.php';
+            $hasLowerFile = file_exists($lowerFile);
+            if ($hasLowerFile) {
+                $file = $lowerFile;
+                $isFileMissing = false;
+            }
+        }
+
+        if ($isFileMissing) {
             $errorMsg = 'File not found';
             error_log(self::LOG_PREFIX . 'class file not found for "' . $class . '" - expected at "' . $file . '"');
             self::$failedClasses[] = ['class' => $class, 'file' => $file, 'error' => $errorMsg];

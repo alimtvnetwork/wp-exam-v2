@@ -15,6 +15,7 @@ if (!defined('ABSPATH')) {
 
 use Throwable;
 use WpExam\Api\FormRestController;
+use WpExam\Api\AuthRestController;
 use WpExam\Api\UserInviteRestController;
 use WpExam\Api\EmailSettingsRestController;
 use WpExam\Api\CompletionHistoryRestController;
@@ -29,6 +30,7 @@ use WpExam\ErrorHandling\BootErrorCollector;
 class Plugin {
     private static ?self $instance = null;
     private ?FormRestController $restController = null;
+    private ?AuthRestController $authController = null;
     private ?UserInviteRestController $inviteController = null;
     private ?EmailSettingsRestController $emailController = null;
     private ?CompletionHistoryRestController $historyController = null;
@@ -56,6 +58,7 @@ class Plugin {
 
             // Register REST Controllers
             $this->restController = new FormRestController();
+            $this->authController = new AuthRestController();
             $this->inviteController = new UserInviteRestController();
             $this->emailController = new EmailSettingsRestController();
             $this->historyController = new CompletionHistoryRestController();
@@ -65,6 +68,7 @@ class Plugin {
             $this->systemBackupController = new SystemBackupRestController();
 
             add_action('rest_api_init', [$this->restController, 'registerRoutes']);
+            add_action('rest_api_init', [$this->authController, 'registerRoutes']);
             add_action('rest_api_init', [$this->inviteController, 'registerRoutes']);
             add_action('rest_api_init', [$this->emailController, 'registerRoutes']);
             add_action('rest_api_init', [$this->historyController, 'registerRoutes']);
@@ -72,6 +76,7 @@ class Plugin {
             add_action('rest_api_init', [$this->projectHierarchyController, 'register_routes']);
             add_action('rest_api_init', [$this->aiInstructionController, 'register_routes']);
             add_action('rest_api_init', [$this->systemBackupController, 'register_routes']);
+            add_action('elementor/widgets/register', [$this, 'registerElementorWidgets']);
 
             if (is_admin()) {
                 if (class_exists('WP_Exam_Admin')) {
@@ -84,6 +89,14 @@ class Plugin {
         } catch (Throwable $e) {
             BootErrorCollector::getInstance()->addError('plugin_init', $e->getMessage());
             FileLogger::getInstance()->error('Plugin initialization failed: ' . $e->getMessage());
+        }
+    }
+
+    public function registerElementorWidgets($widgetsManager = null): void {
+        if (class_exists('\\WpExam\\Elementor\\QuizWidget')) {
+            if (is_object($widgetsManager) && method_exists($widgetsManager, 'register')) {
+                $widgetsManager->register(new \WpExam\Elementor\QuizWidget());
+            }
         }
     }
 
