@@ -116,6 +116,54 @@ const DEFAULT_SAMPLE_CONFIG: FocusQuizConfig = {
         content:
           'To prevent fraudulent submissions while supporting anonymous surveys, client IP addresses are securely hashed and logged with an anonymity boolean flag. Before taking the quiz, candidates must complete the practical verification checklist.',
       },
+      {
+        pageNumber: 3,
+        title: 'Category & Recursive Sub-Projects Hierarchy',
+        content:
+          'Curriculum modules are organized top-down into Categories, Projects, and Recursive Sub-Projects via parent_project_id foreign keys, allowing deeply nested departmental and course trees.',
+      },
+      {
+        pageNumber: 4,
+        title: 'Execution Pipeline Sequencing & Custom Paths',
+        content:
+          'Projects enforce strict or flexible sequential pipelines (e.g., Step A -> Step C -> Step D -> Step B). Candidates must complete prerequisites before downstream modules unlock.',
+      },
+      {
+        pageNumber: 5,
+        title: 'Practical Verification Checklist Gates',
+        content:
+          'Mandatory verification checklists act as hard quality gates. Candidates must actively confirm prerequisite reading and environment readiness before taking the exam.',
+      },
+      {
+        pageNumber: 6,
+        title: 'Focus-Mode Single-Item Quiz UX',
+        content:
+          'To maximize candidate cognitive focus and eliminate clutter, quizzes display exactly one question item at a time with prominent typography, visual cards, and high contrast.',
+      },
+      {
+        pageNumber: 7,
+        title: 'Anti-Cheat Grading & Concealed Solutions',
+        content:
+          'Upon failed submission, correct answers remain strictly concealed. Candidates receive diagnostic feedback indicating wrong answers and must retake until mastery is achieved.',
+      },
+      {
+        pageNumber: 8,
+        title: 'Diverse Question Submissions',
+        content:
+          'The assessment engine supports single MCQ, multi-select checkboxes, free text/paragraph responses, and direct PDF/Doc document file attachments.',
+      },
+      {
+        pageNumber: 9,
+        title: 'Mindmap, Workflowy, XMind & URL Verification',
+        content:
+          'Candidates can submit architectural diagrams and mindmaps from Workflowy, XMind, Figma, and Google Docs with live URL format and domain verification.',
+      },
+      {
+        pageNumber: 10,
+        title: 'Candidate Question Reporting, Triage & Rotating Backups',
+        content:
+          'Every question includes an in-quiz report modal to flag typos or disputes directly to instructor dashboards, while system databases undergo automated rotating backups.',
+      },
     ],
   },
   checklistSection: {
@@ -1221,7 +1269,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
           className="sticky bottom-0 z-20 backdrop-blur-md bg-opacity-95 p-4 border-t"
           style={{ borderColor: theme.colors.cardBorder }}
         >
-          <div className="max-w-md mx-auto">
+          <div className="max-w-md mx-auto space-y-2">
             <button
               onClick={handleContinue}
               className="w-full py-4 rounded-2xl font-bold text-base shadow-xl transition active:scale-[0.98] hover:opacity-95"
@@ -1242,6 +1290,19 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                 ? 'Complete Assessment'
                 : 'Continue'}
             </button>
+
+            {currentStage === 'reading' && currentReadingPageIndex < totalReadingPages - 1 && (
+              <button
+                onClick={() => {
+                  recordClickTelemetry('skip_to_checklist');
+                  setCurrentStage('checklist');
+                }}
+                className="w-full py-1 text-xs font-medium text-center transition hover:underline opacity-80"
+                style={{ color: theme.colors.textSecondary }}
+              >
+                Proceed to Checklist →
+              </button>
+            )}
           </div>
         </footer>
       )}
