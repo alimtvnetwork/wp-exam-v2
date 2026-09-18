@@ -30,9 +30,16 @@ export const EmailSettings: React.FC = () => {
   const [feedback, setFeedback] = useState<string | null>(null);
   const [isTesting, setIsTesting] = useState(false);
 
+  // Cadence & Recipient Chain Routing
+  const [dispatchCadence, setDispatchCadence] = useState<'per_section' | 'end_of_day' | 'end_of_week'>('per_section');
+  const [isEmailCandidate, setIsEmailCandidate] = useState<boolean>(true);
+  const [isEmailOwner, setIsEmailOwner] = useState<boolean>(true);
+  const [isEmailRoles, setIsEmailRoles] = useState<boolean>(false);
+  const [targetRole, setTargetRole] = useState<string>('administrator');
+
   const handleSave = (e: React.FormEvent) => {
     e.preventDefault();
-    setFeedback('Email and notification configuration saved successfully!');
+    setFeedback('Email gateway, dispatch cadence, and recipient chain saved successfully!');
     setTimeout(() => setFeedback(null), 3500);
   };
 
@@ -149,6 +156,124 @@ export const EmailSettings: React.FC = () => {
                 </div>
               </div>
             )}
+          </CardContent>
+        </Card>
+
+        {/* Email Dispatch Cadence & Recipient Chain */}
+        <Card className="modern-quiz-card border shadow-sm">
+          <CardHeader className="border-b bg-muted/20 pb-4">
+            <CardTitle className="text-xl font-bold">Email Dispatch Cadence & Recipient Chain</CardTitle>
+            <CardDescription className="text-xs">
+              Determine when results are emailed (per section, end of day, end of week) and who receives the notifications.
+            </CardDescription>
+          </CardHeader>
+
+          <CardContent className="p-6 space-y-6">
+            <div className="space-y-3">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
+                1. Delivery Frequency Cadence
+              </Label>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <button
+                  type="button"
+                  onClick={() => setDispatchCadence('per_section')}
+                  className={`p-3.5 rounded-xl border text-left transition ${
+                    dispatchCadence === 'per_section'
+                      ? 'border-primary bg-primary/10 text-primary font-bold'
+                      : 'border-muted hover:border-slate-500'
+                  }`}
+                >
+                  <span className="text-sm block">⚡ Immediate / Per Section</span>
+                  <span className="text-[11px] text-muted-foreground block mt-1">
+                    Dispatched immediately when each section or quiz is completed.
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setDispatchCadence('end_of_day')}
+                  className={`p-3.5 rounded-xl border text-left transition ${
+                    dispatchCadence === 'end_of_day'
+                      ? 'border-primary bg-primary/10 text-primary font-bold'
+                      : 'border-muted hover:border-slate-500'
+                  }`}
+                >
+                  <span className="text-sm block">📅 End of Day Digest</span>
+                  <span className="text-[11px] text-muted-foreground block mt-1">
+                    Batches all daily completions into a single evening digest email.
+                  </span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setDispatchCadence('end_of_week')}
+                  className={`p-3.5 rounded-xl border text-left transition ${
+                    dispatchCadence === 'end_of_week'
+                      ? 'border-primary bg-primary/10 text-primary font-bold'
+                      : 'border-muted hover:border-slate-500'
+                  }`}
+                >
+                  <span className="text-sm block">📊 End of Week Summary</span>
+                  <span className="text-[11px] text-muted-foreground block mt-1">
+                    Aggregates weekly curriculum progress and sends every Friday.
+                  </span>
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-3 pt-4 border-t">
+              <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground block">
+                2. Notification Recipient Chain
+              </Label>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between p-3 rounded-xl border bg-muted/20">
+                  <div>
+                    <span className="text-sm font-semibold block">Email Candidate</span>
+                    <span className="text-xs text-muted-foreground block">
+                      Send score certificate and completion status to the candidate.
+                    </span>
+                  </div>
+                  <Switch checked={isEmailCandidate} onCheckedChange={setIsEmailCandidate} />
+                </div>
+
+                <div className="flex items-center justify-between p-3 rounded-xl border bg-muted/20">
+                  <div>
+                    <span className="text-sm font-semibold block">Email Project Owner</span>
+                    <span className="text-xs text-muted-foreground block">
+                      Alert the creator/instructor of the project when candidates complete tasks.
+                    </span>
+                  </div>
+                  <Switch checked={isEmailOwner} onCheckedChange={setIsEmailOwner} />
+                </div>
+
+                <div className="p-3 rounded-xl border bg-muted/20 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="text-sm font-semibold block">Email Specific Roles</span>
+                      <span className="text-xs text-muted-foreground block">
+                        Relay notification copies to all users with a designated WordPress role.
+                      </span>
+                    </div>
+                    <Switch checked={isEmailRoles} onCheckedChange={setIsEmailRoles} />
+                  </div>
+
+                  {isEmailRoles && (
+                    <div className="pt-2 border-t flex items-center gap-3">
+                      <Label className="text-xs font-semibold">Target WordPress Role:</Label>
+                      <select
+                        value={targetRole}
+                        onChange={(e) => setTargetRole(e.target.value)}
+                        className="text-xs px-3 py-1.5 rounded-lg border bg-background"
+                      >
+                        <option value="administrator">Administrator</option>
+                        <option value="editor">Editor</option>
+                        <option value="instructor">Instructor / Evaluator</option>
+                      </select>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 

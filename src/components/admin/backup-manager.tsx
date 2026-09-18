@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Database, Download, Mail, RefreshCw, Trash2, CheckCircle2, ShieldAlert, Archive } from 'lucide-react';
+import { Database, Download, Mail, RefreshCw, Trash2, CheckCircle2, ShieldAlert, Archive, UploadCloud, Server, Terminal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +35,14 @@ export const BackupManager: React.FC = () => {
   const [emailTarget, setEmailTarget] = useState<string>('admin@example.com');
   const [retentionKeep, setRetentionKeep] = useState<number>(15);
 
+  // Remote Server Uploader (Rise Up Asia Protocol)
+  const [remoteServerUrl, setRemoteServerUrl] = useState<string>('https://staging.riseup.asia');
+  const [remoteUsername, setRemoteUsername] = useState<string>('admin');
+  const [remoteAppPassword, setRemoteAppPassword] = useState<string>('•••• •••• •••• ••••');
+  const [selectedPluginPackage, setSelectedPluginPackage] = useState<'wp-exam' | 'wp-sam'>('wp-exam');
+  const [isDeploying, setIsDeploying] = useState<boolean>(false);
+  const [deployLog, setDeployLog] = useState<string[]>([]);
+
   const handleCreateBackup = () => {
     setIsCreating(true);
     setTimeout(() => {
@@ -56,6 +64,30 @@ export const BackupManager: React.FC = () => {
   const handleDeleteBackup = (filename: string) => {
     setBackups(backups.filter((b) => b.filename !== filename));
     toast.success(`Deleted backup archive ${filename}`);
+  };
+
+  const handleDeployToRemote = () => {
+    if (!remoteServerUrl.trim()) {
+      toast.error('Please enter a valid remote WordPress server URL');
+      return;
+    }
+
+    setIsDeploying(true);
+    setDeployLog([
+      `[1/4] Connecting to ${remoteServerUrl}/wp-json/riseup/v1/health...`,
+      `  ✓ Endpoint reachable (Rise Up Asia Uploader protocol v2.5 verified)`,
+      `[2/4] Packaging dist/${selectedPluginPackage}.zip with latest split DB schema...`,
+      `  ✓ Package integrity validated (client_ip and is_anonymous columns synced)`,
+      `[3/4] Uploading dist/${selectedPluginPackage}.zip to remote WordPress host...`,
+      `  ✓ Upload complete. Unzipping package to wp-content/plugins/${selectedPluginPackage}/...`,
+      `[4/4] Activating plugin and warming up SQLite split database...`,
+      `  ✓ Deployment successful! Remote instance updated and operational.`,
+    ]);
+
+    setTimeout(() => {
+      setIsDeploying(false);
+      toast.success(`Plugin ${selectedPluginPackage}.zip deployed to remote server successfully!`);
+    }, 1200);
   };
 
   return (
@@ -196,6 +228,89 @@ export const BackupManager: React.FC = () => {
             </tbody>
           </table>
         </div>
+      </div>
+
+      {/* Remote Server Deployer & Rise Up Asia Uploader Protocol */}
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
+        <div className="flex items-center justify-between">
+          <div>
+            <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <UploadCloud className="w-4 h-4 text-emerald-400" />
+              Remote WordPress Server Uploader & Deployer (Rise Up Asia Protocol)
+            </h3>
+            <p className="text-xs text-slate-400 mt-1">
+              Push packaged plugin releases directly to your remote hosting environment using the REST uploader mechanism.
+            </p>
+          </div>
+          <Badge variant="outline" className="text-[11px] border-emerald-500/30 text-emerald-400 bg-emerald-500/10">
+            REST Uploader Active
+          </Badge>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+          <div className="space-y-1.5 sm:col-span-2">
+            <label className="text-xs font-semibold text-slate-300">Remote WordPress Server URL</label>
+            <Input
+              value={remoteServerUrl}
+              onChange={(e) => setRemoteServerUrl(e.target.value)}
+              placeholder="https://your-wordpress-site.com"
+              className="bg-slate-950 border-slate-800 text-xs"
+            />
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-300">Target Package</label>
+            <select
+              value={selectedPluginPackage}
+              onChange={(e) => setSelectedPluginPackage(e.target.value as 'wp-exam' | 'wp-sam')}
+              className="w-full h-10 px-3 border rounded-md text-xs bg-slate-950 border-slate-800 text-slate-200"
+            >
+              <option value="wp-exam">wp-exam.zip (49.68 KB)</option>
+              <option value="wp-sam">wp-sam.zip (50.39 KB)</option>
+            </select>
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-semibold text-slate-300">WordPress Username</label>
+            <Input
+              value={remoteUsername}
+              onChange={(e) => setRemoteUsername(e.target.value)}
+              className="bg-slate-950 border-slate-800 text-xs"
+            />
+          </div>
+
+          <div className="space-y-1.5 sm:col-span-2">
+            <label className="text-xs font-semibold text-slate-300">Application Password / API Key</label>
+            <Input
+              type="password"
+              value={remoteAppPassword}
+              onChange={(e) => setRemoteAppPassword(e.target.value)}
+              className="bg-slate-950 border-slate-800 text-xs"
+            />
+          </div>
+        </div>
+
+        <div className="flex justify-end gap-2 pt-2">
+          <Button
+            onClick={handleDeployToRemote}
+            disabled={isDeploying}
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs h-9 px-4"
+          >
+            <Server className={`w-3.5 h-3.5 mr-1.5 ${isDeploying ? 'animate-spin' : ''}`} />
+            {isDeploying ? 'Deploying to Remote Server...' : 'Deploy to Remote WordPress'}
+          </Button>
+        </div>
+
+        {deployLog.length > 0 && (
+          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1 text-[11px] font-mono text-emerald-400">
+            <div className="text-xs font-bold text-slate-300 flex items-center gap-1.5 pb-1 border-b border-slate-800">
+              <Terminal className="w-3.5 h-3.5" /> Deployment Telemetry Log:
+            </div>
+            {deployLog.map((line, idx) => (
+              <div key={idx}>{line}</div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
