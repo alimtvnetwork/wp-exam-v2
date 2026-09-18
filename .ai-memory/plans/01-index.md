@@ -12,6 +12,7 @@ Master directory of architectural and execution plans.
 
 ## Completed Plans
 
+- [17-modern-ui-sqlite-import-export-and-wp-plugins.md](completed/17-modern-ui-sqlite-import-export-and-wp-plugins.md): Modern UI, SQLite Engine, JSON Import/Export, Admin User Invites, Email System & wp-plugins Layout.
 - [16-e2e-tests-and-riseup-asia-compliance-audit.md](completed/16-e2e-tests-and-riseup-asia-compliance-audit.md): Complete E2E tests, WP onboarding & Riseup Asia architectural pattern compliance audit.
 - [15-wp-exam-riseup-asia-alignment-and-quiz-form-engine.md](completed/15-wp-exam-riseup-asia-alignment-and-quiz-form-engine.md): WP Exam architecture alignment with riseup-asia-uploader and dynamic quiz/form engine.
 - [02-multi-repo-folder-structure-and-gitmap-fixes.md](completed/02-multi-repo-folder-structure-and-gitmap-fixes.md): Multi-repo folder structure migration and gitmap AGY pipeline fixes.

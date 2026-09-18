@@ -9,6 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { FormRunner } from '@/components/runner/FormRunner';
+import { JsonModal } from './json-modal';
 import {
   DndContext,
   closestCenter,
@@ -258,6 +259,7 @@ export const FormBuilder = () => {
   } = useQuizStore();
 
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
 
   const sensors = useSensors(
@@ -345,7 +347,10 @@ export const FormBuilder = () => {
             Create sequential quizzes, employee onboarding sign-ups, and public surveys.
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={() => setIsJsonModalOpen(true)}>
+            📦 JSON Import / Export
+          </Button>
           <Button variant="outline" size="sm" onClick={() => setIsPreviewOpen(true)}>
             👁 Live Preview
           </Button>
@@ -551,6 +556,8 @@ export const FormBuilder = () => {
           </div>
         </div>
       )}
+      {/* JSON Import/Export Modal */}
+      <JsonModal isOpen={isJsonModalOpen} onClose={() => setIsJsonModalOpen(false)} />
     </div>
   );
 };
