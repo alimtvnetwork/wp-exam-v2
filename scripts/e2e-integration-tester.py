@@ -2441,6 +2441,221 @@ def test_mind_map_hierarchy_and_schema() -> None:
 
 
 # =====================================================================
+# 35. OFFLINE STORAGE & LOCAL SYNC ENGINE
+# =====================================================================
+def test_offline_storage_and_sync() -> None:
+    log_suite("35. Offline Storage & Local Sync Engine")
+
+    class OfflineSyncEngine:
+        def __init__(self) -> None:
+            self.offline_queue: List[Dict[str, Any]] = []
+            self.server_records: Dict[str, Dict[str, Any]] = {}
+
+        def enqueue_offline_event(self, event_type: str, client_uuid: str, payload: Dict[str, Any], timestamp: float) -> None:
+            self.offline_queue.append({
+                "client_uuid": client_uuid,
+                "event_type": event_type,
+                "payload": payload,
+                "timestamp": timestamp,
+            })
+
+        def synchronize(self) -> Tuple[int, int]:
+            sorted_events = sorted(self.offline_queue, key=lambda x: x["timestamp"])
+            synced_count = 0
+            dedup_count = 0
+
+            for ev in sorted_events:
+                uuid = ev["client_uuid"]
+                has_existing = uuid in self.server_records
+                if has_existing:
+                    dedup_count += 1
+                    continue
+
+                self.server_records[uuid] = ev
+                synced_count += 1
+
+            self.offline_queue.clear()
+            return synced_count, dedup_count
+
+    engine = OfflineSyncEngine()
+
+    engine.enqueue_offline_event("quiz_answer", "uuid-001", {"qid": "q1", "ans": 2}, timestamp=100.0)
+    engine.enqueue_offline_event("telemetry_click", "uuid-002", {"element": "next_btn"}, timestamp=105.0)
+    engine.enqueue_offline_event("quiz_answer", "uuid-001", {"qid": "q1", "ans": 2}, timestamp=100.0)
+    engine.enqueue_offline_event("quiz_answer", "uuid-003", {"qid": "q2", "ans": 1}, timestamp=110.0)
+
+    synced, deduped = engine.synchronize()
+
+    has_three_synced = synced == 3
+    has_one_deduped = deduped == 1
+    has_server_records = len(engine.server_records) == 3
+    is_queue_empty = len(engine.offline_queue) == 0
+
+    is_sync_suite_valid = (
+        has_three_synced
+        and has_one_deduped
+        and has_server_records
+        and is_queue_empty
+    )
+    log_test("Offline Storage Queue, Deduplication & Monotonic Sync Engine", is_sync_suite_valid)
+
+
+# =====================================================================
+# 36. WEIGHTED SCORING & GRADING THRESHOLD ENGINE
+# =====================================================================
+def test_weighted_scoring_and_thresholds() -> None:
+    log_suite("36. Weighted Scoring & Grading Threshold Engine")
+
+    class GradingEngine:
+        @staticmethod
+        def evaluate_quiz(
+            questions: List[Dict[str, Any]],
+            answers: Dict[str, Any],
+            passing_threshold_pct: float = 75.0,
+        ) -> Dict[str, Any]:
+            total_weight = 0.0
+            earned_weight = 0.0
+            section_scores: Dict[str, Dict[str, float]] = {}
+
+            for q in questions:
+                qid = q["id"]
+                weight = float(q.get("weight", 10.0))
+                section = q.get("section", "default")
+                correct_val = q.get("correct_option")
+
+                has_section = section in section_scores
+                if not has_section:
+                    section_scores[section] = {"total": 0.0, "earned": 0.0}
+
+                total_weight += weight
+                section_scores[section]["total"] += weight
+
+                user_ans = answers.get(qid)
+                is_correct = user_ans == correct_val
+                if is_correct:
+                    earned_weight += weight
+                    section_scores[section]["earned"] += weight
+
+            aggregate_pct = round((earned_weight / total_weight) * 100.0, 2) if total_weight > 0 else 0.0
+            is_aggregate_passed = aggregate_pct >= passing_threshold_pct
+
+            sections_passed: Dict[str, bool] = {}
+            for s_name, s_data in section_scores.items():
+                s_pct = (s_data["earned"] / s_data["total"]) * 100.0 if s_data["total"] > 0 else 0.0
+                sections_passed[s_name] = s_pct >= 70.0
+
+            has_all_sections_passed = all(sections_passed.values())
+            is_overall_passed = is_aggregate_passed and has_all_sections_passed
+
+            return {
+                "total_weight": total_weight,
+                "earned_weight": earned_weight,
+                "aggregate_pct": aggregate_pct,
+                "is_aggregate_passed": is_aggregate_passed,
+                "is_overall_passed": is_overall_passed,
+                "sections_passed": sections_passed,
+            }
+
+    test_questions = [
+        {"id": "q1", "section": "networking", "weight": 20.0, "correct_option": 1},
+        {"id": "q2", "section": "networking", "weight": 10.0, "correct_option": 0},
+        {"id": "q3", "section": "security", "weight": 30.0, "correct_option": 2},
+        {"id": "q4", "section": "security", "weight": 40.0, "correct_option": 3},
+    ]
+
+    perfect_ans = {"q1": 1, "q2": 0, "q3": 2, "q4": 3}
+    res1 = GradingEngine.evaluate_quiz(test_questions, perfect_ans)
+    is_res1_passed = res1["is_overall_passed"]
+
+    section_fail_ans = {"q1": 0, "q2": 1, "q3": 2, "q4": 3}
+    res2 = GradingEngine.evaluate_quiz(test_questions, section_fail_ans, passing_threshold_pct=70.0)
+    is_res2_aggregate_ok = res2["is_aggregate_passed"]
+    is_res2_section_blocked = not res2["is_overall_passed"]
+
+    is_grading_suite_valid = (
+        is_res1_passed
+        and is_res2_aggregate_ok
+        and is_res2_section_blocked
+    )
+    log_test("Weighted Scoring & Section Passing Threshold Engine", is_grading_suite_valid)
+
+
+# =====================================================================
+# 37. ELEMENTOR SHORTCODE DYNAMIC PARAMETER EXTRACTION & SANITIZATION
+# =====================================================================
+def test_elementor_shortcode_parsing_and_sanitization() -> None:
+    log_suite("37. Elementor Shortcode Dynamic Parameter Extraction & Sanitization")
+
+    import re
+
+    class ShortcodeParser:
+        ALLOWED_THEMES = {"letterly", "bright-gold", "dark", "white"}
+        ALLOWED_MODES = {"focus", "compact", "full", "stepped"}
+
+        @staticmethod
+        def parse_wp_exam_shortcode(tag: str) -> Dict[str, Any]:
+            defaults = {
+                "quiz_id": "",
+                "theme": "letterly",
+                "mode": "focus",
+                "enable_telemetry": True,
+                "passing_score": 75,
+            }
+
+            pattern = r'([a-zA-Z0-9_]+)=["\']([^"\']*)["\']'
+            matches = re.findall(pattern, tag)
+
+            parsed: Dict[str, Any] = dict(defaults)
+            for key, raw_val in matches:
+                clean_val = raw_val.strip()
+                clean_val = re.sub(r'[<>"\'\\]', '', clean_val)
+
+                if key == "quiz_id":
+                    parsed["quiz_id"] = clean_val
+                elif key == "theme":
+                    is_allowed_theme = clean_val.lower() in ShortcodeParser.ALLOWED_THEMES
+                    parsed["theme"] = clean_val.lower() if is_allowed_theme else defaults["theme"]
+                elif key == "mode":
+                    is_allowed_mode = clean_val.lower() in ShortcodeParser.ALLOWED_MODES
+                    parsed["mode"] = clean_val.lower() if is_allowed_mode else defaults["mode"]
+                elif key == "enable_telemetry":
+                    parsed["enable_telemetry"] = clean_val.lower() in ("true", "1", "yes")
+                elif key == "passing_score":
+                    try:
+                        score = int(clean_val)
+                        has_valid_range = 0 <= score <= 100
+                        parsed["passing_score"] = score if has_valid_range else defaults["passing_score"]
+                    except ValueError:
+                        parsed["passing_score"] = defaults["passing_score"]
+
+            return parsed
+
+    valid_tag = '[wp_exam quiz_id="exam_cloud_2026" theme="bright-gold" mode="focus" enable_telemetry="true" passing_score="80"]'
+    res_valid = ShortcodeParser.parse_wp_exam_shortcode(valid_tag)
+    has_valid_quiz_id = res_valid["quiz_id"] == "exam_cloud_2026"
+    has_valid_theme = res_valid["theme"] == "bright-gold"
+    has_valid_score = res_valid["passing_score"] == 80
+
+    malicious_tag = '[wp_exam quiz_id="123<script>alert(1)</script>" theme="unknown_hacked_theme" mode="stepped" enable_telemetry="false" passing_score="999"]'
+    res_malicious = ShortcodeParser.parse_wp_exam_shortcode(malicious_tag)
+    is_script_stripped = "<script>" not in res_malicious["quiz_id"] and "alert" in res_malicious["quiz_id"]
+    is_theme_fallen_back = res_malicious["theme"] == "letterly"
+    is_score_clamped = res_malicious["passing_score"] == 75
+    is_telemetry_disabled = not res_malicious["enable_telemetry"]
+
+    is_shortcode_suite_valid = (
+        has_valid_quiz_id
+        and has_valid_theme
+        and has_valid_score
+        and is_script_stripped
+        and is_theme_fallen_back
+        and is_score_clamped
+        and is_telemetry_disabled
+    )
+    log_test("Elementor Shortcode Parameter Extraction, Type Casting & Sanitization", is_shortcode_suite_valid)
+
+
+# =====================================================================
 # 7. EXECUTION OF PHP UNIT TEST SUITE
 # =====================================================================
 def test_php_test_suite() -> None:
@@ -2513,6 +2728,9 @@ def main() -> None:
     test_candidate_retake_and_attempt_limits()
     test_i18n_localization_and_rtl_tokens()
     test_mind_map_hierarchy_and_schema()
+    test_offline_storage_and_sync()
+    test_weighted_scoring_and_thresholds()
+    test_elementor_shortcode_parsing_and_sanitization()
     test_php_test_suite()
 
     elapsed = round(time.time() - start_time, 3)
