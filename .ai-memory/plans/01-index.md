@@ -11,6 +11,7 @@ Master directory of architectural and execution plans.
 
 ## Completed Plans
 
+- [35-audit-and-missing-elements-verification.md](completed/35-audit-and-missing-elements-verification.md): Complete audit and end-to-end verification of local runners, remote uploader, recursive sub-projects, split SQLite DBs, focus quiz runner, and bug triage.
 - [34-audit-and-missing-elements-verification.md](completed/34-audit-and-missing-elements-verification.md): Complete audit and end-to-end verification of local runners, remote uploader, recursive sub-projects, split SQLite DBs, focus quiz runner, and bug triage.
 - [33-audit-and-missing-elements-verification.md](completed/33-audit-and-missing-elements-verification.md): Complete audit and end-to-end verification of local runners, remote uploader, recursive sub-projects, split SQLite DBs, focus quiz runner, and bug triage.
 - [32-audit-and-missing-elements-verification.md](completed/32-audit-and-missing-elements-verification.md): Complete audit and end-to-end verification of local runners, remote uploader, recursive sub-projects, split SQLite DBs, focus quiz runner, and bug triage.
