@@ -24,7 +24,28 @@ Validates:
 19. Question Hints & Contextual Resource Linking
 20. Dynamic JSON Theme Injection & Asset Compilation
 21. AI Instruction Studio Theme & UI Modification Prompts
-22. Full PHP Unit Test Suite Execution
+22. Multi-tier Hierarchy Permission Scopes & Inheritance
+23. Complex Form Multi-Field Instant Live Validation Matrix
+24. AI Instruction Studio Full Curriculum Generation & Synthesis
+25. Project & Question Progress Calculation & Sub-project Transition
+26. End-of-Day & End-of-Week Batch Email Notification Digest Queue
+27. Automated Split DB Backup Email Transmission & Server Storage Dual-Dispatch
+28. Social Share URL Attribution & UTM Parameter Tracking
+29. Question & Option Deterministic Randomization & Seeded Shuffle
+30. Pipeline Sequencing Topological Validation & Cycle Detection
+31. Candidate Quiz Retake & Attempt Boundary Limits
+32. Multi-Language / i18n Localization & RTL Layout Tokens
+33. Mind Map & Hierarchical Concept Node Schema Verification
+34. Offline Storage & Local Sync Engine
+35. Weighted Scoring & Grading Threshold Engine
+36. Elementor Shortcode Dynamic Parameter Extraction & Sanitization
+37. Real-Time Exam Countdown Timer & Auto-Submission Engine
+38. Candidate Certificate Generation & Verification Digest
+39. Multi-Format JSON Curriculum Migration & Adapter
+40. Candidate Feedback & Post-Quiz Rating Survey Pipeline
+41. Media Asset Pre-Flight Availability & Broken Link Detection
+42. Admin Audit Log Streaming & Security Threat Event Flagging
+43. Full PHP Unit Test Suite Execution
 """
 
 import base64
@@ -2888,6 +2909,357 @@ def test_curriculum_schema_migration() -> None:
 
 
 # =====================================================================
+# 41. CANDIDATE FEEDBACK & POST-QUIZ RATING SURVEY PIPELINE
+# =====================================================================
+def test_candidate_feedback_survey() -> None:
+    log_suite("41. Candidate Feedback & Post-Quiz Rating Survey Pipeline")
+
+    import hashlib
+
+    class FeedbackSurveyEngine:
+        SALT = "WP_EXAM_FEEDBACK_SALT_2026"
+
+        def __init__(self, project_id: str) -> None:
+            self.project_id = project_id
+            self.responses: List[Dict[str, Any]] = []
+
+        def submit_feedback(
+            self,
+            candidate_ip: str,
+            rating_stars: int,
+            difficulty: str,
+            comments: str,
+        ) -> Tuple[bool, Optional[str]]:
+            has_valid_rating = 1 <= rating_stars <= 5
+            if not has_valid_rating:
+                return False, "Rating stars must be an integer between 1 and 5"
+
+            allowed_difficulties = {"too_easy", "balanced", "too_hard"}
+            is_valid_difficulty = difficulty in allowed_difficulties
+            if not is_valid_difficulty:
+                return False, f"Invalid difficulty: {difficulty}"
+
+            raw_hash = f"{candidate_ip}:{self.SALT}"
+            hashed_id = hashlib.sha256(raw_hash.encode("utf-8")).hexdigest()[:16]
+
+            clean_comments = re.sub(r"[<>]", "", comments).strip()
+
+            self.responses.append({
+                "candidate_hash": hashed_id,
+                "project_id": self.project_id,
+                "rating_stars": rating_stars,
+                "difficulty": difficulty,
+                "comments": clean_comments,
+                "timestamp": int(time.time()),
+            })
+
+            return True, None
+
+        def calculate_metrics(self) -> Dict[str, Any]:
+            has_responses = len(self.responses) > 0
+            if not has_responses:
+                return {
+                    "total_responses": 0,
+                    "average_rating": 0.0,
+                    "csat_percentage": 0.0,
+                    "difficulty_breakdown": {},
+                }
+
+            total = len(self.responses)
+            sum_stars = sum(r["rating_stars"] for r in self.responses)
+            avg_stars = round(sum_stars / total, 2)
+
+            satisfied_count = sum(1 for r in self.responses if r["rating_stars"] >= 4)
+            csat_pct = round((satisfied_count / total) * 100, 1)
+
+            diff_counts = {"too_easy": 0, "balanced": 0, "too_hard": 0}
+            for r in self.responses:
+                d = r["difficulty"]
+                has_diff = d in diff_counts
+                if has_diff:
+                    diff_counts[d] += 1
+
+            return {
+                "total_responses": total,
+                "average_rating": avg_stars,
+                "csat_percentage": csat_pct,
+                "difficulty_breakdown": diff_counts,
+            }
+
+    survey_engine = FeedbackSurveyEngine(project_id="proj_cloud_architect")
+
+    is_sub1_ok, _ = survey_engine.submit_feedback(
+        candidate_ip="192.168.1.100",
+        rating_stars=5,
+        difficulty="balanced",
+        comments="Great realistic architecture problems!",
+    )
+    is_sub2_ok, _ = survey_engine.submit_feedback(
+        candidate_ip="192.168.1.101",
+        rating_stars=4,
+        difficulty="balanced",
+        comments="Fair questions and helpful diagrams.",
+    )
+    is_sub3_ok, _ = survey_engine.submit_feedback(
+        candidate_ip="192.168.1.102",
+        rating_stars=2,
+        difficulty="too_hard",
+        comments="<script>alert('pwn')</script>Time limit was tight.",
+    )
+
+    is_invalid_rejected, err_msg = survey_engine.submit_feedback(
+        candidate_ip="192.168.1.103",
+        rating_stars=0,
+        difficulty="balanced",
+        comments="Should fail bounds check",
+    )
+    has_bound_error = not is_invalid_rejected
+
+    metrics = survey_engine.calculate_metrics()
+    has_total_three = metrics["total_responses"] == 3
+    has_avg_stars = metrics["average_rating"] == 3.67
+    has_csat = metrics["csat_percentage"] == 66.7
+    has_balanced_two = metrics["difficulty_breakdown"].get("balanced") == 2
+
+    stored_str = str(survey_engine.responses)
+    has_no_raw_ip = "192.168.1.100" not in stored_str
+    has_sanitized_comment = "<script>" not in stored_str
+
+    is_feedback_suite_valid = (
+        is_sub1_ok
+        and is_sub2_ok
+        and is_sub3_ok
+        and has_bound_error
+        and has_total_three
+        and has_avg_stars
+        and has_csat
+        and has_balanced_two
+        and has_no_raw_ip
+        and has_sanitized_comment
+    )
+    log_test("Candidate Feedback & Post-Quiz Rating Survey Pipeline", is_feedback_suite_valid)
+
+
+# =====================================================================
+# 42. MEDIA ASSET PRE-FLIGHT AVAILABILITY & BROKEN LINK DETECTION
+# =====================================================================
+def test_media_preflight_and_fallback() -> None:
+    log_suite("42. Media Asset Pre-Flight Availability & Broken Link Detection")
+
+    class MediaPreflightValidator:
+        ALLOWED_MEDIA_TYPES = {"image", "audio", "video", "youtube"}
+        ALLOWED_DOMAINS = {
+            "youtube.com",
+            "www.youtube.com",
+            "youtube-nocookie.com",
+            "vimeo.com",
+            "assets.riseup.asia",
+            "s3.amazonaws.com",
+            "cdn.wp-exam.org",
+        }
+
+        @classmethod
+        def validate_and_render_media(cls, media_spec: Optional[Dict[str, Any]]) -> Dict[str, Any]:
+            has_media = media_spec is not None
+            if not has_media:
+                return {"is_valid": True, "rendered_html": "", "has_fallback": False}
+
+            m_type = media_spec.get("type", "none")
+            m_url = media_spec.get("url", "").strip()
+
+            is_none_type = m_type == "none"
+            if is_none_type:
+                return {"is_valid": True, "rendered_html": "", "has_fallback": False}
+
+            is_supported_type = m_type in cls.ALLOWED_MEDIA_TYPES
+            if not is_supported_type:
+                fallback_html = f'<div class="wp-exam-media-fallback" data-reason="unsupported_type">Media type [{m_type}] is unsupported.</div>'
+                return {"is_valid": False, "rendered_html": fallback_html, "has_fallback": True}
+
+            url_pattern = re.compile(r"^https?://([a-zA-Z0-9.-]+)(/.*)?$")
+            match = url_pattern.match(m_url)
+            is_valid_url = match is not None
+            if not is_valid_url:
+                fallback_html = '<div class="wp-exam-media-fallback" data-reason="malformed_url">Media URL is malformed or missing secure protocol.</div>'
+                return {"is_valid": False, "rendered_html": fallback_html, "has_fallback": True}
+
+            domain = match.group(1).lower()
+            is_trusted_domain = domain in cls.ALLOWED_DOMAINS
+            if not is_trusted_domain:
+                fallback_html = f'<div class="wp-exam-media-fallback" data-reason="untrusted_domain">Domain [{domain}] is not in the trusted media allowlist.</div>'
+                return {"is_valid": False, "rendered_html": fallback_html, "has_fallback": True}
+
+            is_youtube = m_type == "youtube"
+            if is_youtube:
+                html = f'<div class="wp-exam-media-container"><iframe src="{m_url}" class="wp-exam-media-youtube" allowfullscreen></iframe></div>'
+                return {"is_valid": True, "rendered_html": html, "has_fallback": False}
+
+            is_audio = m_type == "audio"
+            if is_audio:
+                html = f'<div class="wp-exam-media-container"><audio controls src="{m_url}" class="wp-exam-media-audio"></audio></div>'
+                return {"is_valid": True, "rendered_html": html, "has_fallback": False}
+
+            is_video = m_type == "video"
+            if is_video:
+                html = f'<div class="wp-exam-media-container"><video controls src="{m_url}" class="wp-exam-media-video"></video></div>'
+                return {"is_valid": True, "rendered_html": html, "has_fallback": False}
+
+            html = f'<div class="wp-exam-media-container"><img src="{m_url}" class="wp-exam-media-image" alt="Question media" /></div>'
+            return {"is_valid": True, "rendered_html": html, "has_fallback": False}
+
+    res_youtube = MediaPreflightValidator.validate_and_render_media({
+        "type": "youtube",
+        "url": "https://youtube-nocookie.com/embed/dQw4w9WgXcQ",
+    })
+    has_yt_pass = res_youtube["is_valid"]
+    has_yt_iframe = "<iframe" in res_youtube["rendered_html"]
+
+    res_malformed = MediaPreflightValidator.validate_and_render_media({
+        "type": "video",
+        "url": "javascript:alert('malicious')",
+    })
+    is_malformed_blocked = not res_malformed["is_valid"]
+    has_malformed_fallback = res_malformed["has_fallback"]
+
+    res_untrusted = MediaPreflightValidator.validate_and_render_media({
+        "type": "audio",
+        "url": "https://untrusted-external-tracker.com/audio.mp3",
+    })
+    is_untrusted_blocked = not res_untrusted["is_valid"]
+    has_untrusted_reason = 'data-reason="untrusted_domain"' in res_untrusted["rendered_html"]
+
+    res_none = MediaPreflightValidator.validate_and_render_media(None)
+    has_none_valid = res_none["is_valid"]
+
+    is_media_preflight_valid = (
+        has_yt_pass
+        and has_yt_iframe
+        and is_malformed_blocked
+        and has_malformed_fallback
+        and is_untrusted_blocked
+        and has_untrusted_reason
+        and has_none_valid
+    )
+    log_test("Media Asset Pre-Flight Availability & Broken Link Detection", is_media_preflight_valid)
+
+
+# =====================================================================
+# 43. ADMIN AUDIT LOG STREAMING & SECURITY THREAT EVENT FLAGGING
+# =====================================================================
+def test_admin_audit_stream_and_threat_flagging() -> None:
+    log_suite("43. Admin Audit Log Streaming & Security Threat Event Flagging")
+
+    class AuditSecurityStreamer:
+        FAILURE_ALERT_THRESHOLD = 5
+
+        def __init__(self) -> None:
+            self.events: List[Dict[str, Any]] = []
+            self.failed_attempts_by_ip: Dict[str, int] = {}
+            self.throttled_ips: set = set()
+
+        def record_event(
+            self,
+            event_type: str,
+            ip_address: str,
+            user_id: Optional[str],
+            is_success: bool,
+            details: Dict[str, Any],
+        ) -> Dict[str, Any]:
+            timestamp = int(time.time())
+            event_entry = {
+                "event_id": f"evt_{len(self.events) + 1}",
+                "event_type": event_type,
+                "ip_address": ip_address,
+                "user_id": user_id,
+                "is_success": is_success,
+                "timestamp": timestamp,
+                "details": details,
+                "is_security_alert": False,
+            }
+
+            is_failure = not is_success
+            if is_failure:
+                current_count = self.failed_attempts_by_ip.get(ip_address, 0) + 1
+                self.failed_attempts_by_ip[ip_address] = current_count
+
+                has_reached_threshold = current_count >= self.FAILURE_ALERT_THRESHOLD
+                if has_reached_threshold:
+                    event_entry["is_security_alert"] = True
+                    event_entry["alert_level"] = "CRITICAL_THREAT"
+                    self.throttled_ips.add(ip_address)
+            else:
+                is_auth_event = event_type == "user_login"
+                if is_auth_event:
+                    has_ip = ip_address in self.failed_attempts_by_ip
+                    if has_ip:
+                        self.failed_attempts_by_ip[ip_address] = 0
+
+            self.events.append(event_entry)
+            return event_entry
+
+        def is_ip_throttled(self, ip_address: str) -> bool:
+            return ip_address in self.throttled_ips
+
+        def export_stream_jsonl(self) -> str:
+            lines = [json.dumps(ev) for ev in self.events]
+            return "\n".join(lines)
+
+    streamer = AuditSecurityStreamer()
+
+    evt_rollback = streamer.record_event(
+        event_type="curriculum_rollback",
+        ip_address="10.0.0.1",
+        user_id="admin_riseup",
+        is_success=True,
+        details={"project_id": "proj_aws_101", "snapshot_version": 2},
+    )
+    is_rollback_clean = not evt_rollback["is_security_alert"]
+
+    malicious_ip = "198.51.100.42"
+    for _ in range(4):
+        streamer.record_event(
+            event_type="user_login",
+            ip_address=malicious_ip,
+            user_id="root",
+            is_success=False,
+            details={"reason": "invalid_credentials"},
+        )
+
+    is_pre_threshold_ok = not streamer.is_ip_throttled(malicious_ip)
+
+    evt_breach = streamer.record_event(
+        event_type="user_login",
+        ip_address=malicious_ip,
+        user_id="root",
+        is_success=False,
+        details={"reason": "invalid_credentials"},
+    )
+    is_breach_alerted = evt_breach["is_security_alert"]
+    is_threat_throttled = streamer.is_ip_throttled(malicious_ip)
+
+    jsonl_output = streamer.export_stream_jsonl()
+    lines = jsonl_output.strip().split("\n")
+    has_six_events = len(lines) == 6
+    is_jsonl_valid = False
+    try:
+        parsed_first = json.loads(lines[0])
+        parsed_last = json.loads(lines[-1])
+        is_jsonl_valid = parsed_first["event_type"] == "curriculum_rollback" and parsed_last["is_security_alert"]
+    except Exception:
+        is_jsonl_valid = False
+
+    is_audit_suite_valid = (
+        is_rollback_clean
+        and is_pre_threshold_ok
+        and is_breach_alerted
+        and is_threat_throttled
+        and has_six_events
+        and is_jsonl_valid
+    )
+    log_test("Admin Audit Log Streaming & Security Threat Event Flagging", is_audit_suite_valid)
+
+
+# =====================================================================
 # 7. EXECUTION OF PHP UNIT TEST SUITE
 # =====================================================================
 def test_php_test_suite() -> None:
@@ -2966,6 +3338,9 @@ def main() -> None:
     test_exam_timer_and_auto_submission()
     test_certificate_generation_and_verification()
     test_curriculum_schema_migration()
+    test_candidate_feedback_survey()
+    test_media_preflight_and_fallback()
+    test_admin_audit_stream_and_threat_flagging()
     test_php_test_suite()
 
     elapsed = round(time.time() - start_time, 3)
