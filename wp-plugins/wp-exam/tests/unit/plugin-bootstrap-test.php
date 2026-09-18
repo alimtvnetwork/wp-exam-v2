@@ -42,6 +42,18 @@ class PluginBootstrapTest extends TestCase {
 
         $formController = new FormRestController();
         $this->assertNotNull($formController);
+
+        $hierarchyController = new \WpExam\Api\ProjectHierarchyRestController();
+        $this->assertNotNull($hierarchyController);
+
+        $aiController = new \WpExam\Api\AIInstructionRestController();
+        $this->assertNotNull($aiController);
+
+        $backupController = new \WpExam\Api\SystemBackupRestController();
+        $this->assertNotNull($backupController);
+
+        $historyDb = \WpExam\Database\ProjectHistoryDatabase::getInstance();
+        $this->assertNotNull($historyDb);
     }
 
     public function testWpSamPluginBootstrap(): void {

@@ -19,6 +19,9 @@ use WpExam\Api\UserInviteRestController;
 use WpExam\Api\EmailSettingsRestController;
 use WpExam\Api\CompletionHistoryRestController;
 use WpExam\Api\JsonImportExportRestController;
+use WpExam\Api\ProjectHierarchyRestController;
+use WpExam\Api\AIInstructionRestController;
+use WpExam\Api\SystemBackupRestController;
 use WpExam\Database\SqliteDatabase;
 use WpExam\Logging\FileLogger;
 use WpExam\ErrorHandling\BootErrorCollector;
@@ -30,6 +33,9 @@ class Plugin {
     private ?EmailSettingsRestController $emailController = null;
     private ?CompletionHistoryRestController $historyController = null;
     private ?JsonImportExportRestController $importExportController = null;
+    private ?ProjectHierarchyRestController $projectHierarchyController = null;
+    private ?AIInstructionRestController $aiInstructionController = null;
+    private ?SystemBackupRestController $systemBackupController = null;
 
     public static function getInstance(): self {
         if (self::$instance === null) {
@@ -54,12 +60,18 @@ class Plugin {
             $this->emailController = new EmailSettingsRestController();
             $this->historyController = new CompletionHistoryRestController();
             $this->importExportController = new JsonImportExportRestController();
+            $this->projectHierarchyController = new ProjectHierarchyRestController();
+            $this->aiInstructionController = new AIInstructionRestController();
+            $this->systemBackupController = new SystemBackupRestController();
 
             add_action('rest_api_init', [$this->restController, 'registerRoutes']);
             add_action('rest_api_init', [$this->inviteController, 'registerRoutes']);
             add_action('rest_api_init', [$this->emailController, 'registerRoutes']);
             add_action('rest_api_init', [$this->historyController, 'registerRoutes']);
             add_action('rest_api_init', [$this->importExportController, 'registerRoutes']);
+            add_action('rest_api_init', [$this->projectHierarchyController, 'register_routes']);
+            add_action('rest_api_init', [$this->aiInstructionController, 'register_routes']);
+            add_action('rest_api_init', [$this->systemBackupController, 'register_routes']);
 
             if (is_admin()) {
                 if (class_exists('WP_Exam_Admin')) {

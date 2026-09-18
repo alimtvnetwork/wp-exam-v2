@@ -82,12 +82,84 @@ class SqliteDatabase {
         }
     }
 
+    /** @var array<string, PDO> */
+    private array $projectPdos = [];
+
     public function getPdo(): ?PDO {
         if (!$this->isInitialized) {
             $this->init();
         }
 
         return $this->pdo;
+    }
+
+    public function getProjectDatabase(string $projectId): ?PDO {
+        $cleanId = preg_replace('/[^a-zA-Z0-9_-]/', '', $projectId);
+        $hasCleanId = !empty($cleanId);
+        if (!$hasCleanId) {
+            return null;
+        }
+
+        $hasExistingPdo = isset($this->projectPdos[$cleanId]);
+        if ($hasExistingPdo) {
+            return $this->projectPdos[$cleanId];
+        }
+
+        $hasDriverAvailable = $this->hasDriver();
+        if (!$hasDriverAvailable) {
+            return null;
+        }
+
+        $uploadDir = function_exists('wp_upload_dir') ? wp_upload_dir()['basedir'] : sys_get_temp_dir();
+        $projectDir = rtrim($uploadDir, '/\\') . '/wp-exam/projects';
+        $hasDir = is_dir($projectDir);
+        if (!$hasDir) {
+            @mkdir($projectDir, 0755, true);
+        }
+
+        $projectDbPath = $projectDir . '/' . $cleanId . '.sqlite';
+
+        try {
+            $pdo = new PDO('sqlite:' . $projectDbPath);
+            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
+            $pdo->exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;');
+
+            $schema = "
+            CREATE TABLE IF NOT EXISTS project_meta (
+                key TEXT PRIMARY KEY,
+                value TEXT NOT NULL
+            );
+            CREATE TABLE IF NOT EXISTS project_sections (
+                id TEXT PRIMARY KEY,
+                title TEXT NOT NULL,
+                display_order INTEGER NOT NULL DEFAULT 0,
+                content_type TEXT NOT NULL DEFAULT 'quiz',
+                reading_content TEXT DEFAULT '',
+                video_url TEXT DEFAULT '',
+                checklist_json TEXT DEFAULT '[]',
+                questions_json TEXT DEFAULT '[]',
+                settings_json TEXT DEFAULT '{}'
+            );
+            CREATE TABLE IF NOT EXISTS section_progress (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id TEXT NOT NULL,
+                section_id TEXT NOT NULL,
+                status TEXT NOT NULL DEFAULT 'locked',
+                checklist_completed INTEGER NOT NULL DEFAULT 0,
+                score_percentage REAL DEFAULT 0,
+                attempt_count INTEGER NOT NULL DEFAULT 0,
+                updated_at TEXT DEFAULT (datetime('now'))
+            );
+            ";
+            $pdo->exec($schema);
+
+            $this->projectPdos[$cleanId] = $pdo;
+            return $pdo;
+        } catch (Throwable $e) {
+            FileLogger::getInstance()->error('Failed opening project SQLite DB for ' . $cleanId . ': ' . $e->getMessage());
+            return null;
+        }
     }
 
     private function runMigrations(): void {
@@ -174,6 +246,39 @@ class SqliteDatabase {
             is_smtp_enabled INTEGER DEFAULT 0,
             templates_json TEXT DEFAULT '{}',
             updated_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS categories (
+            id TEXT PRIMARY KEY,
+            title TEXT NOT NULL,
+            description TEXT DEFAULT '',
+            display_order INTEGER NOT NULL DEFAULT 0,
+            permissions_json TEXT DEFAULT '[]',
+            created_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS projects (
+            id TEXT PRIMARY KEY,
+            category_id TEXT NOT NULL,
+            title TEXT NOT NULL,
+            description TEXT DEFAULT '',
+            display_order INTEGER NOT NULL DEFAULT 0,
+            pipeline_order_json TEXT DEFAULT '[]',
+            permissions_json TEXT DEFAULT '[]',
+            settings_json TEXT DEFAULT '{}',
+            created_at TEXT DEFAULT (datetime('now')),
+            updated_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS question_reports (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            project_id TEXT NOT NULL,
+            question_id TEXT NOT NULL,
+            report_type TEXT NOT NULL DEFAULT 'feedback',
+            user_identifier TEXT DEFAULT '',
+            feedback_text TEXT NOT NULL,
+            status TEXT NOT NULL DEFAULT 'open',
+            created_at TEXT DEFAULT (datetime('now'))
         );
         ";
 
