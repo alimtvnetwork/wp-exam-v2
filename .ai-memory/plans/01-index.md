@@ -12,6 +12,7 @@ Master directory of architectural and execution plans.
 
 ## Completed Plans
 
+- [16-e2e-tests-and-riseup-asia-compliance-audit.md](completed/16-e2e-tests-and-riseup-asia-compliance-audit.md): Complete E2E tests, WP onboarding & Riseup Asia architectural pattern compliance audit.
 - [15-wp-exam-riseup-asia-alignment-and-quiz-form-engine.md](completed/15-wp-exam-riseup-asia-alignment-and-quiz-form-engine.md): WP Exam architecture alignment with riseup-asia-uploader and dynamic quiz/form engine.
 - [02-multi-repo-folder-structure-and-gitmap-fixes.md](completed/02-multi-repo-folder-structure-and-gitmap-fixes.md): Multi-repo folder structure migration and gitmap AGY pipeline fixes.
 - [01-repository-infrastructure-cicd-and-consolidation.md](completed/01-repository-infrastructure-cicd-and-consolidation.md): Repository hygiene, encoding normalization, lowercase conventions, AI scripts `<details>` documentation, CI/CD quality automation, and plan memory consolidation.
