@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   BarChart3,
   Users,
@@ -11,6 +11,10 @@ import {
   Eye,
   Shield,
   Filter,
+  Flag,
+  Bug,
+  Check,
+  MessageSquare,
 } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -42,6 +46,18 @@ export interface ProjectAnalytics {
   authenticatedCount: number;
   anonymousCount: number;
   questions: QuestionAnalytics[];
+}
+
+export interface QuestionReport {
+  id: string;
+  project_id: string;
+  question_id: string;
+  question_title?: string;
+  report_type: 'feedback' | 'bug' | 'typo' | 'dispute';
+  feedback_text: string;
+  user_identifier: string;
+  status: 'open' | 'under_review' | 'resolved';
+  created_at: string;
 }
 
 const SAMPLE_PROJECT_ANALYTICS: ProjectAnalytics[] = [
@@ -133,10 +149,68 @@ const SAMPLE_PROJECT_ANALYTICS: ProjectAnalytics[] = [
   },
 ];
 
+const INITIAL_REPORTS: QuestionReport[] = [
+  {
+    id: 'rep_101',
+    project_id: 'proj-onboarding-101',
+    question_id: 'q2',
+    question_title: 'Phishing Simulation Link Verification',
+    report_type: 'bug',
+    feedback_text: 'Submit button stayed grayed out when using Safari 17 on macOS Sonoma until page refreshed.',
+    user_identifier: 'dev-alex@example.com',
+    status: 'open',
+    created_at: '2026-09-18 11:20',
+  },
+  {
+    id: 'rep_102',
+    project_id: 'proj-onboarding-101',
+    question_id: 'q4',
+    question_title: 'Incident Escalation SLA Hierarchy',
+    report_type: 'feedback',
+    feedback_text: 'The 2-hour SLA in the prompt contradicts the 4-hour requirement in Section 1 reading docs.',
+    user_identifier: 'sarah.ops@example.com',
+    status: 'under_review',
+    created_at: '2026-09-18 10:45',
+  },
+  {
+    id: 'rep_103',
+    project_id: 'proj-wp-architect',
+    question_id: 'wq2',
+    question_title: 'Non-Destructive Database Schema Migration via ALTER TABLE',
+    report_type: 'typo',
+    feedback_text: 'Typo in subtitle: "destructve" is misspelled.',
+    user_identifier: 'candidate_anon_192.168.1.42',
+    status: 'resolved',
+    created_at: '2026-09-17 17:15',
+  },
+];
+
 export const AnalyticsDashboard: React.FC = () => {
   const [analyticsData, setAnalyticsData] = useState<ProjectAnalytics[]>(SAMPLE_PROJECT_ANALYTICS);
   const [selectedProjectId, setSelectedProjectId] = useState<string>(SAMPLE_PROJECT_ANALYTICS[0].projectId);
   const [isPreviewOpen, setIsPreviewOpen] = useState<boolean>(false);
+
+  // Question & Bug Reports State
+  const [reports, setReports] = useState<QuestionReport[]>(INITIAL_REPORTS);
+  const [reportFilter, setReportFilter] = useState<'all' | 'bug' | 'feedback' | 'typo' | 'dispute'>('all');
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem('wp_exam_question_reports');
+      const hasStored = Boolean(stored);
+
+      if (hasStored && stored) {
+        const parsed: QuestionReport[] = JSON.parse(stored);
+        const hasParsed = Array.isArray(parsed) && parsed.length > 0;
+
+        if (hasParsed) {
+          setReports([...parsed, ...INITIAL_REPORTS]);
+        }
+      }
+    } catch {
+      // Storage fallback
+    }
+  }, []);
 
   const currentProject =
     analyticsData.find((proj) => proj.projectId === selectedProjectId) || analyticsData[0];
@@ -159,142 +233,178 @@ export const AnalyticsDashboard: React.FC = () => {
     }
   };
 
-  const handleCopyShareLink = (projectId: string) => {
-    const url = `${window.location.origin}/analytics/public/${projectId}`;
-    navigator.clipboard.writeText(url);
-    toast.success('Public analytics link copied to clipboard!');
+  const handleResolveReport = (reportId: string) => {
+    setReports((prev) =>
+      prev.map((r) => {
+        if (r.id === reportId) {
+          return { ...r, status: 'resolved' as const };
+        }
+
+        return r;
+      })
+    );
+
+    toast.success('Report marked as resolved');
   };
+
+  const handleDismissReport = (reportId: string) => {
+    setReports((prev) => prev.filter((r) => r.id !== reportId));
+    toast.info('Report dismissed from triage');
+  };
+
+  const filteredReports = reports.filter((r) => {
+    const isAll = reportFilter === 'all';
+    if (isAll) {
+      return true;
+    }
+
+    return r.report_type === reportFilter;
+  });
+
+  const openReportsCount = reports.filter((r) => r.status === 'open').length;
+  const bugsCount = reports.filter((r) => r.report_type === 'bug').length;
 
   return (
     <div className="space-y-6">
-      {/* Header and Project Switcher */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-card p-6 rounded-2xl border shadow-sm">
+      {/* Top Header & Project Selector */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-black tracking-tight flex items-center gap-2">
+          <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
             <BarChart3 className="w-6 h-6 text-primary" />
             Performance & Question Failure Analytics
           </h2>
-          <p className="text-sm text-muted-foreground mt-1">
-            Monitor candidate completion, high-failure alert hotspots, and configure public difficulty previews.
+          <p className="text-sm text-muted-foreground">
+            Track candidate completion funnels, identify failure hotspots, triage question bug reports, and toggle public difficulty previews.
           </p>
         </div>
 
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <div className="flex items-center gap-2 bg-muted px-3 py-1.5 rounded-xl border w-full sm:w-auto">
-            <Filter className="w-4 h-4 text-muted-foreground" />
-            <select
-              value={selectedProjectId}
-              onChange={(e) => setSelectedProjectId(e.target.value)}
-              className="bg-transparent text-sm font-medium focus:outline-none cursor-pointer w-full"
-            >
-              {analyticsData.map((proj) => (
-                <option key={proj.projectId} value={proj.projectId}>
-                  {proj.projectTitle}
-                </option>
-              ))}
-            </select>
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2 bg-muted/60 p-1.5 rounded-xl border">
+            <span className="text-xs font-semibold px-2 text-muted-foreground">Course:</span>
+            {analyticsData.map((proj) => (
+              <Button
+                key={proj.projectId}
+                variant={selectedProjectId === proj.projectId ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setSelectedProjectId(proj.projectId)}
+                className="text-xs h-7"
+              >
+                {proj.projectTitle.split('&')[0].trim()}
+              </Button>
+            ))}
           </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsPreviewOpen(true)}
+            className="text-xs flex items-center gap-1.5"
+          >
+            <Eye className="w-3.5 h-3.5 text-sky-400" />
+            Preview View
+          </Button>
         </div>
       </div>
 
-      {/* Top Metric KPI Cards */}
+      {/* KPI Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="rounded-2xl border bg-card shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Total Assigned
-            </CardTitle>
-            <Users className="w-4 h-4 text-blue-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-black">{currentProject.totalAssigned}</div>
-            <p className="text-xs text-muted-foreground mt-1">Candidates enrolled in curriculum</p>
-          </CardContent>
+        {/* Total Assigned */}
+        <Card className="rounded-2xl border bg-card shadow-sm p-5 space-y-2">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span className="text-xs font-bold uppercase tracking-wider">Total Assigned</span>
+            <Users className="w-4 h-4 text-primary" />
+          </div>
+          <div className="text-3xl font-black text-foreground">
+            {currentProject.totalAssigned}
+          </div>
+          <div className="text-xs text-muted-foreground flex items-center gap-1">
+            <span>Enrolled across active curriculum cohorts</span>
+          </div>
         </Card>
 
-        <Card className="rounded-2xl border bg-card shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Completed
-            </CardTitle>
+        {/* Completed */}
+        <Card className="rounded-2xl border bg-card shadow-sm p-5 space-y-2">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span className="text-xs font-bold uppercase tracking-wider">Completed</span>
             <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-black text-emerald-500">{currentProject.totalCompleted}</div>
-            <p className="text-xs text-muted-foreground mt-1">Passed exam criteria</p>
-          </CardContent>
+          </div>
+          <div className="text-3xl font-black text-emerald-400">
+            {currentProject.totalCompleted}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            {Math.round((currentProject.totalCompleted / currentProject.totalAssigned) * 100)}% completion rate
+          </div>
         </Card>
 
-        <Card className="rounded-2xl border bg-card shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Failed
-            </CardTitle>
+        {/* Failed */}
+        <Card className="rounded-2xl border bg-card shadow-sm p-5 space-y-2">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span className="text-xs font-bold uppercase tracking-wider">Failed / Incomplete</span>
             <XCircle className="w-4 h-4 text-rose-500" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-black text-rose-500">{currentProject.totalFailed}</div>
-            <p className="text-xs text-muted-foreground mt-1">Need review or reassessment</p>
-          </CardContent>
+          </div>
+          <div className="text-3xl font-black text-rose-400">
+            {currentProject.totalFailed}
+          </div>
+          <div className="text-xs text-muted-foreground">
+            Require retake or section review
+          </div>
         </Card>
 
-        <Card className="rounded-2xl border bg-card shadow-sm">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
-              Pass Rate
-            </CardTitle>
-            <span className="text-xs font-extrabold text-primary">{currentProject.passRate}%</span>
-          </CardHeader>
-          <CardContent className="space-y-2">
-            <div className="text-3xl font-black">{currentProject.passRate}%</div>
-            <Progress value={currentProject.passRate} className="h-2 rounded-full" />
-          </CardContent>
+        {/* Pass Rate */}
+        <Card className="rounded-2xl border bg-card shadow-sm p-5 space-y-2">
+          <div className="flex items-center justify-between text-muted-foreground">
+            <span className="text-xs font-bold uppercase tracking-wider">Overall Pass Rate</span>
+            <span className="text-xs font-mono font-bold text-amber-400">{currentProject.passRate}%</span>
+          </div>
+          <div className="text-3xl font-black text-foreground">
+            {currentProject.passRate}%
+          </div>
+          <Progress value={currentProject.passRate} className="h-1.5" />
         </Card>
       </div>
 
-      {/* Public Analytics Sharing & Anonymous Breakdown Banner */}
-      <Card className="rounded-2xl border bg-card/80 p-5 shadow-sm">
-        <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+      {/* Public Sharing Control Banner */}
+      <Card className="rounded-2xl border bg-card/60 shadow-sm p-5">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <Share2 className="w-4 h-4 text-indigo-400" />
-              <h3 className="font-bold text-sm">Public Analytics & Candidate Difficulty Preview</h3>
+              <Share2 className="w-4 h-4 text-sky-400" />
+              <span className="font-bold text-sm text-foreground">Public Analytics & Difficulty Preview</span>
+              {currentProject.isPublicShared ? (
+                <Badge className="bg-emerald-500/20 text-emerald-400 text-[10px] border-emerald-500/30">
+                  Publicly Shared
+                </Badge>
+              ) : (
+                <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                  Internal Only
+                </Badge>
+              )}
             </div>
             <p className="text-xs text-muted-foreground">
-              Allowing public analytics lets candidates view pass/fail metrics and alert hotspots before starting.
+              When enabled, prospective candidates can view the difficulty index and challenge hotspots before taking the assessment.
             </p>
           </div>
 
           <div className="flex items-center gap-3">
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-muted-foreground font-medium">Public Access:</span>
-              <Switch
-                checked={currentProject.isPublicShared}
-                onCheckedChange={(checked) => handleTogglePublicSharing(currentProject.projectId, checked)}
-              />
-            </div>
-
+            <Switch
+              checked={currentProject.isPublicShared}
+              onCheckedChange={(checked) => handleTogglePublicSharing(currentProject.projectId, checked)}
+            />
             {currentProject.isPublicShared && (
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => handleCopyShareLink(currentProject.projectId)}
-                  className="text-xs h-8 gap-1.5"
-                >
-                  <Copy className="w-3.5 h-3.5" />
-                  Copy Link
-                </Button>
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setIsPreviewOpen(true)}
-                  className="text-xs h-8 gap-1.5"
-                >
-                  <Eye className="w-3.5 h-3.5" />
-                  Preview View
-                </Button>
-              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `https://example.com/analytics/preview/${currentProject.projectId}`
+                  );
+                  toast.success('Public analytics link copied to clipboard!');
+                }}
+                className="text-xs h-8"
+              >
+                <Copy className="w-3 h-3 mr-1" />
+                Copy Link
+              </Button>
             )}
           </div>
         </div>
@@ -307,7 +417,7 @@ export const AnalyticsDashboard: React.FC = () => {
           <div className="flex items-center gap-1.5">
             <span>🕵️ Anonymous Submissions (Survey Mode): <strong>{currentProject.anonymousCount}</strong></span>
           </div>
-          <div className="flex items-center gap-1.5 text-slate-400">
+          <div className="flex items-center gap-1.5 text-muted-foreground">
             <span>🌐 Client IP addresses logged for security and anti-abuse verification</span>
           </div>
         </div>
@@ -377,6 +487,184 @@ export const AnalyticsDashboard: React.FC = () => {
                     </td>
                   </tr>
                 ))}
+              </tbody>
+            </table>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Reported Questions & Bug Triage Card */}
+      <Card className="rounded-2xl border bg-card shadow-sm">
+        <CardHeader>
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <div>
+              <CardTitle className="text-lg font-bold flex items-center gap-2">
+                <Flag className="w-5 h-5 text-rose-400" />
+                Reported Questions & Bug Triage
+                <Badge variant="secondary" className="text-xs ml-1">
+                  {reports.length} Reports
+                </Badge>
+                {openReportsCount > 0 && (
+                  <Badge className="bg-rose-500/20 text-rose-300 border-rose-500/40 text-xs">
+                    {openReportsCount} Open
+                  </Badge>
+                )}
+                {bugsCount > 0 && (
+                  <Badge className="bg-amber-500/20 text-amber-300 border-amber-500/40 text-xs">
+                    {bugsCount} Technical Bugs
+                  </Badge>
+                )}
+              </CardTitle>
+              <CardDescription className="text-xs">
+                Candidate-reported typos, ambiguous questions, correct answer disputes, and platform bugs submitted during quiz execution.
+              </CardDescription>
+            </div>
+
+            {/* Filter Buttons */}
+            <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-xl flex-wrap">
+              <Button
+                variant={reportFilter === 'all' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setReportFilter('all')}
+                className="text-[11px] h-7 px-2"
+              >
+                All
+              </Button>
+              <Button
+                variant={reportFilter === 'bug' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setReportFilter('bug')}
+                className="text-[11px] h-7 px-2 text-rose-400"
+              >
+                🐛 Bugs
+              </Button>
+              <Button
+                variant={reportFilter === 'feedback' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setReportFilter('feedback')}
+                className="text-[11px] h-7 px-2 text-sky-400"
+              >
+                💬 Feedback
+              </Button>
+              <Button
+                variant={reportFilter === 'typo' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setReportFilter('typo')}
+                className="text-[11px] h-7 px-2 text-amber-400"
+              >
+                📝 Typos
+              </Button>
+              <Button
+                variant={reportFilter === 'dispute' ? 'default' : 'ghost'}
+                size="sm"
+                onClick={() => setReportFilter('dispute')}
+                className="text-[11px] h-7 px-2 text-indigo-400"
+              >
+                ⚖️ Disputes
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs text-left">
+              <thead className="text-muted-foreground uppercase border-b bg-muted/40">
+                <tr>
+                  <th className="p-3">Date</th>
+                  <th className="p-3">Category</th>
+                  <th className="p-3">Target Question / Topic</th>
+                  <th className="p-3">Report Description</th>
+                  <th className="p-3">Reporter</th>
+                  <th className="p-3 text-center">Status</th>
+                  <th className="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {filteredReports.map((rep) => {
+                  const isResolved = rep.status === 'resolved';
+
+                  return (
+                    <tr key={rep.id} className="hover:bg-muted/20 transition-colors">
+                      <td className="p-3 whitespace-nowrap text-muted-foreground font-mono text-[11px]">
+                        {rep.created_at}
+                      </td>
+                      <td className="p-3 whitespace-nowrap">
+                        {rep.report_type === 'bug' && (
+                          <Badge className="bg-rose-500/20 text-rose-400 border-rose-500/30 text-[10px]">
+                            🐛 Bug
+                          </Badge>
+                        )}
+                        {rep.report_type === 'feedback' && (
+                          <Badge className="bg-sky-500/20 text-sky-400 border-sky-500/30 text-[10px]">
+                            💬 Feedback
+                          </Badge>
+                        )}
+                        {rep.report_type === 'typo' && (
+                          <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px]">
+                            📝 Typo
+                          </Badge>
+                        )}
+                        {rep.report_type === 'dispute' && (
+                          <Badge className="bg-indigo-500/20 text-indigo-400 border-indigo-500/30 text-[10px]">
+                            ⚖️ Dispute
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="p-3 font-semibold max-w-xs">
+                        <div>{rep.question_title || rep.question_id}</div>
+                        <span className="text-[10px] text-muted-foreground font-mono">
+                          ID: {rep.question_id}
+                        </span>
+                      </td>
+                      <td className="p-3 max-w-sm text-foreground leading-relaxed">
+                        {rep.feedback_text}
+                      </td>
+                      <td className="p-3 text-muted-foreground font-mono text-[11px] whitespace-nowrap">
+                        {rep.user_identifier}
+                      </td>
+                      <td className="p-3 text-center whitespace-nowrap">
+                        {isResolved ? (
+                          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">
+                            Resolved
+                          </Badge>
+                        ) : rep.status === 'under_review' ? (
+                          <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px]">
+                            Under Review
+                          </Badge>
+                        ) : (
+                          <Badge className="bg-rose-500/20 text-rose-400 border-rose-500/30 text-[10px]">
+                            Open
+                          </Badge>
+                        )}
+                      </td>
+                      <td className="p-3 text-right whitespace-nowrap">
+                        <div className="flex items-center justify-end gap-1.5">
+                          {isResolved ? (
+                            <span className="text-[11px] text-muted-foreground">Archived</span>
+                          ) : (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleResolveReport(rep.id)}
+                              className="text-[10px] h-6 px-2 text-emerald-400 border-emerald-500/30 hover:bg-emerald-950/40"
+                            >
+                              <Check className="w-3 h-3 mr-1" />
+                              Resolve
+                            </Button>
+                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDismissReport(rep.id)}
+                            className="text-[10px] h-6 px-2 text-muted-foreground hover:text-rose-400"
+                          >
+                            Dismiss
+                          </Button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

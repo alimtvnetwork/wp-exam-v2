@@ -119,4 +119,23 @@ test.describe('Focus Quiz Runner & Hierarchical Projects E2E', () => {
     await page.click('button:has-text("Create Full ZIP Backup")');
     await expect(page.locator('text=Full system backup archive created successfully!')).toBeVisible();
   });
+
+  test('should verify Question Reporting triage in Analytics and Project JSON import/export', async ({ page }) => {
+    // 1. Verify Reported Questions & Bug Triage in Analytics
+    await page.click('button:has-text("Analytics")');
+    await expect(page.locator('text=Reported Questions & Bug Triage')).toBeVisible();
+    await expect(page.locator('text=Technical Bugs')).toBeVisible();
+    await expect(page.locator('button:has-text("Bugs")')).toBeVisible();
+    await page.click('button:has-text("Bugs")');
+    await expect(page.locator('text=Safari 17')).toBeVisible();
+
+    // 2. Verify Projects JSON Export and Recursive Sub-Projects
+    await page.click('button:has-text("Projects")');
+    await expect(page.locator('text=Curriculum Tree')).toBeVisible();
+    await expect(page.locator('text=Hardware Security Keys & YubiKey').first()).toBeVisible();
+    await expect(page.locator('button:has-text("Export JSON")')).toBeVisible();
+    await page.click('button:has-text("Import JSON")');
+    await expect(page.locator('text=Import Project from JSON')).toBeVisible();
+    await page.click('button:has-text("Cancel")');
+  });
 });

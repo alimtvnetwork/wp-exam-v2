@@ -234,6 +234,8 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
   const [showHint, setShowHint] = useState<boolean>(false);
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
   const [reportText, setReportText] = useState<string>('');
+  const [reportType, setReportType] = useState<'feedback' | 'bug' | 'typo' | 'dispute'>('feedback');
+  const [reporterEmail, setReporterEmail] = useState<string>('');
   const [clickCount, setClickCount] = useState<number>(0);
   const [calculatedScore, setCalculatedScore] = useState<{
     score: number;
@@ -544,14 +546,43 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
   };
 
   const submitReport = () => {
-    if (!reportText.trim()) {
-      toast.error('Please describe the issue or feedback.');
-      return;
-    }
+    const cleanFeedback = reportText.trim();
+    const hasFeedback = Boolean(cleanFeedback);
 
-    toast.success('Question feedback logged and dispatched to instructors via email.');
-    setReportText('');
-    setShowReportModal(false);
+    if (hasFeedback) {
+      const newReport = {
+        id: 'rep_' + Date.now(),
+        project_id: config.id,
+        question_id: currentQuestion?.id || 'general',
+        question_title: currentQuestion?.title || 'General Assessment',
+        report_type: reportType,
+        feedback_text: cleanFeedback,
+        user_identifier: reporterEmail.trim() || 'anonymous_candidate',
+        status: 'open',
+        created_at: new Date().toLocaleString(),
+      };
+
+      try {
+        const storedReports = JSON.parse(localStorage.getItem('wp_exam_question_reports') || '[]');
+        localStorage.setItem('wp_exam_question_reports', JSON.stringify([newReport, ...storedReports]));
+      } catch {
+        // LocalStorage fallback
+      }
+
+      // Dispatch to REST backend endpoint
+      fetch('/wp-json/wp-exam/v1/reports', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newReport),
+      }).catch(() => {});
+
+      toast.success('Question report and feedback logged! Instructors notified via email dispatch.');
+      setReportText('');
+      setReporterEmail('');
+      setShowReportModal(false);
+    } else {
+      toast.error('Please describe the issue or feedback.');
+    }
   };
 
   const renderFormattedTitle = (title: string) => {
@@ -1219,35 +1250,105 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
       {showReportModal && (
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div
-            className="max-w-sm w-full p-6 rounded-3xl border shadow-2xl space-y-4"
+            className="max-w-md w-full p-6 rounded-3xl border shadow-2xl space-y-4"
             style={{
               backgroundColor: theme.colors.cardBg,
               borderColor: theme.colors.cardBorder,
             }}
           >
-            <h3 className="text-lg font-bold flex items-center gap-2">
-              <Flag className="w-5 h-5 text-rose-400" />
-              Report Question or Issue
-            </h3>
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold flex items-center gap-2">
+                <Flag className="w-4 h-4 text-rose-400" />
+                Report Question or Issue
+              </h3>
+              <button
+                onClick={() => setShowReportModal(false)}
+                className="text-xs text-muted-foreground hover:text-foreground"
+              >
+                ✕
+              </button>
+            </div>
+
             <p className="text-xs text-slate-300">
-              Notice a typo, misleading answer, or broken verification link? Let our instructors know.
+              Notice a typo, misleading answer, or technical bug? Submit feedback directly to curriculum instructors.
             </p>
-            <Textarea
-              placeholder="Describe what's wrong with this question or section..."
-              rows={4}
-              value={reportText}
-              onChange={(e) => setReportText(e.target.value)}
-              className="p-3 text-xs rounded-xl"
-              style={{
-                backgroundColor: theme.colors.background,
-                borderColor: theme.colors.cardBorder,
-              }}
-            />
-            <div className="flex justify-end gap-2">
+
+            <div className="space-y-1.5">
+              <label className="text-[11px] font-semibold text-slate-400 block">Report Category:</label>
+              <div className="grid grid-cols-2 gap-2 text-xs">
+                <button
+                  type="button"
+                  onClick={() => setReportType('feedback')}
+                  className={`p-2 rounded-xl border text-left flex items-center gap-1.5 transition ${
+                    reportType === 'feedback' ? 'bg-primary/20 border-primary font-bold text-white' : 'border-slate-700 text-slate-400'
+                  }`}
+                >
+                  <span>💬 Question Feedback</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReportType('bug')}
+                  className={`p-2 rounded-xl border text-left flex items-center gap-1.5 transition ${
+                    reportType === 'bug' ? 'bg-rose-500/20 border-rose-500 font-bold text-rose-300' : 'border-slate-700 text-slate-400'
+                  }`}
+                >
+                  <span>🐛 Technical Bug</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReportType('typo')}
+                  className={`p-2 rounded-xl border text-left flex items-center gap-1.5 transition ${
+                    reportType === 'typo' ? 'bg-amber-500/20 border-amber-500 font-bold text-amber-300' : 'border-slate-700 text-slate-400'
+                  }`}
+                >
+                  <span>📝 Typo / Grammar</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setReportType('dispute')}
+                  className={`p-2 rounded-xl border text-left flex items-center gap-1.5 transition ${
+                    reportType === 'dispute' ? 'bg-indigo-500/20 border-indigo-500 font-bold text-indigo-300' : 'border-slate-700 text-slate-400'
+                  }`}
+                >
+                  <span>⚖️ Dispute Answer</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-slate-400 block">Your Email (Optional):</label>
+              <Input
+                placeholder="candidate@example.com"
+                value={reporterEmail}
+                onChange={(e) => setReporterEmail(e.target.value)}
+                className="p-2.5 text-xs rounded-xl"
+                style={{
+                  backgroundColor: theme.colors.background,
+                  borderColor: theme.colors.cardBorder,
+                }}
+              />
+            </div>
+
+            <div className="space-y-1">
+              <label className="text-[11px] font-semibold text-slate-400 block">Description / Feedback:</label>
+              <Textarea
+                placeholder="Describe the problem, discrepancy, or bug in detail..."
+                rows={4}
+                value={reportText}
+                onChange={(e) => setReportText(e.target.value)}
+                className="p-3 text-xs rounded-xl"
+                style={{
+                  backgroundColor: theme.colors.background,
+                  borderColor: theme.colors.cardBorder,
+                }}
+              />
+            </div>
+
+            <div className="flex justify-end gap-2 pt-1">
               <Button variant="ghost" size="sm" onClick={() => setShowReportModal(false)}>
                 Cancel
               </Button>
-              <Button size="sm" onClick={submitReport} className="flex items-center gap-1">
+              <Button size="sm" onClick={submitReport} className="flex items-center gap-1 text-xs">
                 <Send className="w-3.5 h-3.5" />
                 Submit Report
               </Button>

@@ -297,6 +297,12 @@ class SqliteDatabase {
         } catch (Throwable) {
             // Column may already exist
         }
+
+        try {
+            $this->pdo->exec("ALTER TABLE projects ADD COLUMN parent_project_id TEXT DEFAULT ''");
+        } catch (Throwable) {
+            // Column may already exist
+        }
     }
 
     public function query(string $sql, array $params = []): array {
