@@ -27,8 +27,8 @@ require_once WP_EXAM_PLUGIN_DIR . 'includes/class-wp-exam-activator.php';
 require_once WP_EXAM_PLUGIN_DIR . 'includes/api/class-wp-exam-rest-api.php';
 require_once WP_EXAM_PLUGIN_DIR . 'includes/class-wp-exam-admin.php';
 
+use WpExam\Core\Plugin;
 use WpExam\Activation\ActivationHandler;
-use WpExam\Api\FormRestController;
 use WpExam\ErrorHandling\BootErrorCollector;
 
 // Activation Hook
@@ -39,13 +39,7 @@ register_activation_hook(__FILE__, [ActivationHandler::class, 'activate']);
  */
 function run_wp_exam(): void {
     try {
-        $restController = new FormRestController();
-        add_action('rest_api_init', [$restController, 'registerRoutes']);
-
-        if (is_admin()) {
-            $admin = new WP_Exam_Admin();
-            $admin->init();
-        }
+        Plugin::getInstance();
     } catch (Throwable $e) {
         BootErrorCollector::getInstance()->addError('plugin_init', $e->getMessage() . "\n" . $e->getTraceAsString());
     }

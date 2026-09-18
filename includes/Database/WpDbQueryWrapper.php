@@ -13,6 +13,7 @@ if (!defined('ABSPATH')) {
 
 use wpdb;
 use Throwable;
+use WpExam\Logging\FileLogger;
 use WpExam\Enums\ResponseMessageType;
 
 class WpDbQueryWrapper {
@@ -34,20 +35,19 @@ class WpDbQueryWrapper {
             $hasLastError = !empty($wpdb->last_error);
 
             if ($hasLastError) {
-                error_log(
-                    '[WP Exam] DbQueryError: ' . ResponseMessageType::DbQueryFailed->value .
-                    ' | SQL: ' . ($contextSql ?: $wpdb->last_query) .
-                    ' | Error: ' . $wpdb->last_error
-                );
+                FileLogger::getInstance()->error(ResponseMessageType::DbQueryFailed->value, [
+                    'sql'   => $contextSql ?: $wpdb->last_query,
+                    'error' => $wpdb->last_error,
+                ]);
             }
 
             return $result;
         } catch (Throwable $e) {
-            error_log(
-                '[WP Exam] DbQueryException: ' . ResponseMessageType::DbQueryFailed->value .
-                ' | SQL: ' . ($contextSql ?: $wpdb->last_query) .
-                ' | Error: ' . $e->getMessage() . "\n" . $e->getTraceAsString()
-            );
+            FileLogger::getInstance()->error(ResponseMessageType::DbQueryFailed->value, [
+                'sql'   => $contextSql ?: $wpdb->last_query,
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString(),
+            ]);
 
             return false;
         } finally {
