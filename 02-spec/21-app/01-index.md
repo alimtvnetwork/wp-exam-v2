@@ -33,6 +33,12 @@ App-specific specification content for the WP Exam plugin. This engine provides 
 | 04 | [04-quiz-feature/01-file-topology.md](./04-quiz-feature/01-file-topology.md) | PSR-4 Backend & React SPA File Topology | Complete |
 | 04 | [04-quiz-feature/02-rest-api-contracts.md](./04-quiz-feature/02-rest-api-contracts.md) | REST API Request/Response Schemas, Envelopes & Submission Contracts | Complete |
 | 04 | [04-quiz-feature/03-test-specifications.md](./04-quiz-feature/03-test-specifications.md) | Playwright E2E and PHPUnit Integration Test Specifications | Complete |
+| 05 | [05-hierarchical-learning-and-exam-system/00-verbatim-and-overview.md](./05-hierarchical-learning-and-exam-system/00-verbatim-and-overview.md) | Verbatim User Request, Overview & Focus UI References | Complete |
+| 05 | [05-hierarchical-learning-and-exam-system/01-architecture-and-runners.md](./05-hierarchical-learning-and-exam-system/01-architecture-and-runners.md) | Local Test Runners & Remote Deployment Uploader Protocol | Complete |
+| 05 | [05-hierarchical-learning-and-exam-system/02-hierarchical-curriculum-engine.md](./05-hierarchical-learning-and-exam-system/02-hierarchical-curriculum-engine.md) | Categories, Recursive Sub-Projects, Pipelines & JSON Import/Export | Complete |
+| 05 | [05-hierarchical-learning-and-exam-system/03-learning-stages-and-verification.md](./05-hierarchical-learning-and-exam-system/03-learning-stages-and-verification.md) | 4-Stage Learning State Machine, Docs, Checklists & Anti-Cheat | Complete |
+| 05 | [05-hierarchical-learning-and-exam-system/04-split-db-and-audit-history.md](./05-hierarchical-learning-and-exam-system/04-split-db-and-audit-history.md) | Split SQLite DB Architecture, Audit Logs & 1-Click Rollback | Complete |
+| 05 | [05-hierarchical-learning-and-exam-system/05-question-types-and-reporting.md](./05-hierarchical-learning-and-exam-system/05-question-types-and-reporting.md) | Question Types, Live URL Verification, Bug Triage & AI Studio | Complete |
 
 ---
 

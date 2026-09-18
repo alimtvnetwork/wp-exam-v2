@@ -162,6 +162,10 @@ class SqliteDatabase {
         }
     }
 
+    public function getProjectHistoryDatabase(string $projectId): ?PDO {
+        return ProjectHistoryDatabase::getInstance()->getHistoryPdo($projectId);
+    }
+
     private function runMigrations(): void {
         if ($this->pdo === null) {
             return;

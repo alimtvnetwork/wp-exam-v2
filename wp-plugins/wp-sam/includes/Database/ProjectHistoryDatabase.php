@@ -37,7 +37,7 @@ class ProjectHistoryDatabase {
         return extension_loaded('pdo_sqlite') && in_array('sqlite', PDO::getAvailableDrivers(), true);
     }
 
-    private function getHistoryPdo(string $projectId): ?PDO {
+    public function getHistoryPdo(string $projectId): ?PDO {
         $cleanId = preg_replace('/[^a-zA-Z0-9_-]/', '', $projectId);
         $hasCleanId = !empty($cleanId);
         if (!$hasCleanId) {
