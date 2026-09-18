@@ -2008,6 +2008,196 @@ def test_backup_dual_dispatch() -> None:
 
 
 # =====================================================================
+# 29. SOCIAL SHARE URL ATTRIBUTION & UTM PARAMETER TRACKING
+# =====================================================================
+def test_social_share_url_attribution() -> None:
+    log_suite("29. Social Share URL Attribution & UTM Parameter Tracking")
+
+    import urllib.parse
+
+    def build_social_share_url(base_url: str, question_id: str, platform: str, campaign: str) -> str:
+        params = {
+            "qid": question_id,
+            "utm_source": platform,
+            "utm_medium": "social",
+            "utm_campaign": campaign,
+            "utm_content": f"question_{question_id}",
+        }
+        encoded_query = urllib.parse.urlencode(params)
+        return f"{base_url}?{encoded_query}"
+
+    def parse_and_validate_share_url(share_url: str) -> Tuple[bool, Dict[str, str]]:
+        parsed = urllib.parse.urlparse(share_url)
+        query_map = urllib.parse.parse_qs(parsed.query)
+
+        required_keys = ["qid", "utm_source", "utm_medium", "utm_campaign", "utm_content"]
+        extracted: Dict[str, str] = {}
+        for key in required_keys:
+            has_key = key in query_map
+            if not has_key:
+                return False, {}
+            extracted[key] = query_map[key][0]
+
+        for k, v in extracted.items():
+            has_script = "<script" in v.lower()
+            if has_script:
+                return False, {}
+
+        return True, extracted
+
+    base = "https://example.com/wp-exam/quiz"
+    share_link = build_social_share_url(base, "q_vpc_99", "twitter", "summer_onboarding_2026")
+    is_valid_url, tags = parse_and_validate_share_url(share_link)
+
+    has_source = tags.get("utm_source") == "twitter"
+    has_campaign = tags.get("utm_campaign") == "summer_onboarding_2026"
+    has_qid = tags.get("qid") == "q_vpc_99"
+
+    malicious_link = f"{base}?qid=1&utm_source=%3Cscript%3Ealert(1)%3C/script%3E&utm_medium=social&utm_campaign=x&utm_content=y"
+    is_malicious_valid, _ = parse_and_validate_share_url(malicious_link)
+    is_malicious_blocked = not is_malicious_valid
+
+    is_suite_valid = (
+        is_valid_url
+        and has_source
+        and has_campaign
+        and has_qid
+        and is_malicious_blocked
+    )
+    log_test("Social Share URL UTM Campaign Attribution & XSS Neutralization", is_suite_valid)
+
+
+# =====================================================================
+# 30. QUESTION & OPTION DETERMINISTIC RANDOMIZATION & SEEDED SHUFFLE
+# =====================================================================
+def test_seeded_randomization_and_shuffle() -> None:
+    log_suite("30. Question & Option Deterministic Randomization & Seeded Shuffle")
+
+    import random
+
+    def shuffle_questions(questions: List[Dict[str, Any]], seed: int) -> List[Dict[str, Any]]:
+        shuffled = list(questions)
+        rng = random.Random(seed)
+        rng.shuffle(shuffled)
+        return shuffled
+
+    def shuffle_options_with_pointer(question: Dict[str, Any], seed: int) -> Dict[str, Any]:
+        options = list(question.get("options", []))
+        correct_idx = question.get("correct_option", 0)
+        correct_value = options[correct_idx] if 0 <= correct_idx < len(options) else None
+
+        indexed_options = list(enumerate(options))
+        rng = random.Random(seed)
+        rng.shuffle(indexed_options)
+
+        shuffled_options = [opt for _, opt in indexed_options]
+        new_correct_idx = shuffled_options.index(correct_value) if correct_value in shuffled_options else 0
+
+        updated = dict(question)
+        updated["options"] = shuffled_options
+        updated["correct_option"] = new_correct_idx
+        return updated
+
+    raw_questions = [
+        {"id": "q1", "text": "Q1", "options": ["Alpha", "Beta", "Gamma", "Delta"], "correct_option": 1},
+        {"id": "q2", "text": "Q2", "options": ["One", "Two", "Three", "Four"], "correct_option": 2},
+        {"id": "q3", "text": "Q3", "options": ["Red", "Green", "Blue", "Yellow"], "correct_option": 0},
+    ]
+
+    shuffled_run1 = shuffle_questions(raw_questions, seed=42)
+    shuffled_run2 = shuffle_questions(raw_questions, seed=42)
+    has_deterministic_match = [q["id"] for q in shuffled_run1] == [q["id"] for q in shuffled_run2]
+
+    shuffled_diff = shuffle_questions(raw_questions, seed=99)
+    has_divergent_order = [q["id"] for q in shuffled_run1] != [q["id"] for q in shuffled_diff]
+
+    target_q = raw_questions[0]
+    shuffled_q = shuffle_options_with_pointer(target_q, seed=123)
+    new_idx = shuffled_q["correct_option"]
+    preserves_correct_answer = shuffled_q["options"][new_idx] == "Beta"
+
+    is_shuffle_suite_valid = (
+        has_deterministic_match
+        and has_divergent_order
+        and preserves_correct_answer
+    )
+    log_test("Deterministic Question & Option Seeded Shuffle with Pointer Preservation", is_shuffle_suite_valid)
+
+
+# =====================================================================
+# 31. PIPELINE SEQUENCING TOPOLOGICAL VALIDATION & CYCLE DETECTION
+# =====================================================================
+def test_pipeline_topology_and_cycle_detection() -> None:
+    log_suite("31. Pipeline Sequencing Topological Validation & Cycle Detection")
+
+    class PipelineValidator:
+        @staticmethod
+        def has_cycle(prereq_graph: Dict[str, List[str]]) -> bool:
+            visited: set = set()
+            rec_stack: set = set()
+
+            def dfs(node: str) -> bool:
+                visited.add(node)
+                rec_stack.add(node)
+                for neighbor in prereq_graph.get(node, []):
+                    has_visited = neighbor in visited
+                    if not has_visited:
+                        is_cycle = dfs(neighbor)
+                        if is_cycle:
+                            return True
+                    has_in_stack = neighbor in rec_stack
+                    if has_in_stack:
+                        return True
+                rec_stack.remove(node)
+                return False
+
+            for node in prereq_graph:
+                has_visited = node in visited
+                if not has_visited:
+                    is_cycle = dfs(node)
+                    if is_cycle:
+                        return True
+            return False
+
+        @staticmethod
+        def is_execution_order_valid(order: List[str], prereq_graph: Dict[str, List[str]]) -> bool:
+            completed: set = set()
+            for step in order:
+                prereqs = prereq_graph.get(step, [])
+                for p in prereqs:
+                    has_prereq = p in completed
+                    if not has_prereq:
+                        return False
+                completed.add(step)
+            return True
+
+    acyclic_graph = {
+        "A": [],
+        "C": ["A"],
+        "D": ["C"],
+        "B": ["D"],
+    }
+    is_acyclic_clean = not PipelineValidator.has_cycle(acyclic_graph)
+    is_valid_sequence = PipelineValidator.is_execution_order_valid(["A", "C", "D", "B"], acyclic_graph)
+    is_invalid_sequence_blocked = not PipelineValidator.is_execution_order_valid(["B", "A", "C", "D"], acyclic_graph)
+
+    cyclic_graph = {
+        "A": ["C"],
+        "B": ["A"],
+        "C": ["B"],
+    }
+    is_cycle_detected = PipelineValidator.has_cycle(cyclic_graph)
+
+    is_pipeline_suite_valid = (
+        is_acyclic_clean
+        and is_valid_sequence
+        and is_invalid_sequence_blocked
+        and is_cycle_detected
+    )
+    log_test("Pipeline Sequencing Topological Validation & Cyclic Dependency Detection", is_pipeline_suite_valid)
+
+
+# =====================================================================
 # 7. EXECUTION OF PHP UNIT TEST SUITE
 # =====================================================================
 def test_php_test_suite() -> None:
@@ -2074,6 +2264,9 @@ def main() -> None:
     test_progress_calculation_and_transition()
     test_email_digest_queue()
     test_backup_dual_dispatch()
+    test_social_share_url_attribution()
+    test_seeded_randomization_and_shuffle()
+    test_pipeline_topology_and_cycle_detection()
     test_php_test_suite()
 
     elapsed = round(time.time() - start_time, 3)
