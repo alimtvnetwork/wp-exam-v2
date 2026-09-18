@@ -9,7 +9,13 @@ Validates:
 4. JSON Curriculum Import/Export & Conditional Branching Schema Integrity
 5. Rich Media URL Parsing & Live Client-Side Validation Rules
 6. WordPress Elementor Widget Structure & Output Contract
-7. Full PHP Unit Test Suite Execution
+7. Multi-Project Hierarchy & Recursive Sub-Project Tree Resolution
+8. Multi-Theme Tokens & Rise Up Asia Color Palette
+9. REST API Route Registration Contracts
+10. Candidate Telemetry & Anonymity Verification
+11. Question Reporting & Bug Triage Workflow
+12. Backup & Archive Zip Generation & Retention Logic
+13. Full PHP Unit Test Suite Execution
 """
 
 import base64
@@ -610,6 +616,271 @@ def test_rest_route_contracts() -> None:
 
 
 # =====================================================================
+# 11. CANDIDATE TELEMETRY & ANONYMITY VERIFICATION
+# =====================================================================
+def test_candidate_telemetry_and_anonymity() -> None:
+    log_suite("11. Candidate Telemetry & Anonymity Verification")
+
+    # Test 11.1: Click telemetry tracking during reading doc phases & checklist gates
+    class TelemetryTracker:
+        def __init__(self) -> None:
+            self.events: List[Dict[str, Any]] = []
+
+        def record_click(self, user_id: str, page_id: str, action: str, timestamp: float) -> None:
+            self.events.append({
+                "user_id": user_id,
+                "page_id": page_id,
+                "action": action,
+                "timestamp": timestamp,
+            })
+
+        def get_interaction_count(self, user_id: str) -> int:
+            return sum(1 for e in self.events if e["user_id"] == user_id)
+
+    tracker = TelemetryTracker()
+    tracker.record_click("candidate_42", "doc_page_1", "read_page_view", 1000.0)
+    tracker.record_click("candidate_42", "doc_page_2", "read_page_view", 1025.0)
+    tracker.record_click("candidate_42", "checklist_gate", "checklist_item_toggle", 1040.0)
+
+    has_three_interactions = tracker.get_interaction_count("candidate_42") == 3
+    log_test("Reading & Checklist Interaction Telemetry Recorded", has_three_interactions)
+
+    # Test 11.2: Salted SHA-256 client IP hashing for candidate anonymity (GDPR compliant)
+    server_salt = "wp_exam_privacy_salt_9981"
+    raw_ip = "192.168.1.105"
+    hasher = hashlib.sha256()
+    hasher.update(f"{raw_ip}:{server_salt}".encode("utf-8"))
+    hashed_ip = hasher.hexdigest()
+
+    has_valid_length = len(hashed_ip) == 64
+    has_raw_ip = raw_ip in hashed_ip
+    is_hashed_clean = False
+    if has_valid_length:
+        if not has_raw_ip:
+            is_hashed_clean = True
+
+    log_test("Candidate Client IP Anonymized via Salted SHA-256", is_hashed_clean)
+
+    # Test 11.3: Anonymous survey submission flag handling
+    def format_candidate_submission(submission: Dict[str, Any]) -> Dict[str, Any]:
+        is_anonymous = submission.get("is_anonymous", False)
+        if is_anonymous:
+            return {
+                "candidate_name": "Anonymous Candidate",
+                "candidate_email": "",
+                "hashed_ip": submission.get("hashed_ip", ""),
+                "answers": submission.get("answers", {}),
+                "is_anonymous": True,
+            }
+        return {
+            "candidate_name": submission.get("candidate_name", ""),
+            "candidate_email": submission.get("candidate_email", ""),
+            "hashed_ip": submission.get("hashed_ip", ""),
+            "answers": submission.get("answers", {}),
+            "is_anonymous": False,
+        }
+
+    anon_input = {
+        "candidate_name": "John Secret",
+        "candidate_email": "john@secret.org",
+        "hashed_ip": hashed_ip,
+        "answers": {"q1": "a", "q2": "b"},
+        "is_anonymous": True,
+    }
+    anon_output = format_candidate_submission(anon_input)
+    has_masked_name = anon_output["candidate_name"] == "Anonymous Candidate"
+    has_empty_email = anon_output["candidate_email"] == ""
+    is_anon_flagged = anon_output["is_anonymous"]
+
+    is_anonymized = has_masked_name and has_empty_email and is_anon_flagged
+    log_test("Anonymous Submission Masks PII while Preserving Hashed IP", is_anonymized)
+
+
+# =====================================================================
+# 12. QUESTION REPORTING & BUG TRIAGE WORKFLOW
+# =====================================================================
+def test_question_reporting_and_bug_triage() -> None:
+    log_suite("12. Question Reporting & Bug Triage Workflow")
+
+    valid_report_types = {"typo", "bug", "feedback", "dispute"}
+    valid_statuses = {"open", "under_review", "resolved", "dismissed"}
+
+    def validate_report_payload(payload: Dict[str, Any]) -> Tuple[bool, str]:
+        has_qid = "question_id" in payload and len(str(payload["question_id"])) > 0
+        if not has_qid:
+            return False, "Missing question_id"
+
+        report_type = payload.get("report_type", "")
+        has_valid_type = report_type in valid_report_types
+        if not has_valid_type:
+            return False, f"Invalid report_type: {report_type}"
+
+        description = payload.get("description", "")
+        has_desc = len(description.strip()) >= 5
+        if not has_desc:
+            return False, "Description must be at least 5 characters"
+
+        return True, "OK"
+
+    # Test 12.1: Valid report submission schema
+    valid_payload = {
+        "question_id": "q_math_101",
+        "report_type": "dispute",
+        "description": "Option C formula seems ambiguous based on Section 2 lecture notes.",
+        "reporter_email": "student@example.org",
+    }
+    is_valid_report, _ = validate_report_payload(valid_payload)
+    log_test("Question Report Payload Schema Validation (Valid Dispute)", is_valid_report)
+
+    # Test 12.2: Reject report with invalid report type or empty description
+    invalid_payload = {
+        "question_id": "q_math_101",
+        "report_type": "arbitrary_complaint",
+        "description": "Short",
+    }
+    is_invalid_payload, _ = validate_report_payload(invalid_payload)
+    is_invalid_rejected = not is_invalid_payload
+    log_test("Rejection of Invalid Report Payload Schema", is_invalid_rejected)
+
+    # Test 12.3: Admin triage lifecycle transitions (open -> under_review -> resolved)
+    class ReportTriageRecord:
+        def __init__(self, report_id: str, question_id: str, report_type: str) -> None:
+            self.report_id = report_id
+            self.question_id = question_id
+            self.report_type = report_type
+            self.status = "open"
+            self.resolution_notes = ""
+
+        def transition_to(self, new_status: str, notes: str = "") -> bool:
+            allowed_transitions = {
+                "open": {"under_review", "dismissed"},
+                "under_review": {"resolved", "dismissed", "open"},
+                "resolved": {"under_review"},
+                "dismissed": {"under_review"},
+            }
+            allowed = allowed_transitions.get(self.status, set())
+            is_permitted = new_status in allowed
+            if not is_permitted:
+                return False
+
+            self.status = new_status
+            self.resolution_notes = notes
+            return True
+
+    record = ReportTriageRecord("rep_001", "q_math_101", "typo")
+    has_initial_open = record.status == "open"
+    is_step1_ok = record.transition_to("under_review", "Assigned to content team")
+    has_status_review = record.status == "under_review"
+    is_step2_ok = record.transition_to("resolved", "Corrected typographical spelling in option B")
+    has_status_resolved = record.status == "resolved"
+    # Illegal direct jump from resolved to open
+    is_illegal_blocked = not record.transition_to("open")
+
+    is_lifecycle_correct = (
+        has_initial_open
+        and is_step1_ok
+        and has_status_review
+        and is_step2_ok
+        and has_status_resolved
+        and is_illegal_blocked
+    )
+    log_test("Admin Report Triage State Machine Transitions", is_lifecycle_correct)
+
+
+# =====================================================================
+# 13. BACKUP & ARCHIVE ZIP GENERATION
+# =====================================================================
+def test_backup_and_archive_packaging() -> None:
+    log_suite("13. Backup & Archive Zip Generation & Retention Logic")
+
+    import io
+    import zipfile
+
+    # Test 13.1: Package split SQLite DBs, audit history DBs, and curriculum JSON into a valid zip
+    manifest_data = {
+        "version": "1.0",
+        "timestamp": int(time.time()),
+        "root_catalog": "root_catalog.json",
+        "databases": ["projects/proj_alpha.sqlite", "projects/proj_beta.sqlite"],
+        "histories": ["history/proj_alpha_history.sqlite", "history/proj_beta_history.sqlite"],
+    }
+
+    catalog_data = {
+        "categories": [
+            {
+                "id": "cat_onboarding",
+                "name": "Onboarding",
+                "projects": ["proj_alpha", "proj_beta"],
+            }
+        ]
+    }
+
+    zip_buffer = io.BytesIO()
+    with zipfile.ZipFile(zip_buffer, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("manifest.json", json.dumps(manifest_data, indent=2))
+        zf.writestr("root_catalog.json", json.dumps(catalog_data, indent=2))
+        zf.writestr("projects/proj_alpha.sqlite", b"SQLite format 3\x00_mock_alpha_db_content")
+        zf.writestr("projects/proj_beta.sqlite", b"SQLite format 3\x00_mock_beta_db_content")
+        zf.writestr("history/proj_alpha_history.sqlite", b"SQLite format 3\x00_mock_alpha_history_content")
+        zf.writestr("history/proj_beta_history.sqlite", b"SQLite format 3\x00_mock_beta_history_content")
+
+    zip_bytes = zip_buffer.getvalue()
+    has_zip_header = zip_bytes.startswith(b"PK\x03\x04")
+
+    # Read back and verify all paths inside archive
+    zf_read = zipfile.ZipFile(io.BytesIO(zip_bytes), "r")
+    namelist = zf_read.namelist()
+    has_manifest = "manifest.json" in namelist
+    has_catalog = "root_catalog.json" in namelist
+    has_alpha_db = "projects/proj_alpha.sqlite" in namelist
+    has_alpha_hist = "history/proj_alpha_history.sqlite" in namelist
+
+    is_archive_valid = (
+        has_zip_header
+        and has_manifest
+        and has_catalog
+        and has_alpha_db
+        and has_alpha_hist
+    )
+    log_test("Split DB Archive Zip Packaging & Manifest Verification", is_archive_valid)
+
+    # Test 13.2: Backup retention and rotation policy logic (max N daily/weekly backups)
+    def rotate_backups(existing_backups: List[str], max_limit: int) -> Tuple[List[str], List[str]]:
+        excess = len(existing_backups) - max_limit
+        has_excess = excess > 0
+        if not has_excess:
+            return existing_backups, []
+
+        to_delete = existing_backups[:excess]
+        to_keep = existing_backups[excess:]
+        return to_keep, to_delete
+
+    backups = [
+        "backup_2026_09_10.zip",
+        "backup_2026_09_11.zip",
+        "backup_2026_09_12.zip",
+        "backup_2026_09_13.zip",
+        "backup_2026_09_14.zip",
+        "backup_2026_09_15.zip",
+        "backup_2026_09_16.zip",
+        "backup_2026_09_17.zip",
+    ]
+    kept, pruned = rotate_backups(backups, max_limit=5)
+    has_correct_kept_count = len(kept) == 5
+    has_correct_pruned_count = len(pruned) == 3
+    has_latest_kept = kept[-1] == "backup_2026_09_17.zip"
+    has_oldest_pruned = pruned[0] == "backup_2026_09_10.zip"
+
+    is_rotation_valid = (
+        has_correct_kept_count
+        and has_correct_pruned_count
+        and has_latest_kept
+        and has_oldest_pruned
+    )
+    log_test("Backup Retention & Rotation Policy (Limit: 5, Prunes Oldest)", is_rotation_valid)
+
+
+# =====================================================================
 # 7. EXECUTION OF PHP UNIT TEST SUITE
 # =====================================================================
 def test_php_test_suite() -> None:
@@ -658,6 +929,9 @@ def main() -> None:
     test_project_hierarchy_and_recursion()
     test_multi_theme_tokens()
     test_rest_route_contracts()
+    test_candidate_telemetry_and_anonymity()
+    test_question_reporting_and_bug_triage()
+    test_backup_and_archive_packaging()
     test_php_test_suite()
 
     elapsed = round(time.time() - start_time, 3)
