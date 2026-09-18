@@ -39,9 +39,14 @@ Sibling folders for app-scoped concerns:
 
 ---
 
-## Contents
+## Document Inventory
 
-_No app-specific specs added yet. Add specs as numbered files within this folder._
+| # | File | Purpose | Status |
+|---|------|---------|--------|
+| 04 | [04-quiz-feature/00-overview.md](./04-quiz-feature/00-overview.md) | Quiz Plugin Architecture, Schemas & REST API Overview | Complete |
+| 04 | [04-quiz-feature/01-file-topology.md](./04-quiz-feature/01-file-topology.md) | Repo-relative File Topology & Module Layout | Complete |
+| 04 | [04-quiz-feature/02-rest-api-contracts.md](./04-quiz-feature/02-rest-api-contracts.md) | REST API Request/Response Schemas & Contracts | Complete |
+| 04 | [04-quiz-feature/03-test-specifications.md](./04-quiz-feature/03-test-specifications.md) | PHPUnit and Vitest Test Suites & Fixtures | Complete |
 
 ---
 

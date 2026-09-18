@@ -19,6 +19,7 @@ Master directory of architectural and execution plans.
 - [12-regex-centralization-and-generic-dbengine.md](completed/12-regex-centralization-and-generic-dbengine.md): Lazy regex centralization, core regex harvesting, generic dbengine wrapper, and python struct code generator.
 - [13-os-enum-integration-and-generator-upgrade.md](completed/13-os-enum-integration-and-generator-upgrade.md): OS enum integration, deep OS version detection, and enum generator upgrade.
 - [14-cicd-fix-with-release.md](completed/14-cicd-fix-with-release.md): Release-triggered CI/CD fix loop, full test suite verification, and automated minor release publication (v6.41.0).
+- [12-spec-remediation-completed.md](completed/12-spec-remediation-completed.md): Remediate all audit findings, complete file topology, contracts, schemas, and close audit gap.
 
 ## Recent Completed Tasks Register (Last 20 Tasks)
 

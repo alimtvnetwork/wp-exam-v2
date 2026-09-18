@@ -45,9 +45,9 @@ Application-specific UI and design-system specifications for whatever project th
 
 ## Document Inventory
 
-| # | File | Purpose |
-|---|------|---------|
-| — | *(empty — awaiting content)* | — |
+| # | File | Purpose | Status |
+|---|------|---------|--------|
+| 01 | [01-design-tokens.md](./01-design-tokens.md) | UI Tokens, CSS Variables & shadcn/ui Component Inventory | Complete |
 
 ---
 

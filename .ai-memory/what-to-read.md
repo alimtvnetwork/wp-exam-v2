@@ -1,9 +1,11 @@
 # What to Read
 
 > Canonical map of what the AI must read before working on this project.
-> Last updated: 2026-09-13T08:15:00Z
+> Last updated: 2026-09-18T17:15:00Z
 
 ## Changelog
+
+- 2026-09-18T17:15:00Z, Spec Remediation & Audit Gap Closure: remediated all findings from Audit v2 across 02-spec/21-app, 23-app-db, 24-app-ui-design-system, completed REST contracts, DB schema, UI design tokens, test specifications, and archived audit gap to completed plans.
 
 - 2026-09-13T08:15:00Z, Prompt & Memory Write Upgrade (v2.2.0): updated 01-write-antigravity.md, 03-write-memory.md, and skills to mandate 30-commit git history audit and recent 20-task tracking register in .ai-memory/plans/01-index.md.
 - 2026-09-13T07:45:00Z, Memory Persistence & Learned Standards: recorded institutional memory for regex centralization, generic dbengine architecture, isDefined positive convention, zero-storage GitHub Actions mandate, and pre-commit guard enforcement.

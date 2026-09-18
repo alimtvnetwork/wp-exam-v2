@@ -45,9 +45,9 @@ Application-specific database (App DB) specifications for whatever project this 
 
 ## Document Inventory
 
-| # | File | Purpose |
-|---|------|---------|
-| — | *(empty — awaiting content)* | — |
+| # | File | Purpose | Status |
+|---|------|---------|--------|
+| 01 | [01-schema.md](./01-schema.md) | Quiz Database Schema, DDL & Table Relationships | Complete |
 
 ---
 

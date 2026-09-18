@@ -1,0 +1,32 @@
+{
+  "quizzes": [
+    {
+      "quizId": 1,
+      "title": "Sample Science Quiz",
+      "description": "Introductory quiz testing basic physics and biology.",
+      "questions": [
+        {
+          "quizQuestionId": 1,
+          "questionText": "What is the chemical symbol for water?",
+          "questionType": "multiple_choice",
+          "displayOrder": 1,
+          "answers": [
+            { "quizAnswerId": 1, "answerText": "H2O", "isCorrect": true, "displayOrder": 1 },
+            { "quizAnswerId": 2, "answerText": "CO2", "isCorrect": false, "displayOrder": 2 },
+            { "quizAnswerId": 3, "answerText": "NaCl", "isCorrect": false, "displayOrder": 3 }
+          ]
+        },
+        {
+          "quizQuestionId": 2,
+          "questionText": "The Earth is the third planet from the Sun.",
+          "questionType": "true_false",
+          "displayOrder": 2,
+          "answers": [
+            { "quizAnswerId": 4, "answerText": "True", "isCorrect": true, "displayOrder": 1 },
+            { "quizAnswerId": 5, "answerText": "False", "isCorrect": false, "displayOrder": 2 }
+          ]
+        }
+      ]
+    }
+  ]
+}

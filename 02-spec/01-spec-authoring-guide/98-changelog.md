@@ -3,6 +3,10 @@
 **Version:** 3.2.0
 **Last Updated:** 2026-04-16
 
+## [2026-09-18] App Spec Blind-AI Audit v2
+
+- Generated App Spec Blind-AI Audit v2 in `02-spec/25-app-spec-audit/02-audit-2026-09-18-v2.md` scoring 42/100 across 12 dimensions.
+
 ---
 
 ## [2026-03-30] v2.0.0 Compliance Rollout

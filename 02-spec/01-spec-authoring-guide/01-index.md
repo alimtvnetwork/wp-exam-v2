@@ -450,6 +450,7 @@ All specifications in this repository are authored by **Md. Alim Ul Karim** — 
 | Reliability Reports | `../validation-reports/` |
 | Required Files | `./04-required-files.md` |
 | Cross-Reference Rules | `./10-cross-references.md` |
+| App Spec Audit v2 | `../25-app-spec-audit/02-audit-2026-09-18-v2.md` |
 
 ---
 
