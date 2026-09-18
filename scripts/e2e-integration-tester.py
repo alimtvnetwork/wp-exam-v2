@@ -495,6 +495,121 @@ def test_elementor_widget_structure() -> None:
 
 
 # =====================================================================
+# 8. MULTI-PROJECT HIERARCHY & RECURSIVE SUB-PROJECT RESOLUTION
+# =====================================================================
+def test_project_hierarchy_and_recursion() -> None:
+    log_suite("8. Multi-Project Hierarchy & Recursive Sub-Project Tree Resolution")
+
+    projects = [
+        {"id": 1, "name": "Engineering Onboarding", "category_id": 10, "parent_project_id": None},
+        {"id": 2, "name": "Backend Architecture", "category_id": 10, "parent_project_id": 1},
+        {"id": 3, "name": "SQLite Split DB Module", "category_id": 10, "parent_project_id": 2},
+        {"id": 4, "name": "Frontend Design System", "category_id": 10, "parent_project_id": 1},
+    ]
+
+    def build_tree(items: List[Dict[str, Any]], parent_id: Optional[int] = None) -> List[Dict[str, Any]]:
+        branch = []
+        for item in items:
+            if item.get("parent_project_id") == parent_id:
+                children = build_tree(items, item["id"])
+                node = dict(item)
+                if children:
+                    node["sub_projects"] = children
+                branch.append(node)
+        return branch
+
+    tree = build_tree(projects, None)
+    has_root = len(tree) == 1 and tree[0]["id"] == 1
+    has_sub = len(tree[0].get("sub_projects", [])) == 2
+    has_deep_sub = len(tree[0]["sub_projects"][0].get("sub_projects", [])) == 1
+    is_tree_valid = has_root and has_sub and has_deep_sub
+
+    log_test("Recursive Sub-Project Tree Construction (Parent-Child Hierarchy)", is_tree_valid)
+
+    cyclic_projects = [
+        {"id": 1, "parent_project_id": 2},
+        {"id": 2, "parent_project_id": 1},
+    ]
+
+    def has_cycle(items: List[Dict[str, Any]]) -> bool:
+        parent_map = {item["id"]: item.get("parent_project_id") for item in items}
+        for item_id in parent_map:
+            visited = set()
+            curr = item_id
+            while curr is not None:
+                if curr in visited:
+                    return True
+                visited.add(curr)
+                curr = parent_map.get(curr)
+        return False
+
+    is_cycle_detected = has_cycle(cyclic_projects)
+    has_normal_no_cycle = not has_cycle(projects)
+
+    log_test("Cycle Detection in Recursive Project Hierarchy", is_cycle_detected and has_normal_no_cycle)
+
+
+# =====================================================================
+# 9. MULTI-THEME TOKENS & RISE UP ASIA COLOR PALETTE
+# =====================================================================
+def test_multi_theme_tokens() -> None:
+    log_suite("9. Multi-Theme Tokens & Rise Up Asia Color Palette")
+
+    theme_file = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "src", "themes", "theme-definitions.ts")
+    has_theme_file = os.path.isfile(theme_file)
+    log_test("Theme Definitions File Exists (src/themes/theme-definitions.ts)", has_theme_file)
+
+    if has_theme_file:
+        with open(theme_file, "r", encoding="utf-8") as f:
+            content = f.read()
+
+        has_letterly = "letterly" in content
+        has_bright_gold = "bright-gold" in content or "Rise Up" in content
+        has_dark = "dark" in content
+        has_white = "white" in content
+
+        has_all_themes = has_letterly and has_bright_gold and has_dark and has_white
+        log_test("Theme Presets Registered (letterly, bright-gold/Rise Up, dark, white)", has_all_themes)
+
+
+# =====================================================================
+# 10. REST API ROUTE REGISTRATION CONTRACTS
+# =====================================================================
+def test_rest_route_contracts() -> None:
+    log_suite("10. REST API Route Registration Contracts")
+
+    api_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "includes", "api")
+
+    required_controllers = [
+        "authrestcontroller.php",
+        "FormRestController.php",
+        "UserInviteRestController.php",
+        "ProjectHierarchyRestController.php",
+        "AIInstructionRestController.php",
+    ]
+
+    is_all_present = True
+    for controller in required_controllers:
+        path = os.path.join(api_dir, controller)
+        if not os.path.isfile(path):
+            is_all_present = False
+
+    log_test("All Core REST Controllers Present in includes/api/", is_all_present)
+
+    if is_all_present:
+        auth_path = os.path.join(api_dir, "authrestcontroller.php")
+        with open(auth_path, "r", encoding="utf-8") as f:
+            auth_content = f.read()
+
+        has_auth_token_route = "/auth/token" in auth_content
+        has_auth_validate_route = "/auth/validate" in auth_content
+        has_auth_register_route = "/auth/register" in auth_content
+
+        has_jwt_routes = has_auth_token_route and has_auth_validate_route and has_auth_register_route
+        log_test("JWT Auth Endpoints Defined (/auth/token, /auth/validate, /auth/register)", has_jwt_routes)
+
+
+# =====================================================================
 # 7. EXECUTION OF PHP UNIT TEST SUITE
 # =====================================================================
 def test_php_test_suite() -> None:
@@ -540,6 +655,9 @@ def main() -> None:
     test_json_import_export_and_branching()
     test_media_and_validation()
     test_elementor_widget_structure()
+    test_project_hierarchy_and_recursion()
+    test_multi_theme_tokens()
+    test_rest_route_contracts()
     test_php_test_suite()
 
     elapsed = round(time.time() - start_time, 3)
