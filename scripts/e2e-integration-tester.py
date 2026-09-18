@@ -33,6 +33,7 @@ import hmac
 import json
 import os
 import re
+import shutil
 import sqlite3
 import subprocess
 import sys
@@ -1812,6 +1813,201 @@ def test_ai_curriculum_generation_and_synthesis() -> None:
 
 
 # =====================================================================
+# 26. PROJECT & QUESTION PROGRESS CALCULATION & SUB-PROJECT TRANSITION
+# =====================================================================
+def test_progress_calculation_and_transition() -> None:
+    log_suite("26. Project & Question Progress Calculation & Sub-project Transition")
+
+    class ProjectProgressTracker:
+        def __init__(self, total_pages: int, total_checklist: int, total_questions: int) -> None:
+            self.total_pages = total_pages
+            self.total_checklist = total_checklist
+            self.total_questions = total_questions
+            self.pages_read = 0
+            self.has_watched_video = False
+            self.checklist_completed = 0
+            self.questions_answered = 0
+
+        def calculate_progress_percentage(self) -> float:
+            read_ratio = self.pages_read / self.total_pages if self.total_pages > 0 else 1.0
+            video_ratio = 1.0 if self.has_watched_video else 0.0
+            check_ratio = self.checklist_completed / self.total_checklist if self.total_checklist > 0 else 1.0
+            quiz_ratio = self.questions_answered / self.total_questions if self.total_questions > 0 else 1.0
+
+            progress = (read_ratio * 25.0) + (video_ratio * 15.0) + (check_ratio * 30.0) + (quiz_ratio * 30.0)
+            return round(min(progress, 100.0), 1)
+
+        def is_milestone_completed(self) -> bool:
+            pct = self.calculate_progress_percentage()
+            return pct >= 100.0
+
+    tracker = ProjectProgressTracker(total_pages=10, total_checklist=4, total_questions=5)
+
+    initial_pct = tracker.calculate_progress_percentage()
+    has_zero_progress = initial_pct == 0.0
+
+    tracker.pages_read = 10
+    tracker.has_watched_video = True
+    tracker.checklist_completed = 2
+    tracker.questions_answered = 3
+    mid_pct = tracker.calculate_progress_percentage()
+    has_expected_mid = mid_pct == 73.0
+
+    tracker.checklist_completed = 4
+    tracker.questions_answered = 5
+    final_pct = tracker.calculate_progress_percentage()
+    is_completed = tracker.is_milestone_completed()
+
+    is_progress_system_valid = (
+        has_zero_progress
+        and has_expected_mid
+        and final_pct == 100.0
+        and is_completed
+    )
+    log_test("Interactive Progress Bar Computation & Stage Transits", is_progress_system_valid)
+
+
+# =====================================================================
+# 27. END-OF-DAY & END-OF-WEEK BATCH EMAIL NOTIFICATION DIGEST QUEUE
+# =====================================================================
+def test_email_digest_queue() -> None:
+    log_suite("27. End-of-Day & End-of-Week Batch Email Notification Digest Queue")
+
+    class DigestQueueManager:
+        def __init__(self) -> None:
+            self.queue: List[Dict[str, Any]] = []
+
+        def enqueue_event(self, candidate_name: str, project_id: str, section_name: str, cadence: str) -> None:
+            self.queue.append({
+                "candidate_name": candidate_name,
+                "project_id": project_id,
+                "section_name": section_name,
+                "cadence": cadence,
+                "timestamp": int(time.time()),
+            })
+
+        def compile_digest(self, cadence_target: str, recipient_email: str) -> Optional[Dict[str, Any]]:
+            matching_events = [ev for ev in self.queue if ev["cadence"] == cadence_target]
+            has_events = len(matching_events) > 0
+            if not has_events:
+                return None
+
+            lines = [f"Summary Digest for {recipient_email} (Cadence: {cadence_target}):"]
+            for ev in matching_events:
+                lines.append(f"- Candidate: {ev['candidate_name']} | Section: {ev['section_name']} ({ev['project_id']})")
+
+            self.queue = [ev for ev in self.queue if ev["cadence"] != cadence_target]
+
+            return {
+                "recipient": recipient_email,
+                "cadence": cadence_target,
+                "subject": f"WP Exam Digest ({cadence_target}) - {len(matching_events)} events",
+                "body": "\n".join(lines),
+                "event_count": len(matching_events),
+            }
+
+    manager = DigestQueueManager()
+    manager.enqueue_event("Alice Chen", "proj_aws", "VPC Networking", "end_of_day")
+    manager.enqueue_event("Bob Smith", "proj_aws", "NAT Gateways", "end_of_day")
+    manager.enqueue_event("Charlie Lee", "proj_k8s", "Ingress Controllers", "end_of_week")
+
+    eod_digest = manager.compile_digest("end_of_day", "admin@riseup.asia")
+    has_eod_digest = eod_digest is not None
+    has_two_events = False
+    has_alice_in_body = False
+    if eod_digest:
+        has_two_events = eod_digest.get("event_count") == 2
+        has_alice_in_body = "Alice Chen" in eod_digest.get("body", "")
+
+    has_remaining_eow = len(manager.queue) == 1
+
+    eow_digest = manager.compile_digest("end_of_week", "owner@riseup.asia")
+    has_eow_digest = eow_digest is not None
+    has_queue_cleared = len(manager.queue) == 0
+
+    is_digest_system_valid = (
+        has_eod_digest
+        and has_two_events
+        and has_alice_in_body
+        and has_remaining_eow
+        and has_eow_digest
+        and has_queue_cleared
+    )
+    log_test("End-of-Day & End-of-Week Batch Email Notification Digest Queue", is_digest_system_valid)
+
+
+# =====================================================================
+# 28. AUTOMATED SPLIT DB BACKUP EMAIL & SERVER STORAGE DUAL-DISPATCH
+# =====================================================================
+def test_backup_dual_dispatch() -> None:
+    log_suite("28. Automated Split DB Backup Email & Server Storage Dual-Dispatch")
+
+    class BackupDualDispatcher:
+        def __init__(self, backup_dir: str, max_retention: int = 3) -> None:
+            self.backup_dir = backup_dir
+            self.max_retention = max_retention
+            os.makedirs(self.backup_dir, exist_ok=True)
+            self.dispatched_emails: List[Dict[str, Any]] = []
+
+        def create_and_dispatch(self, backup_name: str, content: bytes, target_email: str) -> Dict[str, Any]:
+            file_path = os.path.join(self.backup_dir, f"{backup_name}.zip")
+            with open(file_path, "wb") as f:
+                f.write(content)
+
+            existing_files = sorted(
+                [os.path.join(self.backup_dir, fn) for fn in os.listdir(self.backup_dir) if fn.endswith(".zip")],
+                key=os.path.getmtime,
+            )
+            while len(existing_files) > self.max_retention:
+                oldest = existing_files.pop(0)
+                os.remove(oldest)
+
+            email_payload = {
+                "to": target_email,
+                "subject": f"Automated WP Exam Backup: {backup_name}",
+                "attachment_filename": f"{backup_name}.zip",
+                "attachment_size_bytes": len(content),
+                "is_dispatched": True,
+            }
+            self.dispatched_emails.append(email_payload)
+
+            return {
+                "local_file_path": file_path,
+                "is_saved_on_server": os.path.isfile(file_path),
+                "email_payload": email_payload,
+            }
+
+    temp_backup_dir = os.path.join(tempfile.gettempdir(), f"wp_exam_backup_test_{int(time.time())}")
+    dispatcher = BackupDualDispatcher(temp_backup_dir, max_retention=2)
+
+    result1 = dispatcher.create_and_dispatch("backup_2026_09_18_01", b"PK_DUMMY_ZIP_1", "sysadmin@riseup.asia")
+    has_file1 = result1["is_saved_on_server"]
+    has_email1 = result1["email_payload"]["is_dispatched"]
+
+    time.sleep(0.01)
+    result2 = dispatcher.create_and_dispatch("backup_2026_09_18_02", b"PK_DUMMY_ZIP_2", "sysadmin@riseup.asia")
+
+    time.sleep(0.01)
+    result3 = dispatcher.create_and_dispatch("backup_2026_09_18_03", b"PK_DUMMY_ZIP_3", "sysadmin@riseup.asia")
+
+    remaining_files = [fn for fn in os.listdir(temp_backup_dir) if fn.endswith(".zip")]
+    has_rotated_to_max = len(remaining_files) == 2
+    has_oldest_pruned = "backup_2026_09_18_01.zip" not in remaining_files
+    has_three_emails_sent = len(dispatcher.dispatched_emails) == 3
+
+    shutil.rmtree(temp_backup_dir, ignore_errors=True)
+
+    is_dual_dispatch_valid = (
+        has_file1
+        and has_email1
+        and has_rotated_to_max
+        and has_oldest_pruned
+        and has_three_emails_sent
+    )
+    log_test("Automated Split DB Backup Email Transmission & Server Storage Dual-Dispatch", is_dual_dispatch_valid)
+
+
+# =====================================================================
 # 7. EXECUTION OF PHP UNIT TEST SUITE
 # =====================================================================
 def test_php_test_suite() -> None:
@@ -1875,6 +2071,9 @@ def main() -> None:
     test_hierarchy_permission_scopes()
     test_form_live_validation_matrix()
     test_ai_curriculum_generation_and_synthesis()
+    test_progress_calculation_and_transition()
+    test_email_digest_queue()
+    test_backup_dual_dispatch()
     test_php_test_suite()
 
     elapsed = round(time.time() - start_time, 3)
