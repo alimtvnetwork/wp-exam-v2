@@ -1,0 +1,46 @@
+{
+  "title": "New Hire Employee Sign-Up & Intake Form",
+  "description": "Collects legal identification, department assignment, and equipment preferences for new team members.",
+  "form_type": "employee_signup",
+  "form_access": "public",
+  "is_sequential": false,
+  "is_published": true,
+  "settings": {
+    "notificationEmail": "hr@company.org",
+    "successMessage": "Welcome to the team! Your employee profile has been registered."
+  },
+  "fields": [
+    {
+      "id": "emp-1",
+      "field_label": "Full Legal Name",
+      "field_type": "short_answer",
+      "field_placeholder": "First Middle Last",
+      "is_required": true,
+      "display_order": 1
+    },
+    {
+      "id": "emp-2",
+      "field_label": "Work Email",
+      "field_type": "email",
+      "field_placeholder": "name@company.org",
+      "is_required": true,
+      "display_order": 2
+    },
+    {
+      "id": "emp-3",
+      "field_label": "Department",
+      "field_type": "dropdown",
+      "is_required": true,
+      "display_order": 3,
+      "options": ["Engineering", "Product", "Quality Assurance", "Design"]
+    },
+    {
+      "id": "emp-4",
+      "field_label": "Phone Number",
+      "field_type": "phone",
+      "field_placeholder": "+1 (555) 123-4567",
+      "is_required": true,
+      "display_order": 4
+    }
+  ]
+}

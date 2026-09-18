@@ -62,9 +62,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form, onClose }) => {
 
   if (isSubmitted) {
     return (
-      <Card className="w-full max-w-xl mx-auto border-emerald-500/40 shadow-lg">
+      <Card className="w-full max-w-xl mx-auto modern-quiz-card border-emerald-500/40 shadow-xl animate-card-entrance">
         <CardHeader className="text-center">
-          <div className="mx-auto my-2 w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-emerald-600">
+          <div className="mx-auto my-2 w-12 h-12 rounded-full bg-emerald-100 dark:bg-emerald-950 flex items-center justify-center text-emerald-600 animate-pulse-glow">
             ✓
           </div>
           <CardTitle className="text-2xl font-bold">
@@ -108,10 +108,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form, onClose }) => {
     const progressPct = Math.round(((currentStep + 1) / fields.length) * 100);
 
     return (
-      <Card className="w-full max-w-xl mx-auto shadow-md">
+      <Card className="w-full max-w-xl mx-auto modern-quiz-card shadow-lg animate-card-entrance">
         <CardHeader>
           <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-            <span>Step {currentStep + 1} of {fields.length}</span>
+            <span className="modern-step-indicator">Step {currentStep + 1} of {fields.length}</span>
             <Badge variant="outline">{form.formType.replace('_', ' ')}</Badge>
           </div>
           <Progress value={progressPct} className="h-2 mb-3" />
@@ -149,7 +149,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form, onClose }) => {
 
   // Single-Page Form Mode (e.g. Employee Sign-up or general form)
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-md">
+    <Card className="w-full max-w-2xl mx-auto modern-quiz-card shadow-lg animate-card-entrance">
       <CardHeader>
         <div className="flex items-center justify-between">
           <Badge variant="outline">{form.formType.replace('_', ' ')}</Badge>

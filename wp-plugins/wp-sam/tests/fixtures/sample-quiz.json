@@ -1,0 +1,49 @@
+{
+  "title": "Full-Stack Engineer Assessment Quiz",
+  "description": "Sequential technical assessment covering modern frontend, backend architectures, and database design.",
+  "form_type": "quiz",
+  "form_access": "public",
+  "is_sequential": true,
+  "is_published": true,
+  "settings": {
+    "timeLimitSeconds": 900,
+    "passingScore": 80,
+    "successMessage": "Congratulations on passing the engineering assessment!"
+  },
+  "fields": [
+    {
+      "id": "q-1",
+      "field_label": "What does HTML stand for?",
+      "field_type": "multiple_choice",
+      "is_required": true,
+      "display_order": 1,
+      "options": [
+        "HyperText Markup Language",
+        "High Technology Multi Layer",
+        "Hyperlink Text Mode Language"
+      ],
+      "correct_answer": "HyperText Markup Language",
+      "points": 10
+    },
+    {
+      "id": "q-2",
+      "field_label": "Which SQL statement is used to extract data from a database?",
+      "field_type": "multiple_choice",
+      "is_required": true,
+      "display_order": 2,
+      "options": ["EXTRACT", "SELECT", "OPEN", "GET"],
+      "correct_answer": "SELECT",
+      "points": 10
+    },
+    {
+      "id": "q-3",
+      "field_label": "WordPress uses wpdb as its global database abstraction layer.",
+      "field_type": "true_false",
+      "is_required": true,
+      "display_order": 3,
+      "options": ["True", "False"],
+      "correct_answer": "True",
+      "points": 10
+    }
+  ]
+}
