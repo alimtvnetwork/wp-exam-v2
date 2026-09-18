@@ -2198,6 +2198,249 @@ def test_pipeline_topology_and_cycle_detection() -> None:
 
 
 # =====================================================================
+# 32. CANDIDATE QUIZ RETAKE & ATTEMPT BOUNDARY LIMITS
+# =====================================================================
+def test_candidate_retake_and_attempt_limits() -> None:
+    log_suite("32. Candidate Quiz Retake & Attempt Boundary Limits")
+
+    class AttemptManager:
+        def __init__(self, max_attempts: int = 3, score_policy: str = "highest") -> None:
+            self.max_attempts = max_attempts
+            self.score_policy = score_policy
+            self.history: List[Dict[str, Any]] = []
+
+        def can_attempt(self) -> bool:
+            return len(self.history) < self.max_attempts
+
+        def record_attempt(self, score: float, is_passed: bool) -> Tuple[bool, Optional[str]]:
+            has_quota = self.can_attempt()
+            if not has_quota:
+                return False, "Attempt limit exceeded"
+
+            attempt_num = len(self.history) + 1
+            self.history.append({
+                "attempt": attempt_num,
+                "score": score,
+                "is_passed": is_passed,
+                "timestamp": time.time(),
+            })
+            return True, None
+
+        def get_effective_score(self) -> float:
+            has_history = len(self.history) > 0
+            if not has_history:
+                return 0.0
+
+            if self.score_policy == "latest":
+                return self.history[-1]["score"]
+
+            return max(a["score"] for a in self.history)
+
+    mgr = AttemptManager(max_attempts=3, score_policy="highest")
+
+    is_att1_recorded, _ = mgr.record_attempt(score=45.0, is_passed=False)
+    is_att2_recorded, _ = mgr.record_attempt(score=85.0, is_passed=True)
+    is_att3_recorded, _ = mgr.record_attempt(score=70.0, is_passed=True)
+    is_att4_recorded, _ = mgr.record_attempt(score=95.0, is_passed=True)
+
+    is_lockout_enforced = not is_att4_recorded
+    effective_score = mgr.get_effective_score()
+    has_highest_score = effective_score == 85.0
+
+    is_retake_suite_valid = (
+        is_att1_recorded
+        and is_att2_recorded
+        and is_att3_recorded
+        and is_lockout_enforced
+        and has_highest_score
+    )
+    log_test("Candidate Quiz Retake & Attempt Boundary Limits", is_retake_suite_valid)
+
+
+# =====================================================================
+# 33. MULTI-LANGUAGE / I18N LOCALIZATION & RTL LAYOUT TOKENS
+# =====================================================================
+def test_i18n_localization_and_rtl_tokens() -> None:
+    log_suite("33. Multi-Language / i18n Localization & RTL Layout Tokens")
+
+    class I18nEngine:
+        RTL_LOCALES = {"ar", "he", "fa", "ur"}
+
+        def __init__(self) -> None:
+            self.catalogs: Dict[str, Dict[str, str]] = {
+                "en": {
+                    "quiz_title": "VPC Architecture Exam",
+                    "start_button": "Start Exam",
+                    "wrong_answer": "You have done the wrong answer",
+                },
+                "ar": {
+                    "quiz_title": "امتحان بنية السحابة الافتراضية",
+                    "start_button": "ابدأ الاختبار",
+                    "wrong_answer": "لقد قمت باختيار الإجابة الخاطئة",
+                },
+                "zh": {
+                    "quiz_title": "VPC 架构认证考试",
+                    "start_button": "开始考试",
+                    "wrong_answer": "您的回答不正确",
+                },
+            }
+
+        def get_text(self, locale: str, key: str) -> str:
+            has_locale = locale in self.catalogs
+            if not has_locale:
+                return self.catalogs["en"].get(key, key)
+            return self.catalogs[locale].get(key, self.catalogs["en"].get(key, key))
+
+        def get_text_direction(self, locale: str) -> str:
+            is_rtl = locale.lower() in self.RTL_LOCALES
+            if is_rtl:
+                return "rtl"
+            return "ltr"
+
+    engine = I18nEngine()
+
+    en_title = engine.get_text("en", "quiz_title")
+    en_dir = engine.get_text_direction("en")
+    has_en_ltr = en_dir == "ltr"
+
+    ar_title = engine.get_text("ar", "quiz_title")
+    ar_dir = engine.get_text_direction("ar")
+    has_ar_rtl = ar_dir == "rtl"
+    has_ar_unicode = "بنية" in ar_title
+
+    zh_title = engine.get_text("zh", "quiz_title")
+    has_zh_unicode = "架构" in zh_title
+
+    fallback_text = engine.get_text("fr", "start_button")
+    has_fallback = fallback_text == "Start Exam"
+
+    json_str = json.dumps(engine.catalogs, ensure_ascii=False)
+    deserialized = json.loads(json_str)
+    has_roundtrip = deserialized["ar"]["start_button"] == "ابدأ الاختبار"
+
+    is_i18n_suite_valid = (
+        has_en_ltr
+        and has_ar_rtl
+        and has_ar_unicode
+        and has_zh_unicode
+        and has_fallback
+        and has_roundtrip
+    )
+    log_test("Multi-Language / i18n Localization & RTL Layout Tokens", is_i18n_suite_valid)
+
+
+# =====================================================================
+# 34. MIND MAP & HIERARCHICAL CONCEPT NODE SCHEMA VERIFICATION
+# =====================================================================
+def test_mind_map_hierarchy_and_schema() -> None:
+    log_suite("34. Mind Map & Hierarchical Concept Node Schema Verification")
+
+    class MindMapValidator:
+        @staticmethod
+        def validate_schema(data: Dict[str, Any]) -> Tuple[bool, Optional[str]]:
+            required_keys = ["id", "title", "root_node"]
+            for k in required_keys:
+                has_key = k in data
+                if not has_key:
+                    return False, f"Missing key: {k}"
+
+            root = data["root_node"]
+            has_root_id = "id" in root
+            has_root_topic = "topic" in root
+            if not has_root_id:
+                return False, "Root node missing id"
+            if not has_root_topic:
+                return False, "Root node missing topic"
+
+            seen_ids: set = set()
+
+            def traverse(node: Dict[str, Any], path: set) -> Tuple[bool, Optional[str]]:
+                nid = node.get("id")
+                if not nid:
+                    return False, "Node missing id"
+
+                has_seen = nid in seen_ids
+                if has_seen:
+                    return False, f"Duplicate node id: {nid}"
+                seen_ids.add(nid)
+
+                has_cycle = nid in path
+                if has_cycle:
+                    return False, f"Cycle detected at node: {nid}"
+
+                current_path = path.copy()
+                current_path.add(nid)
+
+                children = node.get("children", [])
+                for child in children:
+                    is_valid_child, err = traverse(child, current_path)
+                    if not is_valid_child:
+                        return False, err
+                return True, None
+
+            return traverse(root, set())
+
+    valid_mindmap = {
+        "id": "mm_aws_network",
+        "title": "AWS VPC Core Concepts",
+        "root_node": {
+            "id": "node_root",
+            "topic": "VPC Networking",
+            "children": [
+                {
+                    "id": "node_subnets",
+                    "topic": "Subnets",
+                    "children": [
+                        {"id": "node_public_subnet", "topic": "Public Subnet (IGW Route)"},
+                        {"id": "node_private_subnet", "topic": "Private Subnet (NAT Route)"},
+                    ],
+                },
+                {
+                    "id": "node_routing",
+                    "topic": "Route Tables",
+                    "children": [
+                        {"id": "node_igw", "topic": "Internet Gateway 0.0.0.0/0"},
+                    ],
+                },
+            ],
+        },
+    }
+
+    is_valid_mm, _ = MindMapValidator.validate_schema(valid_mindmap)
+
+    invalid_mm_duplicate = {
+        "id": "mm_bad",
+        "title": "Bad MM",
+        "root_node": {
+            "id": "node_root",
+            "topic": "Root",
+            "children": [
+                {"id": "node_subnets", "topic": "A"},
+                {"id": "node_subnets", "topic": "Duplicate ID"},
+            ],
+        },
+    }
+    is_dup_valid, _ = MindMapValidator.validate_schema(invalid_mm_duplicate)
+    is_dup_rejected = not is_dup_valid
+
+    def export_to_workflowy_outline(node: Dict[str, Any], depth: int = 0) -> List[str]:
+        lines = [f"{'  ' * depth}- {node['topic']}"]
+        for child in node.get("children", []):
+            lines.extend(export_to_workflowy_outline(child, depth + 1))
+        return lines
+
+    outline = export_to_workflowy_outline(valid_mindmap["root_node"])
+    has_correct_depth = len(outline) == 6 and outline[0] == "- VPC Networking" and "    - Public Subnet" in outline[2]
+
+    is_mindmap_suite_valid = (
+        is_valid_mm
+        and is_dup_rejected
+        and has_correct_depth
+    )
+    log_test("Mind Map & Hierarchical Concept Node Schema Verification", is_mindmap_suite_valid)
+
+
+# =====================================================================
 # 7. EXECUTION OF PHP UNIT TEST SUITE
 # =====================================================================
 def test_php_test_suite() -> None:
@@ -2267,6 +2510,9 @@ def main() -> None:
     test_social_share_url_attribution()
     test_seeded_randomization_and_shuffle()
     test_pipeline_topology_and_cycle_detection()
+    test_candidate_retake_and_attempt_limits()
+    test_i18n_localization_and_rtl_tokens()
+    test_mind_map_hierarchy_and_schema()
     test_php_test_suite()
 
     elapsed = round(time.time() - start_time, 3)
