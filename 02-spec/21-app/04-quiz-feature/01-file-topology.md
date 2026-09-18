@@ -1,13 +1,13 @@
-# Quiz Feature — File Topology & Module Layout
+# Quiz & Dynamic Form Engine — File Topology & Module Layout
 
-Version: 1.0.0  
+Version: 2.0.0  
 Updated: 2026-09-18  
 AI Confidence: Production-Ready  
 Ambiguity: None  
 
 ## Overview
 
-This specification establishes the authoritative, repo-relative file topology for the WordPress Quiz Plugin (`wp-exam`). Any AI agent or developer implementing the Quiz Feature MUST follow this exact directory structure and file naming convention.
+This specification establishes the authoritative, repo-relative file topology for the WordPress WP Exam plugin. Following the architectural patterns of `wp-plugins/riseup-asia-uploader`, all backend PHP components are organized under modern PSR-4 namespaces (`WpExam\*`) and mapped by a standalone autoloader.
 
 ---
 
@@ -17,84 +17,89 @@ All WordPress PHP files live in root and `includes/`:
 
 ```text
 wp-exam/
-├── wp-exam.php                                # Plugin bootstrap, activation/deactivation hooks
+├── wp-exam.php                                # Plugin bootstrap, autoloader registration, activation hook
 ├── includes/
-│   ├── class-wp-exam.php                     # Core plugin coordinator and hook loader
-│   ├── class-wp-exam-activator.php           # Database table migration execution via dbDelta()
-│   ├── class-wp-exam-deactivator.php         # Deactivation lifecycle handling
-│   ├── class-wp-exam-admin.php               # Admin menu registration, SPA mounting markup, script enqueue
-│   ├── api/
-│   │   └── class-wp-exam-rest-api.php        # WP_REST_Controller implementing /wp-json/quiz/v1/ routes
-│   └── models/
-│       ├── class-wp-exam-quiz.php            # Data model for Quiz entity
-│       ├── class-wp-exam-question.php        # Data model for QuizQuestion entity
-│       ├── class-wp-exam-answer.php          # Data model for QuizAnswer entity
-│       └── class-wp-exam-result.php          # Data model for QuizResult entity
+│   ├── Autoloader.php                        # Standalone PSR-4 autoloader for WpExam\ namespace
+│   ├── Activation/
+│   │   └── ActivationHandler.php             # Database table migrations via dbDelta()
+│   ├── Api/
+│   │   ├── FormRestController.php            # REST controller for /wp-json/wp-exam/v1/ routes
+│   │   └── SubmissionRestController.php      # Controller for form submissions & evaluation
+│   ├── Core/
+│   │   └── Plugin.php                        # Core singleton coordinator
+│   ├── Database/
+│   │   ├── WpDbQueryWrapper.php              # Safe $wpdb execution, error logging & transaction guards
+│   │   ├── TypedQuery.php                    # Generic typed query helper wrapping PDO/wpdb
+│   │   ├── DbResult.php                      # Single-item query result container (T)
+│   │   ├── DbResultSet.php                   # Multi-item query result container (T[])
+│   │   └── DbExecResult.php                  # Mutation result container (rows affected, insertId)
+│   ├── Enums/
+│   │   ├── FormType.php                      # Quiz, EmployeeSignup, Survey, GeneralForm
+│   │   ├── FieldType.php                     # MultipleChoice, ShortAnswer, Textarea, Email, Phone, etc.
+│   │   ├── FormAccessType.php                # Public, Authenticated, AdminOnly
+│   │   ├── ResponseMessageType.php           # Standardized API response messages
+│   │   └── HttpStatusType.php                # Strict HTTP status codes
+│   ├── ErrorHandling/
+│   │   ├── BootErrorCollector.php            # Early-boot diagnostic collector
+│   │   └── FatalErrorHandler.php             # Fatal error shutdown handler
+│   └── Helpers/
+│       ├── EnvelopeBuilder.php               # Universal standardized response envelope builder
+│       └── Traits/
+│           ├── EnvelopeFactoryTrait.php      # Factory constructors (success, error, notFound)
+│           ├── EnvelopeSettersTrait.php      # Fluent setters
+│           └── EnvelopeBuildTrait.php        # JSON / WP_REST_Response serializer
 ```
-
-### Backend File Responsibilities
-
-| File Path | Primary Class | Responsibility |
-|-----------|---------------|----------------|
-| `wp-exam.php` | N/A | Plugin metadata header, constant declarations (`WP_EXAM_VERSION`, `WP_EXAM_PLUGIN_DIR`), activation/deactivation registration. |
-| `includes/class-wp-exam-activator.php` | `WP_Exam_Activator` | Executes SQL `dbDelta` statements on `Quiz`, `QuizQuestion`, `QuizAnswer`, `QuizResult` tables. |
-| `includes/class-wp-exam-admin.php` | `WP_Exam_Admin` | Adds `quizzes` submenu page under WordPress Admin, renders `<div id="wp-exam-app"></div>`, and enqueues bundled React assets with `wp_localize_script`. |
-| `includes/api/class-wp-exam-rest-api.php` | `WP_Exam_REST_API` | Registers REST routes under namespace `quiz/v1`, validates request permissions (`manage_options`), handles CRUD, and returns responses. |
 
 ---
 
 ## 2. Frontend React File Topology
 
-The frontend is a modern React Single Page Application (SPA) built with Vite, TypeScript, and Tailwind CSS located in `src/`:
+The frontend is a modern React Single Page Application (SPA) located in `src/`:
 
 ```text
 src/
 ├── main.tsx                                   # React entry point mounting to #wp-exam-app
-├── App.tsx                                    # Top-level view router (Quiz List, Editor, Results)
+├── App.tsx                                    # Main app layout, routing & tab state
 ├── index.css                                  # Global Tailwind styles & design tokens
-├── api/
-│   └── quizApiClient.ts                       # Typed REST API client fetching from /wp-json/quiz/v1/
 ├── components/
-│   ├── ui/                                    # Reusable shadcn/ui primitives (button, dialog, card, badge)
-│   ├── Header.tsx                             # Admin header with quiz stats and navigation
-│   └── ConfirmDialog.tsx                      # Destructive action confirmation modal
-├── features/
-│   ├── quiz-list/
-│   │   ├── QuizList.tsx                       # Data table listing all quizzes with delete/edit actions
-│   │   └── QuizCard.tsx                       # Card summary for single quiz
-│   ├── quiz-editor/
-│   │   ├── QuizEditor.tsx                     # Main editor with metadata form and drag-drop container
-│   │   ├── QuestionList.tsx                   # Dnd-kit sortable container for questions
-│   │   ├── QuestionItem.tsx                   # Sortable question row with type selector
-│   │   └── AnswerOptionRow.tsx                # Answer input with IsCorrect radio/checkbox toggle
-│   └── quiz-results/
-│       ├── QuizResults.tsx                    # Score analytics and student submissions viewer
-│       └── ResultRow.tsx                      # Single user result entry
-├── store/
-│   └── quizStore.ts                           # Zustand store managing active quiz editor state
-└── types/
-    └── quiz.ts                                # TypeScript interfaces and QuizQuestionType enum
+│   ├── ui/                                    # Reusable UI primitives (Button, Card, Input, Textarea, Dialog, etc.)
+│   ├── forms/
+│   │   ├── FormBuilder.tsx                    # Top-level form & question editor SPA
+│   │   ├── FormSettingsCard.tsx               # Configuration panel (Type, Access, Sequential, Time Limit)
+│   │   ├── FieldList.tsx                      # @dnd-kit drag-and-drop sortable field container
+│   │   ├── FieldItem.tsx                      # Individual field editor card with type selector
+│   │   ├── FieldTypeSelector.tsx              # Select dropdown / badges for 9 field types
+│   │   ├── OptionListEditor.tsx               # Choice editor for multiple choice & dropdown
+│   │   └── LivePreviewModal.tsx               # Real-time interactive preview (sequential & single page)
+│   └── runner/
+│       ├── FormRunner.tsx                     # Form respondent UI for public guests & logged-in users
+│       ├── SequentialRunner.tsx               # Question-by-question wizard with progress & timer
+│       └── SinglePageRunner.tsx               # Employee sign-up and survey form layout
+├── lib/
+│   ├── api/
+│   │   ├── formApiClient.ts                   # Typed client consuming /wp-json/wp-exam/v1/ endpoints
+│   │   └── envelope.ts                        # Universal response envelope types & unwrappers
+│   └── types/
+│       └── form.ts                            # Strict TypeScript interfaces matching backend models & enums
+└── store/
+    └── useFormStore.ts                        # Zustand store for form state, fields, mode & live preview
 ```
 
 ---
 
-## 3. Test Suites & Fixtures Topology
+## 3. End-to-End Test File Topology
 
 ```text
 tests/
-├── bootstrap.php                              # WordPress test suite loader
-├── test-class-wp-exam-activator.php           # Schema creation and migration tests
-└── test-class-wp-exam-rest-api.php            # REST endpoint CRUD and permission tests
-
-02-spec/21-app/fixtures/
-└── quiz-sample.json                           # Canonical test fixture with multi-choice and true-false quizzes
+├── e2e/
+│   ├── sequential-quiz.spec.ts                # Playwright E2E test for sequential quiz execution & scoring
+│   ├── employee-signup-form.spec.ts           # Playwright E2E test for public employee onboarding form
+│   └── form-builder-dnd.spec.ts               # E2E test for field drag-and-drop, configuration & save
+├── unit/
+│   ├── FormRestControllerTest.php            # PHPUnit test for REST routes and envelope contracts
+│   ├── WpDbQueryWrapperTest.php               # PHPUnit test for safe query execution & error handling
+│   └── EnvelopeBuilderTest.php                # PHPUnit test for response envelope formatting
+└── fixtures/
+    ├── sample-quiz.json                       # Fixture data for multi-question timed quiz
+    └── sample-employee-form.json              # Fixture data for employee onboarding form
 ```
-
----
-
-## Cross-References
-
-- [Quiz Feature Overview](./00-overview.md)
-- [REST API Contracts](./02-rest-api-contracts.md)
-- [Test Specifications](./03-test-specifications.md)
-- [App DB Schema](../../23-app-db/01-schema.md)

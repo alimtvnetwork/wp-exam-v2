@@ -4,6 +4,7 @@ Master directory of architectural and execution plans.
 
 ## Pending Plans
 
+
 - [02-slides-system-overhaul.md](pending/02-slides-system-overhaul.md): Full slides deck UI and system overhaul.
 - [04-guideline-prompt-and-installer-upgrade.md](pending/04-guideline-prompt-and-installer-upgrade.md): Guideline prompt and installer enhancements.
 - [09-update-prompts-and-release.md](pending/09-update-prompts-and-release.md): Update prompts and release lifecycle (deferred under WOR policy).
@@ -11,6 +12,7 @@ Master directory of architectural and execution plans.
 
 ## Completed Plans
 
+- [15-wp-exam-riseup-asia-alignment-and-quiz-form-engine.md](completed/15-wp-exam-riseup-asia-alignment-and-quiz-form-engine.md): WP Exam architecture alignment with riseup-asia-uploader and dynamic quiz/form engine.
 - [02-multi-repo-folder-structure-and-gitmap-fixes.md](completed/02-multi-repo-folder-structure-and-gitmap-fixes.md): Multi-repo folder structure migration and gitmap AGY pipeline fixes.
 - [01-repository-infrastructure-cicd-and-consolidation.md](completed/01-repository-infrastructure-cicd-and-consolidation.md): Repository hygiene, encoding normalization, lowercase conventions, AI scripts `<details>` documentation, CI/CD quality automation, and plan memory consolidation.
 - [02-appfault-result-monad-and-verification-systems.md](completed/02-appfault-result-monad-and-verification-systems.md): Go `*appfault.AppError` standard, `Result[T]` generic containers, dynamic type conversions, deterministic map sorting, and `ReflectSetTo` fast path.

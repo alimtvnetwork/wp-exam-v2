@@ -12,8 +12,8 @@
 
 . **CRITICAL AI INSTRUCTION:** This `01-index.md` file is the primary entry point for this directory. AI agents MUST read this file first before exploring other files in this folder.
 
-**Version:** 3.2.0
-**Updated:** 2026-04-16
+**Version:** 3.3.0
+**Updated:** 2026-09-18
 **AI Confidence:** Production-Ready
 **Ambiguity:** None
 
@@ -21,21 +21,7 @@
 
 ## Overview
 
-App-specific specification content at the root spec level. This folder contains implementation specs, feature definitions, workflows, and architecture decisions for whatever project this repo ships — web app, Chrome extension, browser plugin, CLI tool, mobile app, WordPress plugin, desktop app, or any other deliverable.
-
-Whatever the app is, **its product-level documentation lives here.** Foundational, cross-cutting guidelines (naming, error handling, design tokens, CI/CD, etc.) belong in the core fundamentals range (`01–20`).
-
----
-
-## Placement Rule
-
-Any content that defines a specific application feature, workflow, screen, command, or implementation detail belongs here, regardless of the app's runtime (browser, Node, PHP, Go, native, extension manifest, etc.). Foundational, reusable principles belong in the core fundamentals range (`01–20`).
-
-Sibling folders for app-scoped concerns:
-
-- `22-app-issues/` — bug reports and root-cause analyses for this app
-- `23-app-db/` — database schema and queries for this app
-- `24-app-ui-design-system/` — UI components and design tokens for this app
+App-specific specification content for the WP Exam plugin. This engine provides a modern, versatile system for both Quizzes (standard & sequential) and dynamic Custom Forms (e.g. Employee Sign-Up forms, onboarding workflows, and public surveys) integrated with the WordPress REST API and React UI.
 
 ---
 
@@ -43,10 +29,10 @@ Sibling folders for app-scoped concerns:
 
 | # | File | Purpose | Status |
 |---|------|---------|--------|
-| 04 | [04-quiz-feature/00-overview.md](./04-quiz-feature/00-overview.md) | Quiz Plugin Architecture, Schemas & REST API Overview | Complete |
-| 04 | [04-quiz-feature/01-file-topology.md](./04-quiz-feature/01-file-topology.md) | Repo-relative File Topology & Module Layout | Complete |
-| 04 | [04-quiz-feature/02-rest-api-contracts.md](./04-quiz-feature/02-rest-api-contracts.md) | REST API Request/Response Schemas & Contracts | Complete |
-| 04 | [04-quiz-feature/03-test-specifications.md](./04-quiz-feature/03-test-specifications.md) | PHPUnit and Vitest Test Suites & Fixtures | Complete |
+| 04 | [04-quiz-feature/00-overview.md](./04-quiz-feature/00-overview.md) | Dynamic Quiz & Form Engine Architecture, Schemas & Access Controls | Complete |
+| 04 | [04-quiz-feature/01-file-topology.md](./04-quiz-feature/01-file-topology.md) | PSR-4 Backend & React SPA File Topology | Complete |
+| 04 | [04-quiz-feature/02-rest-api-contracts.md](./04-quiz-feature/02-rest-api-contracts.md) | REST API Request/Response Schemas, Envelopes & Submission Contracts | Complete |
+| 04 | [04-quiz-feature/03-test-specifications.md](./04-quiz-feature/03-test-specifications.md) | Playwright E2E and PHPUnit Integration Test Specifications | Complete |
 
 ---
 
@@ -55,26 +41,22 @@ Sibling folders for app-scoped concerns:
 | Reference | Location |
 |-----------|----------|
 | App Issues | [../22-app-issues/01-index.md](../22-app-issues/01-index.md) |
-| Spec Authoring Guide | [../01-spec-authoring-guide/01-index.md](../01-spec-authoring-guide/01-index.md) |
+| App Database | [../23-app-db/01-index.md](../23-app-db/01-index.md) |
+| App UI Design System | [../24-app-ui-design-system/01-index.md](../24-app-ui-design-system/01-index.md) |
+| Acceptance Criteria | [./97-acceptance-criteria.md](./97-acceptance-criteria.md) |
 
 ---
 
 ## Verification
 
-_Auto-generated section — see `02-spec/21-app/97-acceptance-criteria.md` for the full criteria index._
-
 ### AC-APP-001: App-level conformance: Index
 
-**Given** Run the application's integration smoke suite.
-**When** Run the verification command shown below.
+**Given** Run the application's test suite.  
+**When** Run the verification command shown below.  
 **Then** Boot sequence completes; health endpoint returns 200; no unhandled promise rejections appear in the log.
-
-**Verification command:**
 
 ```bash
 npm run test
 ```
 
 **Expected:** exit 0. Any non-zero exit is a hard fail and blocks merge.
-
-_Verification section last updated: 2026-08-30_

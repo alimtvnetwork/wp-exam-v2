@@ -1,74 +1,73 @@
-# Quiz Feature — Test Specifications
+# Quiz & Dynamic Form Engine — Test Specifications
 
-Version: 1.0.0  
+Version: 2.0.0  
 Updated: 2026-09-18  
 AI Confidence: Production-Ready  
 Ambiguity: None  
 
 ## Overview
 
-This specification establishes the automated test suite requirements for the WordPress Quiz Plugin (`wp-exam`), covering backend PHPUnit suites and frontend Vitest component suites.
+This document specifies the authoritative test suite for the WP Exam plugin across both E2E tests (Playwright) and unit/integration tests (PHPUnit and Vitest).
 
 ---
 
-## 1. Backend PHPUnit Test Suite
+## 1. End-to-End (E2E) Test Suite (Playwright)
 
-Backend tests run in WordPress integration environment via `phpunit`.
+Located in `tests/e2e/`:
 
-### 1.1. Schema & Activation Tests
-- **File:** `tests/test-class-wp-exam-activator.php`
-- **Class:** `WP_Exam_Activator_Test extends WP_UnitTestCase`
-- **Methods:**
-  - `test_activate_creates_required_tables()`: Asserts `$wpdb->get_var("SHOW TABLES LIKE '{$wpdb->prefix}quiz'")` is truthy.
-  - `test_activate_creates_correct_columns()`: Checks columns for `Quiz`, `QuizQuestion`, `QuizAnswer`, `QuizResult`.
-  - `test_activate_is_idempotent()`: Runs activation twice and asserts zero SQL errors or duplicate tables.
+### 1.1. `tests/e2e/sequential-quiz.spec.ts`
+- **Scenario:** Sequential Multi-Question Quiz Execution
+- **Steps:**
+  1. Open published sequential quiz URL `/quiz/sequential-sample`.
+  2. Verify Question 1 is visible and Question 2 is hidden.
+  3. Select option "HyperText Markup Language" and click "Next".
+  4. Verify Question 2 appears with smooth transition, progress indicator advances from 50% to 100%.
+  5. Select option "Cascading Style Sheets" and click "Submit".
+  6. Verify results modal displays: Score 100%, Passed badge, and total duration.
 
-### 1.2. REST API Controller Tests
-- **File:** `tests/test-class-wp-exam-rest-api.php`
-- **Class:** `WP_Exam_REST_API_Test extends WP_UnitTestCase`
-- **Methods:**
-  - `test_get_quizzes_requires_manage_options()`: Unauthenticated request returns HTTP 401/403.
-  - `test_create_quiz_with_valid_data()`: Admin user posts `{ "title": "Math" }`, asserts HTTP 201 and `success: true`.
-  - `test_create_quiz_rejects_empty_title()`: Posts `{ "title": "" }`, asserts HTTP 400 and `code: "QuizInvalidPayload"`.
-  - `test_submit_quiz_evaluates_correct_score()`: Submits correct answer from `quiz-sample.json`, asserts score 100%.
-  - `test_submit_quiz_prevents_result_mutation()`: Attempts `PUT` on result endpoint, asserts HTTP 405 Method Not Allowed.
+### 1.2. `tests/e2e/employee-signup-form.spec.ts`
+- **Scenario:** Public Employee Sign-Up Form Submission
+- **Steps:**
+  1. Navigate to `/form/employee-onboarding` as an unauthenticated guest.
+  2. Confirm fields: Legal Name, Work Email, Department dropdown, Start Date picker.
+  3. Attempt submission with empty email; verify inline validation error appears without page reload.
+  4. Fill valid inputs:
+     - Name: "Alex Mercer"
+     - Email: "alex.mercer@company.org"
+     - Department: "Engineering"
+  5. Click "Submit Application".
+  6. Verify success message displayed: "Welcome aboard! Your employee sign-up has been recorded."
+  7. Verify API call returned HTTP 200 with `IsSuccess: true` envelope.
 
----
-
-## 2. Frontend Vitest Component Suite
-
-Frontend tests run via `npm run test` using Vitest, `@testing-library/react`, and mock handlers.
-
-### 2.1. Quiz List View
-- **File:** `src/features/quiz-list/__tests__/QuizList.test.tsx`
-- **Tests:**
-  - `renders quiz list successfully with title and question count`
-  - `shows empty state when no quizzes exist`
-  - `opens delete confirmation modal when delete button clicked`
-
-### 2.2. Drag-and-Drop Quiz Editor
-- **File:** `src/features/quiz-editor/__tests__/QuizEditor.test.tsx`
-- **Tests:**
-  - `renders question form with title input and add question button`
-  - `adds new question item on button click`
-  - `toggles IsCorrect checkbox on answer option row`
-  - `disallows form submission when title is empty`
+### 1.3. `tests/e2e/form-builder-dnd.spec.ts`
+- **Scenario:** Admin Form Builder Drag-and-Drop & Mode Toggle
+- **Steps:**
+  1. Log in to WordPress Admin with `manage_options`.
+  2. Navigate to WP Exam menu.
+  3. Click "Create New Form", select "Quiz" mode, toggle "Sequential Mode" to ON.
+  4. Add 3 questions (Multiple Choice, True/False, Short Answer).
+  5. Drag Question 3 to position 1 using `@dnd-kit` handle.
+  6. Click "Live Preview"; test sequential navigation inside preview modal.
+  7. Click "Save Form"; verify persistence and success toast.
 
 ---
 
-## 3. Test Fixtures Reference
+## 2. PHPUnit Backend Integration Test Suite
 
-All sample payload data for mock API responses and seed data MUST be imported from:
-`02-spec/21-app/fixtures/quiz-sample.json`
+Located in `tests/unit/`:
 
----
+### 2.1. `tests/unit/WpDbQueryWrapperTest.php`
+- Tests `WpDbQueryWrapper::execute` for query success.
+- Tests query error suppression and automatic logging into `FileLogger`.
+- Tests transaction rollback on thrown exceptions.
 
-## 4. Verification Commands
+### 2.2. `tests/unit/EnvelopeBuilderTest.php`
+- Tests `EnvelopeBuilder::createSuccess()` returns proper `Status`, `Attributes`, and `Results` keys.
+- Tests `EnvelopeBuilder::createError()` with status code 400 and structured error arrays.
+- Tests `toRestResponse()` produces valid `WP_REST_Response`.
 
-```bash
-# Frontend Unit & Component Tests
-npm run test
-
-# Backend Tests (Local Docker / WP Environment)
-composer test
-```
+### 2.3. `tests/unit/FormRestControllerTest.php`
+- Tests permission checks (`checkAdminPermission` vs `checkPublicPermission`).
+- Tests public quiz fetch omits `CorrectAnswer` properties.
+- Tests quiz submission scoring algorithm and pass/fail evaluation.
+- Tests guest employee sign-up persists correctly with null `UserId`.
