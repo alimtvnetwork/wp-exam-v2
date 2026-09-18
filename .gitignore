@@ -22,3 +22,28 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Compiled binaries
+*.exe
+*.dll
+*.so
+*.dylib
+*.bin
+*.out
+
+# Test reports, coverage and artifacts
+.test-report.*
+test-reports/
+coverage/
+*.lcov
+playwright-report/
+*.artifact
+
+# Temp cache and build artifacts
+tmp/
+*.tsbuildinfo
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.class
