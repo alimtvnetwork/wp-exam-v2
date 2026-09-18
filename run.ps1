@@ -16,7 +16,7 @@ $ErrorActionPreference = "Stop"
 $RepoRoot = $PSScriptRoot
 
 Write-Host "====================================================" -ForegroundColor Cyan
-Write-Host "  WP Exam & WP Sam — Local Development & Test Runner" -ForegroundColor Cyan
+Write-Host "  WP Exam & WP Sam - Local Development & Test Runner" -ForegroundColor Cyan
 Write-Host "====================================================" -ForegroundColor Cyan
 
 # 1. Verify Node and PHP prerequisites
@@ -32,22 +32,22 @@ if (-not $hasNode -or -not $hasNpm) {
 
 $phpProcess = $null
 if ($hasPhp) {
-    Write-Host "  ✓ PHP found: $(php -v | Select-Object -First 1)" -ForegroundColor Green
+    Write-Host "  [OK] PHP found: $(php -v | Select-Object -First 1)" -ForegroundColor Green
     $phpPort = 8080
     Write-Host "  Starting local PHP server on http://127.0.0.1:$phpPort..." -ForegroundColor Cyan
     $phpProcess = Start-Process -FilePath "php" -ArgumentList "-S 127.0.0.1:$phpPort -t `"$RepoRoot`"" -PassThru -WindowStyle Hidden
-    Write-Host "  ✓ Local PHP server running on PID $($phpProcess.Id) (port $phpPort)." -ForegroundColor Green
+    Write-Host "  [OK] Local PHP server running on PID $($phpProcess.Id) (port $phpPort)." -ForegroundColor Green
 } else {
-    Write-Host "  ! PHP CLI not found in PATH; running frontend with client-side fallback storage." -ForegroundColor DarkYellow
+    Write-Host "  [WARN] PHP CLI not found in PATH; running frontend with client-side fallback storage." -ForegroundColor DarkYellow
 }
 
 # 2. Build Less styles if needed
 Write-Host "`n[2/3] Compiling theme stylesheets..." -ForegroundColor Yellow
 try {
     npm run build:less
-    Write-Host "  ✓ Theme compiled successfully." -ForegroundColor Green
+    Write-Host "  [OK] Theme compiled successfully." -ForegroundColor Green
 } catch {
-    Write-Host "  ! Theme compilation warning (will use existing compiled css)." -ForegroundColor DarkYellow
+    Write-Host "  [WARN] Theme compilation warning (will use existing compiled css)." -ForegroundColor DarkYellow
 }
 
 # 3. Launch Vite Dev Server and Open Browser

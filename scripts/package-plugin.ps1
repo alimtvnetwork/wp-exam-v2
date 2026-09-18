@@ -30,9 +30,9 @@ foreach ($Plugin in $Plugins) {
         Write-Host "Packaging $Plugin from $SourcePath -> $ZipPath..." -ForegroundColor Cyan
         Compress-Archive -Path "$SourcePath\*" -DestinationPath $ZipPath -CompressionLevel Optimal
         $ZipSize = (Get-Item $ZipPath).Length / 1KB
-        Write-Host "  ✓ Created $Plugin.zip ($([math]::Round($ZipSize, 2)) KB)" -ForegroundColor Green
+        Write-Host "  [OK] Created $Plugin.zip ($([math]::Round($ZipSize, 2)) KB)" -ForegroundColor Green
     } else {
-        Write-Host "  ! Source directory missing: $SourcePath" -ForegroundColor Red
+        Write-Host "  [WARN] Source directory missing: $SourcePath" -ForegroundColor Red
     }
 }
 
