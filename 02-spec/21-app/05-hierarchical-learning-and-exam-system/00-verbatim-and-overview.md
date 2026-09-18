@@ -79,3 +79,16 @@ The application is structured into four core subsystems:
    - Candidate completion stats, pass/fail percentages, section and question-level failure analytics.
    - Client IP tracking on submissions.
    - Optional public analytics dashboard.
+
+---
+
+### 2.2 Visual References & Focus UI Patterns
+
+The user provided 5 reference UI screenshots demonstrating the Letterly-style focus interaction and diverse question layouts:
+1. `02-spec/21-app/assets/letterly-sample-01.png`: Single-item focus with bold highlighted keywords (`**What** do you write?`) and large pill cards with icons.
+2. `02-spec/21-app/assets/letterly-sample-02.png`: Multi-select problem identification with emoji icons and 1-column pill cards.
+3. `02-spec/21-app/assets/letterly-sample-03.png`: 2-column grid layout for platform selection with full-width option.
+4. `02-spec/21-app/assets/letterly-sample-04.png`: Hero intro screen with motivational message and progress indicator.
+5. `02-spec/21-app/assets/letterly-sample-05.png`: Single-choice evaluation with subtitle instructions.
+
+These visual reference assets are stored in `02-spec/21-app/assets/` and fully realized in `src/components/runner/FocusQuizRunner.tsx`.

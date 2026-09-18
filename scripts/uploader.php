@@ -50,7 +50,9 @@ if (empty($host) || empty($file)) {
 $resolvedFile = realpath($file);
 $hasFile = ($resolvedFile !== false && file_exists($resolvedFile));
 
-if (!$hasFile) {
+if ($hasFile) {
+    // Target package archive verified
+} else {
     echo "Error: File not found: {$file}\n";
     exit(1);
 }
@@ -131,10 +133,10 @@ foreach ($uploadEndpoints as $endpoint) {
     echo "  ! Endpoint returned HTTP {$uploadCode}: {$uploadResult}\n";
 }
 
-if (!$isSuccess) {
-    echo "\nUpload failed across all endpoints. Ensure remote server has riseup-asia-uploader or wp-exam active.\n";
-    exit(1);
+if ($isSuccess) {
+    echo "\nRemote deployment completed successfully!\n";
+    exit(0);
 }
 
-echo "\nRemote deployment completed successfully!\n";
-exit(0);
+echo "\nUpload failed across all endpoints. Ensure remote server has riseup-asia-uploader or wp-exam active.\n";
+exit(1);

@@ -30,8 +30,13 @@ if (-not $hasNode -or -not $hasNpm) {
     exit 1
 }
 
+$phpProcess = $null
 if ($hasPhp) {
     Write-Host "  ✓ PHP found: $(php -v | Select-Object -First 1)" -ForegroundColor Green
+    $phpPort = 8080
+    Write-Host "  Starting local PHP server on http://127.0.0.1:$phpPort..." -ForegroundColor Cyan
+    $phpProcess = Start-Process -FilePath "php" -ArgumentList "-S 127.0.0.1:$phpPort -t `"$RepoRoot`"" -PassThru -WindowStyle Hidden
+    Write-Host "  ✓ Local PHP server running on PID $($phpProcess.Id) (port $phpPort)." -ForegroundColor Green
 } else {
     Write-Host "  ! PHP CLI not found in PATH; running frontend with client-side fallback storage." -ForegroundColor DarkYellow
 }
@@ -59,4 +64,11 @@ if (-not $NoBrowser) {
 }
 
 Write-Host "`nServer running! Press Ctrl+C to stop.`n" -ForegroundColor Green
-npm run dev -- --host 127.0.0.1 --port $Port
+try {
+    npm run dev -- --host 127.0.0.1 --port $Port
+} finally {
+    if ($phpProcess -and -not $phpProcess.HasExited) {
+        Write-Host "`nStopping background PHP server (PID $($phpProcess.Id))..." -ForegroundColor Yellow
+        Stop-Process -Id $phpProcess.Id -Force -ErrorAction SilentlyContinue
+    }
+}

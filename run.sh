@@ -20,6 +20,12 @@ fi
 
 if command -v php &> /dev/null; then
     echo "  ✓ PHP found: $(php -v | head -n 1)"
+    PHP_PORT=8080
+    echo "  Starting local PHP server on http://127.0.0.1:${PHP_PORT}..."
+    php -S "127.0.0.1:${PHP_PORT}" -t . > /dev/null 2>&1 &
+    PHP_PID=$!
+    trap 'kill -9 $PHP_PID 2>/dev/null || true' EXIT INT TERM
+    echo "  ✓ Local PHP server running on PID ${PHP_PID} (port ${PHP_PORT})."
 else
     echo "  ! PHP CLI not found; running with client-side fallback."
 fi
