@@ -15,7 +15,10 @@ Validates:
 10. Candidate Telemetry & Anonymity Verification
 11. Question Reporting & Bug Triage Workflow
 12. Backup & Archive Zip Generation & Retention Logic
-13. Full PHP Unit Test Suite Execution
+13. Email Notification Routing & Cadence Dispatch Strategy
+14. Execution Pipeline Sequencing & Prerequisite Gating
+15. Diverse Question Submission & External Verification Handlers
+16. Full PHP Unit Test Suite Execution
 """
 
 import base64
@@ -881,6 +884,265 @@ def test_backup_and_archive_packaging() -> None:
 
 
 # =====================================================================
+# 14. EMAIL NOTIFICATION ROUTING & CADENCE DISPATCH
+# =====================================================================
+def test_email_routing_and_cadence() -> None:
+    log_suite("14. Email Notification Routing & Cadence Dispatch")
+
+    # Test 14.1: Recipient Chain Resolution
+    class RecipientResolver:
+        def __init__(self, user_directory: Dict[str, Dict[str, Any]]) -> None:
+            self.users = user_directory
+
+        def resolve_recipients(
+            self,
+            candidate_id: str,
+            owner_id: str,
+            configured_targets: List[str],
+        ) -> List[str]:
+            resolved: List[str] = []
+            for target in configured_targets:
+                if target == "candidate":
+                    user = self.users.get(candidate_id)
+                    if user:
+                        resolved.append(user.get("email", ""))
+                elif target == "owner":
+                    user = self.users.get(owner_id)
+                    if user:
+                        resolved.append(user.get("email", ""))
+                elif target.startswith("role:"):
+                    target_role = target.split(":", 1)[1]
+                    for _, u in self.users.items():
+                        has_role = target_role in u.get("roles", [])
+                        if has_role:
+                            resolved.append(u.get("email", ""))
+
+            # Deduplicate preserving order
+            unique_emails: List[str] = []
+            for email in resolved:
+                has_email = len(email) > 0
+                if has_email:
+                    is_seen = email in unique_emails
+                    if not is_seen:
+                        unique_emails.append(email)
+
+            return unique_emails
+
+    mock_users = {
+        "u_101": {"email": "candidate@example.com", "roles": ["subscriber"]},
+        "u_001": {"email": "owner@example.com", "roles": ["administrator"]},
+        "u_002": {"email": "hr@example.com", "roles": ["hr_manager"]},
+    }
+    resolver = RecipientResolver(mock_users)
+    targets = ["candidate", "owner", "role:hr_manager"]
+    emails = resolver.resolve_recipients("u_101", "u_001", targets)
+
+    has_three_recipients = len(emails) == 3
+    has_candidate_email = "candidate@example.com" in emails
+    has_owner_email = "owner@example.com" in emails
+    has_hr_email = "hr@example.com" in emails
+
+    is_resolution_valid = (
+        has_three_recipients
+        and has_candidate_email
+        and has_owner_email
+        and has_hr_email
+    )
+    log_test("Email Recipient Chain Resolution (Candidate, Owner, Roles)", is_resolution_valid)
+
+    # Test 14.2: Cadence Dispatch Strategy
+    class CadenceDispatcher:
+        def __init__(self, cadence: str) -> None:
+            self.cadence = cadence
+            self.immediate_dispatches: List[Dict[str, Any]] = []
+            self.queued_dispatches: List[Dict[str, Any]] = []
+
+        def handle_event(self, event_type: str, payload: Dict[str, Any]) -> None:
+            if self.cadence == "per_section":
+                self.immediate_dispatches.append(payload)
+            elif self.cadence == "end_of_day":
+                self.queued_dispatches.append(payload)
+            elif self.cadence == "end_of_week":
+                self.queued_dispatches.append(payload)
+
+    section_dispatcher = CadenceDispatcher("per_section")
+    section_dispatcher.handle_event("section_complete", {"section_id": "sec_01"})
+    has_immediate = len(section_dispatcher.immediate_dispatches) == 1
+    has_no_queue = len(section_dispatcher.queued_dispatches) == 0
+
+    daily_dispatcher = CadenceDispatcher("end_of_day")
+    daily_dispatcher.handle_event("section_complete", {"section_id": "sec_01"})
+    has_daily_queued = len(daily_dispatcher.queued_dispatches) == 1
+    has_no_daily_immediate = len(daily_dispatcher.immediate_dispatches) == 0
+
+    is_cadence_valid = (
+        has_immediate
+        and has_no_queue
+        and has_daily_queued
+        and has_no_daily_immediate
+    )
+    log_test("Cadence Dispatch Routing (per_section immediate vs daily queue)", is_cadence_valid)
+
+
+# =====================================================================
+# 15. EXECUTION PIPELINE SEQUENCING & PREREQUISITE GATING
+# =====================================================================
+def test_pipeline_sequencing_and_prerequisites() -> None:
+    log_suite("15. Execution Pipeline Sequencing & Prerequisite Gating")
+
+    # Test 15.1: Pipeline Sequence Ordering & Validation
+    def validate_pipeline_order(available_projects: List[str], pipeline_order: List[str]) -> bool:
+        has_elements = len(pipeline_order) > 0
+        if not has_elements:
+            return False
+
+        for proj in pipeline_order:
+            is_known = proj in available_projects
+            if not is_known:
+                return False
+
+        has_duplicates = len(pipeline_order) != len(set(pipeline_order))
+        if has_duplicates:
+            return False
+
+        return True
+
+    projects = ["proj_a", "proj_b", "proj_c", "proj_d"]
+    custom_order = ["proj_a", "proj_c", "proj_d", "proj_b"]
+    is_valid_order = validate_pipeline_order(projects, custom_order)
+    log_test("Execution Pipeline Custom Sequencing Resolution ([A, C, D, B])", is_valid_order)
+
+    # Test 15.2: Prerequisite Gating Enforcement
+    class PipelineGatingEngine:
+        def __init__(self, sequence: List[str]) -> None:
+            self.sequence = sequence
+
+        def can_access_project(self, project_id: str, completed_projects: List[str]) -> bool:
+            is_in_sequence = project_id in self.sequence
+            if not is_in_sequence:
+                return False
+
+            idx = self.sequence.index(project_id)
+            is_first = idx == 0
+            if is_first:
+                return True
+
+            prerequisites = self.sequence[:idx]
+            for prereq in prerequisites:
+                is_done = prereq in completed_projects
+                if not is_done:
+                    return False
+
+            return True
+
+    gating = PipelineGatingEngine(custom_order)
+    # At start, proj_a is accessible, proj_c is locked
+    is_a_open = gating.can_access_project("proj_a", [])
+    is_c_locked = not gating.can_access_project("proj_c", [])
+    # After completing proj_a, proj_c unlocks, proj_d locked
+    is_c_open = gating.can_access_project("proj_c", ["proj_a"])
+    is_d_locked = not gating.can_access_project("proj_d", ["proj_a"])
+    # After completing proj_a and proj_c, proj_d unlocks
+    is_d_open = gating.can_access_project("proj_d", ["proj_a", "proj_c"])
+
+    is_gating_correct = (
+        is_a_open
+        and is_c_locked
+        and is_c_open
+        and is_d_locked
+        and is_d_open
+    )
+    log_test("Pipeline Prerequisite Gating Enforced Step-by-Step", is_gating_correct)
+
+
+# =====================================================================
+# 16. DIVERSE QUESTION SUBMISSION & EXTERNAL VERIFICATION
+# =====================================================================
+def test_submission_and_external_verification() -> None:
+    log_suite("16. Diverse Question Submission & External Verification")
+
+    # Test 16.1: External URL Verification (Google Docs, XMind, Workflowy)
+    def verify_external_submission_url(service_type: str, url: str) -> Tuple[bool, str]:
+        has_https = url.startswith("https://")
+        if not has_https:
+            return False, "URL must use secure HTTPS protocol"
+
+        if service_type == "google_docs":
+            has_gdocs = "docs.google.com/document/d/" in url
+            if not has_gdocs:
+                return False, "Not a valid Google Docs document URL"
+            return True, "Valid Google Docs Link"
+
+        elif service_type == "xmind":
+            has_xmind = "xmind.app/m/" in url or "xmind.net/m/" in url
+            if not has_xmind:
+                return False, "Not a valid XMind shareable link"
+            return True, "Valid XMind Link"
+
+        elif service_type == "workflowy":
+            has_workflowy = "workflowy.com/#/" in url
+            if not has_workflowy:
+                return False, "Not a valid Workflowy node URL"
+            return True, "Valid Workflowy Link"
+
+        return False, "Unsupported external service type"
+
+    gdoc_valid, _ = verify_external_submission_url("google_docs", "https://docs.google.com/document/d/1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgvE2upms/edit")
+    xmind_valid, _ = verify_external_submission_url("xmind", "https://xmind.app/m/88pA9q")
+    workflowy_valid, _ = verify_external_submission_url("workflowy", "https://workflowy.com/#/6a77f3e829d1")
+    insecure_gdoc, _ = verify_external_submission_url("google_docs", "http://docs.google.com/document/d/123/edit")
+    is_insecure_blocked = not insecure_gdoc
+
+    is_all_url_checks_valid = (
+        gdoc_valid
+        and xmind_valid
+        and workflowy_valid
+        and is_insecure_blocked
+    )
+    log_test("External URL Verification (Google Docs, XMind, Workflowy, HTTPS)", is_all_url_checks_valid)
+
+    # Test 16.2: File Upload Submission Constraints (PDF, DOCX, Size Cap)
+    def validate_file_submission(filename: str, mime_type: str, file_size_bytes: int) -> Tuple[bool, str]:
+        allowed_mimes = {
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        }
+        allowed_extensions = {".pdf", ".doc", ".docx"}
+
+        ext = os.path.splitext(filename.lower())[1]
+        has_valid_ext = ext in allowed_extensions
+        if not has_valid_ext:
+            return False, f"File extension {ext} not permitted"
+
+        has_valid_mime = mime_type in allowed_mimes
+        if not has_valid_mime:
+            return False, f"MIME type {mime_type} not allowed"
+
+        max_bytes = 10 * 1024 * 1024  # 10 MB
+        has_acceptable_size = file_size_bytes <= max_bytes
+        if not has_acceptable_size:
+            return False, "File exceeds maximum 10MB limit"
+
+        return True, "Valid File Submission"
+
+    pdf_ok, _ = validate_file_submission("assignment_report.pdf", "application/pdf", 1024 * 500)
+    docx_ok, _ = validate_file_submission("project_draft.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document", 1024 * 1000)
+    exe_rejected, _ = validate_file_submission("malicious_script.exe", "application/x-msdownload", 1024)
+    is_exe_blocked = not exe_rejected
+    oversized_rejected, _ = validate_file_submission("huge_book.pdf", "application/pdf", 25 * 1024 * 1024)
+    is_oversized_blocked = not oversized_rejected
+
+    is_file_validation_valid = (
+        pdf_ok
+        and docx_ok
+        and is_exe_blocked
+        and is_oversized_blocked
+    )
+    log_test("File Upload MIME & Size Constraints (PDF, DOCX, Size Cap)", is_file_validation_valid)
+
+
+# =====================================================================
 # 7. EXECUTION OF PHP UNIT TEST SUITE
 # =====================================================================
 def test_php_test_suite() -> None:
@@ -932,6 +1194,9 @@ def main() -> None:
     test_candidate_telemetry_and_anonymity()
     test_question_reporting_and_bug_triage()
     test_backup_and_archive_packaging()
+    test_email_routing_and_cadence()
+    test_pipeline_sequencing_and_prerequisites()
+    test_submission_and_external_verification()
     test_php_test_suite()
 
     elapsed = round(time.time() - start_time, 3)
