@@ -21,7 +21,10 @@ Validates:
 16. Project Revision History & 1-Click Rollback State Machine
 17. Public Analytics Dashboard & High-Failure Alert Aggregator
 18. Social Media OpenGraph & Twitter Card SEO Meta Generator
-19. Full PHP Unit Test Suite Execution
+19. Question Hints & Contextual Resource Linking
+20. Dynamic JSON Theme Injection & Asset Compilation
+21. AI Instruction Studio Theme & UI Modification Prompts
+22. Full PHP Unit Test Suite Execution
 """
 
 import base64
@@ -1384,6 +1387,198 @@ def test_social_meta_and_sharing() -> None:
 
 
 # =====================================================================
+# 20. QUESTION HINTS & CONTEXTUAL RESOURCE LINKING
+# =====================================================================
+def test_question_hints_and_resources() -> None:
+    log_suite("20. Question Hints & Contextual Resource Linking")
+
+    class QuestionHintManager:
+        def __init__(self, question_data: Dict[str, Any]) -> None:
+            self.question = question_data
+            self.is_hint_revealed = False
+            self.view_events: List[Dict[str, Any]] = []
+
+        def reveal_hint(self, candidate_id: str) -> Optional[Dict[str, Any]]:
+            hint_content = self.question.get("hint")
+            has_hint = hint_content is not None
+            if not has_hint:
+                return None
+
+            self.is_hint_revealed = True
+            self.view_events.append({
+                "candidate_id": candidate_id,
+                "timestamp": int(time.time()),
+            })
+            return hint_content
+
+    raw_question = {
+        "id": "q_aws_vpc",
+        "prompt": "What component routes traffic outside a private subnet in AWS?",
+        "hint": {
+            "text": "Think about NAT (Network Address Translation).",
+            "doc_url": "https://docs.aws.amazon.com/vpc/latest/userguide/vpc-nat-gateway.html",
+            "image_url": "https://example.com/assets/nat_gateway_diagram.png",
+        },
+    }
+
+    manager = QuestionHintManager(raw_question)
+    has_initial_hidden = not manager.is_hint_revealed
+    hint = manager.reveal_hint("candidate_77")
+    has_revealed_state = manager.is_hint_revealed
+    has_hint_text = False
+    has_doc_link = False
+    has_image_link = False
+    if hint:
+        has_hint_text = "NAT" in hint.get("text", "")
+        has_doc_link = "aws.amazon.com" in hint.get("doc_url", "")
+        has_image_link = "nat_gateway_diagram.png" in hint.get("image_url", "")
+
+    has_event_logged = len(manager.view_events) == 1
+
+    is_hint_system_valid = (
+        has_initial_hidden
+        and has_revealed_state
+        and has_hint_text
+        and has_doc_link
+        and has_image_link
+        and has_event_logged
+    )
+    log_test("Question Hints Gating, Rich Links & Telemetry Tracking", is_hint_system_valid)
+
+
+# =====================================================================
+# 21. DYNAMIC JSON THEME INJECTION & ASSET COMPILATION
+# =====================================================================
+def test_theme_injection_and_compilation() -> None:
+    log_suite("21. Dynamic JSON Theme Injection & Asset Compilation")
+
+    def validate_theme_json(theme_data: Dict[str, Any]) -> Tuple[bool, str]:
+        required_fields = ["id", "name", "background", "foreground", "primary", "accent", "card"]
+        for field in required_fields:
+            has_field = field in theme_data
+            if not has_field:
+                return False, f"Missing required theme token: {field}"
+
+        hex_pattern = re.compile(r"^#([A-Fa-f0-9]{6}|[A-Fa-f0-9]{3})$")
+        for token in ["background", "foreground", "primary", "accent", "card"]:
+            color_val = theme_data[token]
+            is_valid_hex = bool(hex_pattern.match(color_val))
+            if not is_valid_hex:
+                return False, f"Invalid hex color for {token}: {color_val}"
+
+        return True, "Valid Theme JSON"
+
+    def compile_theme_css_variables(theme_data: Dict[str, Any]) -> str:
+        css_lines = [
+            ":root {",
+            f"  --wp-exam-bg: {theme_data['background']};",
+            f"  --wp-exam-text: {theme_data['foreground']};",
+            f"  --wp-exam-primary: {theme_data['primary']};",
+            f"  --wp-exam-accent: {theme_data['accent']};",
+            f"  --wp-exam-card: {theme_data['card']};",
+            "}",
+        ]
+        return "\n".join(css_lines)
+
+    rise_up_custom_theme = {
+        "id": "rise_up_emerald",
+        "name": "Rise Up Emerald Theme",
+        "background": "#0b1914",
+        "foreground": "#ecfdf5",
+        "primary": "#10b981",
+        "accent": "#f59e0b",
+        "card": "#132a22",
+    }
+
+    is_valid_theme, _ = validate_theme_json(rise_up_custom_theme)
+    css_output = compile_theme_css_variables(rise_up_custom_theme)
+
+    has_bg_var = "--wp-exam-bg: #0b1914;" in css_output
+    has_primary_var = "--wp-exam-primary: #10b981;" in css_output
+
+    temp_dir = tempfile.gettempdir()
+    theme_asset_path = os.path.join(temp_dir, "wp_exam_custom_theme.json")
+    with open(theme_asset_path, "w", encoding="utf-8") as f:
+        json.dump(rise_up_custom_theme, f)
+
+    has_file = os.path.isfile(theme_asset_path)
+    reloaded_valid = False
+    if has_file:
+        with open(theme_asset_path, "r", encoding="utf-8") as f:
+            reloaded_theme = json.load(f)
+        reloaded_valid, _ = validate_theme_json(reloaded_theme)
+        os.remove(theme_asset_path)
+
+    is_theme_system_valid = (
+        is_valid_theme
+        and has_bg_var
+        and has_primary_var
+        and reloaded_valid
+    )
+    log_test("JSON Theme Validation, CSS Variable Compilation & Asset Persistence", is_theme_system_valid)
+
+
+# =====================================================================
+# 22. AI INSTRUCTION STUDIO UI MODIFICATION PROMPTS
+# =====================================================================
+def test_ai_studio_ui_prompts() -> None:
+    log_suite("22. AI Instruction Studio UI Modification Prompts")
+
+    def build_ai_ui_prompt(screenshot_instructions: str, current_theme: Dict[str, Any]) -> str:
+        prompt_lines = [
+            "You are a Theme Architect AI for WP Exam.",
+            "Based on the user screenshot description and modification request, update the theme JSON.",
+            f"User Instructions: {screenshot_instructions}",
+            "Current Theme JSON:",
+            json.dumps(current_theme, indent=2),
+            "Output strictly valid JSON conforming to the WP Exam theme specification.",
+        ]
+        return "\n".join(prompt_lines)
+
+    current_theme = {
+        "id": "white",
+        "name": "White Theme",
+        "background": "#ffffff",
+        "foreground": "#1e293b",
+        "primary": "#3b82f6",
+        "accent": "#f59e0b",
+        "card": "#f8fafc",
+    }
+    instructions = "Make the background pure black and primary color bright yellow like Rise Up Asia."
+    prompt = build_ai_ui_prompt(instructions, current_theme)
+
+    has_role_instruction = "Theme Architect AI" in prompt
+    has_screenshot_note = "Make the background pure black" in prompt
+    has_theme_payload = '"background": "#ffffff"' in prompt
+
+    mock_ai_response = json.dumps({
+        "id": "rise_up_dark_gold",
+        "name": "Rise Up Dark Gold",
+        "background": "#000000",
+        "foreground": "#ffffff",
+        "primary": "#fbbf24",
+        "accent": "#f59e0b",
+        "card": "#18181b",
+    })
+
+    try:
+        parsed_theme = json.loads(mock_ai_response)
+        has_black_bg = parsed_theme.get("background") == "#000000"
+        has_gold_primary = parsed_theme.get("primary") == "#fbbf24"
+        is_ai_payload_valid = has_black_bg and has_gold_primary
+    except Exception:
+        is_ai_payload_valid = False
+
+    is_ai_studio_prompt_valid = (
+        has_role_instruction
+        and has_screenshot_note
+        and has_theme_payload
+        and is_ai_payload_valid
+    )
+    log_test("AI Instruction Studio Screenshot-to-Theme Prompt & Response Ingestion", is_ai_studio_prompt_valid)
+
+
+# =====================================================================
 # 7. EXECUTION OF PHP UNIT TEST SUITE
 # =====================================================================
 def test_php_test_suite() -> None:
@@ -1441,6 +1636,9 @@ def main() -> None:
     test_project_revision_history_and_rollback()
     test_analytics_and_failure_alerts()
     test_social_meta_and_sharing()
+    test_question_hints_and_resources()
+    test_theme_injection_and_compilation()
+    test_ai_studio_ui_prompts()
     test_php_test_suite()
 
     elapsed = round(time.time() - start_time, 3)

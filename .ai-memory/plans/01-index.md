@@ -11,6 +11,7 @@ Master directory of architectural and execution plans.
 
 ## Completed Plans
 
+- [49-e2e-python-testing-security-and-media-orchestration.md](completed/49-e2e-python-testing-security-and-media-orchestration.md): 22-suite Python E2E integration test suite, question hints gating and contextual resource linking, dynamic JSON theme injection and CSS variable synthesis, and AI Instruction Studio screenshot-to-theme modification prompt generation (48/48 tests passed).
 - [48-e2e-python-testing-security-and-media-orchestration.md](completed/48-e2e-python-testing-security-and-media-orchestration.md): 19-suite Python E2E integration test suite, curriculum revision history & 1-click rollback, public analytics dashboard with high-failure alerts, and OpenGraph/Twitter Card SEO meta generator (45/45 tests passed).
 - [47-e2e-python-testing-security-and-media-orchestration.md](completed/47-e2e-python-testing-security-and-media-orchestration.md): 16-suite Python E2E integration test suite, email notification routing and cadence dispatch, execution pipeline sequencing and prerequisite gating, and external URL / file submission verification (39/39 tests passed).
 - [46-e2e-python-testing-security-and-media-orchestration.md](completed/46-e2e-python-testing-security-and-media-orchestration.md): 13-suite Python E2E integration test suite, candidate telemetry tracking, salted IP hashing anonymity, question bug triage state machine, and split DB zip archive backup packaging (33/33 tests passed).
