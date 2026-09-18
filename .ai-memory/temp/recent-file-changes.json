@@ -1,11 +1,16 @@
 {
   "version": 1,
-  "updated_at": "2026-09-18T10:08:59Z",
+  "updated_at": "2026-09-18T10:14:26Z",
   "files": [
+    "composer.json",
     "includes/Api/FormRestController.php",
     "includes/Autoloader.php",
+    "package.json",
+    "phpunit.xml",
+    "playwright.config.ts",
     "src/components/forms/FormBuilder.tsx",
     "src/quiz/store/useQuizStore.ts",
+    "tests/bootstrap.php",
     "tests/e2e/employee-signup-form.spec.ts",
     "tests/e2e/sequential-quiz.spec.ts",
     "wp-exam.php"
