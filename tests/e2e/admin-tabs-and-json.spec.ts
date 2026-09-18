@@ -11,7 +11,7 @@ test.describe('Admin Workspace & JSON Workflow E2E', () => {
     await expect(page.locator('text=User Invitations & Role Assignments')).toBeVisible();
     await page.fill('input[placeholder="e.g. employee@company.org"]', 'new.tester@company.org');
     await page.click('button:has-text("Send Invitation")');
-    await expect(page.locator('text=new.tester@company.org')).toBeVisible();
+    await expect(page.locator('span:has-text("new.tester@company.org")')).toBeVisible();
 
     // 2. History Tab
     await page.click('button:has-text("History")');
@@ -35,7 +35,7 @@ test.describe('Admin Workspace & JSON Workflow E2E', () => {
     await page.click('button:has-text("Builder")');
     await expect(page.locator('text=WordPress Form & Quiz Builder')).toBeVisible();
     await page.click('button:has-text("JSON Import / Export")');
-    await expect(page.locator('text=JSON Questions & Form Engine')).toBeVisible();
+    await expect(page.locator('text=JSON Questions & Role Profile Engine')).toBeVisible();
     await page.click('button:has-text("Copy to Clipboard")');
     await page.click('button:has-text("Close")');
   });

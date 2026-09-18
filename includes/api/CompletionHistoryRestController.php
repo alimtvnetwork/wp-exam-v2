@@ -53,7 +53,21 @@ class CompletionHistoryRestController extends WP_REST_Controller {
             ->limit(100)
             ->findMany();
 
+        $hasNoSubmissions = empty($submissions);
+
+        if ($hasNoSubmissions) {
+            global $wpdb;
+            $tableSubmissions = $wpdb->prefix . 'wp_exam_submissions';
+            $rows = $wpdb->get_results("SELECT * FROM $tableSubmissions ORDER BY id DESC LIMIT 100", ARRAY_A);
+            $hasWpRows = !empty($rows);
+
+            if ($hasWpRows) {
+                $submissions = $rows;
+            }
+        }
+
         $builder = EnvelopeBuilder::createSuccess($submissions, HttpStatusType::Ok->value, ResponseMessageType::Ok->value);
+
         return new WP_REST_Response($builder->build(), HttpStatusType::Ok->value);
     }
 

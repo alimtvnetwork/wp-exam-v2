@@ -9,14 +9,14 @@ test.describe('Form Builder Drag-and-Drop & Dynamic Field Operations E2E', () =>
     await expect(page.locator('text=WordPress Form & Quiz Builder')).toBeVisible();
 
     // Add Short Answer field
-    await page.click('button:has-text("Short Answer")');
+    await page.locator('[data-testid="quick-add-toolbar"] button:has-text("Short Answer")').click();
 
     // Add Rating field
-    await page.click('button:has-text("Rating")');
+    await page.locator('[data-testid="quick-add-toolbar"] button:has-text("Rating")').click();
 
     // Confirm that newly added fields appear in field list
-    await expect(page.locator('text=SHORT ANSWER').first()).toBeVisible();
-    await expect(page.locator('text=RATING').first()).toBeVisible();
+    await expect(page.locator('[data-testid="field-type-badge"]:has-text("SHORT ANSWER")').first()).toBeVisible();
+    await expect(page.locator('[data-testid="field-type-badge"]:has-text("RATING")').first()).toBeVisible();
 
     // Open Live Preview
     await page.click('button:has-text("Live Preview")');

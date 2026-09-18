@@ -17,9 +17,9 @@ test.describe('Employee Sign-Up & Onboarding Form E2E', () => {
       await sequentialSwitch.click();
     }
 
-    // Add employee sign-up specific fields
-    await page.click('button:has-text("Email")');
-    await page.click('button:has-text("Dropdown")');
+    // Add employee sign-up specific fields using quick-add toolbar
+    await page.locator('[data-testid="quick-add-toolbar"] button:has-text("Email")').click();
+    await page.locator('[data-testid="quick-add-toolbar"] button:has-text("Dropdown")').click();
 
     // Click Live Preview to test respondent experience
     await page.click('button:has-text("Live Preview")');

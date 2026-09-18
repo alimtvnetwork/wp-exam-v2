@@ -37,6 +37,7 @@ test-reports/
 coverage/
 *.lcov
 playwright-report/
+test-results/
 *.artifact
 
 # Temp cache and build artifacts

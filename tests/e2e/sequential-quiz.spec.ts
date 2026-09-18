@@ -9,8 +9,8 @@ test.describe('Sequential Quiz Feature E2E', () => {
     // Verify title and default form type
     await expect(page.locator('text=WordPress Form & Quiz Builder')).toBeVisible();
 
-    // Click "Public Runner Demo" tab
-    await page.click('button:has-text("Public Runner Demo")');
+    // Click "Live Runner" tab
+    await page.click('button:has-text("Live Runner")');
 
     // Confirm Sequential Quiz Wizard is active
     await expect(page.locator('text=Step 1 of')).toBeVisible();

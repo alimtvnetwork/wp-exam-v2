@@ -16,9 +16,12 @@ use WP_REST_Server;
 use WP_REST_Request;
 use WP_REST_Response;
 use WpExam\Database\WpDbQueryWrapper;
+use WpExam\Database\Orm;
+use WpExam\Logging\FileLogger;
 use WpExam\Helpers\EnvelopeBuilder;
 use WpExam\Enums\HttpStatusType;
 use WpExam\Enums\ResponseMessageType;
+use Throwable;
 
 class FormRestController extends WP_REST_Controller {
     protected string $namespace = 'wp-exam/v1';
@@ -438,6 +441,58 @@ class FormRestController extends WP_REST_Controller {
 
             return ($inserted !== false) ? (int) $db->insert_id : false;
         });
+
+        // Synchronize to SQLite micro-ORM storage if available
+        try {
+            $sqliteSubId = Orm::forTable('form_submissions')->insert([
+                'form_id'              => $formId,
+                'user_id'              => (int) ($userId ?: 0),
+                'guest_name'           => $guestName,
+                'guest_email'          => $guestEmail,
+                'form_type'            => $form['form_type'],
+                'score'                => $isQuiz ? $earnedScore : 0,
+                'total_possible_score' => $isQuiz ? $totalPossible : 0,
+                'score_percentage'     => $isQuiz ? $scorePct : 0,
+                'is_passed'            => $isQuiz ? ($isPassed ? 1 : 0) : 1,
+            ]);
+
+            $hasValidSqliteId = ($sqliteSubId > 0);
+
+            if ($hasValidSqliteId) {
+                $hasAnswersArray = is_array($answers);
+
+                if ($hasAnswersArray) {
+                    foreach ($fieldsList as $fld) {
+                        $fId = (string) $fld['id'];
+                        $userAns = (string) ($answers[$fId] ?? '');
+                        $expectedAns = (string) ($fld['correct_answer'] ?? '');
+                        $isCorrectAns = ($isQuiz && trim(strtolower($userAns)) === trim(strtolower($expectedAns)));
+
+                        Orm::forTable('form_answers')->insert([
+                            'submission_id' => $sqliteSubId,
+                            'field_id'      => (int) $fld['id'],
+                            'answer_value'  => $userAns,
+                            'is_correct'    => $isCorrectAns ? 1 : 0,
+                            'points_earned' => $isCorrectAns ? (float) ($fld['points'] ?? 1) : 0,
+                        ]);
+                    }
+                }
+            }
+
+            $inviteToken = sanitize_text_field((string) ($request->get_param('invite_token') ?: ''));
+            $hasInviteToken = !empty($inviteToken);
+
+            if ($hasInviteToken) {
+                $inviteRecord = Orm::forTable('user_invites')->where('invite_token', $inviteToken)->findOne();
+                $hasInviteRecord = ($inviteRecord !== null);
+
+                if ($hasInviteRecord) {
+                    Orm::forTable('user_invites')->update((int) $inviteRecord['id'], ['status' => 'completed']);
+                }
+            }
+        } catch (Throwable $e) {
+            FileLogger::getInstance()->warning('SQLite submission synchronization notice: ' . $e->getMessage());
+        }
 
         $resultPayload = [
             'submission_id'        => $subId,

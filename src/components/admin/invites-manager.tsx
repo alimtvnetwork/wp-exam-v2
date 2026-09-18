@@ -5,38 +5,17 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
+import { useExamAppStore } from '@/quiz/store/exam-store';
 
-interface UserInvite {
-  id: number;
-  email: string;
-  role: string;
-  invite_token: string;
-  status: string;
-  created_at: string;
+interface InvitesManagerProps {
+  onNavigateToRunner?: () => void;
 }
 
-const mockInvites: UserInvite[] = [
-  {
-    id: 1,
-    email: 'alex.candidate@company.org',
-    role: 'subscriber',
-    invite_token: 'a9f1c4e72b83',
-    status: 'pending',
-    created_at: '2026-09-18 10:15',
-  },
-  {
-    id: 2,
-    email: 'sarah.engineer@company.org',
-    role: 'contributor',
-    invite_token: '7b2e9d41a580',
-    status: 'accepted',
-    created_at: '2026-09-17 14:30',
-  },
-];
-
-export const InvitesManager: React.FC = () => {
+export const InvitesManager: React.FC<InvitesManagerProps> = ({ onNavigateToRunner }) => {
   const store = useQuizStore();
-  const [invites, setInvites] = useState<UserInvite[]>(mockInvites);
+  const examStore = useExamAppStore();
+  const invites = examStore.invites;
+
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('subscriber');
   const [feedback, setFeedback] = useState<string | null>(null);
@@ -45,23 +24,24 @@ export const InvitesManager: React.FC = () => {
     e.preventDefault();
     if (!email.trim()) return;
 
-    const newInvite: UserInvite = {
-      id: Date.now(),
+    const token = Math.random().toString(36).substring(2, 14);
+
+    const newInvite = examStore.addInvite({
       email: email.trim(),
       role,
-      invite_token: Math.random().toString(36).substring(2, 12),
+      invite_token: token,
       status: 'pending',
-      created_at: new Date().toISOString().replace('T', ' ').substring(0, 16),
-    };
+    });
 
-    setInvites((prev) => [newInvite, ...prev]);
     setEmail('');
-    setFeedback(`Invitation dispatched to ${newInvite.email} for form: "${store.title}"!`);
+    setFeedback(`Invitation dispatched to ${newInvite.email} for form: "${store.title}"! Automated invite token generated.`);
     setTimeout(() => setFeedback(null), 4000);
   };
 
   const handleRevoke = (id: number) => {
-    setInvites((prev) => prev.filter((inv) => inv.id !== id));
+    examStore.revokeInvite(id);
+    setFeedback('Invitation token revoked.');
+    setTimeout(() => setFeedback(null), 2500);
   };
 
   const handleCopyLink = (token: string) => {
@@ -69,6 +49,13 @@ export const InvitesManager: React.FC = () => {
     navigator.clipboard.writeText(link);
     setFeedback(`Copied direct invite link: ${link}`);
     setTimeout(() => setFeedback(null), 3500);
+  };
+
+  const handleTestInRunner = (token: string) => {
+    examStore.authenticateWithToken(token);
+    if (onNavigateToRunner) {
+      onNavigateToRunner();
+    }
   };
 
   return (
@@ -107,7 +94,7 @@ export const InvitesManager: React.FC = () => {
               <select
                 value={role}
                 onChange={(e) => setRole(e.target.value)}
-                className="w-full h-10 p-2 border rounded-md text-sm bg-background"
+                className="w-full h-10 p-2 border rounded-md text-sm bg-background font-medium"
               >
                 <option value="subscriber">Subscriber (Respondent)</option>
                 <option value="contributor">Contributor</option>
@@ -137,23 +124,48 @@ export const InvitesManager: React.FC = () => {
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-foreground">{inv.email}</span>
-                      <Badge variant={inv.status === 'accepted' ? 'default' : 'secondary'} className="text-[10px] uppercase">
+                      <Badge
+                        variant={inv.status === 'completed' ? 'default' : 'secondary'}
+                        className={`text-[10px] uppercase font-semibold ${
+                          inv.status === 'completed' ? 'bg-emerald-600' : ''
+                        }`}
+                      >
                         {inv.status}
                       </Badge>
-                      <Badge variant="outline" className="text-[10px]">
+                      <Badge variant="outline" className="text-[10px] uppercase font-mono">
                         {inv.role}
                       </Badge>
                     </div>
                     <div className="text-xs text-muted-foreground">
-                      Token: <span className="font-mono">{inv.invite_token}</span> • Created: {inv.created_at}
+                      Token: <span className="font-mono text-primary font-medium">{inv.invite_token}</span> • Created: {inv.created_at}
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <Button variant="outline" size="sm" onClick={() => handleCopyLink(inv.invite_token)} className="text-xs h-8">
+                  <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap">
+                    {onNavigateToRunner && (
+                      <Button
+                        variant="secondary"
+                        size="sm"
+                        onClick={() => handleTestInRunner(inv.invite_token)}
+                        className="text-xs h-8"
+                      >
+                        🚀 Test in Runner
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCopyLink(inv.invite_token)}
+                      className="text-xs h-8"
+                    >
                       Copy Link
                     </Button>
-                    <Button variant="ghost" size="sm" onClick={() => handleRevoke(inv.id)} className="text-xs h-8 text-destructive hover:bg-destructive/10">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRevoke(inv.id)}
+                      className="text-xs h-8 text-destructive hover:text-destructive"
+                    >
                       Revoke
                     </Button>
                   </div>

@@ -92,11 +92,14 @@ const Index = () => {
                 settings: store.settings,
                 fields: store.fields,
               }}
+              onClose={() => setActiveTab('builder')}
             />
           </div>
         )}
 
-        {activeTab === 'invites' && <InvitesManager />}
+        {activeTab === 'invites' && (
+          <InvitesManager onNavigateToRunner={() => setActiveTab('runner')} />
+        )}
         {activeTab === 'history' && <HistoryManager />}
         {activeTab === 'email' && <EmailSettings />}
         {activeTab === 'storage' && <SqliteStatus />}

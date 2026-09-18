@@ -69,7 +69,7 @@ const SortableFieldItem = ({ id, index }: { id: string; index: number }) => {
             </div>
             <CardTitle className="text-sm font-semibold flex items-center gap-2">
               <span>#{index + 1}</span>
-              <Badge variant="secondary" className="uppercase text-[10px] tracking-wide">
+              <Badge variant="secondary" className="uppercase text-[10px] tracking-wide" data-testid="field-type-badge">
                 {field.type.replace('_', ' ')}
               </Badge>
             </CardTitle>
@@ -490,7 +490,7 @@ export const FormBuilder = () => {
         )}
 
         {/* Quick Add Toolbar */}
-        <div className="mt-6 p-4 bg-card rounded-xl border space-y-2">
+        <div className="mt-6 p-4 bg-card rounded-xl border space-y-2" data-testid="quick-add-toolbar">
           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">
             + Quick Add Field / Question
           </Label>
