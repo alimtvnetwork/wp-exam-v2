@@ -207,6 +207,8 @@ class SqliteDatabase {
             total_possible_score REAL DEFAULT 0,
             score_percentage REAL DEFAULT 0,
             is_passed INTEGER DEFAULT 0,
+            client_ip TEXT DEFAULT '',
+            is_anonymous INTEGER DEFAULT 0,
             created_at TEXT DEFAULT (datetime('now')),
             FOREIGN KEY (form_id) REFERENCES forms(id) ON DELETE CASCADE
         );
@@ -283,6 +285,18 @@ class SqliteDatabase {
         ";
 
         $this->pdo->exec($schema);
+
+        try {
+            $this->pdo->exec("ALTER TABLE form_submissions ADD COLUMN client_ip TEXT DEFAULT ''");
+        } catch (Throwable) {
+            // Column may already exist
+        }
+
+        try {
+            $this->pdo->exec("ALTER TABLE form_submissions ADD COLUMN is_anonymous INTEGER DEFAULT 0");
+        } catch (Throwable) {
+            // Column may already exist
+        }
     }
 
     public function query(string $sql, array $params = []): array {

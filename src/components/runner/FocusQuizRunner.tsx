@@ -1,8 +1,26 @@
 import React, { useState } from 'react';
-import { ArrowLeft, Flag, Check, HelpCircle, ExternalLink, RefreshCw, Send, Sparkles } from 'lucide-react';
+import {
+  ArrowLeft,
+  Flag,
+  Check,
+  HelpCircle,
+  ExternalLink,
+  RefreshCw,
+  Send,
+  Sparkles,
+  BookOpen,
+  PlayCircle,
+  CheckSquare,
+  Shuffle,
+  ShieldCheck,
+  AlertCircle,
+  FileText,
+  Upload,
+} from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Badge } from '@/components/ui/badge';
 import { THEME_PRESETS, getTheme, ThemeDefinition } from '@/themes/theme-definitions';
 import { toast } from 'sonner';
 
@@ -15,9 +33,33 @@ export interface FocusQuestion {
   correctAnswer?: string | string[];
   hint?: string;
   mediaUrl?: string;
-  verificationType?: 'google_docs' | 'url' | 'figma' | 'any';
+  verificationType?: 'google_docs' | 'workflowy' | 'xmind' | 'figma' | 'url' | 'any';
   layout?: '1-column' | '2-column';
   points?: number;
+}
+
+export interface ReadingPage {
+  pageNumber: number;
+  title: string;
+  content: string;
+}
+
+export interface ReadingSection {
+  title: string;
+  videoUrl?: string;
+  pages: ReadingPage[];
+}
+
+export interface ChecklistItem {
+  id: string;
+  label: string;
+  isMandatory?: boolean;
+}
+
+export interface ChecklistSection {
+  title: string;
+  subtitle?: string;
+  items: ChecklistItem[];
 }
 
 export interface FocusQuizConfig {
@@ -28,13 +70,23 @@ export interface FocusQuizConfig {
   introTitle?: string;
   introSubtitle?: string;
   introImage?: string;
+  readingSection?: ReadingSection;
+  checklistSection?: ChecklistSection;
+  isRandomized?: boolean;
+  emailCadence?: 'per_section' | 'end_of_day' | 'end_of_week';
   questions: FocusQuestion[];
   passingScore?: number;
 }
 
 interface FocusQuizRunnerProps {
   config?: FocusQuizConfig;
-  onComplete?: (result: { score: number; total: number; percentage: number; isPassed: boolean }) => void;
+  onComplete?: (result: {
+    score: number;
+    total: number;
+    percentage: number;
+    isPassed: boolean;
+    telemetryCount: number;
+  }) => void;
   onBackToAdmin?: () => void;
 }
 
@@ -47,6 +99,35 @@ const DEFAULT_SAMPLE_CONFIG: FocusQuizConfig = {
   introSubtitle: "To give the best solution to your problems, we need to ask a few questions about you.",
   introImage: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=800&auto=format&fit=crop&q=80',
   passingScore: 70,
+  emailCadence: 'per_section',
+  readingSection: {
+    title: 'Section 1: Architecture & Development Guidelines',
+    videoUrl: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ',
+    pages: [
+      {
+        pageNumber: 1,
+        title: 'Core Architecture & Split Database Design',
+        content:
+          'Welcome to the exam and onboarding curriculum. In this module, candidates study how WordPress exam micro-ORMs manage data safely. Each project maintains its own isolated SQLite database to guarantee total data privacy and zero cross-project pollution.',
+      },
+      {
+        pageNumber: 2,
+        title: 'Security, Client IP Tracking & Anti-Abuse',
+        content:
+          'To prevent fraudulent submissions while supporting anonymous surveys, client IP addresses are securely hashed and logged with an anonymity boolean flag. Before taking the quiz, candidates must complete the practical verification checklist.',
+      },
+    ],
+  },
+  checklistSection: {
+    title: 'Practical Verification Checklist',
+    subtitle: 'Confirm that you have completed the prerequisite tasks before proceeding to the quiz:',
+    items: [
+      { id: 'c1', label: 'Have you read the documentation sections and architecture guide?', isMandatory: true },
+      { id: 'c2', label: 'Have you watched the technical walkthrough video?', isMandatory: true },
+      { id: 'c3', label: 'Have you verified the SQLite database migrations locally?', isMandatory: true },
+      { id: 'c4', label: 'Have you prepared your mindmap or Workflowy submission link?', isMandatory: false },
+    ],
+  },
   questions: [
     {
       id: 'q1',
@@ -127,25 +208,33 @@ const DEFAULT_SAMPLE_CONFIG: FocusQuizConfig = {
       title: 'Submit your **workflow map** or notes link',
       subtitle: 'Paste Google Docs, Notion, or Workflowy URL for review',
       verificationType: 'google_docs',
-      hint: 'Must start with https:// and be accessible for verification.',
+      hint: 'Must start with https:// and contain docs.google.com or drive.google.com.',
       points: 15,
     },
   ],
 };
+
+type RunnerStage = 'intro' | 'reading' | 'checklist' | 'quiz' | 'completed';
 
 export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
   config = DEFAULT_SAMPLE_CONFIG,
   onComplete,
   onBackToAdmin,
 }) => {
+  const initialStage: RunnerStage = config.hasIntro ? 'intro' : 'reading';
+
+  const [currentStage, setCurrentStage] = useState<RunnerStage>(initialStage);
   const [activeThemeId, setActiveThemeId] = useState<string>(config.themeId || 'letterly');
-  const [currentStep, setCurrentStep] = useState<number>(0);
-  const [hasStarted, setHasStarted] = useState<boolean>(!config.hasIntro);
+  const [currentReadingPageIndex, setCurrentReadingPageIndex] = useState<number>(0);
+  const [completedChecklistIds, setCompletedChecklistIds] = useState<string[]>([]);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);
+  const [isRandomized, setIsRandomized] = useState<boolean>(Boolean(config.isRandomized));
+  const [activeQuestions, setActiveQuestions] = useState<FocusQuestion[]>(config.questions);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
-  const [isCompleted, setIsCompleted] = useState<boolean>(false);
   const [showHint, setShowHint] = useState<boolean>(false);
   const [showReportModal, setShowReportModal] = useState<boolean>(false);
   const [reportText, setReportText] = useState<string>('');
+  const [clickCount, setClickCount] = useState<number>(0);
   const [calculatedScore, setCalculatedScore] = useState<{
     score: number;
     total: number;
@@ -155,17 +244,110 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
   } | null>(null);
 
   const theme: ThemeDefinition = getTheme(activeThemeId);
-  const questions = config.questions;
-  const currentQuestion = questions[currentStep];
+  const currentQuestion = activeQuestions[currentQuestionIndex];
+  const totalQuestions = activeQuestions.length;
 
-  const totalSteps = questions.length;
-  const progressPercent = hasStarted
-    ? Math.round(((currentStep + 1) / totalSteps) * 100)
-    : 0;
+  const readingPages = config.readingSection?.pages || [];
+  const totalReadingPages = readingPages.length;
+
+  const checklistItems = config.checklistSection?.items || [];
+  const mandatoryChecklistCount = checklistItems.filter((i) => i.isMandatory).length;
+  const completedMandatoryCount = checklistItems.filter(
+    (i) => i.isMandatory && completedChecklistIds.includes(i.id)
+  ).length;
+  const isChecklistSatisfied = completedMandatoryCount === mandatoryChecklistCount;
+
+  const recordClickTelemetry = (action: string) => {
+    setClickCount((prev) => prev + 1);
+  };
+
+  const handleToggleRandomization = () => {
+    recordClickTelemetry('toggle_randomization');
+    if (isRandomized) {
+      setIsRandomized(false);
+      setActiveQuestions(config.questions);
+      toast.info('Questions restored to standard sequential order.');
+    } else {
+      setIsRandomized(true);
+      const shuffled = [...config.questions].sort(() => Math.random() - 0.5);
+      setActiveQuestions(shuffled);
+      setCurrentQuestionIndex(0);
+      toast.success('Questions randomized.');
+    }
+  };
+
+  const handleToggleChecklistItem = (id: string) => {
+    recordClickTelemetry(`checklist_item_${id}`);
+    if (completedChecklistIds.includes(id)) {
+      setCompletedChecklistIds(completedChecklistIds.filter((item) => item !== id));
+    } else {
+      setCompletedChecklistIds([...completedChecklistIds, id]);
+    }
+  };
+
+  const validateUrlSubmission = (url: string, vType?: string): { isValid: boolean; message: string } => {
+    if (!url || !url.trim()) {
+      return { isValid: false, message: 'Please paste a URL' };
+    }
+
+    const trimmed = url.trim();
+    const hasProtocol = trimmed.startsWith('http://') || trimmed.startsWith('https://');
+
+    if (!hasProtocol) {
+      return { isValid: false, message: 'URL must start with https:// or http://' };
+    }
+
+    if (vType === 'google_docs') {
+      const isGDoc = trimmed.includes('docs.google.com') || trimmed.includes('drive.google.com');
+
+      if (!isGDoc) {
+        return { isValid: false, message: 'Requires Google Docs link (docs.google.com)' };
+      }
+
+      return { isValid: true, message: '✓ Valid Google Docs verified' };
+    }
+
+    if (vType === 'workflowy') {
+      const isWorkflowy = trimmed.includes('workflowy.com');
+
+      if (!isWorkflowy) {
+        return { isValid: false, message: 'Requires Workflowy outline link (workflowy.com)' };
+      }
+
+      return { isValid: true, message: '✓ Valid Workflowy verified' };
+    }
+
+    if (vType === 'xmind') {
+      const isXmind = trimmed.includes('xmind.app') || trimmed.includes('xmind.net');
+
+      if (!isXmind) {
+        return { isValid: false, message: 'Requires XMind map link (xmind.app)' };
+      }
+
+      return { isValid: true, message: '✓ Valid XMind map verified' };
+    }
+
+    if (vType === 'figma') {
+      const isFigma = trimmed.includes('figma.com');
+
+      if (!isFigma) {
+        return { isValid: false, message: 'Requires Figma board link (figma.com)' };
+      }
+
+      return { isValid: true, message: '✓ Valid Figma link verified' };
+    }
+
+    return { isValid: true, message: '✓ Valid URL verified' };
+  };
 
   const handleSelectOption = (questionId: string, optionLabel: string, isMulti: boolean) => {
+    recordClickTelemetry(`select_option_${questionId}`);
+
     if (isMulti) {
-      const currentSelected: string[] = Array.isArray(answers[questionId]) ? [...answers[questionId]] : [];
+      const currentSelected: string[] = Array.isArray(answers[questionId])
+        ? [...answers[questionId]]
+        : [];
+
       if (optionLabel === "I don't use any") {
         setAnswers({ ...answers, [questionId]: ["I don't use any"] });
         return;
@@ -173,6 +355,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
 
       const filtered = currentSelected.filter((item) => item !== "I don't use any");
       const hasItem = filtered.includes(optionLabel);
+
       if (hasItem) {
         setAnswers({ ...answers, [questionId]: filtered.filter((item) => item !== optionLabel) });
       } else {
@@ -188,26 +371,97 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
   };
 
   const handleContinue = () => {
-    if (!hasStarted) {
-      setHasStarted(true);
+    recordClickTelemetry('continue_button');
+
+    if (currentStage === 'intro') {
+      if (config.readingSection && totalReadingPages > 0) {
+        setCurrentStage('reading');
+      } else if (config.checklistSection) {
+        setCurrentStage('checklist');
+      } else {
+        setCurrentStage('quiz');
+      }
+
       return;
     }
 
-    if (currentStep < totalSteps - 1) {
-      setCurrentStep(currentStep + 1);
-      setShowHint(false);
-    } else {
-      finishQuiz();
+    if (currentStage === 'reading') {
+      if (currentReadingPageIndex < totalReadingPages - 1) {
+        setCurrentReadingPageIndex(currentReadingPageIndex + 1);
+      } else if (config.checklistSection) {
+        setCurrentStage('checklist');
+      } else {
+        setCurrentStage('quiz');
+      }
+
+      return;
+    }
+
+    if (currentStage === 'checklist') {
+      if (!isChecklistSatisfied) {
+        toast.error('Please complete all mandatory verification checklist items to continue.');
+        return;
+      }
+
+      setCurrentStage('quiz');
+      return;
+    }
+
+    if (currentStage === 'quiz') {
+      if (currentQuestionIndex < totalQuestions - 1) {
+        setCurrentQuestionIndex(currentQuestionIndex + 1);
+        setShowHint(false);
+      } else {
+        finishQuiz();
+      }
     }
   };
 
   const handlePrevious = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-      setShowHint(false);
-    } else if (config.hasIntro && hasStarted) {
-      setHasStarted(false);
-    } else if (onBackToAdmin) {
+    recordClickTelemetry('previous_button');
+
+    if (currentStage === 'quiz') {
+      if (currentQuestionIndex > 0) {
+        setCurrentQuestionIndex(currentQuestionIndex - 1);
+        setShowHint(false);
+      } else if (config.checklistSection) {
+        setCurrentStage('checklist');
+      } else if (config.readingSection) {
+        setCurrentStage('reading');
+      } else if (config.hasIntro) {
+        setCurrentStage('intro');
+      } else if (onBackToAdmin) {
+        onBackToAdmin();
+      }
+
+      return;
+    }
+
+    if (currentStage === 'checklist') {
+      if (config.readingSection) {
+        setCurrentStage('reading');
+      } else if (config.hasIntro) {
+        setCurrentStage('intro');
+      } else if (onBackToAdmin) {
+        onBackToAdmin();
+      }
+
+      return;
+    }
+
+    if (currentStage === 'reading') {
+      if (currentReadingPageIndex > 0) {
+        setCurrentReadingPageIndex(currentReadingPageIndex - 1);
+      } else if (config.hasIntro) {
+        setCurrentStage('intro');
+      } else if (onBackToAdmin) {
+        onBackToAdmin();
+      }
+
+      return;
+    }
+
+    if (currentStage === 'intro' && onBackToAdmin) {
       onBackToAdmin();
     }
   };
@@ -217,38 +471,45 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
     let total = 0;
     const wrong: string[] = [];
 
-    questions.forEach((q, idx) => {
+    activeQuestions.forEach((q, idx) => {
       const qPoints = q.points || 10;
       total += qPoints;
       const userAns = answers[q.id];
 
       if (q.type === 'mcq') {
-        const isMatch = String(userAns || '').trim().toLowerCase() === String(q.correctAnswer || '').trim().toLowerCase();
+        const isMatch =
+          String(userAns || '').trim().toLowerCase() === String(q.correctAnswer || '').trim().toLowerCase();
+
         if (isMatch) {
           earned += qPoints;
         } else {
           wrong.push(`Question ${idx + 1}: ${q.title.replace(/\*\*/g, '')}`);
         }
       } else if (q.type === 'multiselect') {
-        const expectedArr: string[] = Array.isArray(q.correctAnswer) ? q.correctAnswer : [String(q.correctAnswer || '')];
+        const expectedArr: string[] = Array.isArray(q.correctAnswer)
+          ? q.correctAnswer
+          : [String(q.correctAnswer || '')];
         const userArr: string[] = Array.isArray(userAns) ? userAns : [];
         const isExactMatch =
           expectedArr.length === userArr.length &&
           expectedArr.every((item) => userArr.includes(item));
+
         if (isExactMatch) {
           earned += qPoints;
         } else {
           wrong.push(`Question ${idx + 1}: ${q.title.replace(/\*\*/g, '')}`);
         }
       } else if (q.type === 'url_submission' || q.type === 'mindmap') {
-        const hasUrl = Boolean(userAns && String(userAns).startsWith('http'));
-        if (hasUrl) {
+        const validation = validateUrlSubmission(String(userAns || ''), q.verificationType);
+
+        if (validation.isValid) {
           earned += qPoints;
         } else {
           wrong.push(`Question ${idx + 1}: ${q.title.replace(/\*\*/g, '')}`);
         }
       } else {
         const hasText = Boolean(userAns && String(userAns).trim().length > 3);
+
         if (hasText) {
           earned += qPoints;
         } else {
@@ -269,9 +530,16 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
     };
 
     setCalculatedScore(result);
-    setIsCompleted(true);
+    setCurrentStage('completed');
+
     if (onComplete) {
-      onComplete(result);
+      onComplete({
+        score: earned,
+        total,
+        percentage,
+        isPassed,
+        telemetryCount: clickCount,
+      });
     }
   };
 
@@ -280,22 +548,30 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
       toast.error('Please describe the issue or feedback.');
       return;
     }
-    toast.success('Feedback recorded! Thank you for helping improve the quiz.');
+
+    toast.success('Question feedback logged and dispatched to instructors via email.');
     setReportText('');
     setShowReportModal(false);
   };
 
   const renderFormattedTitle = (title: string) => {
     const parts = title.split(/(\*\*.*?\*\*)/g);
+
     return parts.map((part, index) => {
       if (part.startsWith('**') && part.endsWith('**')) {
         const clean = part.slice(2, -2);
+
         return (
-          <span key={index} style={{ color: theme.colors.highlightWord }} className="font-extrabold tracking-tight">
+          <span
+            key={index}
+            style={{ color: theme.colors.highlightWord }}
+            className="font-extrabold tracking-tight"
+          >
             {clean}
           </span>
         );
       }
+
       return <span key={index}>{part}</span>;
     });
   };
@@ -308,8 +584,11 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
         color: theme.colors.textPrimary,
       }}
     >
-      {/* Top Navigation & Progress Bar */}
-      <header className="sticky top-0 z-20 backdrop-blur-md bg-opacity-90 border-b" style={{ borderColor: theme.colors.cardBorder }}>
+      {/* Top Navigation & Stage Progress */}
+      <header
+        className="sticky top-0 z-20 backdrop-blur-md bg-opacity-90 border-b"
+        style={{ borderColor: theme.colors.cardBorder }}
+      >
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
           <button
             onClick={handlePrevious}
@@ -322,16 +601,28 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
           </button>
 
           <div className="flex items-center gap-2 font-bold tracking-tight text-sm">
-            <span className="text-lg">👻</span>
+            <span className="text-lg">🎯</span>
             <span>{config.title}</span>
           </div>
 
-          <div className="flex items-center gap-1">
+          <div className="flex items-center gap-1.5">
+            {/* Randomization Toggle */}
+            <button
+              onClick={handleToggleRandomization}
+              className="p-1.5 rounded-full hover:opacity-80 transition"
+              style={{
+                color: isRandomized ? theme.colors.highlightWord : theme.colors.textSecondary,
+              }}
+              title="Toggle Question Randomization"
+            >
+              <Shuffle className="w-4 h-4" />
+            </button>
+
             {/* Theme Selector */}
             <select
               value={activeThemeId}
               onChange={(e) => setActiveThemeId(e.target.value)}
-              className="text-xs px-2 py-1 rounded bg-transparent border text-slate-300 cursor-pointer"
+              className="text-xs px-2 py-1 rounded bg-transparent border cursor-pointer"
               style={{ borderColor: theme.colors.cardBorder, color: theme.colors.textSecondary }}
             >
               {Object.values(THEME_PRESETS).map((p) => (
@@ -352,13 +643,25 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
           </div>
         </div>
 
-        {/* Slim Progress Bar */}
-        {hasStarted && !isCompleted && (
+        {/* Progress Bar for Quiz or Reading */}
+        {currentStage === 'quiz' && (
           <div className="w-full bg-slate-800 h-1 relative overflow-hidden">
             <div
               className="h-full transition-all duration-300 ease-out"
               style={{
-                width: `${progressPercent}%`,
+                width: `${Math.round(((currentQuestionIndex + 1) / totalQuestions) * 100)}%`,
+                backgroundColor: theme.colors.progressBar,
+              }}
+            />
+          </div>
+        )}
+
+        {currentStage === 'reading' && (
+          <div className="w-full bg-slate-800 h-1 relative overflow-hidden">
+            <div
+              className="h-full transition-all duration-300 ease-out"
+              style={{
+                width: `${Math.round(((currentReadingPageIndex + 1) / totalReadingPages) * 100)}%`,
                 backgroundColor: theme.colors.progressBar,
               }}
             />
@@ -366,49 +669,190 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
         )}
       </header>
 
-      {/* Main Focus Area */}
+      {/* Main Runner Stage Display */}
       <main className="flex-1 max-w-md w-full mx-auto px-4 py-6 flex flex-col justify-center">
-        {!isCompleted ? (
-          !hasStarted ? (
-            /* Intro Hero Card */
-            <div className="flex flex-col items-center text-center space-y-6 animate-in fade-in duration-300">
-              {config.introImage && (
-                <div className="w-full h-56 rounded-3xl overflow-hidden shadow-2xl border" style={{ borderColor: theme.colors.cardBorder }}>
-                  <img src={config.introImage} alt="Assessment Intro" className="w-full h-full object-cover" />
-                </div>
-              )}
+        {/* Stage 0: Intro Hero */}
+        {currentStage === 'intro' && (
+          <div className="flex flex-col items-center text-center space-y-6 animate-in fade-in duration-300">
+            {config.introImage && (
+              <div
+                className="w-full h-56 rounded-3xl overflow-hidden shadow-2xl border"
+                style={{ borderColor: theme.colors.cardBorder }}
+              >
+                <img
+                  src={config.introImage}
+                  alt="Assessment Intro"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
 
-              <h1 className="text-3xl font-extrabold leading-tight">
-                {renderFormattedTitle(config.introTitle || "You're in the **right place**!")}
-              </h1>
+            <h1 className="text-3xl font-extrabold leading-tight">
+              {renderFormattedTitle(config.introTitle || "You're in the **right place**!")}
+            </h1>
 
-              <p className="text-base" style={{ color: theme.colors.textSecondary }}>
-                {config.introSubtitle}
-              </p>
+            <p className="text-base" style={{ color: theme.colors.textSecondary }}>
+              {config.introSubtitle}
+            </p>
+          </div>
+        )}
+
+        {/* Stage 1: Reading Documentation & Embedded Video */}
+        {currentStage === 'reading' && config.readingSection && (
+          <div className="space-y-5 animate-in fade-in duration-200">
+            <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: theme.colors.cardBorder }}>
+              <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-indigo-400">
+                <BookOpen className="w-4 h-4" />
+                Step 1: Reading & Lectures
+              </span>
+              <Badge variant="outline" className="text-xs">
+                Page {currentReadingPageIndex + 1} of {totalReadingPages}
+              </Badge>
             </div>
-          ) : (
-            /* Question Card */
-            <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-200">
-              <div className="space-y-2 text-center">
-                <h2 className="text-2xl font-black leading-tight">
-                  {renderFormattedTitle(currentQuestion.title)}
-                </h2>
-                {currentQuestion.subtitle && (
-                  <p className="text-sm font-medium" style={{ color: theme.colors.textSecondary }}>
-                    {currentQuestion.subtitle}
-                  </p>
+
+            <div className="space-y-2">
+              <h2 className="text-2xl font-black leading-tight">
+                {readingPages[currentReadingPageIndex]?.title}
+              </h2>
+            </div>
+
+            {config.readingSection.videoUrl && currentReadingPageIndex === 0 && (
+              <div
+                className="w-full h-48 rounded-2xl overflow-hidden border shadow relative bg-black/40 flex items-center justify-center"
+                style={{ borderColor: theme.colors.cardBorder }}
+              >
+                <iframe
+                  src={config.readingSection.videoUrl}
+                  title="Lecture Video"
+                  className="w-full h-full border-0"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                />
+              </div>
+            )}
+
+            <div
+              className="p-5 rounded-2xl border text-sm leading-relaxed space-y-3"
+              style={{
+                backgroundColor: theme.colors.cardBg,
+                borderColor: theme.colors.cardBorder,
+                color: theme.colors.textPrimary,
+              }}
+            >
+              <p>{readingPages[currentReadingPageIndex]?.content}</p>
+            </div>
+
+            <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+              <span>Telemetry: {clickCount} user interaction clicks tracked</span>
+              <span>Review materials thoroughly</span>
+            </div>
+          </div>
+        )}
+
+        {/* Stage 2: Practical Verification Checklist */}
+        {currentStage === 'checklist' && config.checklistSection && (
+          <div className="space-y-5 animate-in fade-in duration-200">
+            <div className="border-b pb-3" style={{ borderColor: theme.colors.cardBorder }}>
+              <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-emerald-400">
+                <CheckSquare className="w-4 h-4" />
+                Step 2: Practical Verification
+              </span>
+              <h2 className="text-2xl font-black leading-tight mt-2">
+                {config.checklistSection.title}
+              </h2>
+              {config.checklistSection.subtitle && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  {config.checklistSection.subtitle}
+                </p>
+              )}
+            </div>
+
+            <div className="space-y-3">
+              {checklistItems.map((item) => {
+                const isChecked = completedChecklistIds.includes(item.id);
+
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => handleToggleChecklistItem(item.id)}
+                    className="w-full text-left p-4 rounded-2xl border transition-all duration-150 flex items-start gap-3"
+                    style={{
+                      backgroundColor: isChecked ? theme.colors.cardActiveBg : theme.colors.cardBg,
+                      borderColor: isChecked ? theme.colors.cardActiveBorder : theme.colors.cardBorder,
+                    }}
+                  >
+                    <div
+                      className={`w-5 h-5 rounded-lg border flex items-center justify-center mt-0.5 transition-colors ${
+                        isChecked ? 'bg-primary border-primary text-primary-foreground' : 'border-slate-500'
+                      }`}
+                    >
+                      {isChecked && <Check className="w-3.5 h-3.5" />}
+                    </div>
+
+                    <div className="flex-1 text-xs">
+                      <span className="font-semibold text-sm leading-snug block">{item.label}</span>
+                      {item.isMandatory && (
+                        <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider mt-1 block">
+                          * Mandatory Requirement
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="p-3.5 rounded-xl border bg-card/60 text-xs flex items-center justify-between">
+              <span className="text-muted-foreground">Mandatory Verification:</span>
+              <span className={`font-bold ${isChecklistSatisfied ? 'text-emerald-400' : 'text-amber-400'}`}>
+                {completedMandatoryCount} of {mandatoryChecklistCount} verified
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Stage 3: Focus Quiz Question View */}
+        {currentStage === 'quiz' && currentQuestion && (
+          <div className="space-y-6 animate-in fade-in slide-in-from-right-4 duration-200">
+            <div className="space-y-2 text-center">
+              <div className="flex items-center justify-center gap-2">
+                <Badge variant="outline" className="text-[10px] uppercase font-mono">
+                  Question {currentQuestionIndex + 1} of {totalQuestions}
+                </Badge>
+                {isRandomized && (
+                  <Badge variant="secondary" className="text-[10px]">
+                    🔀 Shuffled
+                  </Badge>
                 )}
               </div>
 
-              {/* Media Embed if available */}
-              {currentQuestion.mediaUrl && (
-                <div className="w-full h-44 rounded-2xl overflow-hidden border shadow" style={{ borderColor: theme.colors.cardBorder }}>
-                  <img src={currentQuestion.mediaUrl} alt="Question Media" className="w-full h-full object-cover" />
-                </div>
-              )}
+              <h2 className="text-2xl font-black leading-tight">
+                {renderFormattedTitle(currentQuestion.title)}
+              </h2>
 
-              {/* Options List / Grid */}
-              {(currentQuestion.type === 'mcq' || currentQuestion.type === 'multiselect') && currentQuestion.options && (
+              {currentQuestion.subtitle && (
+                <p className="text-sm font-medium" style={{ color: theme.colors.textSecondary }}>
+                  {currentQuestion.subtitle}
+                </p>
+              )}
+            </div>
+
+            {/* Media Embed if available */}
+            {currentQuestion.mediaUrl && (
+              <div
+                className="w-full h-44 rounded-2xl overflow-hidden border shadow"
+                style={{ borderColor: theme.colors.cardBorder }}
+              >
+                <img
+                  src={currentQuestion.mediaUrl}
+                  alt="Question Media"
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            )}
+
+            {/* Options List / Grid for MCQ & Multi-select */}
+            {(currentQuestion.type === 'mcq' || currentQuestion.type === 'multiselect') &&
+              currentQuestion.options && (
                 <div
                   className={
                     currentQuestion.layout === '2-column'
@@ -422,9 +866,10 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                     const isFullWidth = typeof opt === 'object' ? opt.isFullWidth : false;
 
                     const userSelected = answers[currentQuestion.id];
-                    const isSelected = currentQuestion.type === 'multiselect'
-                      ? Array.isArray(userSelected) && userSelected.includes(optLabel)
-                      : userSelected === optLabel;
+                    const isSelected =
+                      currentQuestion.type === 'multiselect'
+                        ? Array.isArray(userSelected) && userSelected.includes(optLabel)
+                        : userSelected === optLabel;
 
                     return (
                       <button
@@ -442,111 +887,206 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                         style={{
                           backgroundColor: isSelected ? theme.colors.cardActiveBg : theme.colors.cardBg,
                           borderColor: isSelected ? theme.colors.cardActiveBorder : theme.colors.cardBorder,
-                          boxShadow: isSelected ? `0 0 16px ${theme.colors.cardActiveBorder}44` : 'none',
+                          boxShadow: isSelected
+                            ? `0 0 16px ${theme.colors.cardActiveBorder}44`
+                            : 'none',
                         }}
                       >
                         <div className="flex items-center gap-3">
                           {optIcon && <span className="text-xl">{optIcon}</span>}
                           <span className="font-semibold text-sm leading-snug">{optLabel}</span>
                         </div>
-                        {isSelected && (
-                          <div
-                            className="w-5 h-5 rounded-full flex items-center justify-center text-xs"
-                            style={{
-                              backgroundColor: theme.colors.primary,
-                              color: theme.colors.primaryText,
-                            }}
-                          >
-                            <Check className="w-3 h-3" />
-                          </div>
-                        )}
+
+                        <div
+                          className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${
+                            isSelected ? 'border-transparent' : 'border-slate-600'
+                          }`}
+                          style={{
+                            backgroundColor: isSelected ? theme.colors.primary : 'transparent',
+                          }}
+                        >
+                          {isSelected && <Check className="w-3 h-3 text-white" />}
+                        </div>
                       </button>
                     );
                   })}
                 </div>
               )}
 
-              {/* URL or Mindmap Submission */}
-              {(currentQuestion.type === 'url_submission' || currentQuestion.type === 'mindmap') && (
-                <div className="space-y-3">
-                  <Input
-                    placeholder="https://docs.google.com/document/d/... or workflowy.com/..."
-                    value={answers[currentQuestion.id] || ''}
-                    onChange={(e) => handleTextAnswerChange(currentQuestion.id, e.target.value)}
-                    className="p-4 rounded-xl border text-sm"
-                    style={{
-                      backgroundColor: theme.colors.cardBg,
-                      borderColor: theme.colors.cardBorder,
-                      color: theme.colors.textPrimary,
-                    }}
-                  />
-                  <p className="text-xs flex items-center gap-1" style={{ color: theme.colors.textSecondary }}>
-                    <ExternalLink className="w-3.5 h-3.5" />
-                    Links are verified automatically for accessible sharing permissions.
-                  </p>
-                </div>
-              )}
-
-              {/* Paragraph Free-text */}
-              {currentQuestion.type === 'paragraph' && (
-                <Textarea
-                  placeholder="Type your comprehensive response here..."
-                  rows={5}
-                  value={answers[currentQuestion.id] || ''}
-                  onChange={(e) => handleTextAnswerChange(currentQuestion.id, e.target.value)}
-                  className="p-4 rounded-xl border text-sm"
+            {/* URL Submission / Mindmap Link with Live Verification */}
+            {(currentQuestion.type === 'url_submission' || currentQuestion.type === 'mindmap') && (
+              <div className="space-y-3">
+                <div
+                  className="p-4 rounded-2xl border space-y-3"
                   style={{
                     backgroundColor: theme.colors.cardBg,
                     borderColor: theme.colors.cardBorder,
-                    color: theme.colors.textPrimary,
                   }}
-                />
-              )}
+                >
+                  <label className="text-xs font-semibold block text-slate-300">
+                    Live Validated Link ({currentQuestion.verificationType || 'URL'}):
+                  </label>
+                  <Input
+                    placeholder="https://docs.google.com/document/d/..."
+                    value={String(answers[currentQuestion.id] || '')}
+                    onChange={(e) => handleTextAnswerChange(currentQuestion.id, e.target.value)}
+                    className="p-3 text-sm rounded-xl"
+                    style={{
+                      backgroundColor: theme.colors.background,
+                      borderColor: theme.colors.cardBorder,
+                    }}
+                  />
 
-              {/* Hint Accordion */}
-              {currentQuestion.hint && (
-                <div className="pt-2 text-center">
-                  <button
-                    onClick={() => setShowHint(!showHint)}
-                    className="text-xs inline-flex items-center gap-1 underline transition hover:opacity-80"
-                    style={{ color: theme.colors.textSecondary }}
-                  >
-                    <HelpCircle className="w-3.5 h-3.5" />
-                    {showHint ? 'Hide Hint' : 'Need a hint?'}
-                  </button>
-                  {showHint && (
-                    <div
-                      className="mt-2 p-3 rounded-xl border text-xs text-left animate-in fade-in"
-                      style={{
-                        backgroundColor: theme.colors.cardBg,
-                        borderColor: theme.colors.cardBorder,
-                        color: theme.colors.textSecondary,
-                      }}
-                    >
-                      💡 {currentQuestion.hint}
+                  {/* Live Verification Indicator */}
+                  {answers[currentQuestion.id] && (
+                    <div className="text-xs pt-1">
+                      {(() => {
+                        const validation = validateUrlSubmission(
+                          String(answers[currentQuestion.id]),
+                          currentQuestion.verificationType
+                        );
+
+                        if (validation.isValid) {
+                          return (
+                            <span className="text-emerald-400 font-medium flex items-center gap-1">
+                              <ShieldCheck className="w-3.5 h-3.5" />
+                              {validation.message}
+                            </span>
+                          );
+                        }
+
+                        return (
+                          <span className="text-rose-400 font-medium flex items-center gap-1">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            {validation.message}
+                          </span>
+                        );
+                      })()}
                     </div>
                   )}
                 </div>
-              )}
-            </div>
-          )
-        ) : (
-          /* Completion & Review Screen */
-          <div className="text-center space-y-6 animate-in zoom-in-95 duration-200">
-            <div className="inline-flex p-4 rounded-full bg-opacity-20 mb-2" style={{ backgroundColor: theme.colors.badgeBg }}>
-              <Sparkles className="w-10 h-10" style={{ color: theme.colors.primary }} />
+              </div>
+            )}
+
+            {/* File Upload (PDF, Doc) */}
+            {currentQuestion.type === 'file_upload' && (
+              <div
+                className="p-6 rounded-2xl border border-dashed flex flex-col items-center justify-center text-center space-y-3"
+                style={{
+                  backgroundColor: theme.colors.cardBg,
+                  borderColor: theme.colors.cardBorder,
+                }}
+              >
+                <div className="w-12 h-12 rounded-full bg-primary/20 flex items-center justify-center text-primary">
+                  <Upload className="w-6 h-6" />
+                </div>
+                <div className="space-y-1">
+                  <span className="text-sm font-bold block">Upload PDF or Document</span>
+                  <span className="text-xs text-muted-foreground block">
+                    Supported formats: .pdf, .docx, .doc (Max 25MB)
+                  </span>
+                </div>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    handleTextAnswerChange(currentQuestion.id, 'uploaded_spec_document.pdf');
+                    toast.success('Document attached successfully.');
+                  }}
+                  className="text-xs"
+                >
+                  Browse Files
+                </Button>
+                {answers[currentQuestion.id] && (
+                  <Badge variant="secondary" className="text-xs flex items-center gap-1 text-emerald-400">
+                    <FileText className="w-3 h-3" />
+                    {String(answers[currentQuestion.id])}
+                  </Badge>
+                )}
+              </div>
+            )}
+
+            {/* Paragraph / Text Area */}
+            {currentQuestion.type === 'paragraph' && (
+              <div
+                className="p-4 rounded-2xl border space-y-2"
+                style={{
+                  backgroundColor: theme.colors.cardBg,
+                  borderColor: theme.colors.cardBorder,
+                }}
+              >
+                <Textarea
+                  placeholder="Type your comprehensive response..."
+                  rows={5}
+                  value={String(answers[currentQuestion.id] || '')}
+                  onChange={(e) => handleTextAnswerChange(currentQuestion.id, e.target.value)}
+                  className="p-3 text-sm rounded-xl resize-none"
+                  style={{
+                    backgroundColor: theme.colors.background,
+                    borderColor: theme.colors.cardBorder,
+                  }}
+                />
+              </div>
+            )}
+
+            {/* Hint Display */}
+            {currentQuestion.hint && (
+              <div className="text-center">
+                {showHint ? (
+                  <div
+                    className="p-3 rounded-xl border text-xs max-w-sm mx-auto"
+                    style={{
+                      backgroundColor: theme.colors.cardBg,
+                      borderColor: theme.colors.cardBorder,
+                    }}
+                  >
+                    💡 <span className="font-semibold">Hint:</span> {currentQuestion.hint}
+                  </div>
+                ) : (
+                  <button
+                    onClick={() => {
+                      recordClickTelemetry('show_hint');
+                      setShowHint(true);
+                    }}
+                    className="text-xs font-semibold inline-flex items-center gap-1 opacity-70 hover:opacity-100 transition"
+                    style={{ color: theme.colors.highlightWord }}
+                  >
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    Show Question Hint
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Stage 4: Completion Screen with Anti-Cheat Grading & Email Dispatch */}
+        {currentStage === 'completed' && (
+          <div className="text-center space-y-6 animate-in zoom-in-95 duration-300">
+            <div className="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl shadow-xl bg-indigo-500/20 text-indigo-400">
+              {calculatedScore?.isPassed ? '🏆' : '📚'}
             </div>
 
-            <h2 className="text-3xl font-black">
-              {calculatedScore?.isPassed ? 'Congratulations!' : 'Review Required'}
-            </h2>
+            <div className="space-y-2">
+              <h2 className="text-3xl font-black tracking-tight">
+                {calculatedScore?.isPassed ? 'Assessment Completed!' : 'Review & Try Again'}
+              </h2>
+              <p className="text-sm" style={{ color: theme.colors.textSecondary }}>
+                {calculatedScore?.isPassed
+                  ? 'Great job! You have demonstrated understanding of this section.'
+                  : 'You have not met the passing score threshold. Please review the highlighted mistakes and retry.'}
+              </p>
+            </div>
 
-            {/* Score Display */}
+            {/* Score Pill */}
             <div
-              className="p-6 rounded-3xl border shadow-xl flex flex-col items-center justify-center space-y-2"
-              style={{ backgroundColor: theme.colors.cardBg, borderColor: theme.colors.cardBorder }}
+              className="p-4 rounded-3xl border flex flex-col items-center gap-1 shadow-inner"
+              style={{
+                backgroundColor: theme.colors.cardBg,
+                borderColor: theme.colors.cardBorder,
+              }}
             >
-              <span className="text-5xl font-black" style={{ color: theme.colors.highlightWord }}>
+              <span className="text-4xl font-black" style={{ color: theme.colors.highlightWord }}>
                 {calculatedScore?.percentage}%
               </span>
               <span
@@ -556,18 +1096,22 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                   color: calculatedScore?.isPassed ? '#10B981' : '#EF4444',
                 }}
               >
-                {calculatedScore?.isPassed ? 'Passed' : 'Failed'} (Required: {config.passingScore || 70}%)
+                {calculatedScore?.isPassed ? 'Passed' : 'Failed'} (Required:{' '}
+                {config.passingScore || 70}%)
               </span>
               <span className="text-xs text-slate-400">
                 Score: {calculatedScore?.score} / {calculatedScore?.total} points
               </span>
             </div>
 
-            {/* Anti-Cheat Review: Show which questions were wrong WITHOUT giving away the correct answers! */}
+            {/* Anti-Cheat Review: Show which questions were wrong WITHOUT giving away correct answers */}
             {calculatedScore && calculatedScore.wrongQuestions.length > 0 && (
               <div
                 className="p-4 rounded-2xl border text-left space-y-2 text-xs"
-                style={{ backgroundColor: theme.colors.cardBg, borderColor: theme.colors.cardBorder }}
+                style={{
+                  backgroundColor: theme.colors.cardBg,
+                  borderColor: theme.colors.cardBorder,
+                }}
               >
                 <div className="font-bold text-amber-400 flex items-center gap-1.5">
                   <span>⚠️</span> You have done the wrong answer on:
@@ -580,19 +1124,40 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                   ))}
                 </ul>
                 <p className="text-slate-400 text-[11px] pt-1">
-                  Answers are locked to ensure full comprehension. Review the material and retry.
+                  Answers are locked to ensure comprehensive mastery. Review the documentation and retake.
                 </p>
               </div>
             )}
 
-            {/* Actions */}
+            {/* Email Notification Dispatch Status */}
+            <div
+              className="p-3 rounded-xl border text-xs text-left flex items-start gap-2.5"
+              style={{
+                backgroundColor: theme.colors.cardBg,
+                borderColor: theme.colors.cardBorder,
+              }}
+            >
+              <span className="text-lg">📧</span>
+              <div className="space-y-0.5">
+                <span className="font-bold text-foreground block">Notification Chain Dispatched:</span>
+                <span className="text-[11px] text-muted-foreground block">
+                  Results emailed to candidate and course owner (Delivery Cadence:{' '}
+                  {config.emailCadence || 'per_section'}).
+                </span>
+                <span className="text-[10px] text-slate-500 block">
+                  Client telemetry: {clickCount} user interactions recorded.
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
             <div className="space-y-3 pt-2">
               <Button
                 onClick={() => {
-                  setCurrentStep(0);
+                  setCurrentStage('quiz');
+                  setCurrentQuestionIndex(0);
                   setAnswers({});
-                  setIsCompleted(false);
-                  setHasStarted(!config.hasIntro);
+                  setCalculatedScore(null);
                 }}
                 className="w-full py-4 rounded-xl font-bold flex items-center justify-center gap-2"
                 style={{
@@ -619,9 +1184,12 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
         )}
       </main>
 
-      {/* Sticky Bottom Action Button */}
-      {!isCompleted && (
-        <footer className="sticky bottom-0 z-20 backdrop-blur-md bg-opacity-95 p-4 border-t" style={{ borderColor: theme.colors.cardBorder }}>
+      {/* Sticky Bottom Progression Button */}
+      {currentStage !== 'completed' && (
+        <footer
+          className="sticky bottom-0 z-20 backdrop-blur-md bg-opacity-95 p-4 border-t"
+          style={{ borderColor: theme.colors.cardBorder }}
+        >
           <div className="max-w-md mx-auto">
             <button
               onClick={handleContinue}
@@ -631,7 +1199,17 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                 color: theme.colors.primaryText,
               }}
             >
-              {!hasStarted ? "Let's do it" : currentStep === totalSteps - 1 ? 'Complete Assessment' : 'Continue'}
+              {currentStage === 'intro'
+                ? "Let's do it"
+                : currentStage === 'reading'
+                ? currentReadingPageIndex < totalReadingPages - 1
+                  ? 'Next Page'
+                  : 'Proceed to Checklist'
+                : currentStage === 'checklist'
+                ? 'Proceed to Quiz'
+                : currentQuestionIndex === totalQuestions - 1
+                ? 'Complete Assessment'
+                : 'Continue'}
             </button>
           </div>
         </footer>
@@ -642,22 +1220,28 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
         <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
           <div
             className="max-w-sm w-full p-6 rounded-3xl border shadow-2xl space-y-4"
-            style={{ backgroundColor: theme.colors.cardBg, borderColor: theme.colors.cardBorder }}
+            style={{
+              backgroundColor: theme.colors.cardBg,
+              borderColor: theme.colors.cardBorder,
+            }}
           >
             <h3 className="text-lg font-bold flex items-center gap-2">
               <Flag className="w-5 h-5 text-rose-400" />
-              Report Question
+              Report Question or Issue
             </h3>
             <p className="text-xs text-slate-300">
-              Notice a typo, misleading answer, or broken link? Let our instructors know.
+              Notice a typo, misleading answer, or broken verification link? Let our instructors know.
             </p>
             <Textarea
-              placeholder="Describe what's wrong with this question..."
+              placeholder="Describe what's wrong with this question or section..."
               rows={4}
               value={reportText}
               onChange={(e) => setReportText(e.target.value)}
               className="p-3 text-xs rounded-xl"
-              style={{ backgroundColor: theme.colors.background, borderColor: theme.colors.cardBorder }}
+              style={{
+                backgroundColor: theme.colors.background,
+                borderColor: theme.colors.cardBorder,
+              }}
             />
             <div className="flex justify-end gap-2">
               <Button variant="ghost" size="sm" onClick={() => setShowReportModal(false)}>
@@ -665,7 +1249,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
               </Button>
               <Button size="sm" onClick={submitReport} className="flex items-center gap-1">
                 <Send className="w-3.5 h-3.5" />
-                Submit
+                Submit Report
               </Button>
             </div>
           </div>

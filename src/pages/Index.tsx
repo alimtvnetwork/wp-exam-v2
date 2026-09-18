@@ -9,6 +9,7 @@ import { SqliteStatus } from '@/components/admin/sqlite-status';
 import { ProjectHierarchyManager } from '@/components/admin/project-hierarchy-manager';
 import { AIInstructionStudio } from '@/components/admin/ai-instruction-studio';
 import { BackupManager } from '@/components/admin/backup-manager';
+import { AnalyticsDashboard } from '@/components/admin/analytics-dashboard';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -20,6 +21,7 @@ type AdminTab =
   | 'runner'
   | 'invites'
   | 'history'
+  | 'analytics'
   | 'email'
   | 'ai-studio'
   | 'backups'
@@ -86,6 +88,14 @@ const Index = () => {
               className="text-xs h-8 px-2.5"
             >
               📊 History
+            </Button>
+            <Button
+              variant={activeTab === 'analytics' ? 'default' : 'ghost'}
+              size="sm"
+              onClick={() => setActiveTab('analytics')}
+              className="text-xs h-8 px-2.5"
+            >
+              📈 Analytics
             </Button>
             <Button
               variant={activeTab === 'ai-studio' ? 'default' : 'ghost'}
@@ -159,6 +169,11 @@ const Index = () => {
           <InvitesManager onNavigateToRunner={() => setActiveTab('runner')} />
         )}
         {activeTab === 'history' && <HistoryManager />}
+        {activeTab === 'analytics' && (
+          <div className="max-w-6xl mx-auto">
+            <AnalyticsDashboard />
+          </div>
+        )}
         {activeTab === 'ai-studio' && (
           <div className="max-w-4xl mx-auto">
             <AIInstructionStudio />
