@@ -1,0 +1,425 @@
+# Audit 2026-09-18 v2 — 02-spec/21-app/ | 02-spec/22-app-issues/ | 02-spec/23-app-db/ | 02-spec/24-app-ui-design-system/ | 02-spec/25-app-spec-audit/
+
+Version: 1.0.0
+Updated: 2026-09-18
+Generated At: 2026-09-18 16:54:34
+AI Confidence: Low
+Ambiguity: High
+
+## Keywords
+
+`blind-ai-audit` · `quiz-feature` · `wordpress-plugin` · `react-spa` · `rest-api` · `spec-compliance` · `determinism` · `quality-protocol`
+
+---
+
+## 1. Scope and file inventory
+
+### File Inventory Table
+
+| # | Path | Lines | Role (normative / index / fixture / diagram / mirror) | Read? |
+|---|------|-------|-------------------------------------------------------|-------|
+| 1 | `02-spec/21-app/01-index.md` | 76 | index | yes |
+| 2 | `02-spec/21-app/04-quiz-feature/00-overview.md` | 50 | normative | yes |
+| 3 | `02-spec/22-app-issues/01-index.md` | 70 | index | yes |
+| 4 | `02-spec/23-app-db/01-index.md` | 86 | index | yes |
+| 5 | `02-spec/24-app-ui-design-system/01-index.md` | 85 | index | yes |
+| 6 | `02-spec/25-app-spec-audit/01-audit-report.md` | 14 | historical / mirror | yes |
+
+### Inventory Totals
+
+- **Total file count:** 6
+- **Total lines:** 381
+- **Count of normative files:** 1 (`02-spec/21-app/04-quiz-feature/00-overview.md`)
+- **Count of index files:** 4 (`21-app/01-index.md`, `22-app-issues/01-index.md`, `23-app-db/01-index.md`, `24-app-ui-design-system/01-index.md`)
+- **Count of historical / mirror files:** 1 (`25-app-spec-audit/01-audit-report.md`)
+- **Count of fixtures:** 0 (`02-spec/21-app/fixtures/` does not exist on disk)
+- **Count of files over 300 lines:** 0
+
+### Read Order Followed
+
+1. `02-spec/21-app/01-index.md` (Module root entry point)
+2. `02-spec/21-app/04-quiz-feature/00-overview.md` (Feature architectural spec)
+3. `02-spec/22-app-issues/01-index.md` (App issues root entry point)
+4. `02-spec/23-app-db/01-index.md` (App database root entry point)
+5. `02-spec/24-app-ui-design-system/01-index.md` (App design system root entry point)
+6. `02-spec/25-app-spec-audit/01-audit-report.md` (Prior audit baseline)
+
+---
+
+## 2. Mechanical sweep output
+
+Verbatim sweep execution output:
+
+```text
+=== MECHANICAL SWEEP: FILE SIZES (>300 lines) ===
+Files checked: 6
+Files over 300 lines: 0
+
+=== MECHANICAL SWEEP: TRAILING WHITESPACE ===
+Lines with trailing whitespace: 0
+
+=== MECHANICAL SWEEP: FILE CASING ===
+Non-lowercase files: 0
+
+=== MECHANICAL SWEEP: MISSING EOF NEWLINE ===
+Files missing EOF newline: 0
+
+=== MECHANICAL SWEEP: MARKDOWN HEADING SPACING ===
+Heading spacing violations: 0
+```
+
+---
+
+## 3. Unit inventory and diff against subtasks
+
+Buildable units defined across the application vs. specification coverage and plan subtasks:
+
+| Unit # | Buildable Unit | Target Language / Environment | Specified in Spec? | Found in `.ai-memory/plans/subtasks/`? | Repo-Relative File Paths Named in Spec? |
+|--------|----------------|-------------------------------|--------------------|----------------------------------------|-----------------------------------------|
+| U-01 | WordPress Plugin Core & Lifecycle | PHP (WordPress Plugin API) | Conceptual only (`21-app/04-quiz-feature/00-overview.md:3-6`) | Yes (`05-wp-exam-migration-and-quiz-feature/03-quiz-feature-implementation.md:15`) | **NO** (omits `wp-exam.php`, `includes/class-wp-exam-activator.php`) |
+| U-02 | Quiz Admin Menu & Asset Enqueue | PHP (WordPress Admin Hooks) | Conceptual only (`21-app/04-quiz-feature/00-overview.md:5`) | Yes (`05-wp-exam-migration-and-quiz-feature/03-quiz-feature-implementation.md:15`) | **NO** (omits `includes/class-wp-exam-admin.php`) |
+| U-03 | Quiz REST API Controller | PHP (`WP_REST_Controller`) | Partially (`21-app/04-quiz-feature/00-overview.md:39-50`) | Yes (`05-wp-exam-migration-and-quiz-feature/03-quiz-feature-implementation.md:16`) | **NO** (omits `includes/api/class-wp-exam-rest-api.php`) |
+| U-04 | Quiz Database Schema & Migration | SQL (`dbDelta` / SQLite) | Schema columns only (`04-quiz-feature/00-overview.md:8-38`) | Yes (`05-wp-exam-migration-and-quiz-feature/03-quiz-feature-implementation.md:16`) | **NO** (`23-app-db/01-index.md` is empty; activator path omitted) |
+| U-05 | React Admin SPA Root & Layout | TypeScript / React (Vite) | Mentioned (`21-app/04-quiz-feature/00-overview.md:5`) | Yes (`05-wp-exam-migration-and-quiz-feature/03-quiz-feature-implementation.md:17`) | **NO** (omits `src/main.tsx`, `src/App.tsx`, mount container ID) |
+| U-06 | Drag-and-Drop Question Editor | React / TypeScript (`@dnd-kit`) | Mentioned (`21-app/04-quiz-feature/00-overview.md:5`) | Yes (`05-wp-exam-migration-and-quiz-feature/03-quiz-feature-implementation.md:18`) | **NO** (omits component hierarchy and file names) |
+| U-07 | Frontend Interactive Quiz Runner | React / Tailwind CSS | Mentioned (`21-app/04-quiz-feature/00-overview.md:6`) | Yes (`05-wp-exam-migration-and-quiz-feature/03-quiz-feature-implementation.md:17`) | **NO** (omits frontend shortcode / block mounting target) |
+| U-08 | Client State & API Client Store | TypeScript (Zustand / TanStack Query) | Absent from spec | Yes (`05-wp-exam-migration-and-quiz-feature/03-quiz-feature-implementation.md:19`) | **NO** (store topology, query keys, mutation hooks omitted) |
+
+---
+
+## 4. Determinism read
+
+Evaluation of architectural decisions for coder autonomy:
+
+| File | Concern / Decision Point | Status (`Fixed` / `Defaulted` / `Open` / `Absent`) | Evidence / Gap |
+|------|--------------------------|---------------------------------------------------|----------------|
+| `21-app/01-index.md` | Primary feature index | `Absent` | Line 44 claims `No app-specific specs added yet`, failing to index `04-quiz-feature/`. |
+| `21-app/04-quiz-feature/00-overview.md` | DB Table Names & PKs | `Fixed` | Lines 11-38 explicitly fix `Quiz`, `QuizQuestion`, `QuizAnswer`, `QuizResult` with `{Table}Id`. |
+| `21-app/04-quiz-feature/00-overview.md` | `QuestionType` Enum values | `Open` | Line 22 specifies `QuestionType (VARCHAR - e.g., 'multiple_choice', 'true_false')`. "e.g." leaves enum values open-ended. |
+| `21-app/04-quiz-feature/00-overview.md` | REST Endpoint URLs | `Fixed` | Lines 42-49 fix 7 endpoints under `/wp-json/quiz/v1/`. |
+| `21-app/04-quiz-feature/00-overview.md` | REST Request / Response Payloads | `Absent` | Lines 42-49 list endpoint URLs but provide zero request bodies, validation rules, or JSON response shapes. |
+| `21-app/04-quiz-feature/00-overview.md` | HTTP Error Codes & Envelope | `Absent` | No error codes, no `appfault` mapping, no universal response envelope (`Result[T]`) specified. |
+| `21-app/04-quiz-feature/00-overview.md` | Permissions & Authorization | `Open` | Lines 43, 48 specify `(Public/Admin depending on settings)`. Settings model and capability checks are undefined. |
+| `21-app/04-quiz-feature/00-overview.md` | Target Source File Topology | `Absent` | Zero repo-relative code file paths are given. |
+| `22-app-issues/01-index.md` | Known Bug Registry | `Absent` | Line 38 states `No app issue analyses added yet`. |
+| `23-app-db/01-index.md` | Schema DDL & Migrations | `Absent` | Line 50 is empty (`awaiting content`). No SQL DDL, indexes, or collation defined. |
+| `24-app-ui-design-system/01-index.md` | Design Tokens & Components | `Absent` | Line 50 is empty (`awaiting content`). Color palette, font tokens, and UI components undefined. |
+
+---
+
+## 5. Consistency map and mirror drift
+
+### Concern to Authority Map
+
+| Concern | Authoritative Source | Audited App Spec Implementation | Status |
+|---------|----------------------|---------------------------------|--------|
+| Database Naming | `02-spec/04-database-conventions/02-naming-conventions.md` | `04-quiz-feature/00-overview.md:11-38` | **Consistent** (PascalCase tables, `{Table}Id` PK, camelCase properties) |
+| Boolean Principles | `02-spec/02-coding-guidelines/01-cross-language/02-boolean-principles/` | `04-quiz-feature/00-overview.md:29` (`IsCorrect`) | **Consistent** (`is*` prefix used) |
+| Response Envelope | `02-spec/03-error-manage/02-error-architecture/05-response-envelope/` | `04-quiz-feature/00-overview.md:39-50` | **Drift / Missing** (REST endpoints do not define envelope) |
+| Error Architecture | `02-spec/03-error-manage/01-index.md` | `04-quiz-feature/00-overview.md` | **Drift / Missing** (zero error handling mentioned) |
+| Script Sandboxing | Root `AGENTS.md` & `03-ai-scripts/01-index.md` | `02-spec/17-consolidated-guidelines/05-coding-guidelines.md:12` | **Drift** (references obsolete `scripts/` path instead of `03-ai-scripts/`) |
+
+### Consolidated Mirror Drift Check
+
+- `02-spec/17-consolidated-guidelines/05-coding-guidelines.md:12` references `scripts/sync-guidelines.mjs`. `scripts/` does not exist on disk (all AI utilities are consolidated under `03-ai-scripts/`).
+- `02-spec/17-consolidated-guidelines/05-coding-guidelines.md` is a 14-line stub redirecting to `34-compiled-simple-coding-guidelines.md`.
+- Master `.ai-memory/coding-guidelines.md` is synchronized with `34-compiled-simple-coding-guidelines.md` (1765 lines vs 1761 lines).
+
+---
+
+## 6. Coding-guideline checklist
+
+Rebuilt directly from filesystem authorities and tested against `02-spec/21-app/`:
+
+| Topic | Authority file | Bound from `02-spec/21-app`? | Duplicates |
+|---|---|---|---|
+| canonical size tier | `02-spec/02-coding-guidelines/02-canonical-size-tier.md` | no | none |
+| boolean naming prefixes | `02-spec/02-coding-guidelines/01-cross-language/02-boolean-principles/02-naming-prefixes.md` | no | none |
+| boolean guards + extraction | `02-spec/02-coding-guidelines/01-cross-language/02-boolean-principles/03-guards-and-extraction.md` | no | none |
+| boolean params + conditions | `02-spec/02-coding-guidelines/01-cross-language/02-boolean-principles/04-parameters-and-conditions.md` | no | none |
+| boolean quick reference | `02-spec/02-coding-guidelines/01-cross-language/02-boolean-principles/05-quick-reference.md` | no | none |
+| boolean exemptions + api | `02-spec/02-coding-guidelines/01-cross-language/02-boolean-principles/06-exemptions-and-api.md` | no | none |
+| boolean flag methods | `02-spec/02-coding-guidelines/01-cross-language/24-boolean-flag-methods.md` | no | none |
+| no negatives | `02-spec/02-coding-guidelines/01-cross-language/12-no-negatives.md` | no | none |
+| braces + nesting | `02-spec/02-coding-guidelines/01-cross-language/04-code-style/02-braces-and-nesting.md` | no | none |
+| conditions + extraction (style) | `02-spec/02-coding-guidelines/01-cross-language/04-code-style/03-conditions-and-extraction.md` | no | none |
+| blank lines + spacing | `02-spec/02-coding-guidelines/01-cross-language/04-code-style/04-blank-lines-and-spacing.md` | no | none |
+| function + type size | `02-spec/02-coding-guidelines/01-cross-language/04-code-style/05-function-and-type-size.md` | no | none |
+| multi-line formatting | `02-spec/02-coding-guidelines/01-cross-language/04-code-style/06-multi-line-formatting.md` | no | none |
+| code-style checklist | `02-spec/02-coding-guidelines/01-cross-language/04-code-style/08-checklist.md` | no | none |
+| nesting resolution | `02-spec/02-coding-guidelines/01-cross-language/20-nesting-resolution-patterns.md` | no | none |
+| cyclomatic complexity | `02-spec/02-coding-guidelines/01-cross-language/06-cyclomatic-complexity.md` | no | none |
+| code mutation avoidance | `02-spec/02-coding-guidelines/01-cross-language/18-code-mutation-avoidance.md` | no | none |
+| strict typing | `02-spec/02-coding-guidelines/01-cross-language/13-strict-typing.md` | no | none |
+| null-pointer safety | `02-spec/02-coding-guidelines/01-cross-language/19-null-pointer-safety.md` | no | none |
+| key naming pascalcase | `02-spec/02-coding-guidelines/01-cross-language/11-key-naming-pascalcase.md` | no | none |
+| test naming + structure | `02-spec/02-coding-guidelines/01-cross-language/14-test-naming-and-structure.md` | no | none |
+| file/folder naming | `02-spec/02-coding-guidelines/08-file-folder-naming/01-index.md` | yes | none |
+| language rules (go/php/ts) | `02-spec/02-coding-guidelines/04-php/01-index.md` | yes | none |
+| error architecture | `02-spec/03-error-manage/01-index.md` | yes | none |
+| error code registry | `02-spec/03-error-manage/03-error-code-registry/01-index.md` | yes | none |
+| database conventions | `02-spec/04-database-conventions/01-index.md` | yes | none |
+| ci pipeline + guards | `02-spec/12-cicd-pipeline-workflows/02-ci-pipeline.md` | no | none |
+| **master coding guidelines** | `.ai-memory/coding-guidelines.md` | yes | none |
+
+---
+
+## 7. Tests and acceptance criteria
+
+### Test Specification Analysis (Dimension 5)
+
+- **Unit Tests:** None specified. `04-quiz-feature/00-overview.md` does not name a single test file (e.g., `tests/test-quiz-rest-api.php`), test class, or test function.
+- **Integration Tests:** None specified. No WordPress integration suite, database transaction rollback test, or WP REST server dispatch test is defined.
+- **End-to-End Tests:** None specified. No Playwright/Cypress end-to-end flow is provided for the Quiz creation or submission flow.
+- **Test Fixtures:** Missing entirely. `02-spec/21-app/fixtures/` does not exist on disk.
+- **Anti-Garbage Naming Audit (RULE 0K):** Verified that no generic or garbage test names (such as `TestHandleComp100`) are proposed. However, because zero tests are specified, this represents a severe defect in testability.
+
+### Acceptance Criteria Analysis (Dimension 6)
+
+- `02-spec/21-app/01-index.md` contains an index-level conformance acceptance criterion (`AC-APP-001`), but its verification command is a placeholder `npm run test` that does not test the WordPress plugin backend.
+- `02-spec/21-app/04-quiz-feature/00-overview.md` contains **zero acceptance criteria**. It ends at line 50 without an Acceptance Criteria section, verification steps, or pass/fail thresholds.
+- `21-app/01-index.md:59`, `22-app-issues/01-index.md:53`, `23-app-db/01-index.md:69`, and `24-app-ui-design-system/01-index.md:68` all reference `97-acceptance-criteria.md` files that do not exist on disk.
+
+---
+
+## 8. Reference integrity counts
+
+Exact metric counts generated via automated link scanner and filesystem inspection:
+
+| Metric | Count |
+|---|---|
+| relative links found | 11 |
+| links that do not resolve | 0 |
+| cited sections that do not exist in their file | 0 |
+| files present on disk but missing from an index | 1 |
+| files listed in an index but missing on disk | 0 |
+| guideline topics with no authority file | 0 |
+| guideline topics with two authority files | 0 |
+| files over 300 lines | 0 |
+
+### Detail on Reference Discrepancies
+
+- **Files present on disk but missing from index (Count = 1):** `02-spec/21-app/04-quiz-feature/00-overview.md` is present on disk, but `02-spec/21-app/01-index.md:44` explicitly states: `_No app-specific specs added yet. Add specs as numbered files within this folder._`
+- **Ghost references in prose (Count = 4):** Four files cite non-existent `97-acceptance-criteria.md` in prose comments:
+  1. `02-spec/21-app/01-index.md:59`
+  2. `02-spec/22-app-issues/01-index.md:53`
+  3. `02-spec/23-app-db/01-index.md:69`
+  4. `02-spec/24-app-ui-design-system/01-index.md:68`
+
+---
+
+## 9. Ci/cd verifiability
+
+Evaluation of CI/CD validation pipelines for each buildable unit:
+
+| Unit # | Buildable Unit | Named Pipeline Job / Guard | Verification Command | Guard Location |
+|---|---|---|---|---|
+| U-01 | WP Plugin Core (`wp-exam.php`) | `phpcs-wordpress` (Missing from spec) | Unspecified | Absent in spec |
+| U-02 | Admin Menu & Assets Enqueue | `phpstan-analyse` (Missing from spec) | Unspecified | Absent in spec |
+| U-03 | Quiz REST API | `phpunit-rest-suite` (Missing from spec) | Unspecified | Absent in spec |
+| U-04 | DB Schema (`dbDelta`) | `schema-naming-guard` (Missing from spec) | `python 03-ai-scripts/06-cicd-local-runner.py` | Partially covered by runner |
+| U-05 | React Admin SPA | `npm-build` & `vitest` | `npm run test` (in `21-app/01-index.md`) | Partial |
+| U-06 | Dnd Question Editor | `vitest-components` | Unspecified | Absent in spec |
+| U-07 | Frontend Quiz Runner | `vitest-components` | Unspecified | Absent in spec |
+| U-08 | React Zustand/Query Store | `typescript-tsc` | `tsc --noEmit` | `package.json` |
+
+---
+
+## 10. Blind-buildability trace
+
+### Primary Flow: Create Quiz & Question -> Enqueue Admin SPA -> Submit Quiz via REST
+
+1. **Step 1 — Developer installs plugin & runs migration:**
+   - Blind AI reads `04-quiz-feature/00-overview.md:8-38`.
+   - Sees table definitions for `Quiz`, `QuizQuestion`, `QuizAnswer`, `QuizResult`.
+   - **Trace Failure Point 1:** The spec does not provide the `CREATE TABLE` DDL or specify the WordPress table prefix handling (`$wpdb->prefix . 'quiz'`). SQLite vs. MySQL syntax differences are not addressed. The migration hook (`register_activation_hook`) and activator class path are not specified.
+2. **Step 2 — Developer mounts React SPA in WordPress Admin:**
+   - Blind AI reads `04-quiz-feature/00-overview.md:5`.
+   - Sees "Admin Dashboard: A React-based SPA...".
+   - **Trace Failure Point 2:** The spec does not name the HTML container ID (e.g. `<div id="wp-exam-app"></div>`), the WordPress admin menu slug (`wp-exam-quizzes`), the script handle (`wp-exam-admin`), or how WordPress passes localized REST nonce and root URL to JavaScript (`wp_localize_script`).
+3. **Step 3 — React SPA fetches quiz list via REST:**
+   - Blind AI reads `04-quiz-feature/00-overview.md:42` (`GET /wp-json/quiz/v1/quizzes`).
+   - **Trace Failure Point 3:** The spec does not specify whether pagination is supported, what query parameters exist (`page`, `per_page`), what JSON envelope wraps the list (`Result[Quiz[]]`), or what headers are required (`X-WP-Nonce`).
+4. **Step 4 — Student submits quiz answers:**
+   - Blind AI reads `04-quiz-feature/00-overview.md:48` (`POST /wp-json/quiz/v1/quizzes/{QuizId}/submit`).
+   - **Trace Failure Point 4:** The spec does not define the request body structure (e.g., `{ answers: [{ questionId: 1, selectedAnswerId: 2 }] }`), how scoring is computed (server-side evaluation vs client-side), what response is returned upon submission, or how guest users vs logged-in users are identified.
+
+**Verdict:** The primary flow cannot be built by a blind implementer without inventing significant architecture, contracts, and schema logic.
+
+---
+
+## 11. Scores and arithmetic
+
+### Dimension Scores (0–100)
+
+| # | Dimension | Question Answered | Score | Evidence / Root Cause |
+|---|---|---|---|---|
+| 1 | Blind-AI readiness | Can a blind implementer build the system from these files alone? | **35** | Crucial API payload contracts, WP hook topologies, and frontend mounting mechanics are missing. |
+| 2 | Code-file coverage | Does the spec name exact repo-relative files to create or modify? | **30** | Zero repo-relative code file paths are named in `04-quiz-feature/00-overview.md`. |
+| 3 | Coding-guideline checklist | Does every unit bind to authoritative guideline files? | **40** | General mention of guidelines, but no explicit markdown bindings to PHP, TS, or error architecture files. |
+| 4 | Code-mutation discipline | Are models, input contracts, and state immutable? | **45** | No immutability declared for quiz submissions; no state mutation rules defined for React/Zustand. |
+| 5 | Test specification | Are unit, integration, and e2e tests specified per unit? | **15** | Zero test files, test classes, test functions, or fixtures are specified anywhere in scope. |
+| 6 | Acceptance criteria | Does every normative file close with criteria naming verification? | **40** | `04-quiz-feature/00-overview.md` has no Acceptance Criteria section; index cites non-existent file. |
+| 7 | Ambiguity discipline | Is every undecided thing filed as an open question? | **40** | Undefined settings, open-ended question type enum `e.g.`, and vague authorization rules left in text. |
+| 8 | Cross-folder consistency | Do `21-app`, `23-app-db`, `24-app-ui-design-system` agree? | **35** | `23-app-db` and `24-app-ui-design-system` are empty placeholders; `21-app/01-index.md` omits `04-quiz-feature`. |
+| 9 | Reference integrity | How many links and references are missing? | **65** | 11/11 relative links resolve, but 4 non-existent files cited in prose; 1 unindexed disk file. |
+| 10 | CI/CD verifiability | Is there a named pipeline job or guard for every buildable unit? | **35** | Missing PHPUnit, PHPCS, and PHPStan job specifications for WordPress backend. |
+| 11 | Shape and size | Do files satisfy mechanical checks (<300 lines, casing, whitespace)? | **95** | All files < 300 lines, lowercase naming, clean EOF, no trailing whitespace. Minor index gap. |
+| 12 | Determinism | Per file, is every coder decision Fixed, Defaulted, Open, or Absent? | **35** | Payloads, status codes, permissions, schema DDL, and component hierarchy are Open or Absent. |
+
+### Overall Score Arithmetic
+
+$$\text{Raw Mean} = \frac{35 + 30 + 40 + 45 + 15 + 40 + 40 + 35 + 65 + 35 + 95 + 35}{12} = \frac{510}{12} = 42.5 \rightarrow 42$$
+
+**Rule Check:** Any single dimension scoring below 50 caps the overall score at 50 (automatic failure).
+Here, dimensions 1, 2, 3, 4, 5, 6, 7, 8, 10, and 12 all score below 50. The raw arithmetic mean is 42.
+
+$$\text{Overall Score} = \mathbf{42/100} \quad (\text{Band F — Automatic Failure})$$
+
+---
+
+## 12. Findings
+
+### Finding 1: Target File Topology and Code Coverage Missing (Critical)
+- **Path:** `02-spec/21-app/04-quiz-feature/00-overview.md:1-50`
+- **Dimension:** 2 (Code-file coverage) / 1 (Blind-AI readiness)
+- **Severity:** Critical (Cost: -25 points)
+- **Detail:** The spec describes WordPress plugin entry, admin dashboard, and REST endpoints in abstract terms without specifying exact repo-relative file paths such as `wp-exam.php`, `includes/class-wp-exam-activator.php`, `includes/class-wp-exam-admin.php`, `includes/api/class-wp-exam-rest-api.php`, `src/App.tsx`, `src/features/quiz/QuizEditor.tsx`.
+- **Remedy:** Create `02-spec/21-app/04-quiz-feature/01-file-topology.md` enumerating exact repo-relative file paths for PHP backend, WordPress hooks, React frontend components, and state stores.
+
+### Finding 2: REST API Payloads and Validation Unspecified (Critical)
+- **Path:** `02-spec/21-app/04-quiz-feature/00-overview.md:39-50`
+- **Dimension:** 1 (Blind-AI readiness) / 12 (Determinism)
+- **Severity:** Critical (Cost: -20 points)
+- **Detail:** REST API endpoints lack explicit request/response JSON schemas, parameter types, HTTP status codes, error codes, and permission checks. Endpoints are listed as bare URLs with non-deterministic notes like `(Public/Admin depending on settings)`.
+- **Remedy:** Create `02-spec/21-app/04-quiz-feature/02-rest-api-contracts.md` with complete JSON schemas, input validation rules, HTTP status codes (200, 201, 400, 401, 403, 404, 500), universal `Result[T]` response envelope, and precise WP capability requirements (`manage_options`).
+
+### Finding 3: Test Specifications and Fixtures Absent (Critical)
+- **Path:** `02-spec/21-app/04-quiz-feature/00-overview.md:1-50`
+- **Dimension:** 5 (Test specification)
+- **Severity:** Critical (Cost: -30 points)
+- **Detail:** Test specifications are completely absent. No unit tests, integration tests, or e2e tests are specified; no test files (`tests/test-quiz-rest-api.php`, `src/__tests__/QuizEditor.test.tsx`), no test function names, and no mock fixtures exist in `02-spec/21-app/fixtures/`.
+- **Remedy:** Create `02-spec/21-app/04-quiz-feature/03-test-specifications.md` specifying PHPUnit test classes (`WP_Exam_REST_API_Test`), Vitest frontend tests (`QuizEditor.test.tsx`), test fixtures in `02-spec/21-app/fixtures/quiz-sample.json`, and assertion matrices.
+
+### Finding 4: Acceptance Criteria Absent in Normative Spec (Major)
+- **Path:** `02-spec/21-app/04-quiz-feature/00-overview.md:1-50`
+- **Dimension:** 6 (Acceptance criteria)
+- **Severity:** Major (Cost: -20 points)
+- **Detail:** `00-overview.md` has no `## Acceptance Criteria` section and provides no concrete verification commands or pass/fail criteria.
+- **Remedy:** Add an `Acceptance Criteria` section to `02-spec/21-app/04-quiz-feature/00-overview.md` defining Given/When/Then criteria with executable verification commands (`composer test`, `npm test`).
+
+### Finding 5: Database and UI Sibling Folders Empty (Major)
+- **Path:** `02-spec/23-app-db/01-index.md:46-52` & `02-spec/24-app-ui-design-system/01-index.md:46-52`
+- **Dimension:** 8 (Cross-folder consistency)
+- **Severity:** Major (Cost: -25 points)
+- **Detail:** Sibling folders `23-app-db/` and `24-app-ui-design-system/` are empty placeholder files despite `04-quiz-feature/00-overview.md` introducing 4 database tables and a React SPA UI. There are no SQL DDL migration files, indexes, foreign key constraint specs, or UI token specifications.
+- **Remedy:** Populate `02-spec/23-app-db/01-schema.md` with explicit `dbDelta` SQL queries, indexes, and FK relationships; populate `02-spec/24-app-ui-design-system/01-design-tokens.md` with Tailwind tokens, colors, spacing, and shadcn component specs.
+
+### Finding 6: Coding Guideline Bindings Unresolved (Major)
+- **Path:** `02-spec/21-app/04-quiz-feature/00-overview.md:8-10`
+- **Dimension:** 3 (Coding-guideline checklist)
+- **Severity:** Major (Cost: -20 points)
+- **Detail:** Spec casually mentions "Following the project coding guidelines" without binding to specific authority files (`02-spec/02-coding-guidelines/04-php/`, `02-typescript/`, `02-spec/03-error-manage/01-index.md`, `02-spec/04-database-conventions/01-index.md`).
+- **Remedy:** Add a formal `Coding Guideline Bindings` table in `04-quiz-feature/00-overview.md` binding directly to the authoritative spec files for PHP, TypeScript, Database Conventions, and Error Management.
+
+### Finding 7: Missing PHP Backend CI/CD Guards (Major)
+- **Path:** `02-spec/21-app/01-index.md:67-74`
+- **Dimension:** 10 (CI/CD verifiability)
+- **Severity:** Major (Cost: -20 points)
+- **Detail:** CI/CD verifiability mentions only generic `npm run test`, omitting PHP test suites (PHPUnit), WordPress coding standards linters (phpcs with WordPress-Core ruleset), and PHPStan static analysis.
+- **Remedy:** Update `02-spec/21-app/01-index.md` and `02-spec/12-cicd-pipeline-workflows/02-ci-pipeline.md` to specify `composer test:phpcs`, `composer test:phpstan`, and `composer test:phpunit` alongside `npm test`.
+
+### Finding 8: Index Omission and Ghost Reference Citations (Minor)
+- **Path:** `02-spec/21-app/01-index.md:44,59`, `22-app-issues/01-index.md:53`, `23-app-db/01-index.md:69`, `24-app-ui-design-system/01-index.md:68`
+- **Dimension:** 9 (Reference integrity)
+- **Severity:** Minor (Cost: -15 points)
+- **Detail:** 4 index files cite `97-acceptance-criteria.md` in their respective directories, but those files do not exist on disk. Furthermore, `21-app/01-index.md` states "No app-specific specs added yet", omitting `04-quiz-feature/00-overview.md` from its index.
+- **Remedy:** Create the required `97-acceptance-criteria.md` files in each subfolder or remove the ghost citations; update `02-spec/21-app/01-index.md` to register `04-quiz-feature/00-overview.md` in its document inventory.
+
+### Finding 9: Non-Deterministic QuestionType Enum (Minor)
+- **Path:** `02-spec/21-app/04-quiz-feature/00-overview.md:22`
+- **Dimension:** 7 (Ambiguity discipline) / 12 (Determinism)
+- **Severity:** Minor (Cost: -10 points)
+- **Detail:** `QuestionType` is defined as `VARCHAR - e.g., 'multiple_choice', 'true_false'` using open-ended "e.g." rather than a closed, exhaustive enum, violating strict typing and determinism rules.
+- **Remedy:** Define an explicit, closed PHP and TypeScript enum `QuizQuestionType` with values `'multiple_choice'`, `'true_false'`, `'open_ended'` and document it in `04-quiz-feature/00-overview.md`.
+
+### Finding 10: Missing Immutability on Quiz Submissions (Minor)
+- **Path:** `02-spec/21-app/04-quiz-feature/00-overview.md:25-38`
+- **Dimension:** 4 (Code-mutation discipline)
+- **Severity:** Minor (Cost: -10 points)
+- **Detail:** No immutability constraints on quiz submissions or quiz results. The spec does not declare `QuizResult` as append-only/immutable, opening the possibility of race conditions or score tampering.
+- **Remedy:** Explicitly mark `QuizResult` records as immutable/append-only with no `UPDATE` permissions permitted on submitted results.
+
+---
+
+## 13. Improvement set
+
+Ranked by points recovered per unit of effort (highest leverage first):
+
+| Rank | Finding | Remedy (file + content) | Dimension | Points | Effort |
+|---|---|---|---|---|---|
+| 1 | Target File Topology Missing | Create `02-spec/21-app/04-quiz-feature/01-file-topology.md` listing exact repo-relative file paths for PHP plugin, REST controllers, React components, and stores. | 2 | +25 | S |
+| 2 | REST API Contracts Undefined | Create `02-spec/21-app/04-quiz-feature/02-rest-api-contracts.md` specifying complete JSON schemas, input validation rules, status codes, and permissions. | 1, 12 | +20 | S |
+| 3 | Acceptance Criteria Missing | Add `## Acceptance Criteria` section to `04-quiz-feature/00-overview.md` with concrete verification commands. | 6 | +20 | S |
+| 4 | Open QuestionType Enum | Update `04-quiz-feature/00-overview.md:22` to replace `e.g.` with a closed `QuizQuestionType` enum definition. | 7, 12 | +10 | S |
+| 5 | Index Omission & Ghost Citations | Update `02-spec/21-app/01-index.md` to index `04-quiz-feature/00-overview.md` and resolve ghost `97-acceptance-criteria.md` references across the 4 folders. | 9 | +15 | S |
+| 6 | Database Sibling Folder Empty | Create `02-spec/23-app-db/01-schema.md` with explicit WordPress `dbDelta` DDL, table collations, indexes, and FK relationships. | 8 | +25 | M |
+| 7 | UI Design System Folder Empty | Create `02-spec/24-app-ui-design-system/01-design-tokens.md` specifying Tailwind CSS tokens, shadcn/ui component inventory, and layout grids. | 8 | +25 | M |
+| 8 | Test Specifications Absent | Create `02-spec/21-app/04-quiz-feature/03-test-specifications.md` specifying PHPUnit test cases, Vitest test suites, and mock fixtures in `fixtures/quiz-sample.json`. | 5 | +30 | M |
+| 9 | Missing PHP Backend CI/CD Guards | Update `02-spec/12-cicd-pipeline-workflows/02-ci-pipeline.md` and `21-app/01-index.md` to define PHPCS, PHPStan, and PHPUnit pipeline guards. | 10 | +20 | M |
+
+---
+
+## 14. Disposition of prior findings
+
+Re-verification of statements in `02-spec/25-app-spec-audit/01-audit-report.md`:
+
+| Prior Finding / Claim | Prior Assessment | Current Re-verification | Disposition | Reason |
+|---|---|---|---|---|
+| Clarity on Error Handling | "mostly clear but could use more explicit instructions on error handling" | Spec has zero error handling, no HTTP status codes, no `appfault` mapping. | **Open** | No improvements made since initial audit report. |
+| Determinism | "requirements lead to a deterministic output" | Requirements are largely non-deterministic (missing payloads, open enums, undefined permissions). | **Reclassified** | Prior finding was an uncritical rubber-stamp; reclassified as a major defect. |
+| Modularity | "plugin architecture encourages small, testable files" | Architectural concept is modular, but concrete files are omitted from the spec. | **Partially closed** | High-level split is sound, but repo-relative file paths remain unspecified. |
+| Function Maximum Constraint | "15-line function maximum is strict but documented clearly" | Function length cap is well documented in master coding guidelines. | **Closed** | No contradiction with project guidelines. |
+| HTTP Response Codes | "clarifications on HTTP response codes for REST endpoints could further improve it" | HTTP response codes remain completely absent. | **Open** | Carried forward into Finding 2. |
+
+---
+
+## 15. Acceptance criteria of this audit
+
+### AC-AUD-001: Spec Audit Conformance & Traceability
+
+**Given** This audit file `02-spec/25-app-spec-audit/02-audit-2026-09-18-v2.md` was generated without modifying the audited source files.
+**When** Validating that all 12 dimensions are scored with line-level evidence and that the overall score calculation adheres to the strict capping rule.
+**Then**:
+- Overall score is calculated as 42/100 (capped below 50 due to sub-50 dimensions).
+- All 15 required sections are present in strict sequential order.
+- Previous audit `01-audit-report.md` is marked with the `> STALE` banner.
+- `02-spec/01-spec-authoring-guide/01-index.md` and `98-changelog.md` record the audit run.
+
+**Verification Command:**
+
+```bash
+python -c "
+import os
+assert os.path.exists('02-spec/25-app-spec-audit/02-audit-2026-09-18-v2.md')
+with open('02-spec/25-app-spec-audit/01-audit-report.md') as f:
+    assert 'STALE' in f.read()
+print('Audit validation: PASS')
+"
+```
+
+---
+
+## Summary of Identified Issues
+
+| Folder / Subfolder / File | Identified Issue (Meaningful details) | Proposed Fix |
+| :--- | :--- | :--- |
+| `02-spec/21-app/01-index.md` | Omission of active feature spec: line 44 states `No app-specific specs added yet`, failing to index `04-quiz-feature/00-overview.md`. | Update Document Inventory table to register `04-quiz-feature/00-overview.md`. |
+| `02-spec/21-app/04-quiz-feature/00-overview.md` | Missing repo-relative file topology: spec mentions admin dashboard, plugin core, and REST API in prose but names zero concrete files. | Create `01-file-topology.md` detailing exact paths (`wp-exam.php`, `includes/api/class-wp-exam-rest-api.php`, `src/App.tsx`). |
+| `02-spec/21-app/04-quiz-feature/00-overview.md` | Undefined REST API contracts: endpoints are listed as bare URLs without request/response payloads, status codes, or error envelopes. | Create `02-rest-api-contracts.md` with complete JSON schemas, validation rules, HTTP status codes, and WP capability checks. |
+| `02-spec/21-app/04-quiz-feature/00-overview.md` | Absent test specifications and fixtures: zero unit/integration/e2e tests or mock payloads specified; `fixtures/` directory is missing. | Create `03-test-specifications.md` and populate `02-spec/21-app/fixtures/quiz-sample.json` with sample test fixtures. |
+| `02-spec/21-app/04-quiz-feature/00-overview.md` | Missing Acceptance Criteria section: file ends at line 50 with no Given/When/Then criteria or verification commands. | Append an `Acceptance Criteria` section with explicit test commands (`composer test`, `npm test`). |
+| `02-spec/21-app/04-quiz-feature/00-overview.md` | Non-deterministic `QuestionType`: defined as `VARCHAR - e.g., 'multiple_choice', 'true_false'` with open-ended "e.g.". | Replace open-ended text with a strictly closed `QuizQuestionType` enum definition. |
+| `02-spec/23-app-db/01-index.md` | Empty placeholder: despite `04-quiz-feature` introducing 4 tables, `23-app-db/` contains no SQL DDL or migration specs. | Create `01-schema.md` detailing WordPress `dbDelta` statements, table collations, indexes, and foreign keys. |
+| `02-spec/24-app-ui-design-system/01-index.md` | Empty placeholder: contains no design tokens, color variables, typography, or component specs for the React SPA. | Create `01-design-tokens.md` defining Tailwind configuration, shadcn/ui components, and admin theme variables. |
+| `02-spec/21-app`, `22-app-issues`, `23-app-db`, `24-app-ui-design-system` | Ghost citations: all 4 index files cite `97-acceptance-criteria.md` in comments, but the files do not exist on disk. | Author the required `97-acceptance-criteria.md` files or remove the misleading comment citations. |
