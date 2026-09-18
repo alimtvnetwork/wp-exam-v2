@@ -12,6 +12,7 @@ $testFiles = [
     __DIR__ . '/unit/EnvelopeBuilderTest.php',
     __DIR__ . '/unit/WpDbQueryWrapperTest.php',
     __DIR__ . '/unit/SqliteDatabaseTest.php',
+    __DIR__ . '/unit/plugin-bootstrap-test.php',
 ];
 
 $passed = 0;
@@ -28,7 +29,13 @@ foreach ($testFiles as $file) {
     }
 
     require_once $file;
-    $className = 'WpExam\\Tests\\' . basename($file, '.php');
+    $baseName = basename($file, '.php');
+    $pascalName = str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $baseName)));
+    $className = 'WpExam\\Tests\\' . $pascalName;
+
+    if (!class_exists($className)) {
+        $className = 'WpExam\\Tests\\' . $baseName;
+    }
 
     if (!class_exists($className)) {
         echo "Class not found in {$file}: {$className}\n";

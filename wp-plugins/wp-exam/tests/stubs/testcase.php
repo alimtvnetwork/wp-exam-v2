@@ -43,6 +43,13 @@ if (!class_exists(TestCase::class)) {
             }
         }
 
+        public function assertInstanceOf(string $expected, mixed $actual, string $message = ''): void {
+            $isInstance = $actual instanceof $expected;
+            if (!$isInstance) {
+                throw new \AssertionError($message ?: "Failed asserting that object is an instance of {$expected}");
+            }
+        }
+
         public function markTestSkipped(string $message = ''): void {
             // Skipped in standalone mode
         }
