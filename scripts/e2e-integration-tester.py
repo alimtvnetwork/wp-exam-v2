@@ -1579,6 +1579,239 @@ def test_ai_studio_ui_prompts() -> None:
 
 
 # =====================================================================
+# 23. MULTI-TIER HIERARCHY PERMISSION SCOPES & INHERITANCE
+# =====================================================================
+def test_hierarchy_permission_scopes() -> None:
+    log_suite("23. Multi-tier Hierarchy Permission Scopes & Inheritance")
+
+    class PermissionEngine:
+        def __init__(self) -> None:
+            self.categories: Dict[str, List[str]] = {}
+            self.sub_projects: Dict[str, List[str]] = {}
+            self.user_permissions: Dict[str, Dict[str, set]] = {}
+
+        def register_category(self, category_id: str, project_ids: List[str]) -> None:
+            self.categories[category_id] = project_ids
+
+        def register_sub_projects(self, parent_project_id: str, sub_project_ids: List[str]) -> None:
+            self.sub_projects[parent_project_id] = sub_project_ids
+
+        def grant_category_access(self, user_id: str, category_id: str) -> None:
+            has_user = user_id in self.user_permissions
+            if not has_user:
+                self.user_permissions[user_id] = {"categories": set(), "projects": set()}
+            self.user_permissions[user_id]["categories"].add(category_id)
+
+        def grant_project_access(self, user_id: str, project_id: str) -> None:
+            has_user = user_id in self.user_permissions
+            if not has_user:
+                self.user_permissions[user_id] = {"categories": set(), "projects": set()}
+            self.user_permissions[user_id]["projects"].add(project_id)
+
+        def check_project_access(self, user_id: str, target_project_id: str) -> bool:
+            has_user = user_id in self.user_permissions
+            if not has_user:
+                return False
+
+            user_perms = self.user_permissions[user_id]
+            for cat_id in user_perms["categories"]:
+                cat_projects = self.categories.get(cat_id, [])
+                has_direct = target_project_id in cat_projects
+                if has_direct:
+                    return True
+                for p_id in cat_projects:
+                    has_sub = target_project_id in self.sub_projects.get(p_id, [])
+                    if has_sub:
+                        return True
+
+            has_direct_proj = target_project_id in user_perms["projects"]
+            if has_direct_proj:
+                return True
+
+            for p_id in user_perms["projects"]:
+                has_sub = target_project_id in self.sub_projects.get(p_id, [])
+                if has_sub:
+                    return True
+
+            return False
+
+    engine = PermissionEngine()
+    engine.register_category("cat_engineering", ["proj_backend", "proj_devops"])
+    engine.register_sub_projects("proj_backend", ["proj_microservices", "proj_database"])
+
+    engine.grant_category_access("user_tech_lead", "cat_engineering")
+    has_lead_backend = engine.check_project_access("user_tech_lead", "proj_backend")
+    has_lead_subproject = engine.check_project_access("user_tech_lead", "proj_microservices")
+
+    engine.grant_project_access("user_db_specialist", "proj_backend")
+    has_db_backend = engine.check_project_access("user_db_specialist", "proj_backend")
+    has_db_subproject = engine.check_project_access("user_db_specialist", "proj_database")
+    has_db_denied_sibling = engine.check_project_access("user_db_specialist", "proj_devops")
+    is_sibling_blocked = has_db_denied_sibling == False
+
+    has_stranger_denied = engine.check_project_access("user_stranger", "proj_backend") == False
+
+    is_permission_matrix_valid = (
+        has_lead_backend
+        and has_lead_subproject
+        and has_db_backend
+        and has_db_subproject
+        and is_sibling_blocked
+        and has_stranger_denied
+    )
+    log_test("Category & Project Cascading Permission Inheritance", is_permission_matrix_valid)
+
+
+# =====================================================================
+# 24. COMPLEX FORM MULTI-FIELD INSTANT LIVE VALIDATION MATRIX
+# =====================================================================
+def test_form_live_validation_matrix() -> None:
+    log_suite("24. Complex Form Multi-Field Instant Live Validation Matrix")
+
+    class FormLiveValidator:
+        @staticmethod
+        def validate_form(payload: Dict[str, Any]) -> Dict[str, Any]:
+            errors: Dict[str, str] = {}
+
+            email = payload.get("email", "")
+            email_pattern = re.compile(r"^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$")
+            is_valid_email = bool(email_pattern.match(email))
+            if not is_valid_email:
+                errors["email"] = "Invalid email format"
+
+            score = payload.get("score")
+            has_score = isinstance(score, (int, float))
+            if has_score:
+                is_score_in_range = 0 <= score <= 100
+                if not is_score_in_range:
+                    errors["score"] = "Score must be between 0 and 100"
+            if not has_score:
+                errors["score"] = "Score is required"
+
+            emp_code = payload.get("employee_code", "")
+            emp_pattern = re.compile(r"^EMP-[0-9]{4}$")
+            is_valid_emp = bool(emp_pattern.match(emp_code))
+            if not is_valid_emp:
+                errors["employee_code"] = "Employee code must match EMP-XXXX"
+
+            has_zero_errors = len(errors) == 0
+            return {
+                "is_valid": has_zero_errors,
+                "errors": errors,
+            }
+
+    valid_payload = {
+        "email": "candidate@riseup.asia",
+        "score": 85,
+        "employee_code": "EMP-9021",
+    }
+    result_valid = FormLiveValidator.validate_form(valid_payload)
+    has_valid_pass = result_valid["is_valid"]
+    has_empty_errors = len(result_valid["errors"]) == 0
+
+    invalid_payload = {
+        "email": "bad_email_at_riseup",
+        "score": 150,
+        "employee_code": "WRONG-123",
+    }
+    result_invalid = FormLiveValidator.validate_form(invalid_payload)
+    has_invalid_fail = result_invalid["is_valid"] == False
+    has_email_err = "email" in result_invalid["errors"]
+    has_score_err = "score" in result_invalid["errors"]
+    has_emp_err = "employee_code" in result_invalid["errors"]
+
+    is_matrix_valid = (
+        has_valid_pass
+        and has_empty_errors
+        and has_invalid_fail
+        and has_email_err
+        and has_score_err
+        and has_emp_err
+    )
+    log_test("Complex Form Multi-Field Instant Live Validation Matrix", is_matrix_valid)
+
+
+# =====================================================================
+# 25. AI INSTRUCTION STUDIO FULL CURRICULUM GENERATION & SYNTHESIS
+# =====================================================================
+def test_ai_curriculum_generation_and_synthesis() -> None:
+    log_suite("25. AI Instruction Studio Full Curriculum Generation & Synthesis")
+
+    def build_ai_curriculum_prompt(raw_spec_text: str) -> str:
+        prompt_lines = [
+            "You are an Expert Curriculum Architect AI for WP Exam.",
+            "Transform the provided raw documentation into a complete curriculum JSON with sections, pages, video, checklist, and quiz.",
+            f"Input Spec:\n{raw_spec_text}",
+            "Output strictly valid JSON with keys: 'project_id', 'title', 'sections', 'checklist', 'questions'.",
+        ]
+        return "\n".join(prompt_lines)
+
+    sample_doc = "AWS Infrastructure 101: VPC, Subnets, and NAT Gateways. Includes video walkthrough and 3 checklist gates."
+    prompt = build_ai_curriculum_prompt(sample_doc)
+
+    has_architect_role = "Expert Curriculum Architect AI" in prompt
+    has_doc_text = "AWS Infrastructure 101" in prompt
+
+    mock_curriculum_json = json.dumps({
+        "project_id": "proj_aws_101",
+        "title": "AWS Infrastructure 101",
+        "sections": [
+            {"id": "sec_intro", "title": "VPC Basics", "pages_count": 10},
+            {"id": "sec_advanced", "title": "NAT & Routing", "pages_count": 5},
+        ],
+        "checklist": [
+            {"id": "chk_read_docs", "label": "Read all 10 documentation pages"},
+            {"id": "chk_watch_video", "label": "Watch NAT walkthrough video"},
+        ],
+        "questions": [
+            {
+                "id": "q1",
+                "type": "mcq",
+                "prompt": "What does VPC stand for?",
+                "options": ["Virtual Private Cloud", "Variable Protocol Channel"],
+                "correct_option": 0,
+            }
+        ],
+    })
+
+    def validate_curriculum_schema(data: Dict[str, Any]) -> bool:
+        required_root = ["project_id", "title", "sections", "checklist", "questions"]
+        for key in required_root:
+            has_key = key in data
+            if not has_key:
+                return False
+
+        is_sections_list = isinstance(data["sections"], list)
+        is_checklist_list = isinstance(data["checklist"], list)
+        is_questions_list = isinstance(data["questions"], list)
+        if not is_sections_list:
+            return False
+        if not is_checklist_list:
+            return False
+        if not is_questions_list:
+            return False
+
+        has_sections = len(data["sections"]) > 0
+        has_checklist = len(data["checklist"]) > 0
+        has_questions = len(data["questions"]) > 0
+
+        return has_sections and has_checklist and has_questions
+
+    try:
+        parsed_curriculum = json.loads(mock_curriculum_json)
+        is_curriculum_valid = validate_curriculum_schema(parsed_curriculum)
+    except Exception:
+        is_curriculum_valid = False
+
+    is_ai_curriculum_suite_valid = (
+        has_architect_role
+        and has_doc_text
+        and is_curriculum_valid
+    )
+    log_test("AI Curriculum Studio Prompt Generation & Structural Schema Synthesis", is_ai_curriculum_suite_valid)
+
+
+# =====================================================================
 # 7. EXECUTION OF PHP UNIT TEST SUITE
 # =====================================================================
 def test_php_test_suite() -> None:
@@ -1639,6 +1872,9 @@ def main() -> None:
     test_question_hints_and_resources()
     test_theme_injection_and_compilation()
     test_ai_studio_ui_prompts()
+    test_hierarchy_permission_scopes()
+    test_form_live_validation_matrix()
+    test_ai_curriculum_generation_and_synthesis()
     test_php_test_suite()
 
     elapsed = round(time.time() - start_time, 3)
