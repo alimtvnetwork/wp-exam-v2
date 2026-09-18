@@ -12,6 +12,8 @@ Master directory of architectural and execution plans.
 
 ## Completed Plans
 
+- [19-comprehensive-audit-and-end-to-end-verification.md](completed/19-comprehensive-audit-and-end-to-end-verification.md): Comprehensive audit and end-to-end verification of UI quality, Less, role-based JSON, SQLite micro-ORM, invites, history, email, and full test matrix.
+- [18-invites-auth-runner-and-comprehensive-e2e.md](completed/18-invites-auth-runner-and-comprehensive-e2e.md): User Invites, Token Authentication, SQLite Submissions & Full E2E Verification.
 - [17-modern-ui-sqlite-import-export-and-wp-plugins.md](completed/17-modern-ui-sqlite-import-export-and-wp-plugins.md): Modern UI, SQLite Engine, JSON Import/Export, Admin User Invites, Email System & wp-plugins Layout.
 - [16-e2e-tests-and-riseup-asia-compliance-audit.md](completed/16-e2e-tests-and-riseup-asia-compliance-audit.md): Complete E2E tests, WP onboarding & Riseup Asia architectural pattern compliance audit.
 - [15-wp-exam-riseup-asia-alignment-and-quiz-form-engine.md](completed/15-wp-exam-riseup-asia-alignment-and-quiz-form-engine.md): WP Exam architecture alignment with riseup-asia-uploader and dynamic quiz/form engine.
