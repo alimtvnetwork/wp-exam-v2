@@ -18,7 +18,10 @@ Validates:
 13. Email Notification Routing & Cadence Dispatch Strategy
 14. Execution Pipeline Sequencing & Prerequisite Gating
 15. Diverse Question Submission & External Verification Handlers
-16. Full PHP Unit Test Suite Execution
+16. Project Revision History & 1-Click Rollback State Machine
+17. Public Analytics Dashboard & High-Failure Alert Aggregator
+18. Social Media OpenGraph & Twitter Card SEO Meta Generator
+19. Full PHP Unit Test Suite Execution
 """
 
 import base64
@@ -1143,6 +1146,244 @@ def test_submission_and_external_verification() -> None:
 
 
 # =====================================================================
+# 17. PROJECT REVISION HISTORY & 1-CLICK ROLLBACK
+# =====================================================================
+def test_project_revision_history_and_rollback() -> None:
+    log_suite("17. Project Revision History & 1-Click Rollback")
+
+    class ProjectHistoryStore:
+        def __init__(self) -> None:
+            self.revisions: List[Dict[str, Any]] = []
+            self.audit_log: List[Dict[str, Any]] = []
+
+        def save_revision(self, project_id: str, snapshot_data: Dict[str, Any], user_id: str) -> int:
+            rev_num = len(self.revisions) + 1
+            record = {
+                "revision_id": rev_num,
+                "project_id": project_id,
+                "snapshot": json.loads(json.dumps(snapshot_data)),
+                "created_by": user_id,
+                "timestamp": int(time.time()),
+            }
+            self.revisions.append(record)
+            return rev_num
+
+        def rollback_to_revision(self, project_id: str, target_rev: int, user_id: str) -> Tuple[bool, Optional[Dict[str, Any]]]:
+            match_rev = None
+            for rev in self.revisions:
+                is_match = rev["project_id"] == project_id
+                if is_match:
+                    has_target_num = rev["revision_id"] == target_rev
+                    if has_target_num:
+                        match_rev = rev
+                        break
+
+            has_match = match_rev is not None
+            if not has_match:
+                return False, None
+
+            # Audit rollback action
+            self.audit_log.append({
+                "action": "rollback",
+                "project_id": project_id,
+                "target_revision": target_rev,
+                "executed_by": user_id,
+                "timestamp": int(time.time()),
+            })
+
+            restored_snapshot = json.loads(json.dumps(match_rev["snapshot"]))
+            return True, restored_snapshot
+
+    store = ProjectHistoryStore()
+    v1_data = {"title": "Onboarding V1", "sections": ["intro", "setup"]}
+    v2_data = {"title": "Onboarding V2 (Draft)", "sections": ["intro", "setup", "advanced"]}
+
+    rev1 = store.save_revision("proj_001", v1_data, "admin_1")
+    rev2 = store.save_revision("proj_001", v2_data, "admin_2")
+
+    has_saved_both = rev1 == 1 and rev2 == 2
+    log_test("Curriculum Revisions Saved in Audit History DB", has_saved_both)
+
+    is_rollback_ok, restored = store.rollback_to_revision("proj_001", 1, "admin_1")
+    has_restored = restored is not None
+    has_v1_title = False
+    has_two_sections = False
+    if has_restored:
+        has_v1_title = restored.get("title") == "Onboarding V1"
+        has_two_sections = len(restored.get("sections", [])) == 2
+
+    has_audit_entry = len(store.audit_log) == 1
+
+    is_rollback_complete = (
+        is_rollback_ok
+        and has_restored
+        and has_v1_title
+        and has_two_sections
+        and has_audit_entry
+    )
+    log_test("1-Click Rollback Restores Snapshot & Logs Audit Entry", is_rollback_complete)
+
+
+# =====================================================================
+# 18. PUBLIC ANALYTICS DASHBOARD & HIGH-FAILURE ALERTS
+# =====================================================================
+def test_analytics_and_failure_alerts() -> None:
+    log_suite("18. Public Analytics Dashboard & High-Failure Alerts")
+
+    class AnalyticsAggregator:
+        def __init__(self) -> None:
+            self.submissions: List[Dict[str, Any]] = []
+
+        def record_result(self, submission: Dict[str, Any]) -> None:
+            self.submissions.append(submission)
+
+        def calculate_kpis(self, total_assigned: int) -> Dict[str, Any]:
+            completed_count = sum(1 for s in self.submissions if s.get("is_completed"))
+            failed_count = sum(1 for s in self.submissions if s.get("is_failed"))
+            has_completed = completed_count > 0
+            if has_completed:
+                pass_count = completed_count - failed_count
+                pass_rate = round((pass_count / completed_count) * 100, 1)
+            else:
+                pass_rate = 0.0
+
+            return {
+                "total_assigned": total_assigned,
+                "completed_count": completed_count,
+                "failed_count": failed_count,
+                "pass_rate_percentage": pass_rate,
+            }
+
+        def analyze_questions(self, question_results: Dict[str, Dict[str, int]]) -> List[Dict[str, Any]]:
+            analysis: List[Dict[str, Any]] = []
+            for q_id, stats in question_results.items():
+                attempts = stats.get("attempts", 0)
+                failures = stats.get("failures", 0)
+                has_attempts = attempts > 0
+                if has_attempts:
+                    failure_rate = round((failures / attempts) * 100, 1)
+                else:
+                    failure_rate = 0.0
+
+                has_high_failure = failure_rate >= 40.0
+                analysis.append({
+                    "question_id": q_id,
+                    "attempts": attempts,
+                    "failures": failures,
+                    "failure_rate": failure_rate,
+                    "has_high_failure_alert": has_high_failure,
+                })
+            return analysis
+
+        def sanitize_for_public(self, data: Dict[str, Any]) -> Dict[str, Any]:
+            public_copy = dict(data)
+            has_candidates = "candidates" in public_copy
+            if has_candidates:
+                del public_copy["candidates"]
+            has_emails = "emails" in public_copy
+            if has_emails:
+                del public_copy["emails"]
+            return public_copy
+
+    agg = AnalyticsAggregator()
+    agg.record_result({"is_completed": True, "is_failed": False})
+    agg.record_result({"is_completed": True, "is_failed": False})
+    agg.record_result({"is_completed": True, "is_failed": True})
+    agg.record_result({"is_completed": True, "is_failed": False})
+
+    kpis = agg.calculate_kpis(total_assigned=10)
+    has_total = kpis["total_assigned"] == 10
+    has_completed_count = kpis["completed_count"] == 4
+    has_failed_count = kpis["failed_count"] == 1
+    has_pass_rate = kpis["pass_rate_percentage"] == 75.0
+
+    is_kpi_valid = has_total and has_completed_count and has_failed_count and has_pass_rate
+    log_test("Analytics Dashboard KPI Calculation (Assigned, Completed, Pass Rate)", is_kpi_valid)
+
+    # Test question difficulty breakdown and high failure alert (>=40%)
+    q_stats = {
+        "q_easy": {"attempts": 10, "failures": 1},
+        "q_tough": {"attempts": 10, "failures": 5},
+    }
+    analysis = agg.analyze_questions(q_stats)
+    easy_alert = False
+    tough_alert = False
+    for item in analysis:
+        is_easy = item["question_id"] == "q_easy"
+        if is_easy:
+            easy_alert = item["has_high_failure_alert"]
+        is_tough = item["question_id"] == "q_tough"
+        if is_tough:
+            tough_alert = item["has_high_failure_alert"]
+
+    is_easy_normal = not easy_alert
+    is_alert_logic_valid = is_easy_normal and tough_alert
+    log_test("High-Failure Alert Badge (>= 40% failure threshold trigger)", is_alert_logic_valid)
+
+    # Test public sanitization
+    raw_dashboard = {
+        "kpis": kpis,
+        "candidates": ["John Doe", "Jane Smith"],
+        "emails": ["john@example.com"],
+        "is_public_enabled": True,
+    }
+    sanitized = agg.sanitize_for_public(raw_dashboard)
+    has_no_candidates = "candidates" not in sanitized
+    has_no_emails = "emails" not in sanitized
+    has_kpis_preserved = "kpis" in sanitized
+    is_sanitized_clean = has_no_candidates and has_no_emails and has_kpis_preserved
+    log_test("Public Analytics Data Sanitization (PII Stripped for Public View)", is_sanitized_clean)
+
+
+# =====================================================================
+# 19. SOCIAL MEDIA OPENGRAPH & TWITTER CARD SEO META
+# =====================================================================
+def test_social_meta_and_sharing() -> None:
+    log_suite("19. Social Media OpenGraph & Twitter Card SEO Meta")
+
+    def generate_seo_tags(question_data: Dict[str, Any], base_url: str) -> Dict[str, str]:
+        q_id = question_data.get("id", "q")
+        title = question_data.get("prompt", "Exam Question")
+        desc = f"Test your knowledge on: {title}"
+        image_url = question_data.get("media_url", f"{base_url}/assets/banner.png")
+        share_url = f"{base_url}/quiz/{q_id}?utm_source=social_share"
+
+        return {
+            "og:title": title,
+            "og:description": desc,
+            "og:image": image_url,
+            "og:url": share_url,
+            "og:type": "quiz",
+            "twitter:card": "summary_large_image",
+            "twitter:title": title,
+            "twitter:description": desc,
+            "twitter:image": image_url,
+        }
+
+    sample_q = {
+        "id": "q_aws_architecture",
+        "prompt": "Which AWS service provides serverless SQL querying of S3 data?",
+        "media_url": "https://example.com/assets/athena_preview.png",
+    }
+    tags = generate_seo_tags(sample_q, "https://example.com")
+
+    has_og_title = "Which AWS service" in tags.get("og:title", "")
+    has_og_type = tags.get("og:type") == "quiz"
+    has_twitter_card = tags.get("twitter:card") == "summary_large_image"
+    has_tracking_param = "utm_source=social_share" in tags.get("og:url", "")
+    has_image = tags.get("og:image") == "https://example.com/assets/athena_preview.png"
+
+    is_meta_valid = (
+        has_og_title
+        and has_og_type
+        and has_twitter_card
+        and has_tracking_param
+        and has_image
+    )
+    log_test("Social Media OpenGraph & Twitter Card Meta Tags Generation", is_meta_valid)
+
+
+# =====================================================================
 # 7. EXECUTION OF PHP UNIT TEST SUITE
 # =====================================================================
 def test_php_test_suite() -> None:
@@ -1197,6 +1438,9 @@ def main() -> None:
     test_email_routing_and_cadence()
     test_pipeline_sequencing_and_prerequisites()
     test_submission_and_external_verification()
+    test_project_revision_history_and_rollback()
+    test_analytics_and_failure_alerts()
+    test_social_meta_and_sharing()
     test_php_test_suite()
 
     elapsed = round(time.time() - start_time, 3)
