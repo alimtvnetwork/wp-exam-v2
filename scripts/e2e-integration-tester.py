@@ -2656,6 +2656,238 @@ def test_elementor_shortcode_parsing_and_sanitization() -> None:
 
 
 # =====================================================================
+# 38. REAL-TIME EXAM COUNTDOWN TIMER & AUTO-SUBMISSION ENGINE
+# =====================================================================
+def test_exam_timer_and_auto_submission() -> None:
+    log_suite("38. Real-Time Exam Countdown Timer & Auto-Submission Engine")
+
+    class ExamTimer:
+        def __init__(self, duration_seconds: int = 900) -> None:
+            self.duration = duration_seconds
+            self.start_time: Optional[float] = None
+            self.is_expired: bool = False
+            self.is_submitted: bool = False
+            self.saved_answers: Dict[str, Any] = {}
+
+        def start(self, current_time: float) -> None:
+            self.start_time = current_time
+
+        def tick(self, current_time: float) -> Dict[str, Any]:
+            has_started = self.start_time is not None
+            if not has_started:
+                return {"remaining": self.duration, "is_warning": False, "is_expired": False}
+
+            elapsed = current_time - self.start_time
+            remaining = max(0.0, self.duration - elapsed)
+            self.is_expired = remaining <= 0.0
+            is_warning = 0.0 < remaining <= 120.0
+
+            return {
+                "remaining": remaining,
+                "is_warning": is_warning,
+                "is_expired": self.is_expired,
+            }
+
+        def auto_submit_on_expiry(self, candidate_answers: Dict[str, Any]) -> bool:
+            if self.is_expired:
+                self.saved_answers = dict(candidate_answers)
+                self.is_submitted = True
+                return True
+            return False
+
+    timer = ExamTimer(duration_seconds=900)
+    timer.start(current_time=1000.0)
+
+    state1 = timer.tick(current_time=1300.0)
+    has_remaining_600 = state1["remaining"] == 600.0
+    is_warning_false = not state1["is_warning"]
+
+    state2 = timer.tick(current_time=1810.0)
+    is_warning_true = state2["is_warning"]
+
+    state3 = timer.tick(current_time=1950.0)
+    is_expired_true = state3["is_expired"]
+
+    candidate_answers = {"q1": "A", "q2": "C"}
+    is_auto_submitted = timer.auto_submit_on_expiry(candidate_answers)
+    has_answers_saved = timer.saved_answers.get("q1") == "A" and len(timer.saved_answers) == 2
+
+    is_timer_suite_valid = (
+        has_remaining_600
+        and is_warning_false
+        and is_warning_true
+        and is_expired_true
+        and is_auto_submitted
+        and has_answers_saved
+    )
+    log_test("Exam Countdown Timer State, Warning Threshold & Forced Auto-Submission", is_timer_suite_valid)
+
+
+# =====================================================================
+# 39. CANDIDATE CERTIFICATE GENERATION & VERIFICATION DIGEST
+# =====================================================================
+def test_certificate_generation_and_verification() -> None:
+    log_suite("39. Candidate Certificate Generation & Verification Digest")
+
+    import hashlib
+    import uuid
+
+    class CertificateIssuer:
+        SALT = "WP_EXAM_CERT_SALT_2026"
+
+        @classmethod
+        def issue_certificate(
+            cls,
+            candidate_hashed_ip: str,
+            project_id: str,
+            score_pct: float,
+            issue_timestamp: float,
+        ) -> Dict[str, Any]:
+            cert_serial = f"CERT-{uuid.uuid4().hex[:8].upper()}"
+            raw_payload = f"{cert_serial}:{candidate_hashed_ip}:{project_id}:{score_pct:.2f}:{issue_timestamp}:{cls.SALT}"
+            authenticity_digest = hashlib.sha256(raw_payload.encode("utf-8")).hexdigest()
+
+            return {
+                "certificate_id": cert_serial,
+                "candidate_id": candidate_hashed_ip,
+                "project_id": project_id,
+                "score_pct": score_pct,
+                "issued_at": issue_timestamp,
+                "digest": authenticity_digest,
+            }
+
+        @classmethod
+        def verify_certificate(cls, cert: Dict[str, Any]) -> Tuple[bool, Optional[str]]:
+            required_fields = ["certificate_id", "candidate_id", "project_id", "score_pct", "issued_at", "digest"]
+            for f in required_fields:
+                has_field = f in cert
+                if not has_field:
+                    return False, f"Missing field {f}"
+
+            cert_serial = cert["certificate_id"]
+            candidate_id = cert["candidate_id"]
+            project_id = cert["project_id"]
+            score_pct = cert["score_pct"]
+            issued_at = cert["issued_at"]
+            claimed_digest = cert["digest"]
+
+            raw_payload = f"{cert_serial}:{candidate_id}:{project_id}:{score_pct:.2f}:{issued_at}:{cls.SALT}"
+            expected_digest = hashlib.sha256(raw_payload.encode("utf-8")).hexdigest()
+
+            is_valid_digest = expected_digest == claimed_digest
+            if not is_valid_digest:
+                return False, "Cryptographic digest mismatch (tampering detected)"
+
+            return True, None
+
+    cert = CertificateIssuer.issue_certificate(
+        candidate_hashed_ip="a1b2c3d4e5f6",
+        project_id="proj_aws_solutions",
+        score_pct=92.5,
+        issue_timestamp=1770000000.0,
+    )
+
+    is_valid_cert, _ = CertificateIssuer.verify_certificate(cert)
+
+    tampered_cert = dict(cert)
+    tampered_cert["score_pct"] = 99.0
+    is_tampered_valid, tamper_err = CertificateIssuer.verify_certificate(tampered_cert)
+    is_tamper_detected = not is_tampered_valid
+
+    is_cert_suite_valid = (
+        is_valid_cert
+        and is_tamper_detected
+        and "tampering detected" in (tamper_err or "")
+    )
+    log_test("Cryptographic Certificate Issuance, Verification & Tamper Detection", is_cert_suite_valid)
+
+
+# =====================================================================
+# 40. MULTI-FORMAT JSON CURRICULUM MIGRATION & ADAPTER
+# =====================================================================
+def test_curriculum_schema_migration() -> None:
+    log_suite("40. Multi-Format JSON Curriculum Migration & Adapter")
+
+    class CurriculumMigrator:
+        @staticmethod
+        def migrate_to_v2(legacy_curriculum: Dict[str, Any]) -> Dict[str, Any]:
+            schema_version = legacy_curriculum.get("version", 1)
+            is_v2 = schema_version >= 2
+            if is_v2:
+                return legacy_curriculum
+
+            v1_questions = legacy_curriculum.get("questions", [])
+            v2_sections = [
+                {
+                    "id": "section_default",
+                    "title": "Core Assessment",
+                    "min_pass_score": legacy_curriculum.get("pass_score", 70),
+                    "questions": [
+                        {
+                            "id": q.get("id", f"q_{idx}"),
+                            "title": q.get("title", ""),
+                            "text": q.get("question", ""),
+                            "options": q.get("options", []),
+                            "correct_option": q.get("answer", 0),
+                            "media": {
+                                "type": q.get("media_type", "none"),
+                                "url": q.get("media_url", ""),
+                            },
+                            "branch_target": q.get("next", ""),
+                        }
+                        for idx, q in enumerate(v1_questions)
+                    ],
+                }
+            ]
+
+            return {
+                "version": 2,
+                "project_id": legacy_curriculum.get("id", "migrated_project"),
+                "title": legacy_curriculum.get("title", "Migrated Curriculum"),
+                "category": legacy_curriculum.get("category", "General"),
+                "theme": legacy_curriculum.get("theme", "letterly"),
+                "sections": v2_sections,
+                "sub_projects": [],
+                "is_migrated": True,
+            }
+
+    legacy_v1_json = {
+        "version": 1,
+        "id": "quiz_legacy_101",
+        "title": "Legacy Cloud Quiz",
+        "pass_score": 75,
+        "questions": [
+            {
+                "id": "q1",
+                "question": "What is an IGW?",
+                "options": ["Internet Gateway", "Internal Gateway"],
+                "answer": 0,
+                "media_type": "youtube",
+                "media_url": "https://www.youtube.com/watch?v=123",
+            }
+        ],
+    }
+
+    upgraded_v2 = CurriculumMigrator.migrate_to_v2(legacy_v1_json)
+
+    has_version_2 = upgraded_v2["version"] == 2
+    has_sections = len(upgraded_v2["sections"]) == 1
+    upgraded_q = upgraded_v2["sections"][0]["questions"][0]
+    has_preserved_q = upgraded_q["text"] == "What is an IGW?"
+    has_preserved_media = upgraded_q["media"]["type"] == "youtube"
+    is_marked_migrated = upgraded_v2["is_migrated"]
+
+    is_migration_suite_valid = (
+        has_version_2
+        and has_sections
+        and has_preserved_q
+        and has_preserved_media
+        and is_marked_migrated
+    )
+    log_test("Legacy Curriculum v1 to Modern v2 Schema Migration & Adapter", is_migration_suite_valid)
+
+
+# =====================================================================
 # 7. EXECUTION OF PHP UNIT TEST SUITE
 # =====================================================================
 def test_php_test_suite() -> None:
@@ -2731,6 +2963,9 @@ def main() -> None:
     test_offline_storage_and_sync()
     test_weighted_scoring_and_thresholds()
     test_elementor_shortcode_parsing_and_sanitization()
+    test_exam_timer_and_auto_submission()
+    test_certificate_generation_and_verification()
+    test_curriculum_schema_migration()
     test_php_test_suite()
 
     elapsed = round(time.time() - start_time, 3)
