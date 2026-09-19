@@ -84,13 +84,12 @@ def run_cached_grep(
     total_hits = sum(len(hits) for _, hits in matched_records)
     print(f"🔍 Grep Results for '{pattern_str}' in '{target_dir}': {total_hits} matches across {len(matched_records)} files ({elapsed_ms:.2f}ms){LINE_SEPARATOR}")
 
-    effective_max = max_results if max_results > 0 else total_hits
     printed_count = 0
     for fp, hits in matched_records:
         for line_no, line_text in hits:
             print(f"  {fp}:{line_no}: {line_text}")
             printed_count += 1
-            has_reached_max = (printed_count >= effective_max)
+            has_reached_max = (printed_count >= max_results)
             if has_reached_max:
                 break
         if has_reached_max:
@@ -98,29 +97,19 @@ def run_cached_grep(
 
     has_overflow = (total_hits > printed_count)
     if has_overflow:
-        print(f"{LINE_SEPARATOR}  ... and {total_hits - printed_count} more matches (use --limit 0 for all).")
+        print(f"{LINE_SEPARATOR}  ... and {total_hits - printed_count} more matches (use --max to adjust limit).")
 
     return ExitCodeType.SUCCESS.value
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Fast parallel cached content search",
-        formatter_class=argparse.RawDescriptionHelpFormatter,
-        epilog="""
-Examples:
-  python 03-ai-scripts/12-fast-cached-grep.py --pattern "== true" --lang go --limit 50
-  python 03-ai-scripts/12-fast-cached-grep.py --pattern "AppError" --ext .go -n 25
-  python 03-ai-scripts/12-fast-cached-grep.py --pattern "MustCompile" --path cli/ --limit 10
-  python 03-ai-scripts/12-fast-cached-grep.py --pattern "func.*Validate" --regex --limit 20
-        """
-    )
+    parser = argparse.ArgumentParser(description="Fast parallel cached content search")
     parser.add_argument("--pattern", "-p", required=True, help="Pattern or substring to search for")
     parser.add_argument("--path", "-d", default=CURRENT_DIR, help="Directory to search (default: .)")
     parser.add_argument("--ext", "-e", help="Comma-separated file extensions (e.g. .ts,.go,.py)")
     parser.add_argument("--lang", "-l", help="Language alias filter (e.g. go, ts, py)")
     parser.add_argument("--regex", action="store_true", help="Treat pattern as regular expression")
     parser.add_argument("--case-sensitive", action="store_true", help="Perform case-sensitive search")
-    parser.add_argument("--limit", "--max", "-n", dest="limit", type=int, default=100, help="Max line results to print (default: 100, 0 for unlimited)")
+    parser.add_argument("--max", type=int, default=100, help="Max line results to print (default: 100)")
     args = parser.parse_args()
 
     allowed_exts = set()
@@ -141,7 +130,7 @@ Examples:
         extensions=allowed_exts if allowed_exts else None,
         is_regex=args.regex,
         is_case_sensitive=args.case_sensitive,
-        max_results=args.limit
+        max_results=args.max
     ))
 
 if __name__ == "__main__":
