@@ -11,7 +11,24 @@ export type FieldType =
   | 'phone'
   | 'dropdown'
   | 'rating'
-  | 'file_upload';
+  | 'file_upload'
+  | 'link'
+  | 'regex_text';
+
+export type StringMatchRuleType = 'starts_with' | 'ends_with' | 'contains' | 'regex' | 'exact';
+
+export interface FieldValidationRule {
+  ruleType: StringMatchRuleType;
+  pattern: string;
+  errorMessage?: string;
+}
+
+export interface FieldConditionRule {
+  parentFieldId: string;
+  operator: 'equals' | 'not_equals' | 'contains' | 'is_empty' | 'is_not_empty';
+  expectedValue: string;
+  action: 'show' | 'hide' | 'require';
+}
 
 export interface FormField {
   id: string;
@@ -22,6 +39,11 @@ export interface FormField {
   options?: string[];
   correctAnswer?: string;
   points?: number;
+  group?: string;
+  url?: string;
+  linkText?: string;
+  validationRule?: FieldValidationRule;
+  conditions?: FieldConditionRule[];
 }
 
 export interface FormSettings {

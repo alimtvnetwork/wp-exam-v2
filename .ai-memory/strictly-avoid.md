@@ -603,3 +603,20 @@ Allowed work:
 
 **Why:** Unwrapped database queries leak exceptions, produce silent failures, and bloat code with repetitive try-catch boilerplate.
 
+---
+
+## Unsegmented Flat Navigation Tabs & Unauthenticated Root Admin — TOTAL BAN
+
+🔴 **NEVER expose raw unauthenticated admin dashboards directly at root (`/`) and NEVER render unsegmented horizontal navigation pill bars that wrap awkwardly.**
+
+Forbidden:
+- ❌ Serving administrative controls at `/` without authentication barriers.
+- ❌ Wrapping 8+ raw emoji buttons in a flat horizontal flex row without domain grouping.
+- ❌ Invocations of browser launch using bare `Start-Process` without `cmd.exe /c start` fallback.
+
+Allowed work:
+- ✅ Serve a professional business landing page at `/` explaining architecture and features.
+- ✅ Secure admin console behind session authentication (`admin` / `admin`).
+- ✅ Group admin navigation into clear domains (*Curriculum*, *Candidate Delivery*, *Operations & Data*).
+- ✅ Provide dual-layer browser launch in runner scripts with automated fallback.
+

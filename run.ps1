@@ -54,12 +54,20 @@ try {
 Write-Host "`n[3/3] Launching Vite development server on port $Port..." -ForegroundColor Yellow
 $TargetUrl = "http://127.0.0.1:$Port"
 
-# Open browser after short delay
+# Open browser after short delay with multi-strategy fallback
 if (-not $NoBrowser) {
     [System.Threading.Tasks.Task]::Run([Action]{
         Start-Sleep -Seconds 2
         Write-Host "`nOpening browser at $TargetUrl..." -ForegroundColor Cyan
-        Start-Process $TargetUrl
+        try {
+            Start-Process $TargetUrl -ErrorAction Stop
+        } catch {
+            try {
+                Start-Process "cmd.exe" -ArgumentList "/c start $TargetUrl" -WindowStyle Hidden -ErrorAction Stop
+            } catch {
+                Start-Process "explorer.exe" -ArgumentList "`"$TargetUrl`"" -ErrorAction SilentlyContinue
+            }
+        }
     }) | Out-Null
 }
 
