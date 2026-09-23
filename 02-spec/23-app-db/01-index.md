@@ -48,6 +48,7 @@ Application-specific database (App DB) specifications for whatever project this 
 | # | File | Purpose | Status |
 |---|------|---------|--------|
 | 01 | [01-schema.md](./01-schema.md) | Quiz Database Schema, DDL & Table Relationships | Complete |
+| 02 | [02-forms-and-project-tree-schema.md](./02-forms-and-project-tree-schema.md) | Split SQLite DB Schema for Forms, Submissions & Visual Project Tree | Complete |
 
 ---
 

@@ -8,6 +8,7 @@ Master directory of architectural and execution plans.
 - [04-guideline-prompt-and-installer-upgrade.md](pending/04-guideline-prompt-and-installer-upgrade.md): Guideline prompt and installer enhancements.
 - [09-update-prompts-and-release.md](pending/09-update-prompts-and-release.md): Update prompts and release lifecycle (deferred under WOR policy).
 - [11-code-red-refactor-remediation.md](pending/11-code-red-refactor-remediation.md): Remediate Code Red enum, boolean, and query wrapper violations across the codebase.
+- [57-forms-spec-and-laravel-architecture.md](pending/57-forms-spec-and-laravel-architecture.md): Universal form engine, visual project tree, split SQLite schemas, and Laravel 11 application architecture.
 
 ## Completed Plans
 
