@@ -43,6 +43,30 @@ if (!class_exists(TestCase::class)) {
             }
         }
 
+        public function assertNull(mixed $actual, string $message = ''): void {
+            if ($actual !== null) {
+                throw new \AssertionError($message ?: "Failed asserting that value is null");
+            }
+        }
+
+        public function assertEmpty(mixed $actual, string $message = ''): void {
+            if (!empty($actual)) {
+                throw new \AssertionError($message ?: "Failed asserting that value is empty");
+            }
+        }
+
+        public function assertNotEmpty(mixed $actual, string $message = ''): void {
+            if (empty($actual)) {
+                throw new \AssertionError($message ?: "Failed asserting that value is not empty");
+            }
+        }
+
+        public function assertStringContainsString(string $needle, string $haystack, string $message = ''): void {
+            if (!str_contains($haystack, $needle)) {
+                throw new \AssertionError($message ?: "Failed asserting that '{$haystack}' contains '{$needle}'");
+            }
+        }
+
         public function assertInstanceOf(string $expected, mixed $actual, string $message = ''): void {
             $isInstance = $actual instanceof $expected;
             if (!$isInstance) {

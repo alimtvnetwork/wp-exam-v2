@@ -204,6 +204,46 @@ $GLOBALS['wpdb'] = new wpdb();
 // Load plugin autoloader
 require_once dirname(__DIR__) . '/includes/Autoloader.php';
 
+// Autoloader for App\ namespace (Laravel Architecture)
+spl_autoload_register(function (string $class): void {
+    $prefix = 'App\\';
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
+        return;
+    }
+    $relativeClass = substr($class, $len);
+    $file = dirname(__DIR__) . '/app/' . str_replace('\\', '/', $relativeClass) . '.php';
+    if (file_exists($file)) {
+        require_once $file;
+        return;
+    }
+    $lowerFile = dirname(__DIR__) . '/app/' . strtolower(str_replace('\\', '/', $relativeClass)) . '.php';
+    if (file_exists($lowerFile)) {
+        require_once $lowerFile;
+        return;
+    }
+});
+
+// Autoloader for Tests\ namespace
+spl_autoload_register(function (string $class): void {
+    $prefix = 'Tests\\';
+    $len = strlen($prefix);
+    if (strncmp($prefix, $class, $len) !== 0) {
+        return;
+    }
+    $relativeClass = substr($class, $len);
+    $file = __DIR__ . '/' . str_replace('\\', '/', $relativeClass) . '.php';
+    if (file_exists($file)) {
+        require_once $file;
+        return;
+    }
+    $lowerFile = __DIR__ . '/' . strtolower(str_replace('\\', '/', $relativeClass)) . '.php';
+    if (file_exists($lowerFile)) {
+        require_once $lowerFile;
+        return;
+    }
+});
+
 // Fallback TestCase stub for environments without PHPUnit
 if (!class_exists('PHPUnit\\Framework\\TestCase')) {
     require_once __DIR__ . '/stubs/testcase.php';

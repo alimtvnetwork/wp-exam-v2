@@ -12,7 +12,8 @@
     },
     "autoload": {
         "psr-4": {
-            "WpExam\\": "includes/"
+            "WpExam\\": "includes/",
+            "App\\": "app/"
         }
     },
     "autoload-dev": {

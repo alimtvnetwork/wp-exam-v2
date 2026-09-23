@@ -8,10 +8,10 @@ Master directory of architectural and execution plans.
 - [04-guideline-prompt-and-installer-upgrade.md](pending/04-guideline-prompt-and-installer-upgrade.md): Guideline prompt and installer enhancements.
 - [09-update-prompts-and-release.md](pending/09-update-prompts-and-release.md): Update prompts and release lifecycle (deferred under WOR policy).
 - [11-code-red-refactor-remediation.md](pending/11-code-red-refactor-remediation.md): Remediate Code Red enum, boolean, and query wrapper violations across the codebase.
-- [57-forms-spec-and-laravel-architecture.md](pending/57-forms-spec-and-laravel-architecture.md): Universal form engine, visual project tree, split SQLite schemas, and Laravel 11 application architecture.
 
 ## Completed Plans
 
+- [57-forms-spec-and-laravel-architecture.md](completed/57-forms-spec-and-laravel-architecture.md): Universal form engine, visual project tree, split SQLite schemas, and Laravel 11 application architecture with 29 passing unit tests (69/69 E2E assertions passed).
 - [56-e2e-python-testing-security-and-media-orchestration.md](completed/56-e2e-python-testing-security-and-media-orchestration.md): 43-suite Python E2E integration test suite, candidate feedback & CSAT rating survey pipeline, media pre-flight availability & fallback detection, and admin audit log streaming & threat event flagging (69/69 tests passed).
 - [55-e2e-python-testing-security-and-media-orchestration.md](completed/55-e2e-python-testing-security-and-media-orchestration.md): 40-suite Python E2E integration test suite, real-time exam countdown timer & auto-submission, candidate certificate generation & verification digest, and multi-format curriculum migration (66/66 tests passed).
 - [54-e2e-python-testing-security-and-media-orchestration.md](completed/54-e2e-python-testing-security-and-media-orchestration.md): 37-suite Python E2E integration test suite, offline storage & local sync engine, weighted scoring & section passing threshold engine, and Elementor shortcode parameter extraction & sanitization (63/63 tests passed).

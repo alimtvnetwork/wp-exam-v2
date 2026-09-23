@@ -13,6 +13,12 @@ $testFiles = [
     __DIR__ . '/unit/WpDbQueryWrapperTest.php',
     __DIR__ . '/unit/SqliteDatabaseTest.php',
     __DIR__ . '/unit/plugin-bootstrap-test.php',
+    __DIR__ . '/unit/whatsappformattertest.php',
+    __DIR__ . '/unit/countrycachetest.php',
+    __DIR__ . '/unit/cycledetectortest.php',
+    __DIR__ . '/unit/dynamicconditionalvalidationtest.php',
+    __DIR__ . '/unit/splitdbisolationtest.php',
+    __DIR__ . '/unit/draftresumetest.php',
 ];
 
 $passed = 0;
@@ -31,14 +37,25 @@ foreach ($testFiles as $file) {
     require_once $file;
     $baseName = basename($file, '.php');
     $pascalName = str_replace(' ', '', ucwords(str_replace(['-', '_'], ' ', $baseName)));
-    $className = 'WpExam\\Tests\\' . $pascalName;
 
-    if (!class_exists($className)) {
-        $className = 'WpExam\\Tests\\' . $baseName;
+    $candidates = [
+        'Tests\\Unit\\' . $pascalName,
+        'Tests\\Feature\\' . $pascalName,
+        'WpExam\\Tests\\' . $pascalName,
+        'WpExam\\Tests\\' . $baseName,
+        $pascalName,
+    ];
+
+    $className = '';
+    foreach ($candidates as $cand) {
+        if (class_exists($cand, false)) {
+            $className = $cand;
+            break;
+        }
     }
 
-    if (!class_exists($className)) {
-        echo "Class not found in {$file}: {$className}\n";
+    if (empty($className)) {
+        echo "Class not found in {$file}\n";
         continue;
     }
 
