@@ -329,7 +329,7 @@ Forbidden:
 Allowed work:
 - ✅ Run tests when the repository owner explicitly requests it in their prompt (e.g., "run tests", "execute unit tests", "fix failing tests").
 - ✅ **ALL CI/CD Fix Workflows (`ci-cd-fix`, `16-ci-cd/*`):** MUST run all unit test suites, integration tests, linters, and quality gates properly (`python 03-ai-scripts/06-cicd-local-runner.py`) to diagnose, surface, and repair pipeline failures. Skipping tests with `--no-tests` in CI/CD fix tasks is strictly prohibited.
-- ✅ **ALL Release Workflows (`release-management`, `release-orchestrator`, `01`, `03`, `07`, `16-ci-cd/04`):** MUST run all unit test suites (`--run-tests`) and verify 100% green passing before cutting any release.
+- ✅ **ALL Release Workflows (`release-management`, `release-orchestrator`, `01`, `03`, `07`, `16-ci-cd/06`):** MUST run all unit test suites (`--run-tests`) and verify 100% green passing before cutting any release.
 - ✅ Always use `--no-tests` (or `--skip-tests`) when running standard routine development quality gate checks (`06-cicd-local-runner.py`) unless running CI/CD fixes, release ceremonies, or explicitly instructed by the owner.
 
 **Why:** Unit test suites can be slow, resource-heavy, and disruptive during rapid iterative development loops. Running tests without explicit owner authorization wastes resources. Quality gates in standard turns focus on static analysis, linting, and structural integrity.
@@ -367,7 +367,7 @@ Allowed work:
 - ✅ Run targeted file-level linters/autofixers directly on the modified file(s) (e.g., `python linter-scripts/check-nested-ifs.py <file>`, `python 03-ai-scripts/08-naming-autofixer.py <file>`, `python linter-scripts/check-boolean-guidelines.py <file>`).
 - ✅ **Owner Explicit Command:** Run the runner if and only if the repository owner explicitly requests running the pipeline.
 - ✅ **CI/CD Fix Tasks (`ci-cd-fix`, `16-ci-cd/*`):** May run `python 03-ai-scripts/06-cicd-local-runner.py` because the primary goal of those tasks is specifically repairing CI/CD infrastructure.
-- ✅ **Release Ceremonies (`release-orchestrator`, `01`, `03`, `07`, `16-ci-cd/04`):** Run `python 03-ai-scripts/06-cicd-local-runner.py --run-tests` as the mandatory final pre-release gate before cutting a release.
+- ✅ **Release Ceremonies (`release-orchestrator`, `01`, `03`, `07`, `16-ci-cd/06`):** Run `python 03-ai-scripts/06-cicd-local-runner.py --run-tests` as the mandatory final pre-release gate before cutting a release.
 
 **Why:** The local CI/CD runner runs up to 38 segments (linters, cross-OS compilation, snapshot builds, web builds) across the entire codebase. Executing this massive suite on every micro-turn or coding guideline edit causes immense latency, hits unrelated files, and wastes substantial developer and compute time.
 
@@ -416,7 +416,7 @@ Forbidden:
 
 Allowed work:
 - ✅ Run targeted linters (`check-newline-styling.py`, `check-boolean-guidelines.py`, etc.) for fast validation.
-- ✅ Run builds ONLY when explicitly requested or at the final release stage (`01-prompts/16-ci-cd/04-ci-cd-fix-with-release.md`).
+- ✅ Run builds ONLY when explicitly requested or at the final release stage (`01-prompts/16-ci-cd/06-ci-cd-fix-with-release.md`).
 
 **Why:** Running heavy frontend and backend builds repeatedly slows down feedback loops and consumes significant CPU/IO resources.
 

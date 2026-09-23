@@ -1,6 +1,31 @@
+## v6.45.0 — 2026-09-22 (enhance release orchestrator with automated release notes and GitHub release creation)
+
+**Scope:** Version bump. enhance release orchestrator with automated release notes and GitHub release creation.
+
+---
+
+## v6.44.0 — 2026-09-22 (fix execute prompt premature turn closure and mandate same-turn tool chaining)
+
+**Scope:** Version bump. fix execute prompt premature turn closure and mandate same-turn tool chaining.
+
+---
+
+## v6.43.0 — 2026-09-22 (enforce unconditional zero-question execution mandate and top-instruction priority)
+
+**Scope:** Version bump. enforce unconditional zero-question execution mandate and top-instruction priority.
+
+---
+
 # 98 — Changelog
 
 **Spec:** `19-main-worker-service`
+
+---
+
+## v6.42.0 — 2026-09-18 (feat(prompts): integrate GitMap pipeline-ai and dynamic waiting protocol)
+
+**Scope:** Version bump (`6.41.0` → `6.42.0`). feat(prompts): integrate GitMap pipeline-ai and dynamic waiting protocol.
+**Sync-regenerated artifacts:** `version.json`, `public/health-score.json`, `readme.md`
 
 ---
 

@@ -59,8 +59,8 @@ All prompt workflows are mapped to first-class Antigravity skills:
 | `autonomous-qa-and-testing` | Autonomous QA test execution and quality gate verification | `01-prompts/06-testing-and-qa/01-autonomous-qa-and-testing-v4.md` |
 | `cg-boolean-and-naming` | Audits boolean naming (`is`/`has`), implicit checks, and enums | `01-prompts/15-cg-execute/04-booleans-and-complex-conditions.md` |
 | `cg-error-management` | Universal error management and `*appfault.AppError` compliance | `01-prompts/15-cg-execute/02-error-management.md` |
-| `ci-cd-create` | Cross-platform CI/CD pipeline and linter authoring | `01-prompts/16-ci-cd/05-cicd-pipeline-create.md` |
-| `ci-cd-fix` | 4-Part RCA and pipeline failure diagnosis | `01-prompts/16-ci-cd/01-ci-cd-fix.md` |
+| `ci-cd-create` | Cross-platform CI/CD pipeline and linter authoring | `01-prompts/16-ci-cd/07-cicd-pipeline-create.md` |
+| `ci-cd-fix` | 4-Part RCA and pipeline failure diagnosis | `01-prompts/16-ci-cd/03-ci-cd-fix.md` |
 | `clean-artifacts-and-git-history` | Cleans generated test reports, pycache, and preserves git hygiene | `01-prompts/09-commit-and-multi-agent-code-fix/07-clean-artifacts-and-git-history.md` |
 | `coding-guidelines` | Core coding guideline review and zero-nesting enforcement | `01-prompts/04-coding-standards/01-coding-guidelines.md` |
 | `execute-ai-instruction-writer` | Generates structured AI instructions and specifications | `01-prompts/14-execute/04-execute-ai-instruction-writer.md` |
