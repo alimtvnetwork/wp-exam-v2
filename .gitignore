@@ -55,3 +55,7 @@ __pycache__/
 /vendor/
 .phpunit.cache/
 
+# Deployment configuration & archives
+deploy.json
+deploy-package*.zip
+

@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "environments": {
+    "production": {
+      "host": "your-server-ip-or-domain.com",
+      "user": "deploy",
+      "port": 22,
+      "remotePath": "/var/www/wp-exam",
+      "keyPath": "",
+      "method": "archive-ssh",
+      "buildFrontend": true,
+      "skipOptimizations": false
+    },
+    "staging": {
+      "host": "staging.example.com",
+      "user": "ubuntu",
+      "port": 22,
+      "remotePath": "/var/www/staging-wp-exam",
+      "keyPath": "",
+      "method": "archive-ssh",
+      "buildFrontend": true,
+      "skipOptimizations": false
+    }
+  }
+}

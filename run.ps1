@@ -35,7 +35,7 @@ if ($hasPhp) {
     Write-Host "  [OK] PHP found: $(php -v | Select-Object -First 1)" -ForegroundColor Green
     $phpPort = 8080
     Write-Host "  Starting local PHP server on http://127.0.0.1:$phpPort..." -ForegroundColor Cyan
-    $phpProcess = Start-Process -FilePath "php" -ArgumentList "-S 127.0.0.1:$phpPort -t `"$RepoRoot`"" -PassThru -WindowStyle Hidden
+    $phpProcess = Start-Process -FilePath "php" -ArgumentList "-S 127.0.0.1:$phpPort router.php" -PassThru -WindowStyle Hidden
     Write-Host "  [OK] Local PHP server running on PID $($phpProcess.Id) (port $phpPort)." -ForegroundColor Green
 } else {
     Write-Host "  [WARN] PHP CLI not found in PATH; running frontend with client-side fallback storage." -ForegroundColor DarkYellow
