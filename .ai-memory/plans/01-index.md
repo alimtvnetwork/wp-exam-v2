@@ -11,6 +11,7 @@ Master directory of architectural and execution plans.
 
 ## Completed Plans
 
+- [58-agm-mailbox-and-temp-e2e.md](completed/58-agm-mailbox-and-temp-e2e.md): AGM mailbox auto-configuration (mail.<domain>), organic navigation redesign, and isolated temporary E2E test suite (RUN_TEMP_E2E=1).
 - [57-forms-spec-and-laravel-architecture.md](completed/57-forms-spec-and-laravel-architecture.md): Universal form engine, visual project tree, split SQLite schemas, and Laravel 11 application architecture with 29 passing unit tests (69/69 E2E assertions passed).
 - [56-e2e-python-testing-security-and-media-orchestration.md](completed/56-e2e-python-testing-security-and-media-orchestration.md): 43-suite Python E2E integration test suite, candidate feedback & CSAT rating survey pipeline, media pre-flight availability & fallback detection, and admin audit log streaming & threat event flagging (69/69 tests passed).
 - [55-e2e-python-testing-security-and-media-orchestration.md](completed/55-e2e-python-testing-security-and-media-orchestration.md): 40-suite Python E2E integration test suite, real-time exam countdown timer & auto-submission, candidate certificate generation & verification digest, and multi-format curriculum migration (66/66 tests passed).

@@ -39,6 +39,7 @@ App-specific specification content for the WP Exam plugin. This engine provides 
 | 05 | [05-hierarchical-learning-and-exam-system/03-learning-stages-and-verification.md](./05-hierarchical-learning-and-exam-system/03-learning-stages-and-verification.md) | 4-Stage Learning State Machine, Docs, Checklists & Anti-Cheat | Complete |
 | 05 | [05-hierarchical-learning-and-exam-system/04-split-db-and-audit-history.md](./05-hierarchical-learning-and-exam-system/04-split-db-and-audit-history.md) | Split SQLite DB Architecture, Audit Logs & 1-Click Rollback | Complete |
 | 05 | [05-hierarchical-learning-and-exam-system/05-question-types-and-reporting.md](./05-hierarchical-learning-and-exam-system/05-question-types-and-reporting.md) | Question Types, Live URL Verification, Bug Triage & AI Studio | Complete |
+| 06 | [06-agm-mailbox-and-temp-e2e.md](./06-agm-mailbox-and-temp-e2e.md) | AGM Mailbox Auto-Configuration, Organic Navigation & Temp E2E Test Suite | Complete |
 | 21f | [21f-forms-spec/01-overview.md](./21f-forms-spec/01-overview.md) | Universal Form & Exam Engine Overview, Architecture & Feature Inventory | Complete |
 | 21f | [21f-forms-spec/02-data-contracts.md](./21f-forms-spec/02-data-contracts.md) | Eloquent Models, Dynamic Validation Matrix, JSON Schemas & REST Routes | Complete |
 | 21f | [21f-forms-spec/03-visual-and-ux.md](./21f-forms-spec/03-visual-and-ux.md) | Visual Project Node Canvas, Wizard Runner, Accordion UX & JSON Themes | Complete |

@@ -218,129 +218,148 @@ export const Index = () => {
           </div>
         </div>
 
-        {/* Structured Domain Navigation Bar (Eliminates the childish flat pills) */}
-        <div className="border-t border-border/60 bg-muted/20">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 flex items-center justify-between overflow-x-auto py-1.5 gap-6">
-            {/* Group 1: Curriculum & Authoring */}
-            <div className="flex items-center gap-1 shrink-0">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider px-2">
-                Authoring:
-              </span>
-              <Button
-                variant={activeTab === 'builder' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveTab('builder')}
-                className="text-xs h-7 px-2.5 gap-1.5"
-              >
-                <FileEdit className="w-3.5 h-3.5" />
-                <span>Form Builder</span>
-              </Button>
-              <Button
-                variant={activeTab === 'projects' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveTab('projects')}
-                className="text-xs h-7 px-2.5 gap-1.5"
-              >
-                <FolderTree className="w-3.5 h-3.5" />
-                <span>Projects Tree</span>
-              </Button>
+        {/* Organic Enterprise Navigation Bar */}
+        <div className="border-t border-border/60 bg-muted/10 backdrop-blur-md py-2">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-between gap-3">
+            {/* Primary Navigation Clusters */}
+            <div className="flex flex-wrap items-center gap-2">
+              {/* Authoring Cluster */}
+              <div className="flex items-center gap-1 bg-card/80 border border-border/70 p-1 rounded-xl shadow-xs">
+                <Button
+                  variant={activeTab === 'builder' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('builder')}
+                  className={`text-xs h-7 px-3 gap-1.5 rounded-lg transition-all ${
+                    activeTab === 'builder' ? 'shadow-sm font-semibold' : 'text-muted-foreground'
+                  }`}
+                >
+                  <FileEdit className="w-3.5 h-3.5" />
+                  <span>Form Builder</span>
+                </Button>
+                <Button
+                  variant={activeTab === 'projects' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('projects')}
+                  className={`text-xs h-7 px-3 gap-1.5 rounded-lg transition-all ${
+                    activeTab === 'projects' ? 'shadow-sm font-semibold' : 'text-muted-foreground'
+                  }`}
+                >
+                  <FolderTree className="w-3.5 h-3.5" />
+                  <span>Projects Tree</span>
+                </Button>
+              </div>
+
+              {/* Delivery Cluster */}
+              <div className="flex items-center gap-1 bg-card/80 border border-border/70 p-1 rounded-xl shadow-xs">
+                <Button
+                  variant={activeTab === 'focus-runner' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('focus-runner')}
+                  className={`text-xs h-7 px-3 gap-1.5 rounded-lg transition-all ${
+                    activeTab === 'focus-runner' ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm font-semibold' : 'text-muted-foreground'
+                  }`}
+                >
+                  <Target className="w-3.5 h-3.5 text-indigo-400" />
+                  <span>Focus Quiz</span>
+                </Button>
+                <Button
+                  variant={activeTab === 'runner' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('runner')}
+                  className={`text-xs h-7 px-3 gap-1.5 rounded-lg transition-all ${
+                    activeTab === 'runner' ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm font-semibold' : 'text-muted-foreground'
+                  }`}
+                >
+                  <PlayCircle className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>Live Runner</span>
+                </Button>
+                <Button
+                  variant={activeTab === 'invites' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('invites')}
+                  className={`text-xs h-7 px-3 gap-1.5 rounded-lg transition-all ${
+                    activeTab === 'invites' ? 'shadow-sm font-semibold' : 'text-muted-foreground'
+                  }`}
+                >
+                  <Users className="w-3.5 h-3.5" />
+                  <span>Invites</span>
+                </Button>
+              </div>
+
+              {/* Operations Cluster */}
+              <div className="flex items-center gap-1 bg-card/80 border border-border/70 p-1 rounded-xl shadow-xs">
+                <Button
+                  variant={activeTab === 'email' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('email')}
+                  className={`text-xs h-7 px-3 gap-1.5 rounded-lg transition-all ${
+                    activeTab === 'email' ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm font-semibold' : 'text-muted-foreground'
+                  }`}
+                >
+                  <Mail className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Email Gateway</span>
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                </Button>
+                <Button
+                  variant={activeTab === 'history' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('history')}
+                  className={`text-xs h-7 px-2.5 gap-1.5 rounded-lg transition-all ${
+                    activeTab === 'history' ? 'shadow-sm font-semibold' : 'text-muted-foreground'
+                  }`}
+                >
+                  <History className="w-3.5 h-3.5" />
+                  <span>Audit</span>
+                </Button>
+                <Button
+                  variant={activeTab === 'analytics' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('analytics')}
+                  className={`text-xs h-7 px-2.5 gap-1.5 rounded-lg transition-all ${
+                    activeTab === 'analytics' ? 'shadow-sm font-semibold' : 'text-muted-foreground'
+                  }`}
+                >
+                  <BarChart3 className="w-3.5 h-3.5" />
+                  <span>Analytics</span>
+                </Button>
+                <Button
+                  variant={activeTab === 'storage' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('storage')}
+                  className={`text-xs h-7 px-2.5 gap-1.5 rounded-lg transition-all ${
+                    activeTab === 'storage' ? 'shadow-sm font-semibold' : 'text-muted-foreground'
+                  }`}
+                >
+                  <Database className="w-3.5 h-3.5" />
+                  <span>DB</span>
+                </Button>
+                <Button
+                  variant={activeTab === 'backups' ? 'default' : 'ghost'}
+                  size="sm"
+                  onClick={() => setActiveTab('backups')}
+                  className={`text-xs h-7 px-2.5 gap-1.5 rounded-lg transition-all ${
+                    activeTab === 'backups' ? 'shadow-sm font-semibold' : 'text-muted-foreground'
+                  }`}
+                >
+                  <Archive className="w-3.5 h-3.5" />
+                  <span>Backups</span>
+                </Button>
+              </div>
             </div>
 
-            {/* Group 2: Candidate Delivery */}
-            <div className="flex items-center gap-1 shrink-0">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider px-2">
-                Delivery:
-              </span>
-              <Button
-                variant={activeTab === 'focus-runner' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveTab('focus-runner')}
-                className="text-xs h-7 px-2.5 gap-1.5 font-bold"
-              >
-                <Target className="w-3.5 h-3.5 text-indigo-400" />
-                <span>Focus Quiz</span>
-              </Button>
-              <Button
-                variant={activeTab === 'runner' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveTab('runner')}
-                className="text-xs h-7 px-2.5 gap-1.5"
-              >
-                <PlayCircle className="w-3.5 h-3.5 text-emerald-400" />
-                <span>Live Runner</span>
-              </Button>
-              <Button
-                variant={activeTab === 'invites' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveTab('invites')}
-                className="text-xs h-7 px-2.5 gap-1.5"
-              >
-                <Users className="w-3.5 h-3.5" />
-                <span>Candidate Invites</span>
-              </Button>
-            </div>
-
-            {/* Group 3: Operations & Data */}
-            <div className="flex items-center gap-1 shrink-0">
-              <span className="text-[10px] uppercase font-bold text-muted-foreground tracking-wider px-2">
-                Operations:
-              </span>
-              <Button
-                variant={activeTab === 'email' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveTab('email')}
-                className="text-xs h-7 px-2.5 gap-1.5"
-              >
-                <Mail className="w-3.5 h-3.5" />
-                <span>Email Gateway</span>
-              </Button>
-              <Button
-                variant={activeTab === 'history' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveTab('history')}
-                className="text-xs h-7 px-2.5 gap-1.5"
-              >
-                <History className="w-3.5 h-3.5" />
-                <span>Audit History</span>
-              </Button>
-              <Button
-                variant={activeTab === 'analytics' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveTab('analytics')}
-                className="text-xs h-7 px-2.5 gap-1.5"
-              >
-                <BarChart3 className="w-3.5 h-3.5" />
-                <span>Analytics</span>
-              </Button>
-              <Button
-                variant={activeTab === 'storage' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveTab('storage')}
-                className="text-xs h-7 px-2.5 gap-1.5"
-              >
-                <Database className="w-3.5 h-3.5" />
-                <span>SQLite DB</span>
-              </Button>
-              <Button
-                variant={activeTab === 'backups' ? 'default' : 'ghost'}
-                size="sm"
-                onClick={() => setActiveTab('backups')}
-                className="text-xs h-7 px-2.5 gap-1.5"
-              >
-                <Archive className="w-3.5 h-3.5" />
-                <span>Backups</span>
-              </Button>
-            </div>
-
-            {/* Group 4: AI Prompt Engineering */}
-            <div className="flex items-center gap-1 shrink-0">
+            {/* AI Prompt Engineering Studio */}
+            <div className="flex items-center gap-1.5">
               <Button
                 variant={activeTab === 'ai-studio' ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setActiveTab('ai-studio')}
-                className="text-xs h-7 px-2.5 gap-1.5 border-primary/40 text-primary"
+                className={`text-xs h-8 px-3 gap-1.5 rounded-xl border-amber-500/40 transition-all ${
+                  activeTab === 'ai-studio'
+                    ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-sm font-semibold'
+                    : 'text-amber-500 hover:bg-amber-500/10'
+                }`}
               >
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
                 <span>AI Studio</span>
               </Button>
             </div>

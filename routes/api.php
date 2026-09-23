@@ -44,3 +44,31 @@ Route::get('/api/v1/forms/draft/{token}', [FormController::class, 'resumeDraft']
 
 // Form Submission with Server-Side Conditional Engine
 Route::post('/api/v1/forms/{slug}/submit', [FormController::class, 'submit']);
+
+// AGM Mailbox Auto-Config & Real-Time Verification
+Route::get('/api/v1/email/config', function() {
+    return [
+        'status' => 'success',
+        'is_success' => true,
+        'data' => \App\Services\Email\MailboxManager::getConfig(),
+    ];
+});
+
+Route::post('/api/v1/email/verify-connection', function(array $params, array $body) {
+    $host = (string) ($body['host'] ?? 'mail.hire-seoexperts.com');
+    $port = (int) ($body['port'] ?? 465);
+    $secure = (string) ($body['secure'] ?? 'ssl');
+    $type = (string) ($body['type'] ?? 'smtp');
+    $user = (string) ($body['user'] ?? '');
+    $pass = (string) ($body['pass'] ?? '');
+
+    $result = \App\Services\Email\MailboxManager::verifyConnection($host, $port, $secure, $type, $user, $pass);
+
+    return [
+        'status' => $result['status'],
+        'is_success' => $result['is_success'],
+        'data' => $result,
+        'message' => $result['message'],
+    ];
+});
+
