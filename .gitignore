@@ -59,3 +59,4 @@ __pycache__/
 deploy.json
 deploy-package*.zip
 
+test-pass.json
