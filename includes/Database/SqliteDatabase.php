@@ -339,6 +339,30 @@ class SqliteDatabase {
         }
     }
 
+    public function queryWrapped(string $sql, array $params = []): QueryResult {
+        if ($this->pdo === null) {
+            return QueryResult::failure('PDO connection not initialized', $sql);
+        }
+
+        return SqlQueryWrapper::execute($this->pdo, function (PDO $db) use ($sql, $params) {
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll();
+        }, $sql);
+    }
+
+    public function executeWrapped(string $sql, array $params = []): QueryResult {
+        if ($this->pdo === null) {
+            return QueryResult::failure('PDO connection not initialized', $sql);
+        }
+
+        return SqlQueryWrapper::execute($this->pdo, function (PDO $db) use ($sql, $params) {
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->rowCount();
+        }, $sql);
+    }
+
     public function getTableCounts(): array {
         if ($this->pdo === null) {
             return [

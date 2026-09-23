@@ -54,4 +54,46 @@ class WpDbQueryWrapper {
             $wpdb->suppress_errors($previousSuppress);
         }
     }
+
+    /**
+     * Executes a $wpdb callable and returns a structured QueryResult envelope.
+     *
+     * @template T
+     * @param wpdb $wpdb
+     * @param callable(wpdb): T $callback
+     * @param string $contextSql
+     * @return QueryResult
+     */
+    public static function executeResult(wpdb $wpdb, callable $callback, string $contextSql = ''): QueryResult {
+        $previousSuppress = $wpdb->suppress_errors(true);
+
+        try {
+            $data = $callback($wpdb);
+
+            $hasLastError = !empty($wpdb->last_error);
+
+            if ($hasLastError) {
+                $errorMsg = $wpdb->last_error;
+                FileLogger::getInstance()->error(ResponseMessageType::DbQueryFailed->value, [
+                    'sql'   => $contextSql ?: $wpdb->last_query,
+                    'error' => $errorMsg,
+                ]);
+
+                return QueryResult::failure($errorMsg, $contextSql ?: $wpdb->last_query);
+            }
+
+            return QueryResult::success($data, $contextSql ?: $wpdb->last_query);
+        } catch (Throwable $e) {
+            $errorMsg = $e->getMessage();
+            FileLogger::getInstance()->error(ResponseMessageType::DbQueryFailed->value, [
+                'sql'   => $contextSql ?: $wpdb->last_query,
+                'error' => $errorMsg,
+                'trace' => $e->getTraceAsString(),
+            ]);
+
+            return QueryResult::failure($errorMsg, $contextSql ?: $wpdb->last_query);
+        } finally {
+            $wpdb->suppress_errors($previousSuppress);
+        }
+    }
 }

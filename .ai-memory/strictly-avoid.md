@@ -572,3 +572,34 @@ Allowed work:
 
 **Why:** Architectural specs are canonical contracts. Summarizing or shrinking them destroys domain nuance and leads to hallucinations.
 
+---
+
+## Hardcoded Foreign CI Matrix Jobs — TOTAL BAN
+
+🔴 **NEVER hardcode foreign repository quality gate jobs into `03-ai-scripts/02-shared-engine.py` or CI runners without verifying target paths exist in the workspace.**
+
+Forbidden:
+- ❌ Registering Go compiler jobs (`04-code/golang`) in PHP/JS WordPress projects.
+- ❌ Registering missing linters (`check-tunable-constants.py`, `check-runner-dispatch-antipatterns.py`).
+
+Allowed work:
+- ✅ Dynamically or accurately configure `CI_JOBS_MATRIX` strictly to native test suites (`php tests/run-tests.php`, `scripts/e2e-integration-tester.py`) and verified AI script utilities.
+
+**Why:** Mismatched CI job matrices cause local runners to report false negative pipeline crashes.
+
+---
+
+## Raw Database Queries Without Error Logging Wrapper — TOTAL BAN
+
+🔴 **NEVER execute raw database queries ($wpdb, PDO, sqlite3) without using structured query wrappers (`WpDbQueryWrapper::executeResult`, `SqlQueryWrapper::execute`, `execute_query`).**
+
+Forbidden:
+- ❌ Invoking raw `$pdo->exec()` or `$wpdb->query()` without structured error handling and automated FileLogger dispatch.
+- ❌ Returning loose unstructured boolean falses without explicit `isSuccess` / `isFail` states.
+
+Allowed work:
+- ✅ Wrap all database calls in dedicated query wrappers returning typed `QueryResult` envelopes.
+- ✅ Ensure error messages, SQL contexts, and failure traces are automatically recorded in persistent logs.
+
+**Why:** Unwrapped database queries leak exceptions, produce silent failures, and bloat code with repetitive try-catch boilerplate.
+

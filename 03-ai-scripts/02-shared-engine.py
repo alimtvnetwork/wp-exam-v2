@@ -238,44 +238,19 @@ TEMP_ARTIFACT_FILENAMES: tuple[str, ...] = (
     ".DS_Store", "Thumbs.db", "desktop.ini", ".directory"
 )
 
-# Centralized 36 CI Quality Gate Job Definitions
+# Centralized CI Quality Gate Job Definitions for wp-exam
 CI_JOBS_MATRIX: dict[str, list[str]] = {
-    "Relative Path Check": [sys.executable, "linter-scripts/check-relative-paths.py"],
-    "Prompts Loaded Check": [sys.executable, "linter-scripts/check-prompts-loaded.py"],
-    "Readme Install Section Check": [sys.executable, "linter-scripts/check-readme-install-section.py"],
-    "Forbidden Strings Check": [sys.executable, "linter-scripts/check-forbidden-strings.py"],
-    "Newline Styling Check": [sys.executable, "linter-scripts/check-newline-styling.py"],
+    "PHP Unit & Feature Tests": ["php", "tests/run-tests.php"],
+    "Python E2E Integration Suite": [sys.executable, "scripts/e2e-integration-tester.py"],
     "Fast File Scanner Cache": [sys.executable, "03-ai-scripts/11-fast-file-scanner.py", "--check"],
     "File Size Guard": [sys.executable, "03-ai-scripts/13-file-size-guard.py"],
     "Version Sync Check": [sys.executable, "03-ai-scripts/14-version-sync-checker.py"],
-    "Bundle Installer Generation": ["node", "scripts/generate-bundle-installers.mjs"],
-    "Spec Tree Sync": ["node", "scripts/sync-spec-tree.mjs"],
-    "Codegen Determinism Check": [sys.executable, "linters-cicd/codegen/scripts/verify_codegen_determinism.py"],
-    "Spec Verification Coverage": ["node", "scripts/spec-verification/generate-coverage-report.mjs", "--strict", "--out", "reports/spec-verification/coverage.md"],
-    "Validate Version JSON": ["node", "scripts/validate-version-json.mjs"],
-    "Doc Links Check": ["node", "scripts/docs/check-doc-links.mjs", "readme.md"],
-    "Check File Sizes Baseline": [sys.executable, "linter-scripts/check-file-sizes.py", "--check"],
-    "Newline Styling MJS Check": ["node", "linter-scripts/check-newline-styling.mjs"],
-    "Spec Folder References Check": [sys.executable, "linter-scripts/check-spec-folder-refs.py"],
-    "Sequence Integrity Check": [sys.executable, "linter-scripts/check-sequence-integrity.py"],
-    "Prompt & Spec Path Integrity Check": [sys.executable, "linter-scripts/check-prompt-and-spec-paths.py"],
-    "Linters CI/CD Test Suite": [sys.executable, "linters-cicd/tests/run.py"],
-    "Interface Naming Check": [sys.executable, "linter-scripts/check-interface-naming.py"],
-    "Go Base Test Suite": ["go", "test", "-C", "04-code/golang", "./..."],
-    "Axios Version Security Check": [sys.executable, "linter-scripts/check-axios-version.py"],
-    "Forbidden Spec Paths Check": [sys.executable, "linter-scripts/check-forbidden-spec-paths.py"],
-    "Placeholder Comments Check": [sys.executable, "linter-scripts/check-placeholder-comments.py"],
-    "Tunable Constants Check": [sys.executable, "linter-scripts/check-tunable-constants.py"],
-    "Runner Dispatch Guard Check": [sys.executable, "linter-scripts/check-runner-dispatch-antipatterns.py"],
-    "Lint CI Drift Self-Test": ["node", "scripts/tests/check-lint-ci-drift.test.mjs"],
-    "Required Checks Self-Test": ["node", "scripts/tests/print-required-checks.test.mjs"],
-    "Sync Guidelines Self-Test": ["node", "scripts/tests/sync-guidelines.test.mjs"],
-    "File Sizes Baseline Self-Test": [sys.executable, "linter-scripts/tests/check-file-sizes.test.py"],
+    "Sequence & Title Check": [sys.executable, "03-ai-scripts/15-sequence-and-title-auditor.py", "01-prompts"],
+    "Sequence Integrity Check": [sys.executable, "03-ai-scripts/21-sequence-integrity-linter.py"],
+    "Misspell Check": [sys.executable, "03-ai-scripts/27-misspell-auditor.py", "--staged"],
+    "Boolean Naming Check": [sys.executable, "03-ai-scripts/08-naming-autofixer.py", "app"],
     "Markdown Gap Check": [sys.executable, "03-ai-scripts/31-md-gap-fixer.py"],
-    "Sequence & Title Check": [sys.executable, "03-ai-scripts/15-sequence-and-title-auditor.py"],
-    "Sequence Integrity Check (AI Scripts)": [sys.executable, "03-ai-scripts/21-sequence-integrity-linter.py"],
-    "Misspell Check": [sys.executable, "03-ai-scripts/27-misspell-auditor.py"],
-    "Boolean Naming Check": [sys.executable, "03-ai-scripts/08-naming-autofixer.py"],
+    "Codebase Topology Discovery": [sys.executable, "03-ai-scripts/18-codebase-topology-discoverer.py", "--summary"],
 }
 
 # --- Module-Level Directory & File Constants ---

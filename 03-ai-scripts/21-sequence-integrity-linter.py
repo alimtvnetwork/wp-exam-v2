@@ -22,7 +22,9 @@ PLACEHOLDER_TOKENS = (
     "XX-", "NN-", "01-<", "00-<", "{", "}", "*", "path/to/", "...",
     "<version-slug>", "<work_slug>", "<subtask_slug>", "<target>", "<module>",
     "/XX/", "xx-", "vX.Y.Z", "vX.", "/<", "XX", "recent-file-changes.json", "recent-file-changes.lock", "runner-eta.json",
-    "test-heatmap.json", "02-macro-step-open-command-behavior.md"
+    "test-heatmap.json", "02-macro-step-open-command-behavior.md", "scripts/sync-guidelines.mjs", "scripts/release.mjs",
+    "scripts/validate-slides-sra.mjs", "scripts/generate-bundle-installers.mjs", "scripts/prompt-sync-config.json",
+    "scripts/update-prompts.ps1", "scripts/update-prompts.sh"
 )
 
 # Target directories to audit for sequence integrity

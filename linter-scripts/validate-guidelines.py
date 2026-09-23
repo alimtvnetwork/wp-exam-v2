@@ -39,8 +39,8 @@ Rules Enforced:
     STYLE-004     Blank line before if/else if block
 """
 
-import re
 import os
+import re
 import sys
 import json
 import glob
@@ -48,6 +48,11 @@ import argparse
 from dataclasses import dataclass, field, asdict
 from typing import List, Optional
 from collections import defaultdict
+
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
 
 
 @dataclass

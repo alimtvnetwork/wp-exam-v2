@@ -12,14 +12,11 @@
 ```text
 is it done properly? with e2e tests and following the wp onboarding and riseup asia common code patterns???
 
-
 D:\work\wp-onboarding
 
 D:\work\wp-onboarding\wp-plugins\riseup-asia-uploader
 
-
 D:\work\wp-exam\02-spec\
-
 
 I want you to understand this, how this code base work, how the Rise of Asia plugin inside this works, okay? That's the first thing I want you to do. I want you to set up the, uh, plugin section for the WordPress plugin, uh, according to the code concepts that we have in the onboarding guideline, uh, especially inside the WP plugin section, the Rise of Asia, how it is written. Okay. That-- The reason that you should follow this, that it has all kinds of like library methods. I want you to reuse those. Okay? So you start based on the spec that we have. Now, the idea here is that it needs to be modern. Now, here, the idea is that I could... It, it'll be based on user. It could be based on, uh, general people, public as well. So it should be like a quiz, sequential quiz or create a employee sign-up forms, all kinds of things it should be able to do. Um, so yeah, first thing that you should write as a, let's say, Barbara team and the spec, uh, make sure the spec is according to this already written, which is inside the folder twenty-one for the, for the WP exam. Okay. If it is not written like this, what I am saying, then, then I think, uh, you, you need to correct that. That's another thing. Um, I don't think the spec is there. It looks like the spec is... It's not even there. And there are so many, uh, repeated code inside the WP exam, which is not organized properly. I think you need to reduce the duplicated codes as well inside the spec folder. Okay. So I'm just giving all this folder structure so that you can organize with the task what you have to do. Um, so lots of things that you have to do. I'm, I'm really concerned, like, for the WP exam, it should have the questions form ready. I'm not sure why it does not have it
 ```

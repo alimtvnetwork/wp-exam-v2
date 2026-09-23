@@ -11,6 +11,7 @@ require_once __DIR__ . '/bootstrap.php';
 $testFiles = [
     __DIR__ . '/unit/EnvelopeBuilderTest.php',
     __DIR__ . '/unit/WpDbQueryWrapperTest.php',
+    __DIR__ . '/unit/SqlQueryWrapperTest.php',
     __DIR__ . '/unit/SqliteDatabaseTest.php',
     __DIR__ . '/unit/pluginbootstraptest.php',
     __DIR__ . '/unit/whatsappformattertest.php',
@@ -73,6 +74,10 @@ foreach ($testFiles as $file) {
         }
 
         try {
+            if ($reflector->hasMethod('setUp')) {
+                $reflector->getMethod('setUp')->invoke($instance);
+            }
+
             $method->invoke($instance);
             echo "  ✓ {$method->getName()}\n";
             $passed++;

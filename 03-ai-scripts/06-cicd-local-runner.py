@@ -78,7 +78,7 @@ class PipelineSummary:
 
 CI_JOB_DEFAULT_ARGS: dict[str, list[str]] = {
     "Sequence & Title Check": ["01-prompts"],
-    "Boolean Naming Check": ["04-code"],
+    "Boolean Naming Check": ["app"],
     "Misspell Check": ["--staged"],
 }
 
