@@ -6,6 +6,7 @@ export enum StatusType {
 }
 
 export interface QueryResponseType<T> {
+  isSuccess: boolean;
   isFail: boolean;
   status: StatusType;
   data: T | null;
@@ -14,7 +15,7 @@ export interface QueryResponseType<T> {
 
 /**
  * executeQuery is a wrapper for queries in TS that automatically logs failures 
- * to reduce scattered logging code, returning an explicit boolean state check (isFail).
+ * to reduce scattered logging code, returning explicit boolean state checks (isSuccess, isFail).
  */
 export async function executeQuery<T>(
   queryFn: () => Promise<T>,
@@ -23,6 +24,7 @@ export async function executeQuery<T>(
   try {
     const data = await queryFn();
     return {
+      isSuccess: true,
       isFail: false,
       status: StatusType.Pass,
       data,
@@ -34,6 +36,7 @@ export async function executeQuery<T>(
     console.error(`[QueryWrapper] Error in ${context}:`, errorObj);
     
     return {
+      isSuccess: false,
       isFail: true,
       status: StatusType.Fail,
       data: null,
@@ -41,3 +44,4 @@ export async function executeQuery<T>(
     };
   }
 }
+

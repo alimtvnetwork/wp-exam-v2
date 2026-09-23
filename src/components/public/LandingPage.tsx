@@ -21,9 +21,12 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AdminLoginModal, useAdminAuth } from '@/components/auth/AdminLoginModal';
+import { ThemeSwitcher, useTheme } from '@/lib/theme-context';
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
+  const { theme, config } = useTheme();
+
   const { isAuthenticated } = useAdminAuth();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
@@ -70,11 +73,12 @@ export const LandingPage: React.FC = () => {
           </nav>
 
           <div className="flex items-center gap-2.5">
+            <ThemeSwitcher />
             <Button
               size="sm"
               variant="outline"
               onClick={handleAdminClick}
-              className="text-xs h-8 px-3.5 border-[#FFAD01]/40 text-[#FFAD01] hover:bg-[#FFAD01]/10 gap-1.5 font-bold"
+              className="text-xs h-9 px-3.5 border-amber-500/40 text-amber-400 hover:bg-amber-500/10 gap-1.5 font-bold rounded-xl"
             >
               <Lock className="w-3.5 h-3.5" />
               <span>{isAuthenticated ? 'Admin Console' : 'Admin Login'}</span>
@@ -82,6 +86,7 @@ export const LandingPage: React.FC = () => {
           </div>
         </div>
       </header>
+
 
       {/* Hero Section */}
       <section className="relative overflow-hidden pt-16 pb-20 border-b border-[#292942]/40 bg-gradient-to-b from-[#0A0A14] via-[#101026] to-[#0A0A14]">

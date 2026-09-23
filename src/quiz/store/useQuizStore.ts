@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { FormField, FormModel, FormType, FormAccessType, FormSettings } from '@/lib/types/form';
+import { executeQuery } from '@/lib/query-wrapper';
 
 interface QuizState {
   id?: number | string;
@@ -163,12 +164,12 @@ export const useQuizStore = create<QuizState>((set, get) => ({
       })),
     };
 
-    try {
-      const url = state.id
-        ? `${wpSettings.root}wp-exam/v1/admin/forms/${state.id}`
-        : `${wpSettings.root}wp-exam/v1/admin/forms`;
-      const method = state.id ? 'PUT' : 'POST';
+    const url = state.id
+      ? `${wpSettings.root}wp-exam/v1/admin/forms/${state.id}`
+      : `${wpSettings.root}wp-exam/v1/admin/forms`;
+    const method = state.id ? 'PUT' : 'POST';
 
+    const result = await executeQuery(async () => {
       const res = await fetch(url, {
         method,
         headers: {
@@ -178,14 +179,18 @@ export const useQuizStore = create<QuizState>((set, get) => ({
         body: JSON.stringify(payload),
       });
 
-      const json = await res.json();
-      set({ isSaving: false });
-      return json;
-    } catch (e) {
-      set({ isSaving: false });
-      throw e;
+      return await res.json();
+    }, `saveForm:${state.id || 'new'}`);
+
+    set({ isSaving: false });
+
+    if (result.isFail) {
+      throw result.error;
     }
+
+    return result.data;
   },
+
 
   saveQuiz: async () => {
     return get().saveForm();

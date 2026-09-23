@@ -76,9 +76,9 @@ class SplitDbManager
     }
 
     /**
-     * Migrates isolated project database tables.
+     * Migrates isolated project database tables safely via QueryWrapper.
      */
-    public function migrateProjectDb(PDO $pdo): void
+    public function migrateProjectDb(PDO $pdo): QueryResult
     {
         $sql = "
         CREATE TABLE IF NOT EXISTS Form (
@@ -130,6 +130,13 @@ class SplitDbManager
         );
         ";
 
-        $pdo->exec($sql);
+        return QueryWrapper::execute(
+            $pdo,
+            static function (PDO $db) use ($sql): int|false {
+                return $db->exec($sql);
+            },
+            'migrateProjectDb'
+        );
     }
 }
+

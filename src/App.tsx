@@ -9,15 +9,18 @@ import WizardRunner from "./components/forms/wizard-runner.tsx";
 import VisualNodeCanvas from "./components/forms/visual-node-canvas.tsx";
 import LandingPage from "./components/public/LandingPage.tsx";
 import { FormRunner } from "@/components/runner/FormRunner.tsx";
+import { ThemeProvider } from "@/lib/theme-context";
 
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
+    <ThemeProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+
         <Routes>
           <Route path="/" element={<LandingPage />} />
           <Route path="/admin" element={<Index />} />
@@ -31,7 +34,9 @@ const App = () => (
         </Routes>
       </BrowserRouter>
     </TooltipProvider>
-  </QueryClientProvider>
+  </ThemeProvider>
+</QueryClientProvider>
 );
 
 export default App;
+

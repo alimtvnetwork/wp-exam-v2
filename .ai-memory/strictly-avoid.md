@@ -620,3 +620,22 @@ Allowed work:
 - ✅ Group admin navigation into clear domains (*Curriculum*, *Candidate Delivery*, *Operations & Data*).
 - ✅ Provide dual-layer browser launch in runner scripts with automated fallback.
 
+---
+
+## Unshielded Database Queries & Inverted Boolean Wrappers — TOTAL BAN
+
+🔴 **NEVER execute raw database queries without QueryWrapper across PHP, Python, and TypeScript, and NEVER invert success booleans (`!isSuccess`).**
+
+Forbidden:
+- ❌ Calling raw `$pdo->exec()` or `conn.cursor().execute()` directly inside business logic without centralized wrapper envelopes.
+- ❌ Inverting boolean results (e.g. `!response.isSuccess` or `!isPass`); wrappers MUST explicitly provide both `isSuccess` and `isFail` states.
+- ❌ Swallowing query exceptions without structured error logging to stderr or error log files.
+- ❌ Mutating nested hierarchy arrays in-place (e.g., `project.sections.push()`).
+- ❌ Keeping presentation theme selection in isolated local state instead of app-wide `ThemeProvider` with `localStorage` persistence.
+
+Allowed work:
+- ✅ Use `App\Services\Database\QueryWrapper::execute` in PHP, `query_wrapper` in Python, and `executeQuery` in TypeScript.
+- ✅ Explicitly evaluate `response.isSuccess` and `response.isFail`.
+- ✅ Store theme preferences globally and synchronize immediately with document CSS variables.
+- ✅ Perform immutable state updates with clean fallback for empty categories.
+

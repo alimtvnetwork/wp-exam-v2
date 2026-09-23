@@ -13,7 +13,9 @@ import { BackupManager } from '@/components/admin/backup-manager';
 import { AnalyticsDashboard } from '@/components/admin/analytics-dashboard';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
 import { useAdminAuth } from '@/components/auth/AdminLoginModal';
+import { ThemeSwitcher, useTheme } from '@/lib/theme-context';
 import { Button } from '@/components/ui/button';
+
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -54,14 +56,13 @@ type AdminTab =
   | 'backups'
   | 'storage';
 
-type ThemeId = 'riseup-asia' | 'letterly' | 'obsidian' | 'light';
-
 export const Index = () => {
   const navigate = useNavigate();
   const { isAuthenticated, login, logout } = useAdminAuth();
+  const { theme, config } = useTheme();
   const [activeTab, setActiveTab] = useState<AdminTab>('builder');
-  const [activeTheme, setActiveTheme] = useState<ThemeId>('riseup-asia');
   const store = useQuizStore();
+
 
   // Login form states for unauthenticated users
   const [loginUser, setLoginUser] = useState('admin');
@@ -162,15 +163,15 @@ export const Index = () => {
   }
 
   // Theme container classes
-  const themeClassMap: Record<ThemeId, string> = {
-    'riseup-asia': 'theme-riseup-asia bg-[#0A0A14] text-[#F8FAFC]',
+  const themeClassMap: Record<string, string> = {
+    riseup: 'theme-riseup-asia bg-[#0A0A14] text-[#F8FAFC]',
     letterly: 'theme-letterly bg-[#0F0E1E] text-white',
     obsidian: 'theme-dark bg-[#090D16] text-[#F8FAFC]',
-    light: 'theme-light bg-slate-50 text-slate-900',
+    clean: 'theme-light bg-slate-50 text-slate-900',
   };
 
   return (
-    <div className={`min-h-screen ${themeClassMap[activeTheme]} transition-colors duration-300 font-sans`}>
+    <div className={`min-h-screen ${themeClassMap[theme] || themeClassMap.riseup} transition-colors duration-300 font-sans`}>
       {/* Enterprise Administrative Header */}
       <header className="border-b border-border/80 bg-card/90 backdrop-blur-md sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
@@ -191,20 +192,8 @@ export const Index = () => {
 
           {/* Theme Switcher & Actions */}
           <div className="flex items-center gap-3">
-            {/* Global Theme Selector */}
-            <div className="flex items-center gap-1.5 bg-muted/60 p-1 rounded-lg border border-border">
-              <Palette className="w-3.5 h-3.5 text-muted-foreground ml-1.5" />
-              <select
-                value={activeTheme}
-                onChange={(e) => setActiveTheme(e.target.value as ThemeId)}
-                className="text-xs font-semibold bg-transparent border-0 pr-2 py-0.5 focus:ring-0 cursor-pointer"
-              >
-                <option value="riseup-asia">Rise Up Asia (Gold & Navy)</option>
-                <option value="letterly">Letterly (Deep Indigo)</option>
-                <option value="obsidian">Obsidian Slate (High Contrast)</option>
-                <option value="light">Enterprise Clean Paper (Light)</option>
-              </select>
-            </div>
+            <ThemeSwitcher />
+
 
             <Button
               variant="outline"

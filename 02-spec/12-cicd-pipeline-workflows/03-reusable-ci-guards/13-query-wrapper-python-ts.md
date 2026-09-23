@@ -38,8 +38,38 @@ data = res["data"]
 
 ## 2. TypeScript Wrapper Implementation
 
-TypeScript code MUST use `src/lib/queryWrapper.ts`.
+TypeScript code MUST use `src/lib/query-wrapper.ts`.
 
 ### Strict Boolean State Checking
 
-The wrapper returns a typed response with an `isFail` boolean property. AI Agents must strictly evaluate `isFail` rather than writing inverted logic like `!isSuccess` or `!response`.
+The wrapper returns a typed response with both `isSuccess` and `isFail` boolean properties. AI Agents must strictly evaluate `isSuccess` or `isFail` directly rather than writing inverted logic like `!isSuccess` or `!response`.
+
+```typescript
+export interface QueryResponseType<T> {
+  isSuccess: boolean;
+  isFail: boolean;
+  status: StatusType;
+  data: T | null;
+  error: Error | null;
+}
+```
+
+## 3. PHP Wrapper Implementation
+
+PHP backend code MUST use `App\Services\Database\QueryWrapper` (`app/services/database/querywrapper.php`).
+
+```php
+use App\Services\Database\QueryWrapper;
+
+$result = QueryWrapper::execute($pdo, function (PDO $db) {
+    return $db->query("SELECT * FROM Form")->fetchAll();
+}, 'fetchForms');
+
+if ($result->isFail()) {
+    // Error was automatically recorded to error_log
+    return [];
+}
+
+$forms = $result->data;
+```
+

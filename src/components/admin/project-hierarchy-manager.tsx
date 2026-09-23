@@ -25,6 +25,8 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { useTheme } from '@/lib/theme-context';
+
 
 export interface ProjectSection {
   id: string;
@@ -183,9 +185,10 @@ interface ProjectHierarchyManagerProps {
 export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = ({
   onLaunchFocusRunner,
 }) => {
+  const { theme, config } = useTheme();
   const [categories, setCategories] = useState<CategoryItem[]>(INITIAL_CATEGORIES);
   const [selectedCategory, setSelectedCategory] = useState<CategoryItem>(INITIAL_CATEGORIES[0]);
-  const [selectedProject, setSelectedProject] = useState<ProjectItem>(INITIAL_CATEGORIES[0].projects[0]);
+  const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(INITIAL_CATEGORIES[0]?.projects[0] || null);
 
   const [newCatTitle, setNewCatTitle] = useState<string>('');
   const [showAddCat, setShowAddCat] = useState<boolean>(false);
@@ -196,6 +199,39 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
   const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
   const [showImportModal, setShowImportModal] = useState<boolean>(false);
   const [importJsonText, setImportJsonText] = useState<string>('');
+
+  const updateProjectInCategories = (updatedProject: ProjectItem) => {
+    const updatedCategories = categories.map((cat) => {
+      if (cat.id === updatedProject.category_id) {
+        const hasTopLevel = cat.projects.some((p) => p.id === updatedProject.id);
+        if (hasTopLevel) {
+          return {
+            ...cat,
+            projects: cat.projects.map((p) => (p.id === updatedProject.id ? updatedProject : p)),
+          };
+        }
+
+        return {
+          ...cat,
+          projects: cat.projects.map((p) => {
+            if (p.sub_projects && p.sub_projects.some((sp) => sp.id === updatedProject.id)) {
+              return {
+                ...p,
+                sub_projects: p.sub_projects.map((sp) =>
+                  sp.id === updatedProject.id ? updatedProject : sp
+                ),
+              };
+            }
+            return p;
+          }),
+        };
+      }
+      return cat;
+    });
+
+    setCategories(updatedCategories);
+    setSelectedProject(updatedProject);
+  };
 
   const handleCreateCategory = () => {
     const cleanTitle = newCatTitle.trim();
@@ -211,6 +247,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
 
       setCategories([...categories, newCat]);
       setSelectedCategory(newCat);
+      setSelectedProject(null);
       setNewCatTitle('');
       setShowAddCat(false);
       toast.success('Category created successfully!');
@@ -256,6 +293,11 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
   };
 
   const handleAddSubProject = () => {
+    if (!selectedProject) {
+      toast.error('Please select a parent project first.');
+      return;
+    }
+
     const cleanTitle = newSubProjectTitle.trim();
     const hasTitle = Boolean(cleanTitle);
 
@@ -267,7 +309,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
         category_id: selectedCategory.id,
         parent_project_id: selectedProject.id,
         pipeline_order: ['sec_sub_intro'],
-        permissions: selectedProject.permissions,
+        permissions: selectedProject.permissions || ['all'],
         sections: [
           {
             id: 'sec_sub_intro',
@@ -285,25 +327,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
 
       const updatedSubProjects = [...(selectedProject.sub_projects || []), newSubProj];
       const updatedProject = { ...selectedProject, sub_projects: updatedSubProjects };
-
-      const updatedCategories = categories.map((cat) => {
-        if (cat.id === selectedCategory.id) {
-          const updatedProjects = cat.projects.map((p) => {
-            if (p.id === selectedProject.id) {
-              return updatedProject;
-            }
-
-            return p;
-          });
-
-          return { ...cat, projects: updatedProjects };
-        }
-
-        return cat;
-      });
-
-      setCategories(updatedCategories);
-      setSelectedProject(updatedProject);
+      updateProjectInCategories(updatedProject);
       setNewSubProjectTitle('');
       setShowAddSubProject(false);
       toast.success('Recursive sub-project added successfully!');
@@ -311,6 +335,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
       toast.error('Please enter a sub-project title.');
     }
   };
+
 
   const handleExportProjectJson = () => {
     const jsonStr = JSON.stringify(selectedProject, null, 2);
@@ -391,6 +416,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
   };
 
   const handleMovePipelineOrder = (index: number, direction: 'up' | 'down') => {
+    if (!selectedProject) return;
     const newOrder = [...selectedProject.pipeline_order];
     const isUp = direction === 'up';
 
@@ -411,9 +437,10 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
     }
 
     const updatedProject = { ...selectedProject, pipeline_order: newOrder };
-    setSelectedProject(updatedProject);
+    updateProjectInCategories(updatedProject);
     toast.success('Pipeline execution sequence updated');
   };
+
 
   return (
     <div className="space-y-6">
@@ -507,19 +534,22 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                     <button
                       onClick={() => {
                         setSelectedCategory(cat);
-                        const hasProjects = cat.projects.length > 0;
-                        if (hasProjects) {
-                          setSelectedProject(cat.projects[0]);
-                        }
+                        const firstProj = cat.projects.length > 0 ? cat.projects[0] : null;
+                        setSelectedProject(firstProj);
                       }}
                       className={`w-full text-left p-2.5 rounded-xl text-sm font-semibold flex items-center justify-between transition ${
                         isCatSelected
-                          ? 'bg-indigo-950/40 text-indigo-400 border border-indigo-500/30'
+                          ? 'border shadow-sm'
                           : 'text-foreground hover:bg-muted/60'
                       }`}
+                      style={isCatSelected ? {
+                        borderColor: `${config.primaryColor}66`,
+                        backgroundColor: `${config.primaryColor}15`,
+                        color: config.primaryColor,
+                      } : undefined}
                     >
                       <div className="flex items-center gap-2">
-                        <FolderTree className="w-4 h-4 text-indigo-400" />
+                        <FolderTree className="w-4 h-4" style={{ color: config.primaryColor }} />
                         <span>{cat.title}</span>
                       </div>
                       <Badge variant="secondary" className="text-[10px]">
@@ -529,60 +559,76 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
 
                     {/* Sub-projects list */}
                     {isCatSelected && (
-                      <div className="pl-6 space-y-1 border-l-2 border-indigo-900/40 ml-4 py-1">
-                        {cat.projects.map((proj) => {
-                          const isProjSelected = selectedProject.id === proj.id;
-                          const hasSubProjects = Boolean(proj.sub_projects && proj.sub_projects.length > 0);
+                      <div className="pl-6 space-y-1 border-l-2 ml-4 py-1" style={{ borderColor: `${config.primaryColor}30` }}>
+                        {cat.projects.length === 0 ? (
+                          <div className="text-[11px] text-muted-foreground italic py-1 pl-1">
+                            No projects yet. Click '+ Add Project' above.
+                          </div>
+                        ) : (
+                          cat.projects.map((proj) => {
+                            const isProjSelected = selectedProject?.id === proj.id;
+                            const hasSubProjects = Boolean(proj.sub_projects && proj.sub_projects.length > 0);
 
-                          return (
-                            <div key={proj.id} className="space-y-1">
-                              <button
-                                onClick={() => setSelectedProject(proj)}
-                                className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between transition ${
-                                  isProjSelected
-                                    ? 'bg-indigo-600 text-white font-bold shadow'
-                                    : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
-                                }`}
-                              >
-                                <div className="flex items-center gap-2 truncate">
-                                  <Layers className="w-3.5 h-3.5 opacity-70" />
-                                  <span className="truncate">{proj.title}</span>
-                                </div>
-                                <ChevronRight className="w-3 h-3 opacity-60" />
-                              </button>
+                            return (
+                              <div key={proj.id} className="space-y-1">
+                                <button
+                                  onClick={() => setSelectedProject(proj)}
+                                  className={`w-full text-left px-3 py-2 rounded-lg text-xs font-medium flex items-center justify-between transition ${
+                                    isProjSelected
+                                      ? 'shadow font-bold'
+                                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/40'
+                                  }`}
+                                  style={isProjSelected ? {
+                                    backgroundColor: config.primaryColor,
+                                    color: theme === 'riseup' ? '#0A0A14' : '#FFFFFF',
+                                  } : undefined}
+                                >
+                                  <div className="flex items-center gap-2 truncate">
+                                    <Layers className="w-3.5 h-3.5 opacity-80" />
+                                    <span className="truncate">{proj.title}</span>
+                                  </div>
+                                  <ChevronRight className="w-3 h-3 opacity-60" />
+                                </button>
 
-                              {/* Recursive Sub-Projects in Tree */}
-                              {hasSubProjects && (
-                                <div className="pl-4 space-y-1 border-l border-indigo-500/20 ml-3">
-                                  {proj.sub_projects?.map((subProj) => {
-                                    const isSubSelected = selectedProject.id === subProj.id;
+                                {/* Recursive Sub-Projects in Tree */}
+                                {hasSubProjects && (
+                                  <div className="pl-4 space-y-1 border-l ml-3" style={{ borderColor: `${config.primaryColor}20` }}>
+                                    {proj.sub_projects?.map((subProj) => {
+                                      const isSubSelected = selectedProject?.id === subProj.id;
 
-                                    return (
-                                      <button
-                                        key={subProj.id}
-                                        onClick={() => setSelectedProject(subProj)}
-                                        className={`w-full text-left px-2.5 py-1.5 rounded-md text-[11px] font-medium flex items-center justify-between transition ${
-                                          isSubSelected
-                                            ? 'bg-indigo-500/30 text-indigo-300 font-bold border border-indigo-500/40'
-                                            : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
-                                        }`}
-                                      >
-                                        <div className="flex items-center gap-1.5 truncate">
-                                          <GitBranch className="w-3 h-3 text-indigo-400" />
-                                          <span className="truncate">└─ {subProj.title}</span>
-                                        </div>
-                                      </button>
-                                    );
-                                  })}
-                                </div>
-                              )}
-                            </div>
-                          );
-                        })}
+                                      return (
+                                        <button
+                                          key={subProj.id}
+                                          onClick={() => setSelectedProject(subProj)}
+                                          className={`w-full text-left px-2.5 py-1.5 rounded-md text-[11px] font-medium flex items-center justify-between transition ${
+                                            isSubSelected
+                                              ? 'font-bold border shadow-sm'
+                                              : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
+                                          }`}
+                                          style={isSubSelected ? {
+                                            borderColor: `${config.primaryColor}88`,
+                                            backgroundColor: `${config.primaryColor}20`,
+                                            color: config.primaryColor,
+                                          } : undefined}
+                                        >
+                                          <div className="flex items-center gap-1.5 truncate">
+                                            <GitBranch className="w-3 h-3" style={{ color: config.primaryColor }} />
+                                            <span className="truncate">└─ {subProj.title}</span>
+                                          </div>
+                                        </button>
+                                      );
+                                    })}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })
+                        )}
                       </div>
                     )}
                   </div>
                 );
+
               })}
             </div>
           </div>
@@ -595,7 +641,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <Badge className="bg-indigo-500/20 text-indigo-300 border-indigo-500/30">
+                    <Badge className={`${config.badgeClass} font-mono text-[11px]`}>
                       Split DB: {selectedProject.id}.sqlite
                     </Badge>
                     {selectedProject.parent_project_id && (
@@ -604,6 +650,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                       </Badge>
                     )}
                   </div>
+
                   <h3 className="text-xl font-bold text-foreground">{selectedProject.title}</h3>
                   <p className="text-xs text-muted-foreground mt-1">{selectedProject.description}</p>
                 </div>
@@ -750,17 +797,21 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                     onClick={() => {
                       const newSec: ProjectSection = {
                         id: 'sec_' + Date.now(),
-                        title: `${selectedProject.sections.length + 1}. Practical Task & Quiz`,
+                        title: `${(selectedProject.sections?.length || 0) + 1}. Practical Task & Quiz`,
                         content_type: 'quiz',
                         questions: [],
                       };
-                      selectedProject.sections.push(newSec);
-                      setCategories([...categories]);
+                      const updatedProject: ProjectItem = {
+                        ...selectedProject,
+                        sections: [...(selectedProject.sections || []), newSec],
+                      };
+                      updateProjectInCategories(updatedProject);
                       toast.success('Section added to project');
                     }}
                   >
                     <Plus className="w-3 h-3 mr-1" /> Add Section
                   </Button>
+
                 </div>
 
                 <div className="space-y-2">
@@ -793,12 +844,17 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
               </div>
             </div>
           ) : (
-            <div className="p-12 text-center text-muted-foreground bg-muted/20 border rounded-2xl">
-              Select a project from the left panel to manage sections, study docs, and pipeline ordering.
+            <div className="p-12 text-center text-muted-foreground bg-muted/20 border rounded-2xl space-y-3">
+              <FolderTree className="w-10 h-10 mx-auto opacity-30" style={{ color: config.primaryColor }} />
+              <div className="text-sm font-semibold text-foreground">No Project Selected</div>
+              <p className="text-xs max-w-sm mx-auto">
+                Select a project from the curriculum tree on the left, or create a new project to configure its learning pipeline and sections.
+              </p>
             </div>
           )}
         </div>
       </div>
+
 
       {/* JSON Import Modal */}
       <Dialog open={showImportModal} onOpenChange={setShowImportModal}>
