@@ -79,3 +79,26 @@ if (!class_exists(TestCase::class)) {
         }
     }
 }
+
+if (!class_exists(Assert::class)) {
+    class Assert {
+        public static function assertTrue(mixed $condition, string $message = ''): void {
+            if ($condition !== true) {
+                throw new \AssertionError($message ?: "Failed asserting that value is true");
+            }
+        }
+
+        public static function assertFalse(mixed $condition, string $message = ''): void {
+            if ($condition !== false) {
+                throw new \AssertionError($message ?: "Failed asserting that value is false");
+            }
+        }
+
+        public static function assertEquals(mixed $expected, mixed $actual, string $message = ''): void {
+            if ($expected != $actual) {
+                throw new \AssertionError($message ?: "Failed asserting that " . json_encode($actual) . " equals " . json_encode($expected));
+            }
+        }
+    }
+}
+

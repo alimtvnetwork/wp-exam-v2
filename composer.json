@@ -18,7 +18,8 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "WpExam\\Tests\\": "tests/unit/"
+            "WpExam\\Tests\\": "tests/unit/",
+            "Tests\\": "tests/"
         }
     }
 }

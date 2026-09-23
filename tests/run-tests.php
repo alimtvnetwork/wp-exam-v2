@@ -12,7 +12,7 @@ $testFiles = [
     __DIR__ . '/unit/EnvelopeBuilderTest.php',
     __DIR__ . '/unit/WpDbQueryWrapperTest.php',
     __DIR__ . '/unit/SqliteDatabaseTest.php',
-    __DIR__ . '/unit/plugin-bootstrap-test.php',
+    __DIR__ . '/unit/pluginbootstraptest.php',
     __DIR__ . '/unit/whatsappformattertest.php',
     __DIR__ . '/unit/countrycachetest.php',
     __DIR__ . '/unit/cycledetectortest.php',
@@ -20,6 +20,8 @@ $testFiles = [
     __DIR__ . '/unit/splitdbisolationtest.php',
     __DIR__ . '/unit/draftresumetest.php',
     __DIR__ . '/unit/formjsonimportexporttest.php',
+    __DIR__ . '/unit/formcontrollertest.php',
+    __DIR__ . '/feature/formapitest.php',
 ];
 
 $passed = 0;
@@ -61,7 +63,7 @@ foreach ($testFiles as $file) {
     }
 
     $reflector = new ReflectionClass($className);
-    $instance = new $className();
+    $instance = $reflector->newInstanceArgs(['test']);
 
     echo "Running {$className}...\n";
 

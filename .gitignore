@@ -48,3 +48,8 @@ tmp/
 __pycache__/
 *.py[cod]
 *.class
+
+# PHP Composer & PHPUnit cache
+/vendor/
+.phpunit.cache/
+

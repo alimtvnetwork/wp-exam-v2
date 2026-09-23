@@ -244,7 +244,15 @@ spl_autoload_register(function (string $class): void {
     }
 });
 
+// Composer vendor autoloader
+$composerAutoload = dirname(__DIR__) . '/vendor/autoload.php';
+
+if (file_exists($composerAutoload)) {
+    require_once $composerAutoload;
+}
+
 // Fallback TestCase stub for environments without PHPUnit
 if (!class_exists('PHPUnit\\Framework\\TestCase')) {
     require_once __DIR__ . '/stubs/testcase.php';
 }
+
