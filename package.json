@@ -15,6 +15,7 @@
     "test:e2e:ui": "playwright test --ui",
     "test:unit": "vitest run",
     "test:php": "php tests/run-tests.php",
+    "test:artisan": "php artisan test",
     "build:less": "lessc src/styles/theme.less src/styles/theme.css",
     "compile": "tsc && vite build"
   },
