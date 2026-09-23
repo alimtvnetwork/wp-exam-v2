@@ -16,6 +16,16 @@ use App\Http\Controllers\Forms\FormController;
 |
 */
 
+// Health Check
+Route::get('/api/health', function() {
+    return [
+        'status' => 'healthy',
+        'is_success' => true,
+        'timestamp' => time(),
+        'version' => '1.0.0',
+    ];
+});
+
 // Form Schema & Rendering
 Route::get('/api/v1/forms/{slug}', [FormController::class, 'show']);
 
