@@ -19,6 +19,7 @@ Plan 57 established the canonical specification, data contracts, visual guidelin
    - `02-data-contracts.md`: Eloquent models, dynamic conditional validation matrix, JSON schemas, and REST route contracts.
    - `03-visual-and-ux.md`: Visual Project Node Canvas (drag-and-drop), 4-step wizard runner, smooth accordion branching, WhatsApp ping verification, and 6 JSON theme token presets.
    - `04-verification-gates.md`: 10 automated quality gates (`VG-FRM-001` through `VG-FRM-010`) covering debounce timing, dynamic validation assertions, security tokens, and cycle detection.
+   - `05-llm-instruction-set.md`: LLM Instruction Studio, universal form JSON manifest schema, and import/export architecture.
 2. **Split SQLite DB Schema (`02-spec/23-app-db/02-forms-and-project-tree-schema.md`):**
    - Full SQL DDL, indexes, and Mermaid ER diagrams for `root.db`, `project_<id>.db` (isolated per-project WAL), and `logs.db`.
 3. **Laravel Application Core (`app/`):**
@@ -31,6 +32,7 @@ Plan 57 established the canonical specification, data contracts, visual guidelin
    - `App\Services\Forms\CountryService`: Pre-cached static country dictionary with ISO-3166-1 codes, dial prefixes, flags, and IP-based geolocation detection.
    - `App\Services\Forms\CycleDetector`: Directed Acyclic Graph (DAG) cycle detection for the drag-and-drop Visual Project Node Canvas.
    - `App\Services\Forms\DraftService`: One-click magic-link draft save and cross-device resumption.
+   - `App\Services\Forms\FormJsonService`: Bidirectional lossless JSON serialization for LLM ingestion and export.
    - `App\Services\Database\SplitDbManager`: Isolated per-project SQLite file provisioning with WAL mode and foreign key pragmas.
 4. **Unit & Feature Test Suites (100% Pass Rate):**
    - `tests/unit/whatsappformattertest.php`: 3/3 tests passed.
@@ -39,8 +41,9 @@ Plan 57 established the canonical specification, data contracts, visual guidelin
    - `tests/unit/dynamicconditionalvalidationtest.php`: 4/4 tests passed.
    - `tests/unit/splitdbisolationtest.php`: 2/2 tests passed.
    - `tests/unit/draftresumetest.php`: 2/2 tests passed.
+   - `tests/unit/formjsonimportexporttest.php`: 3/3 tests passed.
    - Existing WP Exam suites: 11/11 tests passed.
-   - Total PHP test suite: 29/29 tests passed in 0.024s.
+   - Total PHP test suite: 32/32 tests passed in 0.03s.
    - Python E2E Integration Suite: 69/69 assertions passed across 43 suites in 0.12s.
 
 ---
@@ -55,9 +58,10 @@ Plan 57 established the canonical specification, data contracts, visual guidelin
 | `DynamicConditionalValidationTest` | 4 | PASSED | < 0.005s |
 | `SplitDbIsolationTest` | 2 | PASSED | 0.006s |
 | `DraftResumeTest` | 2 | PASSED | < 0.005s |
+| `FormJsonImportExportTest` | 3 | PASSED | < 0.005s |
 | `EnvelopeBuilderTest` | 2 | PASSED | < 0.005s |
 | `WpDbQueryWrapperTest` | 3 | PASSED | 0.005s |
 | `SqliteDatabaseTest` | 3 | PASSED | < 0.005s |
 | `PluginBootstrapTest` | 3 | PASSED | < 0.005s |
-| **Combined PHP Unit Tests** | **29** | **PASSED** | **0.024s** |
+| **Combined PHP Unit Tests** | **32** | **PASSED** | **0.03s** |
 | **Python E2E Integration Orchestrator (43 Suites)** | **69** | **PASSED** | **0.12s** |

@@ -43,6 +43,7 @@ App-specific specification content for the WP Exam plugin. This engine provides 
 | 21f | [21f-forms-spec/02-data-contracts.md](./21f-forms-spec/02-data-contracts.md) | Eloquent Models, Dynamic Validation Matrix, JSON Schemas & REST Routes | Complete |
 | 21f | [21f-forms-spec/03-visual-and-ux.md](./21f-forms-spec/03-visual-and-ux.md) | Visual Project Node Canvas, Wizard Runner, Accordion UX & JSON Themes | Complete |
 | 21f | [21f-forms-spec/04-verification-gates.md](./21f-forms-spec/04-verification-gates.md) | Acceptance Criteria, Debounce Testing, Security Gates & Test Matrix | Complete |
+| 21f | [21f-forms-spec/05-llm-instruction-set.md](./21f-forms-spec/05-llm-instruction-set.md) | LLM Instruction Studio, Universal JSON Manifest & Import/Export Spec | Complete |
 
 ---
 

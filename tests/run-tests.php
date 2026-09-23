@@ -19,6 +19,7 @@ $testFiles = [
     __DIR__ . '/unit/dynamicconditionalvalidationtest.php',
     __DIR__ . '/unit/splitdbisolationtest.php',
     __DIR__ . '/unit/draftresumetest.php',
+    __DIR__ . '/unit/formjsonimportexporttest.php',
 ];
 
 $passed = 0;
