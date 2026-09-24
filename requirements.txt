@@ -1,0 +1,2 @@
+# Python Dependencies for WP Exam & Universal Form Engine
+# Automation scripts and E2E test suites in 03-ai-scripts/ utilize Python 3.12 standard library.

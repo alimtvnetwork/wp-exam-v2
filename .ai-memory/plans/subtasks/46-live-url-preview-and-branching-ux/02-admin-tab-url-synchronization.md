@@ -1,6 +1,6 @@
 # Subtask [02]: Admin Tab URL Synchronization & Public Share Link Fixes
 Traceability ID: Task-02
-Spec Reference: [02-spec/21-app/46-live-url-preview-and-branching-ux/02-routing-and-live-preview-contracts.md](../../../02-spec/21-app/46-live-url-preview-and-branching-ux/02-routing-and-live-preview-contracts.md)
+Spec Reference: [02-spec/21-app/46-live-url-preview-and-branching-ux/02-routing-and-live-preview-contracts.md](02-spec/21-app/46-live-url-preview-and-branching-ux/02-routing-and-live-preview-contracts.md)
 Target Files: src/pages/Index.tsx, src/components/runner/FocusQuizRunner.tsx, src/components/admin/invites-manager.tsx
 Action: Synchronize `activeTab` with browser URL query string (`?tab=...`); pass selected project from `ProjectHierarchyManager` to `FocusQuizRunner`; fix share links in `FocusQuizRunner` to use `/runner?quiz=...`; fix invite links in `invites-manager` to point to `/runner?invite=...`.
 Acceptance Criteria:
