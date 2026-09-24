@@ -27,7 +27,8 @@ export interface FieldConditionRule {
   parentFieldId: string;
   operator: 'equals' | 'not_equals' | 'contains' | 'is_empty' | 'is_not_empty';
   expectedValue: string;
-  action: 'show' | 'hide' | 'require';
+  action: 'show' | 'hide' | 'require' | 'jump_to';
+  jumpToFieldId?: string;
 }
 
 export interface FormField {
@@ -44,6 +45,9 @@ export interface FormField {
   linkText?: string;
   validationRule?: FieldValidationRule;
   conditions?: FieldConditionRule[];
+  conditionMatch?: 'all' | 'any';
+  optionBranching?: Record<string, string>;
+  branchTarget?: string;
 }
 
 export interface FormSettings {

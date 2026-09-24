@@ -15,54 +15,27 @@ import { useQuizStore } from '@/quiz/store/useQuizStore';
 import { useAdminAuth } from '@/components/auth/AdminLoginModal';
 import { ThemeSwitcher, useTheme } from '@/lib/theme-context';
 import { Button } from '@/components/ui/button';
-
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { WpAdminSidebar, AdminTab } from '@/components/admin/wp-admin-sidebar';
 import {
   Shield,
-  Layers,
-  Palette,
   ExternalLink,
   LogOut,
-  FolderTree,
-  FileEdit,
-  Mail,
-  Users,
-  History,
-  BarChart3,
-  Sparkles,
-  Database,
-  Archive,
-  Target,
-  PlayCircle,
-  KeyRound,
   User,
   AlertCircle,
   CheckCircle2,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
-type AdminTab =
-  | 'builder'
-  | 'projects'
-  | 'focus-runner'
-  | 'runner'
-  | 'invites'
-  | 'history'
-  | 'analytics'
-  | 'email'
-  | 'ai-studio'
-  | 'backups'
-  | 'storage';
-
-export const Index = () => {
+export const Index: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated, login, logout } = useAdminAuth();
-  const { theme, config } = useTheme();
+  const { theme } = useTheme();
   const [activeTab, setActiveTab] = useState<AdminTab>('builder');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const store = useQuizStore();
-
 
   // Login form states for unauthenticated users
   const [loginUser, setLoginUser] = useState('admin');
@@ -172,277 +145,155 @@ export const Index = () => {
 
   return (
     <div className={`min-h-screen ${themeClassMap[theme] || themeClassMap.riseup} transition-colors duration-300 font-sans`}>
-      {/* Enterprise Administrative Header */}
-      <header className="border-b border-border/80 bg-card/90 backdrop-blur-md sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground font-black text-sm flex items-center justify-center shadow">
-              WP
+      {/* WordPress Top Admin Bar */}
+      <header className="h-12 border-b border-[#292942] bg-[#0E0E18] sticky top-0 z-40 px-3 sm:px-4 flex items-center justify-between">
+        {/* Left Side: Brand, Portal Link */}
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <div className="w-6 h-6 rounded bg-[#FFAD01] text-[#0A0A14] font-black text-xs flex items-center justify-center font-serif shadow-xs">
+              W
             </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="font-bold text-base tracking-tight">WP Exam Console</span>
-                <Badge variant="outline" className="text-[10px] font-mono py-0">v2.5 Enterprise</Badge>
-              </div>
-              <p className="text-[10px] text-muted-foreground hidden sm:block font-mono">
-                Split SQLite WAL • Multi-Theme Engine
-              </p>
-            </div>
+            <span className="font-bold text-xs tracking-tight text-white hidden sm:inline">
+              WP Exam Console
+            </span>
+            <Badge variant="outline" className="text-[9px] font-mono py-0 border-[#292942] text-[#94A3B8]">
+              v2.5
+            </Badge>
           </div>
 
-          {/* Theme Switcher & Actions */}
-          <div className="flex items-center gap-3">
-            <ThemeSwitcher />
+          <div className="h-4 w-px bg-[#292942] hidden sm:block" />
 
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/')}
-              className="text-xs h-8 gap-1.5 border-border hidden sm:flex"
-            >
-              <ExternalLink className="w-3.5 h-3.5" />
-              <span>Public Portal</span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={logout}
-              className="text-xs h-8 gap-1 text-muted-foreground hover:text-destructive"
-              title="Sign Out"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Logout</span>
-            </Button>
-          </div>
+          {/* Quick link to public site */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => navigate('/')}
+            className="text-xs h-7 px-2 gap-1.5 text-[#94A3B8] hover:text-[#FFAD01] hover:bg-[#1E1E32]"
+            title="Visit Public Candidate Portal"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span className="text-xs">Visit Portal</span>
+          </Button>
         </div>
 
-        {/* Organic Enterprise Navigation Bar */}
-        <div className="border-t border-border/60 bg-muted/10 backdrop-blur-md py-2">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-wrap items-center justify-between gap-3">
-            {/* Primary Navigation Clusters */}
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Authoring Cluster */}
-              <div className="flex items-center gap-1 bg-card/80 border border-border/70 p-1 rounded-xl shadow-xs">
-                <Button
-                  variant={activeTab === 'builder' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setActiveTab('builder')}
-                  className={`text-xs h-7 px-3 gap-1.5 rounded-lg transition-all ${
-                    activeTab === 'builder' ? 'shadow-sm font-semibold' : 'text-muted-foreground'
-                  }`}
-                >
-                  <FileEdit className="w-3.5 h-3.5" />
-                  <span>Form Builder</span>
-                </Button>
-                <Button
-                  variant={activeTab === 'projects' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setActiveTab('projects')}
-                  className={`text-xs h-7 px-3 gap-1.5 rounded-lg transition-all ${
-                    activeTab === 'projects' ? 'shadow-sm font-semibold' : 'text-muted-foreground'
-                  }`}
-                >
-                  <FolderTree className="w-3.5 h-3.5" />
-                  <span>Projects Tree</span>
-                </Button>
-              </div>
+        {/* Right Side: Theme Switcher, Howdy Admin, Logout */}
+        <div className="flex items-center gap-2 sm:gap-3">
+          <ThemeSwitcher />
 
-              {/* Delivery Cluster */}
-              <div className="flex items-center gap-1 bg-card/80 border border-border/70 p-1 rounded-xl shadow-xs">
-                <Button
-                  variant={activeTab === 'focus-runner' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setActiveTab('focus-runner')}
-                  className={`text-xs h-7 px-3 gap-1.5 rounded-lg transition-all ${
-                    activeTab === 'focus-runner' ? 'bg-indigo-600 hover:bg-indigo-500 text-white shadow-sm font-semibold' : 'text-muted-foreground'
-                  }`}
-                >
-                  <Target className="w-3.5 h-3.5 text-indigo-400" />
-                  <span>Focus Quiz</span>
-                </Button>
-                <Button
-                  variant={activeTab === 'runner' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setActiveTab('runner')}
-                  className={`text-xs h-7 px-3 gap-1.5 rounded-lg transition-all ${
-                    activeTab === 'runner' ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-sm font-semibold' : 'text-muted-foreground'
-                  }`}
-                >
-                  <PlayCircle className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>Live Runner</span>
-                </Button>
-                <Button
-                  variant={activeTab === 'invites' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setActiveTab('invites')}
-                  className={`text-xs h-7 px-3 gap-1.5 rounded-lg transition-all ${
-                    activeTab === 'invites' ? 'shadow-sm font-semibold' : 'text-muted-foreground'
-                  }`}
-                >
-                  <Users className="w-3.5 h-3.5" />
-                  <span>Invites</span>
-                </Button>
-              </div>
+          <div className="h-4 w-px bg-[#292942]" />
 
-              {/* Operations Cluster */}
-              <div className="flex items-center gap-1 bg-card/80 border border-border/70 p-1 rounded-xl shadow-xs">
-                <Button
-                  variant={activeTab === 'email' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setActiveTab('email')}
-                  className={`text-xs h-7 px-3 gap-1.5 rounded-lg transition-all ${
-                    activeTab === 'email' ? 'bg-blue-600 hover:bg-blue-500 text-white shadow-sm font-semibold' : 'text-muted-foreground'
-                  }`}
-                >
-                  <Mail className="w-3.5 h-3.5 text-blue-400" />
-                  <span>Email Gateway</span>
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                </Button>
-                <Button
-                  variant={activeTab === 'history' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setActiveTab('history')}
-                  className={`text-xs h-7 px-2.5 gap-1.5 rounded-lg transition-all ${
-                    activeTab === 'history' ? 'shadow-sm font-semibold' : 'text-muted-foreground'
-                  }`}
-                >
-                  <History className="w-3.5 h-3.5" />
-                  <span>Audit</span>
-                </Button>
-                <Button
-                  variant={activeTab === 'analytics' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setActiveTab('analytics')}
-                  className={`text-xs h-7 px-2.5 gap-1.5 rounded-lg transition-all ${
-                    activeTab === 'analytics' ? 'shadow-sm font-semibold' : 'text-muted-foreground'
-                  }`}
-                >
-                  <BarChart3 className="w-3.5 h-3.5" />
-                  <span>Analytics</span>
-                </Button>
-                <Button
-                  variant={activeTab === 'storage' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setActiveTab('storage')}
-                  className={`text-xs h-7 px-2.5 gap-1.5 rounded-lg transition-all ${
-                    activeTab === 'storage' ? 'shadow-sm font-semibold' : 'text-muted-foreground'
-                  }`}
-                >
-                  <Database className="w-3.5 h-3.5" />
-                  <span>DB</span>
-                </Button>
-                <Button
-                  variant={activeTab === 'backups' ? 'default' : 'ghost'}
-                  size="sm"
-                  onClick={() => setActiveTab('backups')}
-                  className={`text-xs h-7 px-2.5 gap-1.5 rounded-lg transition-all ${
-                    activeTab === 'backups' ? 'shadow-sm font-semibold' : 'text-muted-foreground'
-                  }`}
-                >
-                  <Archive className="w-3.5 h-3.5" />
-                  <span>Backups</span>
-                </Button>
-              </div>
-            </div>
-
-            {/* AI Prompt Engineering Studio */}
-            <div className="flex items-center gap-1.5">
-              <Button
-                variant={activeTab === 'ai-studio' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setActiveTab('ai-studio')}
-                className={`text-xs h-8 px-3 gap-1.5 rounded-xl border-amber-500/40 transition-all ${
-                  activeTab === 'ai-studio'
-                    ? 'bg-amber-600 hover:bg-amber-500 text-white shadow-sm font-semibold'
-                    : 'text-amber-500 hover:bg-amber-500/10'
-                }`}
-              >
-                <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-                <span>AI Studio</span>
-              </Button>
+          {/* User Profile */}
+          <div className="flex items-center gap-1.5 text-xs text-[#94A3B8]">
+            <span className="hidden md:inline">Howdy,</span>
+            <span className="font-semibold text-white">admin</span>
+            <div className="w-5 h-5 rounded-full bg-[#1E1E32] border border-[#292942] flex items-center justify-center text-[#FFAD01]">
+              <User className="w-3 h-3" />
             </div>
           </div>
+
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={logout}
+            className="text-xs h-7 px-2 gap-1 text-[#94A3B8] hover:text-red-400 hover:bg-[#1E1E32]"
+            title="Log Out"
+          >
+            <LogOut className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Log Out</span>
+          </Button>
         </div>
       </header>
 
-      {/* Main Workspace Area */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {activeTab === 'builder' && <QuizEditor />}
+      {/* WordPress 2-Column Administrative Dashboard */}
+      <div className="flex min-h-[calc(100vh-48px)]">
+        {/* Persistent Left-Hand Admin Sidebar */}
+        <WpAdminSidebar
+          activeTab={activeTab}
+          onSelectTab={setActiveTab}
+          isCollapsed={isSidebarCollapsed}
+          onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+          onNavigateHome={() => navigate('/')}
+        />
 
-        {activeTab === 'projects' && (
-          <div className="max-w-6xl mx-auto">
-            <ProjectHierarchyManager onLaunchFocusRunner={() => setActiveTab('focus-runner')} />
-          </div>
-        )}
+        {/* Fluid Right Content Canvas */}
+        <main className="flex-1 min-w-0 bg-background/50 overflow-y-auto">
+          <div className="p-4 sm:p-6 lg:p-8">
+            {activeTab === 'builder' && <QuizEditor />}
 
-        {activeTab === 'focus-runner' && (
-          <div className="max-w-xl mx-auto py-2">
-            <FocusQuizRunner onBackToAdmin={() => setActiveTab('projects')} />
-          </div>
-        )}
+            {activeTab === 'projects' && (
+              <div className="max-w-6xl mx-auto">
+                <ProjectHierarchyManager onLaunchFocusRunner={() => setActiveTab('focus-runner')} />
+              </div>
+            )}
 
-        {activeTab === 'runner' && (
-          <div className="max-w-4xl mx-auto py-2">
-            <FormRunner
-              form={{
-                title: store.title,
-                description: store.description,
-                formType: store.formType,
-                formAccess: store.formAccess,
-                isSequential: store.isSequential,
-                isPublished: true,
-                settings: store.settings,
-                fields: store.fields,
-              }}
-              onClose={() => setActiveTab('builder')}
-            />
-          </div>
-        )}
+            {activeTab === 'focus-runner' && (
+              <div className="max-w-xl mx-auto py-2">
+                <FocusQuizRunner onBackToAdmin={() => setActiveTab('projects')} />
+              </div>
+            )}
 
-        {activeTab === 'invites' && (
-          <div className="max-w-4xl mx-auto">
-            <InvitesManager onNavigateToRunner={() => setActiveTab('runner')} />
-          </div>
-        )}
+            {activeTab === 'runner' && (
+              <div className="max-w-4xl mx-auto py-2">
+                <FormRunner
+                  form={{
+                    title: store.title,
+                    description: store.description,
+                    formType: store.formType,
+                    formAccess: store.formAccess,
+                    isSequential: store.isSequential,
+                    isPublished: true,
+                    settings: store.settings,
+                    fields: store.fields,
+                  }}
+                  onClose={() => setActiveTab('builder')}
+                />
+              </div>
+            )}
 
-        {activeTab === 'history' && (
-          <div className="max-w-4xl mx-auto">
-            <HistoryManager />
-          </div>
-        )}
+            {activeTab === 'invites' && (
+              <div className="max-w-4xl mx-auto">
+                <InvitesManager onNavigateToRunner={() => setActiveTab('runner')} />
+              </div>
+            )}
 
-        {activeTab === 'analytics' && (
-          <div className="max-w-6xl mx-auto">
-            <AnalyticsDashboard />
-          </div>
-        )}
+            {activeTab === 'history' && (
+              <div className="max-w-4xl mx-auto">
+                <HistoryManager />
+              </div>
+            )}
 
-        {activeTab === 'email' && (
-          <div className="max-w-4xl mx-auto">
-            <EmailSettings />
-          </div>
-        )}
+            {activeTab === 'analytics' && (
+              <div className="max-w-6xl mx-auto">
+                <AnalyticsDashboard />
+              </div>
+            )}
 
-        {activeTab === 'ai-studio' && (
-          <div className="max-w-4xl mx-auto">
-            <AIInstructionStudio />
-          </div>
-        )}
+            {activeTab === 'email' && (
+              <div className="max-w-4xl mx-auto">
+                <EmailSettings />
+              </div>
+            )}
 
-        {activeTab === 'storage' && (
-          <div className="max-w-5xl mx-auto">
-            <SqliteStatus />
-          </div>
-        )}
+            {activeTab === 'ai-studio' && (
+              <div className="max-w-4xl mx-auto">
+                <AIInstructionStudio />
+              </div>
+            )}
 
-        {activeTab === 'backups' && (
-          <div className="max-w-5xl mx-auto">
-            <BackupManager />
+            {activeTab === 'storage' && (
+              <div className="max-w-5xl mx-auto">
+                <SqliteStatus />
+              </div>
+            )}
+
+            {activeTab === 'backups' && (
+              <div className="max-w-5xl mx-auto">
+                <BackupManager />
+              </div>
+            )}
           </div>
-        )}
-      </main>
+        </main>
+      </div>
     </div>
   );
 };

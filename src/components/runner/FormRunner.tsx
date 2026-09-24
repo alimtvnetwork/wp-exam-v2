@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FormModel, FormField, FormSubmissionResult } from '@/lib/types/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -9,6 +9,12 @@ import { Badge } from '@/components/ui/badge';
 import { useExamAppStore } from '@/quiz/store/exam-store';
 import { ExternalLink, AlertCircle, CheckCircle2, Play, Copy, Share2, Layers } from 'lucide-react';
 import { toast } from 'sonner';
+import {
+  evaluateFieldVisibility,
+  evaluateFieldRequired,
+  getNextStepIndex,
+  getPreviousStepIndex,
+} from '@/lib/branching-engine';
 
 interface FormRunnerProps {
   form?: FormModel;
@@ -188,9 +194,33 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form: initialForm, onClo
     }
   }, [session]);
 
-  const fields = activeForm.fields || [];
+  const fields = useMemo(() => activeForm.fields || [], [activeForm.fields]);
   const isSequential = activeForm.isSequential && fields.length > 1;
   const currentField = fields[currentStep];
+  const visibleFields = useMemo(
+    () => fields.filter((f) => evaluateFieldVisibility(f, answers, fields)),
+    [fields, answers]
+  );
+  const isCurrentFieldRequired = currentField ? evaluateFieldRequired(currentField, answers, fields) : false;
+  const nextVisibleIndex = getNextStepIndex(fields, currentStep, answers);
+  const isLastVisibleStep = nextVisibleIndex >= fields.length;
+
+  useEffect(() => {
+    if (isSequential) {
+      if (currentField) {
+        const isVisible = evaluateFieldVisibility(currentField, answers, fields);
+
+        if (!isVisible) {
+          const nextIdx = getNextStepIndex(fields, currentStep, answers);
+          const hasValidNext = nextIdx < fields.length;
+
+          if (hasValidNext) {
+            setCurrentStep(nextIdx);
+          }
+        }
+      }
+    }
+  }, [answers, currentStep, fields, isSequential, currentField]);
 
   const handleAnswerChange = (fieldId: string, value: unknown) => {
     setAnswers((prev) => ({ ...prev, [fieldId]: value }));
@@ -235,27 +265,95 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form: initialForm, onClo
     }
   };
 
+  const handleNextStep = () => {
+    if (!currentField) {
+      return;
+    }
+
+    const isRequired = evaluateFieldRequired(currentField, answers, fields);
+    const answer = answers[currentField.id];
+    const hasAnswer = answer !== undefined && answer !== null && answer !== '';
+
+    if (isRequired) {
+      if (!hasAnswer) {
+        toast.error(`Please provide an answer for "${currentField.label}" before proceeding.`);
+
+        return;
+      }
+    }
+
+    const nextIndex = getNextStepIndex(fields, currentStep, answers);
+    const isEndReached = nextIndex >= fields.length;
+
+    if (isEndReached) {
+      handleSubmit();
+
+      return;
+    }
+
+    setCurrentStep(nextIndex);
+  };
+
+  const handlePreviousStep = () => {
+    const prevIndex = getPreviousStepIndex(fields, currentStep, answers);
+    setCurrentStep(prevIndex);
+  };
+
   const handleSubmit = () => {
     const finalName = guestName.trim() || session.respondentName || 'Anonymous Candidate';
     const finalEmail = guestEmail.trim() || session.respondentEmail || 'candidate@example.com';
+
+    const currentVisibleFields = fields.filter((f) => evaluateFieldVisibility(f, answers, fields));
+
+    const missingRequiredField = currentVisibleFields.find((f) => {
+      const isRequired = evaluateFieldRequired(f, answers, fields);
+      const answer = answers[f.id];
+      const hasAnswer = answer !== undefined && answer !== null && answer !== '';
+
+      if (isRequired) {
+        if (!hasAnswer) {
+          return true;
+        }
+      }
+
+      return false;
+    });
+
+    if (missingRequiredField) {
+      toast.error(`Please answer required question: "${missingRequiredField.label}"`);
+
+      return;
+    }
 
     let earned = 0;
     let total = 0;
     let isPassed: boolean | null = null;
     let pct = 0;
 
-    if (activeForm.formType === 'quiz') {
-      fields.forEach((f) => {
+    const isQuiz = activeForm.formType === 'quiz';
+
+    if (isQuiz) {
+      currentVisibleFields.forEach((f) => {
         const pts = f.points || 1;
         total += pts;
         const userAns = String(answers[f.id] ?? '');
         const correctAns = f.correctAnswer || '';
-        if (userAns && correctAns && userAns.trim().toLowerCase() === correctAns.trim().toLowerCase()) {
-          earned += pts;
+        const hasUserAns = Boolean(userAns);
+        const hasCorrectAns = Boolean(correctAns);
+
+        if (hasUserAns) {
+          if (hasCorrectAns) {
+            const isMatch = userAns.trim().toLowerCase() === correctAns.trim().toLowerCase();
+
+            if (isMatch) {
+              earned += pts;
+            }
+          }
         }
       });
 
-      pct = total > 0 ? Math.round((earned / total) * 100) : 0;
+      const hasTotal = total > 0;
+      pct = hasTotal ? Math.round((earned / total) * 100) : 0;
       const passingScore = activeForm.settings?.passingScore ?? 70;
       isPassed = pct >= passingScore;
 
@@ -286,12 +384,18 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form: initialForm, onClo
       total_score: total,
       score_percentage: pct,
       is_passed: Boolean(isPassed),
-      answers: fields.map((f) => {
+      answers: currentVisibleFields.map((f) => {
         const userAns = String(answers[f.id] ?? '');
         const correctAns = f.correctAnswer || '';
-        const isCorrect = Boolean(
-          userAns && correctAns && userAns.trim().toLowerCase() === correctAns.trim().toLowerCase()
-        );
+        const hasUserAns = Boolean(userAns);
+        const hasCorrectAns = Boolean(correctAns);
+        let isCorrect = false;
+
+        if (hasUserAns) {
+          if (hasCorrectAns) {
+            isCorrect = userAns.trim().toLowerCase() === correctAns.trim().toLowerCase();
+          }
+        }
 
         return {
           question: f.label,
@@ -302,7 +406,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form: initialForm, onClo
       }),
     });
 
-    if (session.token) {
+    const hasSessionToken = Boolean(session.token);
+
+    if (hasSessionToken) {
       examStore.markInviteCompleted(session.token);
     }
 
@@ -383,12 +489,12 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form: initialForm, onClo
           <select
             value={selectedProjectId}
             onChange={(e) => handleProjectSwitch(e.target.value)}
-            className="text-xs font-medium h-8 px-2 border border-input rounded-md bg-background text-foreground"
+            className="text-xs font-medium h-8 px-2 border border-input rounded-md bg-background text-foreground dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
           >
-            <option value="intern-programmer">Intern Programmer Assessment</option>
-            <option value="full-stack-architect">Full-Stack Web Architecture</option>
-            <option value="cybersecurity-essentials">Cybersecurity Fundamentals</option>
-            {initialForm && <option value="custom-active">Custom Form (Builder Active)</option>}
+            <option value="intern-programmer" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Intern Programmer Assessment</option>
+            <option value="full-stack-architect" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Full-Stack Web Architecture</option>
+            <option value="cybersecurity-essentials" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Cybersecurity Fundamentals</option>
+            {initialForm && <option value="custom-active" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Custom Form (Builder Active)</option>}
           </select>
         </div>
 
@@ -470,7 +576,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form: initialForm, onClo
             </div>
             <Progress value={Math.round(((currentStep + 1) / fields.length) * 100)} className="h-1.5 mb-2" />
             <CardTitle className="text-base font-bold">{currentField.label}</CardTitle>
-            {currentField.isRequired && (
+            {isCurrentFieldRequired && (
               <span className="text-[11px] text-destructive font-medium">* Required Field</span>
             )}
           </CardHeader>
@@ -483,19 +589,19 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form: initialForm, onClo
                 variant="outline"
                 size="sm"
                 disabled={currentStep === 0}
-                onClick={() => setCurrentStep((prev) => Math.max(0, prev - 1))}
+                onClick={handlePreviousStep}
                 className="text-xs"
               >
                 Previous
               </Button>
 
-              {currentStep < fields.length - 1 ? (
-                <Button size="sm" onClick={() => setCurrentStep((prev) => prev + 1)} className="text-xs bg-primary">
-                  Next Question &rarr;
+              {isLastVisibleStep ? (
+                <Button size="sm" onClick={handleNextStep} className="text-xs bg-emerald-600 hover:bg-emerald-700">
+                  Submit Assessment
                 </Button>
               ) : (
-                <Button size="sm" onClick={handleSubmit} className="text-xs bg-emerald-600 hover:bg-emerald-700">
-                  Submit Assessment
+                <Button size="sm" onClick={handleNextStep} className="text-xs bg-primary">
+                  Next Question &rarr;
                 </Button>
               )}
             </div>
@@ -538,15 +644,19 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form: initialForm, onClo
             </div>
 
             <div className="space-y-3">
-              {fields.map((f, idx) => (
-                <div key={f.id} className="p-3.5 rounded-lg border border-border bg-card space-y-2">
-                  <label className="font-semibold text-xs flex items-center justify-between">
-                    <span>{idx + 1}. {f.label}</span>
-                    {f.isRequired && <span className="text-[10px] text-destructive font-medium">* Required</span>}
-                  </label>
-                  {renderFieldInput(f, answers[f.id], (val) => handleAnswerChange(f.id, val))}
-                </div>
-              ))}
+              {visibleFields.map((f, idx) => {
+                const isFieldRequired = evaluateFieldRequired(f, answers, fields);
+
+                return (
+                  <div key={f.id} className="p-3.5 rounded-lg border border-border bg-card space-y-2">
+                    <label className="font-semibold text-xs flex items-center justify-between">
+                      <span>{idx + 1}. {f.label}</span>
+                      {isFieldRequired && <span className="text-[10px] text-destructive font-medium">* Required</span>}
+                    </label>
+                    {renderFieldInput(f, answers[f.id], (val) => handleAnswerChange(f.id, val))}
+                  </div>
+                );
+              })}
             </div>
 
             <div className="flex justify-end gap-2 pt-3 border-t border-border">
@@ -650,11 +760,11 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
         <select
           value={strValue}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full h-8 p-1.5 border border-input rounded-md text-xs bg-background"
+          className="w-full h-8 px-2 border border-input rounded-md text-xs bg-background text-foreground dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
         >
-          <option value="">-- Choose Option --</option>
+          <option value="" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">-- Choose Option --</option>
           {options.map((opt) => (
-            <option key={opt} value={opt}>
+            <option key={opt} value={opt} className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">
               {opt}
             </option>
           ))}
