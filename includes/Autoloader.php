@@ -33,15 +33,45 @@ if (!class_exists('WpExamAutoloader', false)) {
         }
 
         $relativeClass = substr($class, self::PREFIX_LENGTH);
-        $file = __DIR__ . '/' . str_replace('\\', '/', $relativeClass) . '.php';
+        $normalizedPath = str_replace('\\', '/', $relativeClass);
+        $file = __DIR__ . '/' . $normalizedPath . '.php';
 
         $isFileMissing = !file_exists($file);
 
         if ($isFileMissing) {
-            $lowerFile = __DIR__ . '/' . strtolower(str_replace('\\', '/', $relativeClass)) . '.php';
+            $parts = explode('/', $normalizedPath);
+            $fileName = array_pop($parts);
+
+            if (count($parts) > 0) {
+                $dirPath = __DIR__ . '/' . strtolower(implode('/', $parts));
+                $candidate = $dirPath . '/' . $fileName . '.php';
+
+                if (file_exists($candidate)) {
+                    $file = $candidate;
+                    $isFileMissing = false;
+                }
+            }
+        }
+
+        if ($isFileMissing) {
+            $lowerFile = __DIR__ . '/' . strtolower($normalizedPath) . '.php';
             $hasLowerFile = file_exists($lowerFile);
+
             if ($hasLowerFile) {
                 $file = $lowerFile;
+                $isFileMissing = false;
+            }
+        }
+
+        if ($isFileMissing) {
+            $parts = explode('/', $normalizedPath);
+            $fileName = array_pop($parts);
+            $wpFileName = 'class-' . strtolower(str_replace('_', '-', $fileName)) . '.php';
+            $dirPath = count($parts) > 0 ? __DIR__ . '/' . strtolower(implode('/', $parts)) : __DIR__;
+            $wpFile = $dirPath . '/' . $wpFileName;
+
+            if (file_exists($wpFile)) {
+                $file = $wpFile;
                 $isFileMissing = false;
             }
         }

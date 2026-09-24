@@ -35,7 +35,8 @@ Additionally, running the local CI runner (`python 03-ai-scripts/06-cicd-local-r
 ## 3. Root Cause Analysis
 
 1. **Remote CI Action Parameterization:** `actions/setup-python@v5` had `cache: 'pip'` enabled without a corresponding dependency manifest file in repository root.
-2. **Relative Path Resolution Standard:** Subtask templates used relative parent directory traversals (`../../../`) instead of root-relative paths required by AGENTS.md Rule 5 and verified by `03-ai-scripts/21-sequence-integrity-linter.py`.
+3. **Autoloader Directory Casing on Linux:**
+   - In `includes/Autoloader.php`, added multi-strategy path resolution to support case-insensitive directory names (`includes/api/` matching `WpExam\Api\...`) while preserving PascalCase filenames, all-lowercase filenames, and WordPress-style `class-*.php` prefixes across Linux and Windows environments.
 
 ---
 
@@ -46,8 +47,11 @@ Additionally, running the local CI runner (`python 03-ai-scripts/06-cicd-local-r
    - Created a root `requirements.txt` manifest explaining dependency architecture to satisfy external tools and linters.
 2. **Path Reference Normalization:**
    - Updated all 5 subtask files in `.ai-memory/plans/subtasks/46-live-url-preview-and-branching-ux/` to use root-relative markdown links (`[02-spec/...](02-spec/...)`).
-3. **Verification:**
-   - `python 03-ai-scripts/06-cicd-local-runner.py --all` passed all 11/11 quality gates (Sequence Integrity, Markdown Gaps, PHP tests, Python E2E suites).
+3. **Autoloader Resilience:**
+   - Enhanced `includes/Autoloader.php` to resolve both exact paths, lowercase directory segments, and lowercase file prefixes, preventing case-sensitivity errors on Linux CI runners.
+4. **Verification:**
+   - `python 03-ai-scripts/06-cicd-local-runner.py --all` passed all 11/11 quality gates.
+   - `php tests/run-tests.php` passed 47/47 tests.
    - `php artisan test` passed 51/51 tests.
    - `npx vitest run` passed 34/34 tests.
    - `npm run lint` reported 0 errors.
