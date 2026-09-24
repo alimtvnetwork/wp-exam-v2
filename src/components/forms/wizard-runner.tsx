@@ -14,6 +14,14 @@ import {
   Briefcase,
   Play
 } from 'lucide-react';
+import { getTheme, getThemeCssVariables } from '@/themes/theme-definitions';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 
 interface CountryOption {
   code: string;
@@ -35,10 +43,10 @@ const STATIC_COUNTRIES: CountryOption[] = [
 ];
 
 const THEME_OPTIONS = [
-  { id: 'riseup-asia', name: 'Riseup Asia (Navy & Gold)' },
+  { id: 'riseup-asia', name: 'Rise Up Asia (Warm Gold & Navy)' },
   { id: 'dracula', name: 'Antigravity Dracula (Dark Purple)' },
   { id: 'vscode-dark', name: 'VS Code Dark (Slate & Cyan)' },
-  { id: 'microsoft-blue', name: 'Microsoft Blue (Enterprise Clean)' },
+  { id: 'microsoft-blue', name: 'Clean Light (Enterprise Clean)' },
 ];
 
 export const WizardRunner: React.FC = () => {
@@ -143,25 +151,74 @@ export const WizardRunner: React.FC = () => {
     setIsSubmitted(true);
   };
 
+  const themeDef = getTheme(activeTheme);
+  const themeVars = getThemeCssVariables(themeDef);
+
   return (
-    <div className={`form-wizard-container theme-${activeTheme} max-w-4xl mx-auto p-6 bg-card text-card-foreground rounded-xl shadow-lg border border-border`}>
+    <div 
+      className={`form-wizard-container theme-${activeTheme} max-w-4xl mx-auto p-6 rounded-2xl shadow-2xl border transition-all duration-300 font-sans`}
+      style={{
+        backgroundColor: themeDef.colors.cardBg,
+        borderColor: themeDef.colors.cardBorder,
+        color: themeDef.colors.textPrimary,
+        ...themeVars,
+      }}
+    >
       {/* Theme Selector Top Bar */}
-      <div className="flex justify-between items-center pb-4 mb-6 border-b border-border">
+      <div 
+        className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 mb-6 border-b gap-3"
+        style={{ borderColor: themeDef.colors.cardBorder }}
+      >
         <div>
-          <h2 className="text-xl font-bold">WP Exam & Form Engine</h2>
-          <p className="text-xs text-muted-foreground">Universal 4-Step Dynamic Candidate Application</p>
+          <h2 className="text-xl font-bold tracking-tight" style={{ color: themeDef.colors.textPrimary }}>
+            WP Exam & Form Engine
+          </h2>
+          <p className="text-xs" style={{ color: themeDef.colors.textSecondary }}>
+            Universal 4-Step Dynamic Candidate Application
+          </p>
         </div>
         <div className="flex items-center space-x-2">
-          <label className="text-xs font-medium text-muted-foreground">Theme:</label>
-          <select 
+          <label className="text-xs font-semibold" style={{ color: themeDef.colors.textSecondary }}>
+            Theme:
+          </label>
+          <Select 
             value={activeTheme} 
-            onChange={(e) => setActiveTheme(e.target.value)}
-            className="text-xs bg-muted border border-border rounded px-2 py-1"
+            onValueChange={(val) => {
+              setActiveTheme(val);
+              const nextTheme = getTheme(val);
+              document.documentElement.setAttribute('data-theme', nextTheme.id);
+            }}
           >
-            {THEME_OPTIONS.map((t) => (
-              <option key={t.id} value={t.id}>{t.name}</option>
-            ))}
-          </select>
+            <SelectTrigger 
+              className="h-8 text-xs w-[240px] rounded-lg border font-medium shadow-sm"
+              style={{
+                backgroundColor: themeDef.colors.background,
+                borderColor: themeDef.colors.cardBorder,
+                color: themeDef.colors.textPrimary,
+              }}
+            >
+              <SelectValue placeholder="Select Theme" />
+            </SelectTrigger>
+            <SelectContent 
+              className="border shadow-xl backdrop-blur-md rounded-xl"
+              style={{
+                backgroundColor: themeDef.colors.cardBg,
+                borderColor: themeDef.colors.cardBorder,
+                color: themeDef.colors.textPrimary,
+              }}
+            >
+              {THEME_OPTIONS.map((t) => (
+                <SelectItem 
+                  key={t.id} 
+                  value={t.id}
+                  className="text-xs cursor-pointer focus:bg-accent/40"
+                  style={{ color: themeDef.colors.textPrimary }}
+                >
+                  {t.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -265,21 +322,43 @@ export const WizardRunner: React.FC = () => {
               {/* Country & WhatsApp Phone Input */}
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
-                  <label className="block text-xs font-medium mb-1">Country *</label>
-                  <select
+                  <Select
                     value={selectedCountry.code}
-                    onChange={(e) => {
-                      const found = STATIC_COUNTRIES.find((c) => c.code === e.target.value);
+                    onValueChange={(val) => {
+                      const found = STATIC_COUNTRIES.find((c) => c.code === val);
                       if (found) setSelectedCountry(found);
                     }}
-                    className="w-full px-3 py-2 text-sm bg-background border border-border rounded-md"
                   >
-                    {STATIC_COUNTRIES.map((c) => (
-                      <option key={c.code} value={c.code}>
-                        {c.flag} {c.name} ({c.prefix})
-                      </option>
-                    ))}
-                  </select>
+                    <SelectTrigger 
+                      className="w-full h-10 text-xs border rounded-md"
+                      style={{
+                        backgroundColor: themeDef.colors.background,
+                        borderColor: themeDef.colors.cardBorder,
+                        color: themeDef.colors.textPrimary,
+                      }}
+                    >
+                      <SelectValue placeholder="Select Country" />
+                    </SelectTrigger>
+                    <SelectContent 
+                      className="border shadow-xl backdrop-blur-md rounded-xl max-h-56"
+                      style={{
+                        backgroundColor: themeDef.colors.cardBg,
+                        borderColor: themeDef.colors.cardBorder,
+                        color: themeDef.colors.textPrimary,
+                      }}
+                    >
+                      {STATIC_COUNTRIES.map((c) => (
+                        <SelectItem 
+                          key={c.code} 
+                          value={c.code}
+                          className="text-xs cursor-pointer focus:bg-accent/40"
+                          style={{ color: themeDef.colors.textPrimary }}
+                        >
+                          {c.flag} {c.name} ({c.prefix})
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="sm:col-span-2">

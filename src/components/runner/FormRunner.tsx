@@ -9,8 +9,16 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useExamAppStore } from '@/quiz/store/exam-store';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
-import { ExternalLink, AlertCircle, CheckCircle2, Play, Copy, Share2, Layers } from 'lucide-react';
+import { ExternalLink, AlertCircle, CheckCircle2, Play, Copy, Share2, Layers, Palette } from 'lucide-react';
 import { toast } from 'sonner';
+import { getTheme, getThemeCssVariables, THEME_PRESETS } from '@/themes/theme-definitions';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import {
   evaluateFieldVisibility,
   evaluateFieldRequired,
@@ -199,6 +207,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   };
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>(getInitialProjectId());
+  const [activeThemeId, setActiveThemeId] = useState<string>('riseup-asia');
+  const currentTheme = getTheme(activeThemeId);
+  const themeVars = getThemeCssVariables(currentTheme);
 
   const activeForm: FormModel = useMemo(() => {
     if (selectedProjectId === 'custom-active') {
@@ -545,28 +556,108 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   }
 
   return (
-    <div className="space-y-4 font-sans max-w-4xl mx-auto">
+    <div 
+      className={`space-y-4 font-sans max-w-4xl mx-auto p-4 sm:p-6 rounded-2xl transition-all duration-300 theme-${activeThemeId}`}
+      style={{
+        ...themeVars,
+        backgroundColor: currentTheme.colors.background,
+        color: currentTheme.colors.textPrimary,
+      }}
+    >
       {/* Project Selector & Deep-Link Bar */}
-      <div className="p-3 bg-card border border-border rounded-xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-        <div className="flex items-center gap-2 flex-wrap">
-          <Label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5 whitespace-nowrap">
-            <Layers className="w-3.5 h-3.5 text-primary" />
-            <span>Active Curriculum Project:</span>
-          </Label>
-          <select
-            value={selectedProjectId}
-            onChange={(e) => handleProjectSwitch(e.target.value)}
-            className="text-xs font-medium h-8 px-2 border border-input rounded-md bg-background text-foreground dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
-          >
-            <option value="intern-programmer" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Intern Programmer Assessment</option>
-            <option value="full-stack-architect" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Full-Stack Web Architecture</option>
-            <option value="cybersecurity-essentials" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Cybersecurity Fundamentals</option>
-            {(initialForm || quizStore.fields.length > 0) && (
-              <option value="custom-active" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">
-                Custom Form ({activeForm.title || 'Builder Active'})
-              </option>
-            )}
-          </select>
+      <div 
+        className="p-3 border rounded-xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-colors"
+        style={{
+          backgroundColor: currentTheme.colors.cardBg,
+          borderColor: currentTheme.colors.cardBorder,
+        }}
+      >
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="flex items-center gap-2">
+            <Label className="text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap" style={{ color: currentTheme.colors.textSecondary }}>
+              <Layers className="w-3.5 h-3.5" style={{ color: currentTheme.colors.primary }} />
+              <span>Project:</span>
+            </Label>
+            <Select
+              value={selectedProjectId}
+              onValueChange={handleProjectSwitch}
+            >
+              <SelectTrigger 
+                className="text-xs font-medium h-8 min-w-[210px] rounded-md border"
+                style={{
+                  backgroundColor: currentTheme.colors.background,
+                  borderColor: currentTheme.colors.cardBorder,
+                  color: currentTheme.colors.textPrimary,
+                }}
+              >
+                <SelectValue placeholder="Select Assessment Project" />
+              </SelectTrigger>
+              <SelectContent 
+                className="border shadow-xl backdrop-blur-md rounded-xl"
+                style={{
+                  backgroundColor: currentTheme.colors.cardBg,
+                  borderColor: currentTheme.colors.cardBorder,
+                  color: currentTheme.colors.textPrimary,
+                }}
+              >
+                <SelectItem value="intern-programmer" className="text-xs">
+                  Intern Programmer Assessment
+                </SelectItem>
+                <SelectItem value="full-stack-architect" className="text-xs">
+                  Full-Stack Web Architecture
+                </SelectItem>
+                <SelectItem value="cybersecurity-essentials" className="text-xs">
+                  Cybersecurity Fundamentals
+                </SelectItem>
+                {(initialForm || quizStore.fields.length > 0) && (
+                  <SelectItem value="custom-active" className="text-xs">
+                    Custom Form ({activeForm.title || 'Builder Active'})
+                  </SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Theme Selector */}
+          <div className="flex items-center gap-1.5">
+            <Label className="text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap" style={{ color: currentTheme.colors.textSecondary }}>
+              <Palette className="w-3.5 h-3.5" style={{ color: currentTheme.colors.primary }} />
+              <span>Theme:</span>
+            </Label>
+            <Select
+              value={activeThemeId}
+              onValueChange={(val) => {
+                setActiveThemeId(val);
+                const nextT = getTheme(val);
+                document.documentElement.setAttribute('data-theme', nextT.id);
+              }}
+            >
+              <SelectTrigger 
+                className="text-xs font-medium h-8 w-[160px] rounded-md border"
+                style={{
+                  backgroundColor: currentTheme.colors.background,
+                  borderColor: currentTheme.colors.cardBorder,
+                  color: currentTheme.colors.textPrimary,
+                }}
+              >
+                <SelectValue placeholder="Select Theme" />
+              </SelectTrigger>
+              <SelectContent 
+                className="border shadow-xl backdrop-blur-md rounded-xl"
+                style={{
+                  backgroundColor: currentTheme.colors.cardBg,
+                  borderColor: currentTheme.colors.cardBorder,
+                  color: currentTheme.colors.textPrimary,
+                }}
+              >
+                {Object.values(THEME_PRESETS).map((t) => (
+                  <SelectItem key={t.id} value={t.id} className="text-xs">
+                    {t.name.split(' (')[0]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
@@ -575,7 +666,11 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             variant="outline"
             size="sm"
             onClick={handleCopyProjectLink}
-            className="text-xs h-8 gap-1"
+            className="text-xs h-8 gap-1 border"
+            style={{
+              borderColor: currentTheme.colors.cardBorder,
+              color: currentTheme.colors.textPrimary,
+            }}
           >
             <Share2 className="w-3 h-3" />
             <span>Share Direct URL</span>

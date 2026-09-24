@@ -8,10 +8,17 @@ import {
 } from '@/lib/types/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { FormRunner } from '@/components/runner/FormRunner';
 import { JsonModal } from './json-modal';
 import { AiSectionAssistant } from '@/components/admin/ai-section-assistant';
@@ -26,6 +33,12 @@ import {
   GitBranch,
   Copy,
   ExternalLink,
+  Layers,
+  PlusCircle,
+  HelpCircle,
+  ListOrdered,
+  Award,
+  Sparkles,
 } from 'lucide-react';
 import {
   DndContext,
@@ -58,13 +71,11 @@ export const FormBuilder: React.FC = () => {
     setFormType,
     setFormAccess,
     setIsSequential,
-    updateSettings,
     addField,
     updateField,
     removeField,
     setFields,
     saveForm,
-    resetForm,
   } = useQuizStore();
 
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -208,6 +219,14 @@ export const FormBuilder: React.FC = () => {
     toast.success(`Copied Live Form URL: ${liveUrl}`);
   };
 
+  const scrollToField = (fieldId: string) => {
+    const el = document.getElementById(`field-card-${fieldId}`);
+
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+  };
+
   // Group filter calculation
   const distinctGroups = Array.from(new Set(fields.map((f) => f.group).filter(Boolean))) as string[];
   const displayedFields =
@@ -215,19 +234,22 @@ export const FormBuilder: React.FC = () => {
       ? fields
       : fields.filter((f) => f.group === selectedGroupFilter);
 
+  const totalPoints = fields.reduce((acc, f) => acc + (f.points || 0), 0);
+  const requiredCount = fields.filter((f) => f.isRequired).length;
+
   return (
-    <div className="max-w-5xl mx-auto p-4 sm:p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
       {/* Top Action Bar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-card rounded-xl border border-border shadow-xs">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-bold tracking-tight text-foreground">
-              Form & Question Builder
+              Form & Assessment Builder
             </h1>
-            <Badge variant="secondary" className="text-xs font-mono">v2.5</Badge>
+            <Badge variant="secondary" className="text-xs font-mono">Google Forms Studio</Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Design multi-stage assessments, question branching, live regex matching, and scored quizzes.
+            Design professional assessments, compound validations, custom branching, and scored quizzes.
           </p>
         </div>
 
@@ -258,7 +280,7 @@ export const FormBuilder: React.FC = () => {
             <span>Branching Flow</span>
           </Button>
 
-          {/* Live Runner Preview */}
+          {/* Live Runner Preview Modal */}
           <Button
             variant="outline"
             size="sm"
@@ -266,11 +288,16 @@ export const FormBuilder: React.FC = () => {
             className="text-xs h-8 gap-1.5 border-border"
           >
             <Eye className="w-3.5 h-3.5" />
-            <span>Live Preview</span>
+            <span>Modal Preview</span>
           </Button>
 
           {/* Save Button */}
-          <Button onClick={handleSave} disabled={isSaving} size="sm" className="bg-primary text-xs h-8 gap-1.5 font-semibold">
+          <Button
+            onClick={handleSave}
+            disabled={isSaving}
+            size="sm"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs h-8 gap-1.5 font-semibold"
+          >
             <Save className="w-3.5 h-3.5" />
             <span>{isSaving ? 'Saving...' : 'Save Form'}</span>
           </Button>
@@ -321,134 +348,287 @@ export const FormBuilder: React.FC = () => {
         </div>
       )}
 
-      {/* Form Details & Workflow Settings Card */}
-      <Card className="shadow-xs border-border bg-card">
-        <CardHeader className="py-3 px-4 border-b border-border bg-muted/15">
-          <CardTitle className="text-sm font-semibold text-foreground">Form Configuration & Access Rules</CardTitle>
-          <CardDescription className="text-xs">Configure purpose, access permissions, and sequential rules.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4 p-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <Label className="text-xs font-semibold block mb-1">Form Purpose / Type</Label>
-              <select
-                value={formType}
-                onChange={(e) => setFormType(e.target.value as FormType)}
-                className="w-full h-9 px-2 border border-input rounded-md text-xs bg-background text-foreground font-medium shadow-xs focus:outline-none focus:ring-1 focus:ring-primary dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
-              >
-                <option value="quiz" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Knowledge Quiz (Graded & Scored)</option>
-                <option value="employee_signup" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Candidate Application / Onboarding</option>
-                <option value="survey" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Public Survey & Evaluation</option>
-                <option value="general_form" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">General Multi-Step Form</option>
-              </select>
-            </div>
+      {/* 2-Column Responsive Layout: Google Forms Central Canvas + Sticky Sidebar Palette */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Main Column: Google Forms Canvas */}
+        <div className="lg:col-span-8 space-y-5">
+          {/* Prominent Google Forms Header Card */}
+          <Card className="border-border bg-card shadow-sm rounded-xl overflow-hidden">
+            {/* Top Accent Gradient Ribbon */}
+            <div className="h-2.5 bg-gradient-to-r from-primary via-indigo-500 to-purple-600 w-full" />
 
-            <div>
-              <Label className="text-xs font-semibold block mb-1">Access Control</Label>
-              <select
-                value={formAccess}
-                onChange={(e) => setFormAccess(e.target.value as FormAccessType)}
-                className="w-full h-9 px-2 border border-input rounded-md text-xs bg-background text-foreground font-medium shadow-xs focus:outline-none focus:ring-1 focus:ring-primary dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
-              >
-                <option value="public" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Public (Open to All Candidates)</option>
-                <option value="authenticated" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Authenticated / Token Only</option>
-              </select>
-            </div>
+            <CardContent className="p-5 sm:p-6 space-y-4">
+              {/* Form Title & Description */}
+              <div className="space-y-2">
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  placeholder="Untitled Assessment Form"
+                  className="w-full text-2xl font-bold bg-transparent border-0 border-b border-border/40 hover:border-border focus:border-primary focus:outline-none transition-colors px-1 py-1 text-foreground placeholder:text-muted-foreground/40"
+                />
 
-            <div className="flex flex-col justify-center gap-1.5 p-2 rounded-lg bg-muted/40 border border-border">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="sequential-toggle" className="text-xs font-semibold cursor-pointer">
-                  Sequential Progression
-                </Label>
-                <Switch
-                  id="sequential-toggle"
-                  checked={isSequential}
-                  onCheckedChange={setIsSequential}
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  placeholder="Form description, instructions for candidates, or evaluation criteria..."
+                  rows={2}
+                  className="w-full text-sm text-muted-foreground bg-transparent border-0 border-b border-border/30 hover:border-border focus:border-primary focus:outline-none transition-colors px-1 py-1 resize-none placeholder:text-muted-foreground/40"
                 />
               </div>
-              <span className="text-[10px] text-muted-foreground">Presents questions one-at-a-time</span>
+
+              {/* Status and Configuration Pill Row */}
+              <div className="pt-2 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 text-xs">
+                <div className="flex flex-wrap items-center gap-3">
+                  {/* Form Type Select */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-muted-foreground text-[11px] font-medium">Type:</span>
+                    <Select
+                      value={formType}
+                      onValueChange={(val) => setFormType(val as FormType)}
+                    >
+                      <SelectTrigger className="h-7 w-[160px] text-xs bg-background">
+                        <SelectValue placeholder="Form Type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="quiz">Knowledge Quiz (Scored)</SelectItem>
+                        <SelectItem value="employee_signup">Candidate Application</SelectItem>
+                        <SelectItem value="survey">Public Survey</SelectItem>
+                        <SelectItem value="general_form">General Multi-Step Form</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Form Access Select */}
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-muted-foreground text-[11px] font-medium">Access:</span>
+                    <Select
+                      value={formAccess}
+                      onValueChange={(val) => setFormAccess(val as FormAccessType)}
+                    >
+                      <SelectTrigger className="h-7 w-[140px] text-xs bg-background">
+                        <SelectValue placeholder="Access" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="public">Public Access</SelectItem>
+                        <SelectItem value="authenticated">Token / Invite Only</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3">
+                  {/* Sequential Progression Switch */}
+                  <div className="flex items-center gap-2 bg-muted/40 px-2.5 py-1 rounded-md border border-border/60">
+                    <Label htmlFor="sequential-toggle" className="text-[11px] font-medium cursor-pointer text-muted-foreground">
+                      Sequential
+                    </Label>
+                    <Switch
+                      id="sequential-toggle"
+                      checked={isSequential}
+                      onCheckedChange={setIsSequential}
+                      className="scale-75"
+                    />
+                  </div>
+
+                  {/* Questions & Points Badges */}
+                  <div className="flex items-center gap-1.5 font-mono">
+                    <Badge variant="outline" className="text-[10px] bg-background">
+                      {fields.length} Qs
+                    </Badge>
+                    <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-primary/20">
+                      {totalPoints} Pts
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Group / Module Filter Toolbar */}
+          <div className="flex items-center justify-between gap-3 px-1">
+            <div className="flex items-center gap-2">
+              <h2 className="text-sm font-semibold text-foreground tracking-tight">Questions & Fields</h2>
+              <span className="text-xs text-muted-foreground">({displayedFields.length} of {fields.length})</span>
             </div>
+
+            {distinctGroups.length > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] text-muted-foreground">Filter Section:</span>
+                <Select
+                  value={selectedGroupFilter}
+                  onValueChange={setSelectedGroupFilter}
+                >
+                  <SelectTrigger className="h-7 w-[140px] text-xs bg-background">
+                    <SelectValue placeholder="All Sections" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Sections</SelectItem>
+                    {distinctGroups.map((g) => (
+                      <SelectItem key={g} value={g}>
+                        {g}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-            <div>
-              <Label className="text-xs font-semibold block mb-1">Form Title</Label>
-              <Input
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="e.g. Intern Developer Technical Screening"
-                className="font-bold text-sm bg-background text-foreground"
-              />
-            </div>
-            <div>
-              <Label className="text-xs font-semibold block mb-1">Description / Subtitle</Label>
-              <Input
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="Brief summary or instructions..."
-                className="text-sm bg-background text-foreground"
-              />
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          {/* Drag-and-Drop Sortable Context */}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={displayedFields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
+              <div className="space-y-4">
+                {displayedFields.map((field, index) => {
+                  const isFirstInGroup =
+                    field.group &&
+                    (index === 0 || displayedFields[index - 1]?.group !== field.group);
 
-      {/* Categorized Field Palette (Quick Add Component) */}
-      <FieldPalette onAddField={handleQuickAdd} activeCount={fields.length} />
+                  return (
+                    <React.Fragment key={field.id}>
+                      {/* Visual Google Forms Section Header Banner */}
+                      {isFirstInGroup && (
+                        <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20 shadow-xs">
+                          <div className="flex items-center gap-2">
+                            <Layers className="w-4 h-4 text-primary" />
+                            <span className="text-xs font-bold uppercase tracking-wider text-primary">
+                              Section: {field.group}
+                            </span>
+                          </div>
+                          <Badge variant="outline" className="text-[10px] bg-background">
+                            Module Group
+                          </Badge>
+                        </div>
+                      )}
 
-      {/* Fields List Container */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <h2 className="text-base font-bold text-foreground">Fields & Question Sequence</h2>
-            <Badge variant="outline" className="font-mono text-xs">{fields.length} items</Badge>
-          </div>
+                      <div id={`field-card-${field.id}`}>
+                        <SortableFieldCard
+                          id={field.id}
+                          index={index}
+                          field={field}
+                          otherFields={fields.filter((f) => f.id !== field.id)}
+                          allFields={fields}
+                          isQuiz={formType === 'quiz'}
+                          onUpdate={(fieldId, updates) => updateField(fieldId, updates)}
+                          onRemove={(fieldId) => removeField(fieldId)}
+                          onDuplicate={handleDuplicateField}
+                        />
+                      </div>
+                    </React.Fragment>
+                  );
+                })}
+              </div>
+            </SortableContext>
+          </DndContext>
 
-          {distinctGroups.length > 0 && (
-            <div className="flex items-center gap-1.5">
-              <span className="text-xs text-muted-foreground">Filter Group:</span>
-              <select
-                value={selectedGroupFilter}
-                onChange={(e) => setSelectedGroupFilter(e.target.value)}
-                className="text-xs h-7 px-2 border border-input rounded bg-background text-foreground dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
+          {/* Empty State */}
+          {displayedFields.length === 0 && (
+            <div className="p-10 text-center border-2 border-dashed rounded-xl bg-card border-border/80 text-muted-foreground space-y-3">
+              <Sparkles className="w-8 h-8 text-primary mx-auto opacity-60" />
+              <div className="space-y-1">
+                <p className="font-semibold text-sm text-foreground">No questions added yet</p>
+                <p className="text-xs max-w-sm mx-auto">
+                  Click any question type from the palette on the right to start building your form.
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleQuickAdd('multiple_choice')}
+                className="text-xs gap-1.5 border-border"
               >
-                <option value="all" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">All Groups</option>
-                {distinctGroups.map((g) => (
-                  <option key={g} value={g} className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">
-                    {g}
-                  </option>
-                ))}
-              </select>
+                <PlusCircle className="w-3.5 h-3.5" />
+                <span>Add Multiple Choice</span>
+              </Button>
+            </div>
+          )}
+
+          {/* Bottom Canvas Quick Add Prompt */}
+          {displayedFields.length > 0 && (
+            <div className="flex items-center justify-center p-3 border border-dashed border-border/80 rounded-xl bg-muted/10 hover:bg-muted/20 transition-colors">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleQuickAdd('multiple_choice')}
+                className="text-xs text-muted-foreground hover:text-foreground gap-2"
+              >
+                <PlusCircle className="w-4 h-4 text-primary" />
+                <span>Add Multiple Choice Question</span>
+              </Button>
             </div>
           )}
         </div>
 
-        {/* Drag-and-Drop Sortable Context */}
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={displayedFields.map((f) => f.id)} strategy={verticalListSortingStrategy}>
-            {displayedFields.map((field, index) => (
-              <SortableFieldCard
-                key={field.id}
-                id={field.id}
-                index={index}
-                field={field}
-                otherFields={fields.filter((f) => f.id !== field.id)}
-                allFields={fields}
-                isQuiz={formType === 'quiz'}
-                onUpdate={(fieldId, updates) => updateField(fieldId, updates)}
-                onRemove={(fieldId) => removeField(fieldId)}
-                onDuplicate={handleDuplicateField}
-              />
-            ))}
-          </SortableContext>
-        </DndContext>
+        {/* Right Column: Sticky Sidebar with Palette & Navigator */}
+        <div className="lg:col-span-4 sticky top-6 space-y-4">
+          {/* Quick Navigator Outline */}
+          <Card className="border-border bg-card shadow-xs">
+            <CardContent className="p-3.5 space-y-2.5">
+              <div className="flex items-center justify-between pb-2 border-b border-border/80">
+                <div className="flex items-center gap-1.5">
+                  <ListOrdered className="w-3.5 h-3.5 text-primary" />
+                  <span className="text-xs font-bold text-foreground">Questions Outline</span>
+                </div>
+                <Badge variant="secondary" className="text-[10px] font-mono">
+                  {fields.length} items
+                </Badge>
+              </div>
 
-        {displayedFields.length === 0 && (
-          <div className="p-8 text-center border-2 border-dashed rounded-xl bg-muted/20 text-muted-foreground space-y-2">
-            <p className="font-medium text-sm">No fields found in this view.</p>
-            <p className="text-xs">Use the field palette above to add question types, inputs, or verification items.</p>
-          </div>
-        )}
+              {fields.length === 0 ? (
+                <p className="text-[11px] text-muted-foreground py-2 text-center">
+                  Add questions to see the outline.
+                </p>
+              ) : (
+                <div className="max-h-48 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                  {fields.map((f, idx) => (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => scrollToField(f.id)}
+                      className="w-full flex items-center justify-between text-left p-1.5 rounded hover:bg-muted text-xs transition-colors group"
+                    >
+                      <div className="flex items-center gap-1.5 truncate">
+                        <span className="text-[10px] font-mono text-muted-foreground w-4">
+                          {idx + 1}.
+                        </span>
+                        <span className="truncate text-foreground group-hover:text-primary transition-colors text-[11px]">
+                          {f.label || 'Untitled Question'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1 shrink-0 ml-1">
+                        {f.isRequired && (
+                          <span className="text-[9px] text-rose-500 font-bold" title="Required">*</span>
+                        )}
+                        <span className="text-[10px] font-mono text-muted-foreground">
+                          {f.points || 0}pt
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              )}
+
+              {/* Summary Stats Row */}
+              <div className="pt-2 border-t border-border/60 grid grid-cols-2 gap-2 text-center text-[10px] text-muted-foreground">
+                <div className="p-1.5 bg-muted/30 rounded border border-border/40">
+                  <span className="block font-bold text-foreground">{requiredCount}</span>
+                  <span>Required</span>
+                </div>
+                <div className="p-1.5 bg-muted/30 rounded border border-border/40">
+                  <span className="block font-bold text-foreground">{totalPoints}</span>
+                  <span>Total Points</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Vertical Field Palette */}
+          <FieldPalette
+            onAddField={handleQuickAdd}
+            activeCount={fields.length}
+            layoutMode="vertical"
+          />
+        </div>
       </div>
 
       {/* JSON Import/Export Modal */}

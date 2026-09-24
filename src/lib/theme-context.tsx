@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 
-export type AppThemeType = 'riseup' | 'letterly' | 'obsidian' | 'clean';
+export type AppThemeType = 'riseup' | 'dracula' | 'letterly' | 'obsidian' | 'clean';
 
 export interface ThemeConfig {
   id: AppThemeType;
@@ -34,6 +34,17 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
     accentColor: '#FFAD01',
     badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
   },
+  dracula: {
+    id: 'dracula',
+    name: 'Antigravity Dracula',
+    tagline: 'Dark Purple & Neon Green',
+    primaryColor: '#BD93F9',
+    bgColor: '#191A21',
+    cardColor: '#282A36',
+    borderColor: '#44475A',
+    accentColor: '#50FA7B',
+    badgeClass: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+  },
   letterly: {
     id: 'letterly',
     name: 'Letterly',
@@ -47,13 +58,13 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
   },
   obsidian: {
     id: 'obsidian',
-    name: 'Obsidian Slate',
-    tagline: 'Obsidian & Cyan Neon',
-    primaryColor: '#06B6D4',
-    bgColor: '#090D16',
-    cardColor: '#111827',
-    borderColor: '#1F2937',
-    accentColor: '#22D3EE',
+    name: 'VS Code Obsidian',
+    tagline: 'Obsidian Slate & Cyan Neon',
+    primaryColor: '#38BDF8',
+    bgColor: '#0D1117',
+    cardColor: '#161B22',
+    borderColor: '#30363D',
+    accentColor: '#38BDF8',
     badgeClass: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
   },
   clean: {
@@ -102,6 +113,11 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   useEffect(() => {
     const root = document.documentElement;
     root.setAttribute('data-theme', theme);
+    root.style.setProperty('--wp-exam-primary', config.primaryColor);
+    root.style.setProperty('--wp-exam-bg', config.bgColor);
+    root.style.setProperty('--wp-exam-card', config.cardColor);
+    root.style.setProperty('--wp-exam-card-border', config.borderColor);
+    root.style.setProperty('--wp-exam-accent', config.accentColor);
     root.style.setProperty('--color-theme-primary', config.primaryColor);
     root.style.setProperty('--color-theme-bg', config.bgColor);
     root.style.setProperty('--color-theme-card', config.cardColor);

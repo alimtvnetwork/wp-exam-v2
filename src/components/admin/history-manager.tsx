@@ -3,6 +3,13 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useExamAppStore, SubmissionHistoryRecord } from '@/quiz/store/exam-store';
 
 export const HistoryManager: React.FC = () => {
@@ -25,8 +32,8 @@ export const HistoryManager: React.FC = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-card-entrance">
-      <Card className="modern-quiz-card border shadow-sm">
-        <CardHeader className="border-b bg-muted/20 pb-4">
+      <Card className="border border-border/80 shadow-2xl rounded-2xl bg-card text-card-foreground backdrop-blur-md overflow-hidden">
+        <CardHeader className="border-b border-border/60 bg-muted/10 p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <CardTitle className="text-xl font-bold">Quiz & Form Completion History</CardTitle>
@@ -35,39 +42,41 @@ export const HistoryManager: React.FC = () => {
               </CardDescription>
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="text-xs">
+              <Badge variant="outline" className="text-xs border-border bg-background">
                 {submissions.length} Total Submissions
               </Badge>
             </div>
           </div>
 
           {/* Filter Toolbar */}
-          <div className="flex flex-wrap items-center gap-3 pt-3">
-            <div className="flex items-center gap-1.5 text-xs">
-              <span className="text-muted-foreground font-medium">Type:</span>
-              <select
-                value={typeFilter}
-                onChange={(e) => setTypeFilter(e.target.value)}
-                className="p-1 border rounded bg-background text-xs font-medium"
-              >
-                <option value="all">All Types</option>
-                <option value="quiz">Quizzes</option>
-                <option value="employee_signup">Employee Sign-Ups</option>
-                <option value="survey">Surveys</option>
-              </select>
+          <div className="flex flex-wrap items-center gap-4 pt-4 border-t border-border/40 mt-2">
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-muted-foreground font-semibold">Type:</span>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="h-8 w-36 text-xs bg-background border-border">
+                  <SelectValue placeholder="All Types" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  <SelectItem value="all" className="text-xs">All Types</SelectItem>
+                  <SelectItem value="quiz" className="text-xs">Quizzes</SelectItem>
+                  <SelectItem value="employee_signup" className="text-xs">Employee Sign-Ups</SelectItem>
+                  <SelectItem value="survey" className="text-xs">Surveys</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            <div className="flex items-center gap-1.5 text-xs">
-              <span className="text-muted-foreground font-medium">Outcome:</span>
-              <select
-                value={statusFilter}
-                onChange={(e) => setStatusFilter(e.target.value)}
-                className="p-1 border rounded bg-background text-xs font-medium"
-              >
-                <option value="all">All Outcomes</option>
-                <option value="passed">Passed</option>
-                <option value="failed">Failed</option>
-              </select>
+            <div className="flex items-center gap-2 text-xs">
+              <span className="text-muted-foreground font-semibold">Outcome:</span>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="h-8 w-36 text-xs bg-background border-border">
+                  <SelectValue placeholder="All Outcomes" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border">
+                  <SelectItem value="all" className="text-xs">All Outcomes</SelectItem>
+                  <SelectItem value="passed" className="text-xs">Passed</SelectItem>
+                  <SelectItem value="failed" className="text-xs">Failed</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardHeader>
@@ -78,9 +87,9 @@ export const HistoryManager: React.FC = () => {
               No matching submission records found.
             </div>
           ) : (
-            <div className="border rounded-xl overflow-hidden divide-y bg-background">
+            <div className="border border-border/60 rounded-xl overflow-hidden divide-y divide-border/40 bg-card/60 shadow-sm">
               {filteredSubmissions.map((sub) => (
-                <div key={sub.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div key={sub.id} className="p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-muted/10 transition-colors">
                   <div className="space-y-1.5 flex-1">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-foreground text-sm">{sub.respondent_name}</span>

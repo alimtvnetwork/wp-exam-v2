@@ -135,9 +135,14 @@ const PALETTE_OPTIONS: PaletteOption[] = [
 interface FieldPaletteProps {
   onAddField: (type: FieldType) => void;
   activeCount: number;
+  layoutMode?: 'horizontal' | 'vertical';
 }
 
-export const FieldPalette: React.FC<FieldPaletteProps> = ({ onAddField, activeCount }) => {
+export const FieldPalette: React.FC<FieldPaletteProps> = ({ 
+  onAddField, 
+  activeCount,
+  layoutMode = 'vertical',
+}) => {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'choice' | 'text' | 'media'>('all');
 
   const filteredOptions = PALETTE_OPTIONS.filter((opt) => {
@@ -215,7 +220,7 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({ onAddField, activeCo
       </div>
 
       {/* Grid of Palette Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5">
+      <div className={layoutMode === 'vertical' ? 'grid grid-cols-1 gap-2 max-h-[calc(100vh-280px)] overflow-y-auto pr-1' : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5'}>
         {filteredOptions.map((opt) => {
           const IconComp = opt.icon;
 

@@ -1,20 +1,21 @@
 // Modern Theme Stylesheet in Less
-// Provides animations, card gradients, glassmorphism, and quiz progress styling
+// Provides animations, card gradients, glassmorphism, and dynamic theme switching
 
-@primary-color: #3b82f6;
-@primary-hover: #2563eb;
+@primary-color: #FFAD01;
+@primary-hover: #E09800;
 @accent-color: #8b5cf6;
 @success-color: #10b981;
 @danger-color: #ef4444;
-@card-border: rgba(226, 232, 240, 0.8);
-@glass-bg: rgba(255, 255, 255, 0.85);
+@card-border: rgba(42, 42, 68, 0.8);
+@glass-bg: rgba(18, 18, 36, 0.85);
 
 // Mixins
 .glass-panel() {
-  background: @glass-bg;
+  background: var(--wp-exam-card, @glass-bg);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
-  border: 1px solid @card-border;
+  border: 1px solid var(--wp-exam-card-border, @card-border);
+  color: var(--wp-exam-text-primary, #FFF1D6);
 }
 
 .transition-smooth(@property: all, @duration: 0.25s) {
@@ -35,10 +36,10 @@
 
 @keyframes pulseGlow {
   0%, 100% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.4);
+    box-shadow: 0 0 0 0 rgba(255, 173, 1, 0.4);
   }
   50% {
-    box-shadow: 0 0 0 8px rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 8px rgba(255, 173, 1, 0);
   }
 }
 
@@ -54,11 +55,11 @@
 .modern-quiz-card {
   .glass-panel();
   border-radius: 1rem;
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.3);
   .transition-smooth(box-shadow);
 
   &:hover {
-    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.08), 0 10px 15px -5px rgba(0, 0, 0, 0.04);
+    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.5), 0 10px 15px -5px rgba(0, 0, 0, 0.35);
   }
 }
 
@@ -70,8 +71,9 @@
   border-radius: 9999px;
   font-size: 0.75rem;
   font-weight: 600;
-  background: rgba(59, 130, 246, 0.1);
-  color: @primary-color;
+  background: var(--wp-exam-badge-bg, rgba(255, 173, 1, 0.15));
+  color: var(--wp-exam-primary, @primary-color);
+  border: 1px solid var(--wp-exam-card-border, rgba(42, 42, 68, 0.4));
 }
 
 .score-badge-passed {
@@ -84,4 +86,85 @@
   background: rgba(239, 68, 68, 0.15);
   color: @danger-color;
   border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+// Dynamic Theme Scopes
+.theme-riseup-asia, [data-theme="riseup-asia"], [data-theme="riseup"] {
+  --wp-exam-bg: #0A0A14;
+  --wp-exam-card: #141424;
+  --wp-exam-card-border: #2A2A44;
+  --wp-exam-card-hover: #1E1E34;
+  --wp-exam-primary: #FFAD01;
+  --wp-exam-primary-text: #0A0A14;
+  --wp-exam-highlight: #FFAD01;
+  --wp-exam-text-primary: #FFF1D6;
+  --wp-exam-text-secondary: #B8A990;
+  --wp-exam-progress-bar: #FFAD01;
+  --wp-exam-badge-bg: rgba(255, 173, 1, 0.15);
+  background-color: var(--wp-exam-bg);
+  color: var(--wp-exam-text-primary);
+}
+
+.theme-dracula, [data-theme="dracula"] {
+  --wp-exam-bg: #191A21;
+  --wp-exam-card: #282A36;
+  --wp-exam-card-border: #44475A;
+  --wp-exam-card-hover: #343746;
+  --wp-exam-primary: #BD93F9;
+  --wp-exam-primary-text: #282A36;
+  --wp-exam-highlight: #50FA7B;
+  --wp-exam-text-primary: #F8F8F2;
+  --wp-exam-text-secondary: #6272A4;
+  --wp-exam-progress-bar: #BD93F9;
+  --wp-exam-badge-bg: rgba(189, 147, 249, 0.2);
+  background-color: var(--wp-exam-bg);
+  color: var(--wp-exam-text-primary);
+}
+
+.theme-vscode-dark, [data-theme="vscode-dark"], [data-theme="obsidian"], [data-theme="dark"] {
+  --wp-exam-bg: #0D1117;
+  --wp-exam-card: #161B22;
+  --wp-exam-card-border: #30363D;
+  --wp-exam-card-hover: #21262D;
+  --wp-exam-primary: #38BDF8;
+  --wp-exam-primary-text: #0D1117;
+  --wp-exam-highlight: #38BDF8;
+  --wp-exam-text-primary: #F0F6FC;
+  --wp-exam-text-secondary: #8B949E;
+  --wp-exam-progress-bar: #38BDF8;
+  --wp-exam-badge-bg: rgba(56, 189, 248, 0.15);
+  background-color: var(--wp-exam-bg);
+  color: var(--wp-exam-text-primary);
+}
+
+.theme-letterly, [data-theme="letterly"] {
+  --wp-exam-bg: #0F0E1E;
+  --wp-exam-card: #18162F;
+  --wp-exam-card-border: #2C2852;
+  --wp-exam-card-hover: #232043;
+  --wp-exam-primary: #5C45FD;
+  --wp-exam-primary-text: #FFFFFF;
+  --wp-exam-highlight: #FBBF24;
+  --wp-exam-text-primary: #FFFFFF;
+  --wp-exam-text-secondary: #94A3B8;
+  --wp-exam-progress-bar: #5C45FD;
+  --wp-exam-badge-bg: rgba(92, 69, 253, 0.2);
+  background-color: var(--wp-exam-bg);
+  color: var(--wp-exam-text-primary);
+}
+
+.theme-microsoft-blue, [data-theme="microsoft-blue"], [data-theme="clean"], [data-theme="white"] {
+  --wp-exam-bg: #F8FAFC;
+  --wp-exam-card: #FFFFFF;
+  --wp-exam-card-border: #E2E8F0;
+  --wp-exam-card-hover: #F1F5F9;
+  --wp-exam-primary: #2563EB;
+  --wp-exam-primary-text: #FFFFFF;
+  --wp-exam-highlight: #2563EB;
+  --wp-exam-text-primary: #0F172A;
+  --wp-exam-text-secondary: #64748B;
+  --wp-exam-progress-bar: #2563EB;
+  --wp-exam-badge-bg: rgba(37, 99, 235, 0.1);
+  background-color: var(--wp-exam-bg);
+  color: var(--wp-exam-text-primary);
 }

@@ -27,6 +27,13 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { THEME_PRESETS, getTheme, ThemeDefinition } from '@/themes/theme-definitions';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { toast } from 'sonner';
 
 export interface FocusQuestion {
@@ -840,18 +847,35 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
             </button>
 
             {/* Theme Selector */}
-            <select
+            <Select
               value={activeThemeId}
-              onChange={(e) => setActiveThemeId(e.target.value)}
-              className="text-xs px-2 py-1 rounded bg-transparent border cursor-pointer"
-              style={{ borderColor: theme.colors.cardBorder, color: theme.colors.textSecondary }}
+              onValueChange={setActiveThemeId}
             >
-              {Object.values(THEME_PRESETS).map((p) => (
-                <option key={p.id} value={p.id} className="bg-slate-900 text-white">
-                  {p.name.split(' ')[0]}
-                </option>
-              ))}
-            </select>
+              <SelectTrigger
+                className="h-7 text-xs w-[110px] rounded border"
+                style={{
+                  borderColor: theme.colors.cardBorder,
+                  color: theme.colors.textSecondary,
+                  backgroundColor: theme.colors.cardBg,
+                }}
+              >
+                <SelectValue placeholder="Theme" />
+              </SelectTrigger>
+              <SelectContent
+                className="border shadow-xl backdrop-blur-md rounded-xl"
+                style={{
+                  backgroundColor: theme.colors.cardBg,
+                  borderColor: theme.colors.cardBorder,
+                  color: theme.colors.textPrimary,
+                }}
+              >
+                {Object.values(THEME_PRESETS).map((p) => (
+                  <SelectItem key={p.id} value={p.id} className="text-xs">
+                    {p.name.split(' (')[0]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             <button
               onClick={() => setShowReportModal(true)}

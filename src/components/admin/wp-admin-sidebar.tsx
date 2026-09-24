@@ -23,6 +23,7 @@ import { Badge } from '@/components/ui/badge';
 
 export type AdminTab =
   | 'builder'
+  | 'focus-editor'
   | 'projects'
   | 'focus-runner'
   | 'runner'
@@ -59,6 +60,14 @@ const NAV_SECTIONS: NavSection[] = [
         badge: 'v2.5',
         badgeVariant: 'amber',
         description: 'Drag & drop form designer',
+      },
+      {
+        id: 'focus-editor',
+        label: 'Focus Quiz Studio',
+        icon: Target,
+        badge: 'New',
+        badgeVariant: 'secondary',
+        description: '4-stage sequential quiz authoring',
       },
       {
         id: 'projects',

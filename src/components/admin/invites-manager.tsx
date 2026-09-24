@@ -4,6 +4,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
 import { useExamAppStore } from '@/quiz/store/exam-store';
 
@@ -60,8 +67,8 @@ export const InvitesManager: React.FC<InvitesManagerProps> = ({ onNavigateToRunn
 
   return (
     <div className="max-w-4xl mx-auto space-y-6 animate-card-entrance">
-      <Card className="modern-quiz-card border shadow-sm">
-        <CardHeader className="border-b bg-muted/20 pb-4">
+      <Card className="border border-border/80 shadow-2xl rounded-2xl bg-card text-card-foreground backdrop-blur-md overflow-hidden">
+        <CardHeader className="border-b border-border/60 bg-muted/10 p-6">
           <CardTitle className="text-xl font-bold">User Invitations & Role Assignments</CardTitle>
           <CardDescription className="text-xs">
             Invite candidates, employees, or participants to log in and take specific quizzes with automated access tokens.
@@ -76,36 +83,37 @@ export const InvitesManager: React.FC<InvitesManagerProps> = ({ onNavigateToRunn
           )}
 
           {/* Invitation Form */}
-          <form onSubmit={handleInvite} className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end p-4 bg-muted/30 rounded-xl border">
+          <form onSubmit={handleInvite} className="grid grid-cols-1 sm:grid-cols-12 gap-4 items-end p-5 bg-background/50 rounded-xl border border-border/60 shadow-inner">
             <div className="sm:col-span-6 space-y-1.5">
-              <Label className="text-xs font-semibold">Respondent Email</Label>
+              <Label className="text-xs font-semibold text-foreground/80">Respondent Email</Label>
               <Input
                 type="email"
                 placeholder="e.g. employee@company.org"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="text-sm bg-background"
+                className="text-sm bg-background border-border"
               />
             </div>
 
             <div className="sm:col-span-3 space-y-1.5">
-              <Label className="text-xs font-semibold">Assigned Role</Label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="w-full h-10 p-2 border rounded-md text-sm bg-background font-medium"
-              >
-                <option value="subscriber">Subscriber (Respondent)</option>
-                <option value="contributor">Contributor</option>
-                <option value="author">Author</option>
-                <option value="editor">Editor</option>
-                <option value="administrator">Administrator</option>
-              </select>
+              <Label className="text-xs font-semibold text-foreground/80">Assigned Role</Label>
+              <Select value={role} onValueChange={setRole}>
+                <SelectTrigger className="w-full h-10 border border-border bg-background text-foreground text-xs font-medium rounded-lg">
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border shadow-xl">
+                  <SelectItem value="subscriber" className="text-xs">Subscriber (Respondent)</SelectItem>
+                  <SelectItem value="contributor" className="text-xs">Contributor</SelectItem>
+                  <SelectItem value="author" className="text-xs">Author</SelectItem>
+                  <SelectItem value="editor" className="text-xs">Editor</SelectItem>
+                  <SelectItem value="administrator" className="text-xs">Administrator</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="sm:col-span-3">
-              <Button type="submit" className="w-full bg-primary font-semibold">
+              <Button type="submit" className="w-full h-10 bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs shadow-md rounded-lg transition-transform active:scale-[0.98]">
                 Send Invitation
               </Button>
             </div>
@@ -118,9 +126,9 @@ export const InvitesManager: React.FC<InvitesManagerProps> = ({ onNavigateToRunn
               <span className="text-xs text-muted-foreground">Tokens expire in 7 days</span>
             </div>
 
-            <div className="border rounded-xl overflow-hidden divide-y bg-background">
+            <div className="border border-border/60 rounded-xl overflow-hidden divide-y divide-border/40 bg-card/60 shadow-sm">
               {invites.map((inv) => (
-                <div key={inv.id} className="p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm">
+                <div key={inv.id} className="p-3.5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-sm hover:bg-muted/10 transition-colors">
                   <div className="space-y-0.5">
                     <div className="flex items-center gap-2">
                       <span className="font-semibold text-foreground">{inv.email}</span>

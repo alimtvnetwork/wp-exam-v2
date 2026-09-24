@@ -5,12 +5,23 @@ import {
   FormField,
   FieldType,
   StringMatchRuleType,
+  SingleValidationItem,
+  VALIDATION_PRESETS,
+  evaluateCompoundValidation,
+  FieldActionTrigger,
 } from '@/lib/types/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { BranchingRuleEditor } from './branching-rule-editor';
 import {
   GripVertical,
@@ -23,9 +34,13 @@ import {
   ExternalLink,
   Code,
   Link as LinkIcon,
-  CheckSquare,
   HelpCircle,
-  Sparkles,
+  Eye,
+  BellRing,
+  Plus,
+  Phone,
+  Mail,
+  Layers,
 } from 'lucide-react';
 
 interface SortableFieldCardProps {
@@ -68,7 +83,14 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showConditions, setShowConditions] = useState(false);
+  const [showLivePreview, setShowLivePreview] = useState(false);
+  const [showTriggers, setShowTriggers] = useState(false);
   const [testInputValue, setTestInputValue] = useState('');
+
+  // Interactive Live Preview Local States
+  const [previewTestCountry, setPreviewTestCountry] = useState('+1');
+  const [previewTestPhone, setPreviewTestPhone] = useState('');
+  const [previewSelectedChoice, setPreviewSelectedChoice] = useState<string>('');
 
   const isChoiceField =
     field.type === 'multiple_choice' ||
@@ -77,69 +99,80 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   const isLinkField = field.type === 'link';
   const isRegexField = field.type === 'regex_text';
 
-  // Live validator test
-  const getValidationFeedback = (): { isValid: boolean; message: string } => {
-    if (!testInputValue || !field.validationRule) {
-      return { isValid: true, message: 'Type sample to test validation' };
-    }
+  // Normalize validation rules to compound array structure
+  const rawRules = field.validationRule?.rules;
+  const legacyRule = field.validationRule?.ruleType || field.validationRule?.pattern;
+  const activeRules: SingleValidationItem[] = rawRules && rawRules.length > 0
+    ? rawRules
+    : legacyRule
+      ? [
+          {
+            id: 'rule-legacy',
+            ruleType: field.validationRule?.ruleType || 'regex',
+            pattern: field.validationRule?.pattern || '',
+            errorMessage: field.validationRule?.errorMessage || '',
+          },
+        ]
+      : [];
 
-    const { ruleType, pattern } = field.validationRule;
+  const compoundOperator = field.validationRule?.operator || 'AND';
 
-    if (!pattern) {
-      return { isValid: true, message: 'No pattern specified' };
-    }
+  // Real-time compound validation feedback
+  const testFeedback = evaluateCompoundValidation(field.validationRule, testInputValue);
 
-    try {
-      if (ruleType === 'regex') {
-        const regex = new RegExp(pattern);
-        const isMatched = regex.test(testInputValue);
-
-        return isMatched
-          ? { isValid: true, message: 'Pattern match successful' }
-          : { isValid: false, message: field.validationRule.errorMessage || 'Failed regex check' };
-      }
-
-      if (ruleType === 'starts_with') {
-        const hasPrefix = testInputValue.startsWith(pattern);
-
-        return hasPrefix
-          ? { isValid: true, message: `Starts with "${pattern}"` }
-          : { isValid: false, message: `Must start with "${pattern}"` };
-      }
-
-      if (ruleType === 'ends_with') {
-        const hasSuffix = testInputValue.endsWith(pattern);
-
-        return hasSuffix
-          ? { isValid: true, message: `Ends with "${pattern}"` }
-          : { isValid: false, message: `Must end with "${pattern}"` };
-      }
-
-      if (ruleType === 'contains') {
-        const hasSubstring = testInputValue.includes(pattern);
-
-        return hasSubstring
-          ? { isValid: true, message: `Contains "${pattern}"` }
-          : { isValid: false, message: `Must contain "${pattern}"` };
-      }
-
-      if (ruleType === 'exact') {
-        const isExact = testInputValue.trim().toLowerCase() === pattern.trim().toLowerCase();
-
-        return isExact
-          ? { isValid: true, message: 'Exact match verified' }
-          : { isValid: false, message: `Must match "${pattern}" exactly` };
-      }
-    } catch (err) {
-      return { isValid: false, message: `Invalid regex syntax: ${String(err)}` };
-    }
-
-    return { isValid: true, message: 'Valid' };
+  // Update compound validation rules
+  const handleUpdateRules = (updatedRules: SingleValidationItem[], operator = compoundOperator) => {
+    onUpdate(id, {
+      validationRule: {
+        operator,
+        rules: updatedRules,
+        ruleType: updatedRules[0]?.ruleType,
+        pattern: updatedRules[0]?.pattern,
+        errorMessage: updatedRules[0]?.errorMessage,
+      },
+    });
   };
 
-  const testFeedback = getValidationFeedback();
+  const handleAddRule = () => {
+    const newRule: SingleValidationItem = {
+      id: `rule-${Date.now()}`,
+      ruleType: 'starts_with',
+      pattern: '',
+      errorMessage: '',
+    };
+    handleUpdateRules([...activeRules, newRule]);
+  };
 
-  // Category badge color
+  const handleRemoveRule = (ruleId: string) => {
+    const updated = activeRules.filter((r) => r.id !== ruleId);
+    handleUpdateRules(updated);
+  };
+
+  const handleRuleChange = (ruleId: string, updates: Partial<SingleValidationItem>) => {
+    const updated = activeRules.map((r) => {
+      if (r.id === ruleId) {
+        return { ...r, ...updates };
+      }
+      return r;
+    });
+    handleUpdateRules(updated);
+  };
+
+  // Triggers handling
+  const activeTriggers = field.triggers || [];
+  const handleAddTrigger = (type: 'email_alert' | 'whatsapp_webhook') => {
+    const newTrig: FieldActionTrigger = {
+      id: `trig-${Date.now()}`,
+      type,
+      target: type === 'email_alert' ? 'admin@company.org' : 'https://api.whatsapp.com/send',
+    };
+    onUpdate(id, { triggers: [...activeTriggers, newTrig] });
+  };
+
+  const handleRemoveTrigger = (trigId: string) => {
+    onUpdate(id, { triggers: activeTriggers.filter((t) => t.id !== trigId) });
+  };
+
   const getBadgeStyle = (type: FieldType) => {
     switch (type) {
       case 'multiple_choice':
@@ -163,6 +196,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
     }
   };
 
+  // Live WhatsApp preview helper
+  const cleanPhone = previewTestPhone.replace(/[^0-9]/g, '').replace(/^0+/, '');
+  const previewWhatsAppLink = cleanPhone ? `https://wa.me/${previewTestCountry.replace('+', '')}${cleanPhone}` : '';
+
   return (
     <div ref={setNodeRef} style={style} className="relative group/card mb-3.5">
       <Card
@@ -172,7 +209,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             : 'border-border/80 hover:border-primary/40 shadow-xs hover:shadow-md'
         }`}
       >
-        {/* Card Header with Drag Affordance and Quick Actions */}
+        {/* Card Header */}
         <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b border-border/60 bg-muted/15 space-y-0">
           <div className="flex items-center gap-2.5 flex-wrap">
             {/* Dedicated Drag Handle */}
@@ -201,8 +238,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               </Badge>
 
               {field.group && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium">
-                  📁 {field.group}
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium flex items-center gap-1">
+                  <Layers className="w-3 h-3" /> {field.group}
                 </span>
               )}
 
@@ -212,44 +249,38 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 </span>
               )}
 
-              {field.conditions && field.conditions.length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShowConditions(!showConditions)}
-                  className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 cursor-pointer hover:bg-amber-500/25 font-mono font-medium transition-colors"
-                  title="Click to view branching rules"
-                >
-                  <GitBranch className="w-3 h-3" />
-                  <span>{field.conditions.length} Rule(s)</span>
-                  {field.conditions[0]?.parentFieldId && (
-                    <span className="opacity-80 hidden md:inline">
-                      (Depends on #{(() => {
-                        const targetId = field.conditions[0].parentFieldId;
-                        const idx = allFields?.findIndex((f) => f.id === targetId);
-
-                        return idx !== undefined && idx >= 0 ? idx + 1 : '?';
-                      })()})
-                    </span>
-                  )}
-                </button>
+              {activeRules.length > 0 && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30 font-mono">
+                  {activeRules.length} Validation Rule{activeRules.length > 1 ? 's' : ''}
+                </span>
               )}
 
-              {field.optionBranching && Object.keys(field.optionBranching).length > 0 && (
-                <button
-                  type="button"
-                  onClick={() => setShowConditions(!showConditions)}
-                  className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 flex items-center gap-1 cursor-pointer hover:bg-indigo-500/25 font-mono font-medium transition-colors"
-                  title="Click to view choice navigation routes"
-                >
-                  <GitBranch className="w-3 h-3" />
-                  <span>{Object.keys(field.optionBranching).length} Choice Jump(s)</span>
-                </button>
+              {activeTriggers.length > 0 && (
+                <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 border border-purple-500/30 font-mono flex items-center gap-1">
+                  <BellRing className="w-3 h-3" /> {activeTriggers.length} Trigger{activeTriggers.length > 1 ? 's' : ''}
+                </span>
               )}
             </CardTitle>
           </div>
 
-          {/* Action Floater Buttons */}
+          {/* Action Toolbar */}
           <div className="flex items-center gap-1">
+            {/* Live Test Preview Mode Toggle */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className={`text-xs h-7 px-2 transition-all ${
+                showLivePreview ? 'bg-primary/20 text-primary font-semibold border border-primary/30' : 'text-muted-foreground hover:text-foreground'
+              }`}
+              onClick={() => setShowLivePreview(!showLivePreview)}
+              title="Toggle interactive live input preview test"
+            >
+              <Eye className="w-3.5 h-3.5 mr-1 text-primary" />
+              <span className="hidden sm:inline">Test Preview</span>
+            </Button>
+
+            {/* Validation Settings Toggle */}
             <Button
               type="button"
               variant="ghost"
@@ -258,12 +289,28 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 showAdvanced ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
               }`}
               onClick={() => setShowAdvanced(!showAdvanced)}
-              title="Configure validation and format rules"
+              title="Configure multi-rule validation"
             >
               <SlidersHorizontal className="w-3.5 h-3.5 mr-1" />
-              <span className="hidden sm:inline">Settings</span>
+              <span className="hidden sm:inline">Validation</span>
             </Button>
 
+            {/* Notification Triggers Toggle */}
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className={`text-xs h-7 px-2 transition-all ${
+                showTriggers ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'text-muted-foreground hover:text-foreground'
+              }`}
+              onClick={() => setShowTriggers(!showTriggers)}
+              title="Configure email/WhatsApp notification triggers"
+            >
+              <BellRing className="w-3.5 h-3.5 mr-1" />
+              <span className="hidden sm:inline">Triggers</span>
+            </Button>
+
+            {/* Branching Flow Toggle */}
             <Button
               type="button"
               variant="ghost"
@@ -280,6 +327,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               <span className="hidden sm:inline">Branching</span>
             </Button>
 
+            {/* Duplicate */}
             <Button
               type="button"
               variant="ghost"
@@ -291,6 +339,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               <Copy className="w-3.5 h-3.5" />
             </Button>
 
+            {/* Remove */}
             <Button
               type="button"
               variant="ghost"
@@ -320,38 +369,44 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               />
             </div>
 
-            {/* Field Type Selector */}
+            {/* Field Type Selector with Radix Select */}
             <div>
-              <Label className="text-xs font-semibold text-foreground block mb-1">Type</Label>
-              <select
+              <Label className="text-xs font-semibold text-foreground block mb-1">Field Type</Label>
+              <Select
                 value={field.type}
-                onChange={(e) => onUpdate(id, { type: e.target.value as FieldType })}
-                className="w-full h-9 px-2 border border-input rounded-md text-xs bg-background text-foreground font-medium shadow-2xs focus:outline-none focus:ring-1 focus:ring-primary dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
+                onValueChange={(val) => onUpdate(id, { type: val as FieldType })}
               >
-                <optgroup label="Choices & Quizzes">
-                  <option value="multiple_choice" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Multiple Choice</option>
-                  <option value="single_choice" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Single Choice</option>
-                  <option value="true_false" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">True / False</option>
-                  <option value="dropdown" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Dropdown Select</option>
-                  <option value="rating" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Rating Scale (1-5)</option>
-                </optgroup>
-                <optgroup label="Text Inputs">
-                  <option value="short_answer" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Short Answer</option>
-                  <option value="paragraph" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Paragraph Text</option>
-                  <option value="email" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Email Address</option>
-                  <option value="phone" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">WhatsApp / Phone</option>
-                </optgroup>
-                <optgroup label="Media & Verification">
-                  <option value="regex_text" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">🔤 Regex Verified Input</option>
-                  <option value="link" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">🔗 Link / URL Field</option>
-                  <option value="file_upload" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">File Upload</option>
-                </optgroup>
-              </select>
+                <SelectTrigger className="w-full h-9 text-xs bg-background text-foreground border border-input rounded-md">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border-border max-h-72">
+                  <SelectItem value="multiple_choice" className="text-xs">Multiple Choice</SelectItem>
+                  <SelectItem value="single_choice" className="text-xs">Single Choice</SelectItem>
+                  <SelectItem value="true_false" className="text-xs">True / False</SelectItem>
+                  <SelectItem value="dropdown" className="text-xs">Dropdown Select</SelectItem>
+                  <SelectItem value="rating" className="text-xs">Rating Scale (1-5)</SelectItem>
+                  <SelectItem value="short_answer" className="text-xs">Short Answer</SelectItem>
+                  <SelectItem value="paragraph" className="text-xs">Paragraph Text</SelectItem>
+                  <SelectItem value="email" className="text-xs">Email Address</SelectItem>
+                  <SelectItem value="phone" className="text-xs">WhatsApp / Phone</SelectItem>
+                  <SelectItem value="regex_text" className="text-xs">🔤 Regex Verified Input</SelectItem>
+                  <SelectItem value="link" className="text-xs">🔗 Reference Link</SelectItem>
+                  <SelectItem value="file_upload" className="text-xs">File Upload</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
-            {/* Section / Module Grouping */}
+            {/* Section / Module Grouping (Clarified) */}
             <div>
-              <Label className="text-xs font-semibold text-foreground block mb-1">Module / Group</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                  <Layers className="w-3 h-3 text-primary" />
+                  <span>Section / Module</span>
+                </Label>
+                <span className="text-[10px] text-muted-foreground" title="Groups related questions in multi-step assessments">
+                  Optional
+                </span>
+              </div>
               <Input
                 value={field.group || ''}
                 onChange={(e) => onUpdate(id, { group: e.target.value })}
@@ -361,7 +416,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             </div>
           </div>
 
-          {/* Link Field Specific Settings */}
+          {/* Reference Link Field Configuration */}
           {isLinkField && (
             <div className="p-3 bg-muted/30 rounded-lg border border-border space-y-2">
               <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
@@ -391,105 +446,341 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             </div>
           )}
 
-          {/* Advanced Validation Rules Drawer */}
+          {/* Interactive In-Card Live Test Preview Drawer */}
+          {showLivePreview && (
+            <div className="p-4 bg-muted/40 rounded-xl border border-primary/30 space-y-3 animate-in fade-in-50 duration-200">
+              <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                  <Eye className="w-4 h-4" /> Live Interactive Preview & Validation Test
+                </span>
+                <span className="text-[10px] text-muted-foreground">Test how candidates interact with this field</span>
+              </div>
+
+              {/* Phone / WhatsApp Interactive Live Tester */}
+              {field.type === 'phone' && (
+                <div className="space-y-2 bg-background/60 p-3 rounded-lg border border-border">
+                  <Label className="text-xs font-semibold text-foreground">Candidate WhatsApp Input Simulation:</Label>
+                  <div className="flex gap-2">
+                    <Select value={previewTestCountry} onValueChange={setPreviewTestCountry}>
+                      <SelectTrigger className="w-24 h-9 text-xs bg-background border-border">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover border-border">
+                        <SelectItem value="+1" className="text-xs">🇺🇸 +1</SelectItem>
+                        <SelectItem value="+44" className="text-xs">🇬🇧 +44</SelectItem>
+                        <SelectItem value="+880" className="text-xs">🇧🇩 +880</SelectItem>
+                        <SelectItem value="+91" className="text-xs">🇮🇳 +91</SelectItem>
+                        <SelectItem value="+65" className="text-xs">🇸🇬 +65</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      type="tel"
+                      value={previewTestPhone}
+                      onChange={(e) => setPreviewTestPhone(e.target.value)}
+                      placeholder="1712345678"
+                      className="text-xs h-9 bg-background flex-1"
+                    />
+                  </div>
+                  {previewWhatsAppLink && (
+                    <div className="flex items-center justify-between gap-2 p-2 bg-emerald-500/10 border border-emerald-500/20 rounded text-xs text-emerald-400 font-mono">
+                      <span className="truncate">{previewWhatsAppLink}</span>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-6 text-[10px] gap-1 border-emerald-500/30 text-emerald-400"
+                        onClick={() => window.open(previewWhatsAppLink, '_blank')}
+                      >
+                        <ExternalLink className="w-3 h-3" /> Test Link
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Choice Fields Interactive Preview */}
+              {isChoiceField && (
+                <div className="space-y-2 bg-background/60 p-3 rounded-lg border border-border">
+                  <Label className="text-xs font-semibold text-foreground">Clickable Options Simulation:</Label>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {(field.options || []).map((opt, i) => (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setPreviewSelectedChoice(opt)}
+                        className={`p-2.5 rounded-lg border text-left text-xs font-medium transition-all ${
+                          previewSelectedChoice === opt
+                            ? 'bg-primary/20 border-primary text-primary font-bold shadow-xs'
+                            : 'bg-card border-border hover:bg-muted/40 text-foreground'
+                        }`}
+                      >
+                        <span className="mr-2 font-mono text-muted-foreground">{String.fromCharCode(65 + i)}.</span>
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                  {previewSelectedChoice && (
+                    <p className="text-[11px] text-muted-foreground pt-1">
+                      Selected: <strong className="text-primary">{previewSelectedChoice}</strong>
+                      {isQuiz && field.correctAnswer === previewSelectedChoice && (
+                        <span className="ml-2 text-emerald-400 font-bold">✓ Correct Answer!</span>
+                      )}
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Reference Link Interactive Preview */}
+              {isLinkField && (
+                <div className="p-3 bg-background/60 rounded-lg border border-border flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <span className="text-xs font-bold text-foreground">{field.linkText || 'Open Document'}</span>
+                    <span className="text-[11px] text-muted-foreground block font-mono truncate max-w-sm">{field.url || 'No URL configured'}</span>
+                  </div>
+                  {field.url && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs gap-1 border-primary/40 text-primary"
+                      onClick={() => window.open(field.url, '_blank')}
+                    >
+                      <ExternalLink className="w-3 h-3" /> Test URL
+                    </Button>
+                  )}
+                </div>
+              )}
+
+              {/* Text & Regex Fields Live Compound Evaluation Test */}
+              {!isLinkField && field.type !== 'phone' && (
+                <div className="space-y-2 bg-background/60 p-3 rounded-lg border border-border">
+                  <Label className="text-xs font-semibold text-foreground">Real-Time Validation Test Box:</Label>
+                  <Input
+                    value={testInputValue}
+                    onChange={(e) => setTestInputValue(e.target.value)}
+                    placeholder="Type candidate sample response here..."
+                    className="text-xs h-9 bg-background"
+                  />
+                  {testInputValue && (
+                    <div className={`p-2 rounded border text-xs flex items-center gap-2 ${
+                      testFeedback.isValid ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                    }`}>
+                      {testFeedback.isValid ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
+                      <span>{testFeedback.message}</span>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Multi-Rule Compound Validation Drawer */}
           {(showAdvanced || isRegexField) && (
-            <div className="p-3.5 bg-muted/30 rounded-lg border border-border/80 space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-xs font-semibold flex items-center gap-1.5 text-foreground">
-                  <Code className="w-3.5 h-3.5 text-primary" />
-                  <span>Validation & Format Verification Rules</span>
-                </Label>
-                <Badge variant="outline" className="text-[10px] font-mono">
-                  {field.validationRule?.ruleType || 'None'}
-                </Badge>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                <div>
-                  <Label className="text-[11px] text-muted-foreground block mb-1">Matching Rule</Label>
-                  <select
-                    value={field.validationRule?.ruleType || 'regex'}
-                    onChange={(e) =>
-                      onUpdate(id, {
-                        validationRule: {
-                          ruleType: e.target.value as StringMatchRuleType,
-                          pattern: field.validationRule?.pattern || '',
-                          errorMessage: field.validationRule?.errorMessage || '',
-                        },
-                      })
-                    }
-                    className="w-full h-8 px-2 border border-input rounded text-xs bg-background text-foreground dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
-                  >
-                    <option value="regex" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Regular Expression (regex)</option>
-                    <option value="starts_with" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Starts With Prefix</option>
-                    <option value="ends_with" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Ends With Suffix</option>
-                    <option value="contains" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Contains Substring</option>
-                    <option value="exact" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Exact Match</option>
-                  </select>
+            <div className="p-4 bg-muted/30 rounded-xl border border-border/80 space-y-3.5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/60 pb-2">
+                <div className="flex items-center gap-2">
+                  <Code className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-bold text-foreground">Multi-Rule Validation Engine</span>
+                  <Badge variant="outline" className="text-[10px] font-mono">
+                    {activeRules.length} Rule{activeRules.length > 1 ? 's' : ''}
+                  </Badge>
                 </div>
 
-                <div>
-                  <Label className="text-[11px] text-muted-foreground block mb-1">Pattern / Expected Value</Label>
-                  <Input
-                    value={field.validationRule?.pattern || ''}
-                    onChange={(e) =>
-                      onUpdate(id, {
-                        validationRule: {
-                          ruleType: field.validationRule?.ruleType || 'regex',
-                          pattern: e.target.value,
-                          errorMessage: field.validationRule?.errorMessage || '',
-                        },
-                      })
-                    }
-                    placeholder="^[A-Z]{3}-[0-9]{4}$"
-                    className="text-xs h-8 font-mono bg-background text-foreground"
-                  />
-                </div>
-
-                <div>
-                  <Label className="text-[11px] text-muted-foreground block mb-1">Custom Error Message</Label>
-                  <Input
-                    value={field.validationRule?.errorMessage || ''}
-                    onChange={(e) =>
-                      onUpdate(id, {
-                        validationRule: {
-                          ruleType: field.validationRule?.ruleType || 'regex',
-                          pattern: field.validationRule?.pattern || '',
-                          errorMessage: e.target.value,
-                        },
-                      })
-                    }
-                    placeholder="Must match valid pattern format"
-                    className="text-xs h-8 bg-background text-foreground"
-                  />
-                </div>
-              </div>
-
-              {/* In-Card Realtime Validator Tester */}
-              <div className="pt-2 border-t border-border flex items-center gap-3">
-                <Label className="text-[11px] font-semibold text-muted-foreground whitespace-nowrap">
-                  Live Test Pattern:
-                </Label>
-                <Input
-                  value={testInputValue}
-                  onChange={(e) => setTestInputValue(e.target.value)}
-                  placeholder="Type sample input to verify regex..."
-                  className="text-xs h-7 font-mono flex-1 bg-background text-foreground"
-                />
-                {testInputValue && (
-                  <span
-                    className={`text-xs flex items-center gap-1 font-medium ${
-                      testFeedback.isValid ? 'text-emerald-500' : 'text-rose-500'
-                    }`}
-                  >
-                    {testFeedback.isValid ? (
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                    ) : (
-                      <AlertCircle className="w-3.5 h-3.5" />
-                    )}
-                    <span>{testFeedback.message}</span>
-                  </span>
+                {/* Compound Operator Switcher */}
+                {activeRules.length > 1 && (
+                  <div className="flex items-center gap-1.5 bg-background/80 p-1 rounded-md border border-border text-xs">
+                    <span className="text-[10px] text-muted-foreground px-1 font-semibold">Match Logic:</span>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateRules(activeRules, 'AND')}
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        compoundOperator === 'AND' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'
+                      }`}
+                    >
+                      ALL (AND)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleUpdateRules(activeRules, 'OR')}
+                      className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        compoundOperator === 'OR' ? 'bg-primary text-primary-foreground' : 'text-muted-foreground'
+                      }`}
+                    >
+                      ANY (OR)
+                    </button>
+                  </div>
                 )}
+              </div>
+
+              {/* Rules List */}
+              <div className="space-y-3">
+                {activeRules.map((rule, ruleIdx) => {
+                  const preset = VALIDATION_PRESETS[rule.ruleType];
+                  const hasCustomPattern = rule.ruleType === 'starts_with' || rule.ruleType === 'ends_with' || rule.ruleType === 'contains' || rule.ruleType === 'not_contains' || rule.ruleType === 'regex' || rule.ruleType === 'exact';
+
+                  return (
+                    <div key={rule.id} className="p-3 bg-background/70 rounded-lg border border-border space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] font-bold text-muted-foreground font-mono">Rule #{ruleIdx + 1}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                          onClick={() => handleRemoveRule(rule.id)}
+                        >
+                          ×
+                        </Button>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        {/* Rule Type Selector */}
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground block mb-1">Rule Preset / Type</Label>
+                          <Select
+                            value={rule.ruleType}
+                            onValueChange={(val) => {
+                              const newType = val as StringMatchRuleType;
+                              const p = VALIDATION_PRESETS[newType];
+                              handleRuleChange(rule.id, {
+                                ruleType: newType,
+                                pattern: p?.defaultPattern || '',
+                              });
+                            }}
+                          >
+                            <SelectTrigger className="h-8 text-xs bg-background border-border">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent className="bg-popover border-border max-h-56">
+                              <SelectItem value="starts_with" className="text-xs">Starts With Prefix</SelectItem>
+                              <SelectItem value="ends_with" className="text-xs">Ends With Suffix</SelectItem>
+                              <SelectItem value="contains" className="text-xs">Contains Substring</SelectItem>
+                              <SelectItem value="not_contains" className="text-xs">Does Not Contain</SelectItem>
+                              <SelectItem value="email" className="text-xs">Valid Email Preset</SelectItem>
+                              <SelectItem value="phone" className="text-xs">Phone Number Preset</SelectItem>
+                              <SelectItem value="url" className="text-xs">Website URL Preset</SelectItem>
+                              <SelectItem value="google_drive" className="text-xs">Google Drive Link</SelectItem>
+                              <SelectItem value="pdf" className="text-xs">PDF File Link</SelectItem>
+                              <SelectItem value="regex" className="text-xs">Custom Regex Pattern</SelectItem>
+                              <SelectItem value="exact" className="text-xs">Exact Match</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+
+                        {/* Pattern / Target Value Input */}
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground block mb-1">
+                            {hasCustomPattern ? 'Target Value / Pattern' : 'Preset Regex (Read-Only)'}
+                          </Label>
+                          <Input
+                            value={rule.pattern}
+                            onChange={(e) => handleRuleChange(rule.id, { pattern: e.target.value })}
+                            placeholder={preset?.defaultPattern || 'e.g. STU-'}
+                            disabled={!hasCustomPattern}
+                            className="h-8 text-xs font-mono bg-background"
+                          />
+                        </div>
+
+                        {/* Custom Error Message Override */}
+                        <div>
+                          <Label className="text-[10px] text-muted-foreground block mb-1">
+                            Error Message Override (Optional)
+                          </Label>
+                          <Input
+                            value={rule.errorMessage || ''}
+                            onChange={(e) => handleRuleChange(rule.id, { errorMessage: e.target.value })}
+                            placeholder={preset?.defaultMessage || 'Default error text'}
+                            className="h-8 text-xs bg-background"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Add Rule Button & Live Tester */}
+              <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleAddRule}
+                  className="h-7 text-xs gap-1 border-primary/30 text-primary hover:bg-primary/10"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add Another Validation Rule
+                </Button>
+
+                {/* Inline Tester */}
+                <div className="flex items-center gap-2 flex-1 max-w-md">
+                  <Input
+                    value={testInputValue}
+                    onChange={(e) => setTestInputValue(e.target.value)}
+                    placeholder="Test compound input..."
+                    className="h-7 text-xs font-mono bg-background flex-1"
+                  />
+                  {testInputValue && (
+                    <span className={`text-xs flex items-center gap-1 font-semibold ${
+                      testFeedback.isValid ? 'text-emerald-400' : 'text-rose-400'
+                    }`}>
+                      {testFeedback.isValid ? <CheckCircle2 className="w-3.5 h-3.5" /> : <AlertCircle className="w-3.5 h-3.5" />}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Triggers & Notification Drawer */}
+          {showTriggers && (
+            <div className="p-4 bg-purple-950/20 rounded-xl border border-purple-500/30 space-y-3">
+              <div className="flex items-center justify-between border-b border-purple-500/30 pb-2">
+                <span className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
+                  <BellRing className="w-4 h-4" /> Field Action & Notification Triggers
+                </span>
+                <span className="text-[10px] text-purple-200">Alert managers or external webhooks</span>
+              </div>
+
+              <div className="space-y-2">
+                {activeTriggers.map((trig) => (
+                  <div key={trig.id} className="p-2.5 bg-background/70 rounded-lg border border-border flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2 text-xs">
+                      {trig.type === 'email_alert' ? <Mail className="w-3.5 h-3.5 text-sky-400" /> : <Phone className="w-3.5 h-3.5 text-emerald-400" />}
+                      <span className="font-semibold">{trig.type === 'email_alert' ? 'Email Notification' : 'WhatsApp Webhook'}</span>
+                      <span className="font-mono text-muted-foreground text-[11px]">&rarr; {trig.target}</span>
+                    </div>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleRemoveTrigger(trig.id)}
+                    >
+                      ×
+                    </Button>
+                  </div>
+                ))}
+              </div>
+
+              <div className="flex gap-2 pt-1">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleAddTrigger('email_alert')}
+                  className="h-7 text-xs border-purple-500/30 text-purple-300 hover:bg-purple-500/10"
+                >
+                  <Mail className="w-3 h-3 mr-1" /> + Email Trigger
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleAddTrigger('whatsapp_webhook')}
+                  className="h-7 text-xs border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10"
+                >
+                  <Phone className="w-3 h-3 mr-1" /> + WhatsApp Webhook
+                </Button>
               </div>
             </div>
           )}

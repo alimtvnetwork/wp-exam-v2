@@ -3,6 +3,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { QuizEditor } from '../quiz/components/QuizEditor';
 import { FormRunner } from '@/components/runner/FormRunner';
 import { FocusQuizRunner, FocusQuizConfig } from '@/components/runner/FocusQuizRunner';
+import { FocusQuizEditor } from '@/components/admin/focus-quiz-editor';
 import { InvitesManager } from '@/components/admin/invites-manager';
 import { HistoryManager } from '@/components/admin/history-manager';
 import { EmailSettings } from '@/components/admin/email-settings';
@@ -249,6 +250,17 @@ export const Index: React.FC = () => {
           <div className="p-4 sm:p-6 lg:p-8">
             {activeTab === 'builder' && <QuizEditor />}
 
+            {activeTab === 'focus-editor' && (
+              <div className="max-w-5xl mx-auto">
+                <FocusQuizEditor
+                  onLaunchRunner={(cfg) => {
+                    setSelectedFocusProject(cfg);
+                    handleSelectTab('focus-runner');
+                  }}
+                />
+              </div>
+            )}
+
             {activeTab === 'projects' && (
               <div className="max-w-6xl mx-auto">
                 <ProjectHierarchyManager onLaunchFocusRunner={handleLaunchFocusProject} />
@@ -258,8 +270,23 @@ export const Index: React.FC = () => {
             {activeTab === 'focus-runner' && (
               <div className="max-w-xl mx-auto py-2">
                 <FocusQuizRunner
-                  config={selectedFocusProject}
-                  onBackToAdmin={() => handleSelectTab('projects')}
+                  config={
+                    selectedFocusProject ||
+                    (() => {
+                      if (typeof window !== 'undefined') {
+                        const saved = localStorage.getItem('wp_exam_saved_focus_quiz');
+                        if (saved) {
+                          try {
+                            return JSON.parse(saved);
+                          } catch {
+                            // Fallback to default
+                          }
+                        }
+                      }
+                      return undefined;
+                    })()
+                  }
+                  onBackToAdmin={() => handleSelectTab('focus-editor')}
                 />
               </div>
             )}
