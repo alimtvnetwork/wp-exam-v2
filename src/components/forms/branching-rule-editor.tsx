@@ -21,6 +21,7 @@ import { formatRuleDescription } from '@/lib/branching-engine';
 interface BranchingRuleEditorProps {
   field: FormField;
   otherFields: FormField[];
+  allFields?: FormField[];
   onUpdateConditions: (conditions: FieldConditionRule[], matchMode?: 'all' | 'any') => void;
   onUpdateOptionBranching?: (optionBranching: Record<string, string>) => void;
 }
@@ -28,9 +29,20 @@ interface BranchingRuleEditorProps {
 export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
   field,
   otherFields,
+  allFields,
   onUpdateConditions,
   onUpdateOptionBranching,
 }) => {
+  const effectiveAllFields = allFields && allFields.length > 0 ? allFields : [field, ...otherFields];
+  const currentFieldIndex = effectiveAllFields.findIndex((f) => f.id === field.id);
+  const currentQuestionNumber = currentFieldIndex >= 0 ? currentFieldIndex + 1 : 1;
+
+  const getQuestionNumber = (fieldId: string): number => {
+    const idx = effectiveAllFields.findIndex((f) => f.id === fieldId);
+
+    return idx >= 0 ? idx + 1 : 1;
+  };
+
   const conditions = field.conditions || [];
   const conditionMatch = field.conditionMatch || 'all';
   const hasConditions = conditions.length > 0;
@@ -263,16 +275,20 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
                       onChange={(e) => handleUpdateRule(ruleIdx, { parentFieldId: e.target.value })}
                       className="w-full h-8 px-2 py-1 text-xs font-medium bg-background text-foreground border border-input rounded-md shadow-xs focus:outline-none focus:ring-1 focus:ring-primary dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700 truncate"
                     >
-                      {otherFields.map((of, ofIdx) => {
+                      {otherFields.map((of) => {
+                        const qNum = getQuestionNumber(of.id);
+                        const isPreceding = qNum < currentQuestionNumber;
+                        const timingBadge = isPreceding ? ' (Earlier)' : ' (Later)';
                         const truncatedLabel =
-                          of.label.length > 36 ? of.label.slice(0, 36) + '...' : of.label;
+                          of.label.length > 30 ? of.label.slice(0, 30) + '...' : of.label;
+
                         return (
                           <option
                             key={of.id}
                             value={of.id}
                             className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100"
                           >
-                            #{ofIdx + 1}: {truncatedLabel || of.id}
+                            #{qNum}: {truncatedLabel || of.id}{timingBadge}
                           </option>
                         );
                       })}
@@ -307,6 +323,18 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
                       </option>
                       <option value="is_empty" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">
                         Is Left Empty
+                      </option>
+                      <option value="greater_than" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">
+                        Greater Than (&gt;)
+                      </option>
+                      <option value="less_than" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">
+                        Less Than (&lt;)
+                      </option>
+                      <option value="greater_than_or_equal" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">
+                        At Least (≥)
+                      </option>
+                      <option value="less_than_or_equal" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">
+                        At Most (≤)
                       </option>
                     </select>
                   </div>
@@ -380,11 +408,17 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
                       className="flex-1 h-8 px-2 text-xs bg-background text-foreground border border-input rounded-md dark:bg-slate-900 dark:text-slate-100"
                     >
                       <option value="">Select Target Question to Jump to...</option>
-                      {otherFields.map((of, ofIdx) => (
-                        <option key={of.id} value={of.id}>
-                          #{ofIdx + 1}: {of.label}
-                        </option>
-                      ))}
+                      {otherFields.map((of) => {
+                        const qNum = getQuestionNumber(of.id);
+                        const isPreceding = qNum < currentQuestionNumber;
+                        const directionLabel = isPreceding ? ' (Loops backward)' : ' (Forward)';
+
+                        return (
+                          <option key={of.id} value={of.id}>
+                            #{qNum}: {of.label}{directionLabel}
+                          </option>
+                        );
+                      })}
                     </select>
                   </div>
                 )}
@@ -393,7 +427,7 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
                 <div className="rounded-lg bg-muted/40 px-2.5 py-1.5 text-[11px] font-mono text-muted-foreground flex items-center gap-1.5 border border-border/40">
                   <Sparkles className="w-3 h-3 text-primary shrink-0" />
                   <span className="truncate">
-                    {formatRuleDescription(rule, otherFields)}
+                    {formatRuleDescription(rule, effectiveAllFields)}
                   </span>
                 </div>
               </div>
@@ -454,11 +488,17 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
                         className="h-7 px-2 text-xs bg-background text-foreground border border-input rounded-md dark:bg-slate-900 dark:text-slate-100 max-w-[260px] truncate"
                       >
                         <option value="__next__">Default (Next Question)</option>
-                        {otherFields.map((of, ofIdx) => (
-                          <option key={of.id} value={of.id}>
-                            Jump to #{ofIdx + 1}: {of.label.slice(0, 32)}
-                          </option>
-                        ))}
+                        {otherFields.map((of) => {
+                          const qNum = getQuestionNumber(of.id);
+                          const isPreceding = qNum < currentQuestionNumber;
+                          const dirLabel = isPreceding ? ' (Loops backward)' : '';
+
+                          return (
+                            <option key={of.id} value={of.id}>
+                              Jump to #{qNum}: {of.label.slice(0, 32)}{dirLabel}
+                            </option>
+                          );
+                        })}
                       </select>
                     </div>
                   </div>

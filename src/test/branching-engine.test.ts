@@ -6,6 +6,8 @@ import {
   evaluateFieldRequired,
   getNextStepIndex,
   getPreviousStepIndex,
+  rewindStep,
+  detectBranchingCycles,
   formatRuleDescription,
 } from '../lib/branching-engine';
 
@@ -70,6 +72,64 @@ describe('Branching Engine Unit Tests', () => {
       expect(evaluateConditionRule(emptyRule, { name: '' })).toBe(true);
       expect(evaluateConditionRule(emptyRule, {})).toBe(true);
       expect(evaluateConditionRule(emptyRule, { name: 'Alice' })).toBe(false);
+    });
+
+    it('evaluates array-aware is_empty and is_not_empty operators correctly', () => {
+      const notEmptyRule = {
+        parentFieldId: 'tags',
+        operator: 'is_not_empty' as const,
+        action: 'show' as const,
+      };
+      const emptyRule = {
+        parentFieldId: 'tags',
+        operator: 'is_empty' as const,
+        action: 'show' as const,
+      };
+
+      expect(evaluateConditionRule(notEmptyRule, { tags: ['Engineering'] })).toBe(true);
+      expect(evaluateConditionRule(notEmptyRule, { tags: [] })).toBe(false);
+      expect(evaluateConditionRule(emptyRule, { tags: [] })).toBe(true);
+      expect(evaluateConditionRule(emptyRule, { tags: ['Design'] })).toBe(false);
+    });
+
+    it('evaluates numeric comparison operators (greater_than, less_than, etc.)', () => {
+      const gtRule = {
+        parentFieldId: 'score',
+        operator: 'greater_than' as const,
+        expectedValue: 80,
+        action: 'show' as const,
+      };
+      const gteRule = {
+        parentFieldId: 'score',
+        operator: 'greater_than_or_equal' as const,
+        expectedValue: 80,
+        action: 'show' as const,
+      };
+      const ltRule = {
+        parentFieldId: 'score',
+        operator: 'less_than' as const,
+        expectedValue: 50,
+        action: 'show' as const,
+      };
+      const lteRule = {
+        parentFieldId: 'score',
+        operator: 'less_than_or_equal' as const,
+        expectedValue: 50,
+        action: 'show' as const,
+      };
+
+      expect(evaluateConditionRule(gtRule, { score: 85 })).toBe(true);
+      expect(evaluateConditionRule(gtRule, { score: 80 })).toBe(false);
+      expect(evaluateConditionRule(gtRule, { score: 75 })).toBe(false);
+
+      expect(evaluateConditionRule(gteRule, { score: 80 })).toBe(true);
+      expect(evaluateConditionRule(gteRule, { score: 79 })).toBe(false);
+
+      expect(evaluateConditionRule(ltRule, { score: 40 })).toBe(true);
+      expect(evaluateConditionRule(ltRule, { score: 50 })).toBe(false);
+
+      expect(evaluateConditionRule(lteRule, { score: 50 })).toBe(true);
+      expect(evaluateConditionRule(lteRule, { score: 51 })).toBe(false);
     });
   });
 
@@ -256,6 +316,106 @@ describe('Branching Engine Unit Tests', () => {
         allFields
       );
       expect(desc).toBe('SHOW this question when "Do you code in Go?" is answered');
+    });
+  });
+
+  describe('rewindStep', () => {
+    const fields: FormField[] = [
+      { id: 'q0', type: 'short_answer', label: 'Q0', isRequired: true },
+      { id: 'q1', type: 'short_answer', label: 'Q1', isRequired: true },
+      { id: 'q2', type: 'short_answer', label: 'Q2', isRequired: true },
+    ];
+
+    it('returns step 0 when history is empty', () => {
+      const res = rewindStep(fields, { currentStep: 0, history: [] }, {});
+      expect(res.currentStep).toBe(0);
+      expect(res.history).toEqual([]);
+    });
+
+    it('pops the last step from history', () => {
+      const res = rewindStep(fields, { currentStep: 2, history: [0] }, {});
+      expect(res.currentStep).toBe(0);
+      expect(res.history).toEqual([]);
+    });
+
+    it('skips target if target became hidden by earlier answers', () => {
+      const conditionalFields: FormField[] = [
+        { id: 'q0', type: 'short_answer', label: 'Q0', isRequired: true },
+        {
+          id: 'q1',
+          type: 'short_answer',
+          label: 'Q1',
+          isRequired: true,
+          conditions: [{ parentFieldId: 'q0', operator: 'equals', expectedValue: 'ShowQ1', action: 'show' }],
+        },
+        { id: 'q2', type: 'short_answer', label: 'Q2', isRequired: true },
+      ];
+
+      // q1 is in history, but now q0 is 'HideQ1' so q1 is invisible.
+      // rewindStep should pop q1 and continue popping to q0.
+      const res = rewindStep(conditionalFields, { currentStep: 2, history: [0, 1] }, { q0: 'HideQ1' });
+      expect(res.currentStep).toBe(0);
+      expect(res.history).toEqual([]);
+    });
+  });
+
+  describe('detectBranchingCycles', () => {
+    it('detects direct circular loop between two fields', () => {
+      const cyclicFields: FormField[] = [
+        {
+          id: 'q1',
+          type: 'single_choice',
+          label: 'Question 1',
+          isRequired: true,
+          optionBranching: {
+            'Option A': 'q2',
+          },
+        },
+        {
+          id: 'q2',
+          type: 'single_choice',
+          label: 'Question 2',
+          isRequired: true,
+          optionBranching: {
+            'Option B': 'q1',
+          },
+        },
+      ];
+
+      const report = detectBranchingCycles(cyclicFields);
+      expect(report.hasCycles).toBe(true);
+      expect(report.description).toContain('Circular jump loop detected');
+    });
+
+    it('confirms DAG safe when branching has no loops', () => {
+      const acyclicFields: FormField[] = [
+        {
+          id: 'q1',
+          type: 'single_choice',
+          label: 'Question 1',
+          isRequired: true,
+          optionBranching: {
+            'Option A': 'q2',
+            'Option B': 'q3',
+          },
+        },
+        {
+          id: 'q2',
+          type: 'short_answer',
+          label: 'Question 2',
+          isRequired: true,
+        },
+        {
+          id: 'q3',
+          type: 'short_answer',
+          label: 'Question 3',
+          isRequired: true,
+        },
+      ];
+
+      const report = detectBranchingCycles(acyclicFields);
+      expect(report.hasCycles).toBe(false);
+      expect(report.cycleNodes).toEqual([]);
     });
   });
 });

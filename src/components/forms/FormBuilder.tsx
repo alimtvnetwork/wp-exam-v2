@@ -24,6 +24,8 @@ import {
   Save,
   FileJson,
   GitBranch,
+  Copy,
+  ExternalLink,
 } from 'lucide-react';
 import {
   DndContext,
@@ -199,6 +201,13 @@ export const FormBuilder: React.FC = () => {
     }
   };
 
+  const handleCopyLiveUrl = () => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://127.0.0.1:5173';
+    const liveUrl = `${origin}/preview`;
+    navigator.clipboard.writeText(liveUrl);
+    toast.success(`Copied Live Form URL: ${liveUrl}`);
+  };
+
   // Group filter calculation
   const distinctGroups = Array.from(new Set(fields.map((f) => f.group).filter(Boolean))) as string[];
   const displayedFields =
@@ -264,6 +273,44 @@ export const FormBuilder: React.FC = () => {
           <Button onClick={handleSave} disabled={isSaving} size="sm" className="bg-primary text-xs h-8 gap-1.5 font-semibold">
             <Save className="w-3.5 h-3.5" />
             <span>{isSaving ? 'Saving...' : 'Save Form'}</span>
+          </Button>
+        </div>
+      </div>
+
+      {/* Live Form URL & Direct Access Toolbar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-muted/20 rounded-xl border border-border/80">
+        <div className="flex items-center gap-2 flex-wrap">
+          <Badge className="bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-mono uppercase">
+            ● Live Form URL
+          </Badge>
+          <span className="text-xs text-muted-foreground font-mono truncate max-w-xs sm:max-w-md">
+            {typeof window !== 'undefined' ? `${window.location.origin}/preview` : 'https://wpexam.io/preview'}
+          </span>
+        </div>
+
+        <div className="flex items-center gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleCopyLiveUrl}
+            className="text-xs h-7 px-2.5 gap-1.5 border-border hover:bg-muted"
+            title="Copy Public Live URL to Clipboard"
+          >
+            <Copy className="w-3.5 h-3.5" />
+            <span>Copy Live URL</span>
+          </Button>
+
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => window.open('/preview', '_blank')}
+            className="text-xs h-7 px-2.5 gap-1.5 border-border text-primary hover:bg-primary/10"
+            title="Open Dedicated Full-Screen Live Preview in New Tab"
+          >
+            <ExternalLink className="w-3.5 h-3.5" />
+            <span>Open in New Tab</span>
           </Button>
         </div>
       </div>
@@ -386,6 +433,7 @@ export const FormBuilder: React.FC = () => {
                 index={index}
                 field={field}
                 otherFields={fields.filter((f) => f.id !== field.id)}
+                allFields={fields}
                 isQuiz={formType === 'quiz'}
                 onUpdate={(fieldId, updates) => updateField(fieldId, updates)}
                 onRemove={(fieldId) => removeField(fieldId)}

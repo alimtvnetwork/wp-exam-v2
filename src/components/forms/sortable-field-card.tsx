@@ -33,6 +33,7 @@ interface SortableFieldCardProps {
   index: number;
   field: FormField;
   otherFields: FormField[];
+  allFields?: FormField[];
   isQuiz: boolean;
   onUpdate: (id: string, updates: Partial<FormField>) => void;
   onRemove: (id: string) => void;
@@ -44,6 +45,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   index,
   field,
   otherFields,
+  allFields,
   isQuiz,
   onUpdate,
   onRemove,
@@ -214,11 +216,21 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowConditions(!showConditions)}
-                  className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 cursor-pointer hover:bg-amber-500/25 font-mono font-medium transition-colors"
+                  className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 flex items-center gap-1 cursor-pointer hover:bg-amber-500/25 font-mono font-medium transition-colors"
                   title="Click to view branching rules"
                 >
                   <GitBranch className="w-3 h-3" />
-                  {field.conditions.length} Branch Rule(s)
+                  <span>{field.conditions.length} Rule(s)</span>
+                  {field.conditions[0]?.parentFieldId && (
+                    <span className="opacity-80 hidden md:inline">
+                      (Depends on #{(() => {
+                        const targetId = field.conditions[0].parentFieldId;
+                        const idx = allFields?.findIndex((f) => f.id === targetId);
+
+                        return idx !== undefined && idx >= 0 ? idx + 1 : '?';
+                      })()})
+                    </span>
+                  )}
                 </button>
               )}
 
@@ -226,10 +238,11 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowConditions(!showConditions)}
-                  className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-400 border border-indigo-500/30 flex items-center gap-1 cursor-pointer hover:bg-indigo-500/25 font-mono font-medium transition-colors"
+                  className="text-[10px] px-2 py-0.5 rounded-full bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 flex items-center gap-1 cursor-pointer hover:bg-indigo-500/25 font-mono font-medium transition-colors"
                   title="Click to view choice navigation routes"
                 >
-                  ⚡ Choice Jumps
+                  <GitBranch className="w-3 h-3" />
+                  <span>{Object.keys(field.optionBranching).length} Choice Jump(s)</span>
                 </button>
               )}
             </CardTitle>
@@ -486,6 +499,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             <BranchingRuleEditor
               field={field}
               otherFields={otherFields}
+              allFields={allFields}
               onUpdateConditions={(newConditions, matchMode) => {
                 onUpdate(id, { conditions: newConditions, conditionMatch: matchMode });
               }}

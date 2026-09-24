@@ -46,6 +46,7 @@ App-specific specification content for the WP Exam plugin. This engine provides 
 | 21f | [21f-forms-spec/04-verification-gates.md](./21f-forms-spec/04-verification-gates.md) | Acceptance Criteria, Debounce Testing, Security Gates & Test Matrix | Complete |
 | 21f | [21f-forms-spec/05-llm-instruction-set.md](./21f-forms-spec/05-llm-instruction-set.md) | LLM Instruction Studio, Universal JSON Manifest & Import/Export Spec | Complete |
 | 45 | [45-admin-wordpress-layout-and-form-builder-ux/01-overview.md](./45-admin-wordpress-layout-and-form-builder-ux/01-overview.md) | WordPress Admin Left Sidebar, Layout Architecture & Drag-and-Drop Form Builder UX | Complete |
+| 46 | [46-live-url-preview-and-branching-ux/01-overview.md](./46-live-url-preview-and-branching-ux/01-overview.md) | Live URL, Live Preview & Branching Engine UX Overhaul | Active |
 
 ---
 

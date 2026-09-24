@@ -2,13 +2,17 @@ import { FormField, FieldConditionRule } from '@/lib/types/form';
 
 /**
  * Evaluates whether a single condition rule is satisfied against current answers.
+ * Supports scalar strings, multi-select choice arrays, and numeric comparisons.
  */
 export function evaluateConditionRule(
   rule: FieldConditionRule,
   answers: Record<string, unknown>
 ): boolean {
   const actualValue = answers[rule.parentFieldId];
-  const hasValue = actualValue !== undefined && actualValue !== null && actualValue !== '';
+  const isArray = Array.isArray(actualValue);
+  const hasValue = isArray
+    ? actualValue.length > 0
+    : actualValue !== undefined && actualValue !== null && String(actualValue).trim() !== '';
 
   if (rule.operator === 'is_empty') {
     return !hasValue;
@@ -18,42 +22,67 @@ export function evaluateConditionRule(
     return hasValue;
   }
 
-  const isMissingValue = !hasValue;
-
-  if (isMissingValue) {
+  if (!hasValue) {
     return false;
   }
 
-  const actualString = String(actualValue).trim().toLowerCase();
   const expectedString = String(rule.expectedValue ?? '').trim().toLowerCase();
 
-  if (rule.operator === 'equals') {
-    const isMatched = actualString === expectedString;
+  // Multi-choice array evaluation
+  if (isArray) {
+    const stringItems = actualValue.map((item) => String(item).trim().toLowerCase());
 
-    return isMatched;
-  }
-
-  if (rule.operator === 'not_equals') {
-    const isDifferent = actualString !== expectedString;
-
-    return isDifferent;
-  }
-
-  if (rule.operator === 'contains') {
-    if (Array.isArray(actualValue)) {
-      const hasItem = actualValue.some(
-        (item) => String(item).trim().toLowerCase() === expectedString
-      );
-
-      return hasItem;
+    if (rule.operator === 'equals') {
+      return stringItems.length === 1 && stringItems[0] === expectedString;
     }
 
-    const hasSubstring = actualString.includes(expectedString);
+    if (rule.operator === 'not_equals') {
+      return !stringItems.includes(expectedString);
+    }
 
-    return hasSubstring;
+    if (rule.operator === 'contains') {
+      return stringItems.includes(expectedString);
+    }
+
+    return false;
   }
 
-  return false;
+  // Scalar string and numeric evaluation
+  const actualString = String(actualValue).trim().toLowerCase();
+  const actualNum = Number(actualValue);
+  const expectedNum = Number(rule.expectedValue);
+  const hasNumericValues =
+    !isNaN(actualNum) &&
+    !isNaN(expectedNum) &&
+    rule.expectedValue !== '' &&
+    rule.expectedValue !== null &&
+    rule.expectedValue !== undefined;
+
+  switch (rule.operator) {
+    case 'equals':
+      return actualString === expectedString;
+
+    case 'not_equals':
+      return actualString !== expectedString;
+
+    case 'contains':
+      return actualString.includes(expectedString);
+
+    case 'greater_than':
+      return hasNumericValues ? actualNum > expectedNum : false;
+
+    case 'less_than':
+      return hasNumericValues ? actualNum < expectedNum : false;
+
+    case 'greater_than_or_equal':
+      return hasNumericValues ? actualNum >= expectedNum : false;
+
+    case 'less_than_or_equal':
+      return hasNumericValues ? actualNum <= expectedNum : false;
+
+    default:
+      return false;
+  }
 }
 
 /**
@@ -163,7 +192,7 @@ export function getNextStepIndex(
 
     if (targetFieldId) {
       const targetIndex = fields.findIndex((f) => f.id === targetFieldId);
-      const isTargetValid = targetIndex >= 0;
+      const isTargetValid = targetIndex >= 0 && targetIndex !== currentStep;
 
       if (isTargetValid) {
         const isTargetVisible = evaluateFieldVisibility(fields[targetIndex], answers, fields);
@@ -185,10 +214,14 @@ export function getNextStepIndex(
 
     if (isRuleMet && rule.jumpToFieldId) {
       const targetIndex = fields.findIndex((f) => f.id === rule.jumpToFieldId);
-      const isTargetValid = targetIndex >= 0;
+      const isTargetValid = targetIndex >= 0 && targetIndex !== currentStep;
 
       if (isTargetValid) {
-        return targetIndex;
+        const isTargetVisible = evaluateFieldVisibility(fields[targetIndex], answers, fields);
+
+        if (isTargetVisible) {
+          return targetIndex;
+        }
       }
     }
   }
@@ -196,7 +229,7 @@ export function getNextStepIndex(
   // 3. Check default branchTarget on currentField
   if (currentField.branchTarget) {
     const targetIndex = fields.findIndex((f) => f.id === currentField.branchTarget);
-    const isTargetValid = targetIndex >= 0;
+    const isTargetValid = targetIndex >= 0 && targetIndex !== currentStep;
 
     if (isTargetValid) {
       const isTargetVisible = evaluateFieldVisibility(fields[targetIndex], answers, fields);
@@ -247,6 +280,35 @@ export function getPreviousStepIndex(
 }
 
 /**
+ * Reverses navigation step by popping from historical path stack.
+ * Ensures the candidate is never trapped in skipped branches.
+ */
+export function rewindStep(
+  fields: FormField[],
+  currentState: { currentStep: number; history: number[] },
+  answers: Record<string, unknown>
+): { currentStep: number; history: number[] } {
+  if (currentState.history.length === 0) {
+    return { currentStep: 0, history: [] };
+  }
+
+  const newHistory = [...currentState.history];
+  let targetIndex = newHistory.pop()!;
+
+  while (
+    newHistory.length > 0 &&
+    !evaluateFieldVisibility(fields[targetIndex], answers, fields)
+  ) {
+    targetIndex = newHistory.pop()!;
+  }
+
+  return {
+    currentStep: targetIndex,
+    history: newHistory,
+  };
+}
+
+/**
  * Human-readable natural language summary of a branching rule.
  */
 export function formatRuleDescription(
@@ -269,6 +331,10 @@ export function formatRuleDescription(
     contains: 'contains',
     is_not_empty: 'is answered',
     is_empty: 'is left empty',
+    greater_than: 'is greater than',
+    less_than: 'is less than',
+    greater_than_or_equal: 'is at least',
+    less_than_or_equal: 'is at most',
   };
 
   const actionText = actionLabels[rule.action] || rule.action;
@@ -288,4 +354,116 @@ export function formatRuleDescription(
   }
 
   return `${actionText} when "${parentName}" ${opText} "${rule.expectedValue}"`;
+}
+
+export interface BranchingCycleReport {
+  hasCycles: boolean;
+  cycleNodes: string[];
+  description: string;
+}
+
+/**
+ * Detects cyclic jump loops across field conditions, option branching, and branch targets.
+ */
+export function detectBranchingCycles(fields: FormField[]): BranchingCycleReport {
+  const adj = new Map<string, string[]>();
+
+  for (const field of fields) {
+    const targets: string[] = [];
+
+    if (field.conditions) {
+      for (const rule of field.conditions) {
+        if (rule.action === 'jump_to') {
+          if (rule.jumpToFieldId) {
+            targets.push(rule.jumpToFieldId);
+          }
+        }
+      }
+    }
+
+    if (field.optionBranching) {
+      for (const targetId of Object.values(field.optionBranching)) {
+        if (targetId) {
+          if (targetId !== '__next__') {
+            targets.push(targetId);
+          }
+        }
+      }
+    }
+
+    if (field.branchTarget) {
+      targets.push(field.branchTarget);
+    }
+
+    adj.set(field.id, targets);
+  }
+
+  const visited = new Set<string>();
+  const inStack = new Set<string>();
+  let detectedCycle: string[] = [];
+
+  function dfs(nodeId: string): boolean {
+    visited.add(nodeId);
+    inStack.add(nodeId);
+
+    const neighbors = adj.get(nodeId) || [];
+
+    for (const neighbor of neighbors) {
+      const isNeighborInStack = inStack.has(neighbor);
+
+      if (isNeighborInStack) {
+        detectedCycle = [neighbor, nodeId];
+
+        return true;
+      }
+
+      const isNeighborVisited = visited.has(neighbor);
+
+      if (!isNeighborVisited) {
+        const hasFoundCycle = dfs(neighbor);
+
+        if (hasFoundCycle) {
+          return true;
+        }
+      }
+    }
+
+    inStack.delete(nodeId);
+
+    return false;
+  }
+
+  for (const field of fields) {
+    const isFieldVisited = visited.has(field.id);
+
+    if (!isFieldVisited) {
+      const hasFoundCycle = dfs(field.id);
+
+      if (hasFoundCycle) {
+        break;
+      }
+    }
+  }
+
+  const hasCycles = detectedCycle.length > 0;
+
+  if (hasCycles) {
+    const cycleLabels = detectedCycle.map((id) => {
+      const f = fields.find((x) => x.id === id);
+
+      return f ? `"${f.label || id}"` : id;
+    });
+
+    return {
+      hasCycles: true,
+      cycleNodes: detectedCycle,
+      description: `Circular jump loop detected between: ${cycleLabels.join(' ➔ ')}`,
+    };
+  }
+
+  return {
+    hasCycles: false,
+    cycleNodes: [],
+    description: 'No circular branching detected',
+  };
 }

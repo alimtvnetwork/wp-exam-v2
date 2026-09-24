@@ -300,10 +300,13 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
   const [showShareModal, setShowShareModal] = useState<boolean>(false);
   const [isCopied, setIsCopied] = useState<boolean>(false);
 
+  const getPublicShareUrl = (): string => {
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'https://wpexam.io';
+    return `${origin}/runner?quiz=${config.id}&q=${currentQuestionIndex + 1}`;
+  };
+
   const handleCopyShareLink = () => {
-    const shareUrl = typeof window !== 'undefined'
-      ? `${window.location.origin}${window.location.pathname}?quiz=${config.id}&q=${currentQuestionIndex + 1}`
-      : `https://wpexam.io/quiz/${config.id}?q=${currentQuestionIndex + 1}`;
+    const shareUrl = getPublicShareUrl();
 
     navigator.clipboard.writeText(shareUrl);
     setIsCopied(true);
@@ -1722,9 +1725,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                   size="sm"
                   onClick={() => {
                     const shareTitle = currentQuestion ? currentQuestion.title.replace(/\*\*/g, '') : config.title;
-                    const shareUrl = typeof window !== 'undefined'
-                      ? `${window.location.origin}${window.location.pathname}?quiz=${config.id}&q=${currentQuestionIndex + 1}`
-                      : `https://wpexam.io/quiz/${config.id}?q=${currentQuestionIndex + 1}`;
+                    const shareUrl = getPublicShareUrl();
                     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareTitle)}&url=${encodeURIComponent(shareUrl)}`, '_blank');
                   }}
                   className="w-full flex items-center justify-center gap-1.5 text-xs rounded-xl"
@@ -1737,9 +1738,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                   variant="outline"
                   size="sm"
                   onClick={() => {
-                    const shareUrl = typeof window !== 'undefined'
-                      ? `${window.location.origin}${window.location.pathname}?quiz=${config.id}&q=${currentQuestionIndex + 1}`
-                      : `https://wpexam.io/quiz/${config.id}?q=${currentQuestionIndex + 1}`;
+                    const shareUrl = getPublicShareUrl();
                     window.open(`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(shareUrl)}`, '_blank');
                   }}
                   className="w-full flex items-center justify-center gap-1.5 text-xs rounded-xl"
@@ -1752,7 +1751,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
               <div className="pt-2 flex items-center gap-2">
                 <Input
                   readOnly
-                  value={typeof window !== 'undefined' ? `${window.location.origin}${window.location.pathname}?quiz=${config.id}&q=${currentQuestionIndex + 1}` : ''}
+                  value={getPublicShareUrl()}
                   className="text-xs rounded-xl font-mono p-2 h-9 flex-1"
                   style={{
                     backgroundColor: theme.colors.background,

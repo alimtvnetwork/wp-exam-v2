@@ -25,8 +25,17 @@ export interface FieldValidationRule {
 
 export interface FieldConditionRule {
   parentFieldId: string;
-  operator: 'equals' | 'not_equals' | 'contains' | 'is_empty' | 'is_not_empty';
-  expectedValue: string;
+  operator:
+    | 'equals'
+    | 'not_equals'
+    | 'contains'
+    | 'is_empty'
+    | 'is_not_empty'
+    | 'greater_than'
+    | 'less_than'
+    | 'greater_than_or_equal'
+    | 'less_than_or_equal';
+  expectedValue: string | number;
   action: 'show' | 'hide' | 'require' | 'jump_to';
   jumpToFieldId?: string;
 }

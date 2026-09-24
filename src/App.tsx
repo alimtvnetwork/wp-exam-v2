@@ -1,5 +1,5 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -13,6 +13,11 @@ import { ThemeProvider } from "@/lib/theme-context";
 
 const queryClient = new QueryClient();
 
+const LegacyRunnerRedirect: React.FC = () => {
+  const location = useLocation();
+  return <Navigate to={`/runner${location.search}`} replace />;
+};
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
@@ -20,23 +25,37 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-
-        <Routes>
-          <Route path="/" element={<LandingPage />} />
-          <Route path="/admin" element={<Index />} />
-          <Route path="/apply" element={<WizardRunner />} />
-          <Route path="/forms/wizard" element={<WizardRunner />} />
-          <Route path="/forms/canvas" element={<VisualNodeCanvas />} />
-          <Route path="/forms/nodes" element={<VisualNodeCanvas />} />
-          <Route path="/runner" element={<div className="min-h-screen bg-slate-950 p-6"><FormRunner /></div>} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </ThemeProvider>
-</QueryClientProvider>
+          <Routes>
+            <Route path="/" element={<LandingPage />} />
+            <Route path="/admin" element={<Index />} />
+            <Route path="/apply" element={<WizardRunner />} />
+            <Route path="/forms/wizard" element={<WizardRunner />} />
+            <Route path="/forms/canvas" element={<VisualNodeCanvas />} />
+            <Route path="/forms/nodes" element={<VisualNodeCanvas />} />
+            <Route
+              path="/preview"
+              element={
+                <div className="min-h-screen bg-slate-950 p-4 sm:p-6">
+                  <FormRunner isPreviewRoute={true} />
+                </div>
+              }
+            />
+            <Route
+              path="/runner"
+              element={
+                <div className="min-h-screen bg-slate-950 p-4 sm:p-6">
+                  <FormRunner />
+                </div>
+              }
+            />
+            <Route path="/wp-exam-runner" element={<LegacyRunnerRedirect />} />
+            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
+  </QueryClientProvider>
 );
 
 export default App;
-

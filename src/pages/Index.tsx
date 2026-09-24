@@ -1,13 +1,13 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { QuizEditor } from '../quiz/components/QuizEditor';
 import { FormRunner } from '@/components/runner/FormRunner';
-import { FocusQuizRunner } from '@/components/runner/FocusQuizRunner';
+import { FocusQuizRunner, FocusQuizConfig } from '@/components/runner/FocusQuizRunner';
 import { InvitesManager } from '@/components/admin/invites-manager';
 import { HistoryManager } from '@/components/admin/history-manager';
 import { EmailSettings } from '@/components/admin/email-settings';
 import { SqliteStatus } from '@/components/admin/sqlite-status';
-import { ProjectHierarchyManager } from '@/components/admin/project-hierarchy-manager';
+import { ProjectHierarchyManager, ProjectItem } from '@/components/admin/project-hierarchy-manager';
 import { AIInstructionStudio } from '@/components/admin/ai-instruction-studio';
 import { BackupManager } from '@/components/admin/backup-manager';
 import { AnalyticsDashboard } from '@/components/admin/analytics-dashboard';
@@ -31,11 +31,40 @@ import { toast } from 'sonner';
 
 export const Index: React.FC = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get('tab') as AdminTab;
+  const [activeTab, setActiveTabState] = useState<AdminTab>(tabFromUrl || 'builder');
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [selectedFocusProject, setSelectedFocusProject] = useState<FocusQuizConfig | undefined>(undefined);
   const { isAuthenticated, login, logout } = useAdminAuth();
   const { theme } = useTheme();
-  const [activeTab, setActiveTab] = useState<AdminTab>('builder');
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const store = useQuizStore();
+
+  const handleLaunchFocusProject = (project: ProjectItem) => {
+    const focusConfig: FocusQuizConfig = {
+      id: project.id,
+      title: project.title,
+      questions: [],
+    };
+    setSelectedFocusProject(focusConfig);
+    handleSelectTab('focus-runner');
+  };
+
+  const handleSelectTab = (newTab: AdminTab) => {
+    setActiveTabState(newTab);
+    setSearchParams((prev) => {
+      const next = new URLSearchParams(prev);
+      next.set('tab', newTab);
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    const currentTabInUrl = searchParams.get('tab') as AdminTab;
+    if (currentTabInUrl && currentTabInUrl !== activeTab) {
+      setActiveTabState(currentTabInUrl);
+    }
+  }, [searchParams, activeTab]);
 
   // Login form states for unauthenticated users
   const [loginUser, setLoginUser] = useState('admin');
@@ -209,7 +238,7 @@ export const Index: React.FC = () => {
         {/* Persistent Left-Hand Admin Sidebar */}
         <WpAdminSidebar
           activeTab={activeTab}
-          onSelectTab={setActiveTab}
+          onSelectTab={handleSelectTab}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapse={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
           onNavigateHome={() => navigate('/')}
@@ -222,13 +251,16 @@ export const Index: React.FC = () => {
 
             {activeTab === 'projects' && (
               <div className="max-w-6xl mx-auto">
-                <ProjectHierarchyManager onLaunchFocusRunner={() => setActiveTab('focus-runner')} />
+                <ProjectHierarchyManager onLaunchFocusRunner={handleLaunchFocusProject} />
               </div>
             )}
 
             {activeTab === 'focus-runner' && (
               <div className="max-w-xl mx-auto py-2">
-                <FocusQuizRunner onBackToAdmin={() => setActiveTab('projects')} />
+                <FocusQuizRunner
+                  config={selectedFocusProject}
+                  onBackToAdmin={() => handleSelectTab('projects')}
+                />
               </div>
             )}
 
@@ -245,14 +277,14 @@ export const Index: React.FC = () => {
                     settings: store.settings,
                     fields: store.fields,
                   }}
-                  onClose={() => setActiveTab('builder')}
+                  onClose={() => handleSelectTab('builder')}
                 />
               </div>
             )}
 
             {activeTab === 'invites' && (
               <div className="max-w-4xl mx-auto">
-                <InvitesManager onNavigateToRunner={() => setActiveTab('runner')} />
+                <InvitesManager onNavigateToRunner={() => handleSelectTab('runner')} />
               </div>
             )}
 

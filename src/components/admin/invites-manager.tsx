@@ -45,7 +45,7 @@ export const InvitesManager: React.FC<InvitesManagerProps> = ({ onNavigateToRunn
   };
 
   const handleCopyLink = (token: string) => {
-    const link = `${window.location.origin}/wp-exam-runner/?invite=${token}`;
+    const link = `${window.location.origin}/runner?invite=${token}`;
     navigator.clipboard.writeText(link);
     setFeedback(`Copied direct invite link: ${link}`);
     setTimeout(() => setFeedback(null), 3500);

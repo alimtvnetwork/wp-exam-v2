@@ -2,11 +2,13 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { FormModel, FormField, FormSubmissionResult } from '@/lib/types/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useExamAppStore } from '@/quiz/store/exam-store';
+import { useQuizStore } from '@/quiz/store/useQuizStore';
 import { ExternalLink, AlertCircle, CheckCircle2, Play, Copy, Share2, Layers } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -19,6 +21,7 @@ import {
 interface FormRunnerProps {
   form?: FormModel;
   onClose?: () => void;
+  isPreviewRoute?: boolean;
 }
 
 const PRESET_PROJECTS: Record<string, FormModel> = {
@@ -153,29 +156,62 @@ const PRESET_PROJECTS: Record<string, FormModel> = {
   },
 };
 
-export const FormRunner: React.FC<FormRunnerProps> = ({ form: initialForm, onClose }) => {
+export const FormRunner: React.FC<FormRunnerProps> = ({
+  form: initialForm,
+  onClose,
+  isPreviewRoute,
+}) => {
   const examStore = useExamAppStore();
   const session = examStore.session;
+  const quizStore = useQuizStore();
 
-  // Determine active project from URL or initial form
+  const storeForm: FormModel = useMemo(() => ({
+    id: quizStore.id || 'builder-active',
+    title: quizStore.title || 'Custom Form',
+    description: quizStore.description || '',
+    formType: quizStore.formType || 'quiz',
+    formAccess: quizStore.formAccess || 'public',
+    isSequential: quizStore.isSequential,
+    isPublished: true,
+    settings: quizStore.settings,
+    fields: quizStore.fields,
+  }), [quizStore]);
+
+  // Determine active project from URL, initial form, or store
   const getInitialProjectId = (): string => {
+    if (initialForm) {
+      return 'custom-active';
+    }
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlProject = params.get('project');
       if (urlProject && PRESET_PROJECTS[urlProject]) {
         return urlProject;
       }
+      if (params.get('preview') || isPreviewRoute) {
+        return 'custom-active';
+      }
+    }
+    if (isPreviewRoute || quizStore.fields.length > 0) {
+      return 'custom-active';
     }
     return 'intern-programmer';
   };
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>(getInitialProjectId());
-  const activeForm: FormModel =
-    selectedProjectId === 'custom-active' && initialForm
-      ? initialForm
-      : PRESET_PROJECTS[selectedProjectId] || initialForm || PRESET_PROJECTS['intern-programmer'];
+
+  const activeForm: FormModel = useMemo(() => {
+    if (selectedProjectId === 'custom-active') {
+      return initialForm || storeForm;
+    }
+    if (PRESET_PROJECTS[selectedProjectId]) {
+      return PRESET_PROJECTS[selectedProjectId];
+    }
+    return initialForm || storeForm || PRESET_PROJECTS['intern-programmer'];
+  }, [selectedProjectId, initialForm, storeForm]);
 
   const [currentStep, setCurrentStep] = useState(0);
+  const [stepHistory, setStepHistory] = useState<number[]>([]);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
   const [guestName, setGuestName] = useState(session.respondentName || '');
   const [guestEmail, setGuestEmail] = useState(session.respondentEmail || '');
@@ -193,6 +229,22 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form: initialForm, onClo
       }
     }
   }, [session]);
+
+  // Auto-authenticate if invite or token parameter is present in URL
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get('invite') || params.get('token');
+      if (token && !session.isAuthenticated) {
+        setTokenInput(token);
+        const isSuccess = examStore.authenticateWithToken(token);
+        if (isSuccess) {
+          setAuthMessage('✓ Access token verified. Candidate session active.');
+          setTimeout(() => setAuthMessage(null), 3500);
+        }
+      }
+    }
+  }, [session.isAuthenticated, examStore]);
 
   const fields = useMemo(() => activeForm.fields || [], [activeForm.fields]);
   const isSequential = activeForm.isSequential && fields.length > 1;
@@ -229,6 +281,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form: initialForm, onClo
   const handleProjectSwitch = (newProjectId: string) => {
     setSelectedProjectId(newProjectId);
     setCurrentStep(0);
+    setStepHistory([]);
     setAnswers({});
     setIsSubmitted(false);
     setResult(null);
@@ -243,9 +296,12 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form: initialForm, onClo
 
   const handleCopyProjectLink = () => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'http://127.0.0.1:5173';
-    const link = `${origin}/runner?project=${selectedProjectId}`;
+    let link = `${origin}/runner?project=${selectedProjectId}`;
+    if (selectedProjectId === 'custom-active') {
+      link = `${origin}/preview`;
+    }
     navigator.clipboard.writeText(link);
-    toast.success(`Copied direct project link: ${link}`);
+    toast.success(`Copied live URL: ${link}`);
   };
 
   const handleVerifyToken = () => {
@@ -291,12 +347,23 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form: initialForm, onClo
       return;
     }
 
+    setStepHistory((prev) => [...prev, currentStep]);
     setCurrentStep(nextIndex);
   };
 
   const handlePreviousStep = () => {
-    const prevIndex = getPreviousStepIndex(fields, currentStep, answers);
-    setCurrentStep(prevIndex);
+    if (stepHistory.length > 0) {
+      const newHistory = [...stepHistory];
+      let targetIndex = newHistory.pop()!;
+      while (newHistory.length > 0 && !evaluateFieldVisibility(fields[targetIndex], answers, fields)) {
+        targetIndex = newHistory.pop()!;
+      }
+      setStepHistory(newHistory);
+      setCurrentStep(targetIndex);
+    } else {
+      const prevIndex = getPreviousStepIndex(fields, currentStep, answers);
+      setCurrentStep(prevIndex);
+    }
   };
 
   const handleSubmit = () => {
@@ -494,7 +561,11 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form: initialForm, onClo
             <option value="intern-programmer" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Intern Programmer Assessment</option>
             <option value="full-stack-architect" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Full-Stack Web Architecture</option>
             <option value="cybersecurity-essentials" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Cybersecurity Fundamentals</option>
-            {initialForm && <option value="custom-active" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">Custom Form (Builder Active)</option>}
+            {(initialForm || quizStore.fields.length > 0) && (
+              <option value="custom-active" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">
+                Custom Form ({activeForm.title || 'Builder Active'})
+              </option>
+            )}
           </select>
         </div>
 
@@ -571,10 +642,18 @@ export const FormRunner: React.FC<FormRunnerProps> = ({ form: initialForm, onClo
         <Card className="w-full max-w-xl mx-auto border-border shadow-lg bg-card">
           <CardHeader className="py-4 border-b border-border bg-muted/10">
             <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-              <span className="font-semibold text-primary">Question {currentStep + 1} of {fields.length}</span>
+              <span className="font-semibold text-primary">
+                Step {stepHistory.length + 1} of ~{visibleFields.length} (Question #{currentStep + 1})
+              </span>
               <Badge variant="outline" className="font-mono text-[10px]">{activeForm.formType.replace('_', ' ')}</Badge>
             </div>
-            <Progress value={Math.round(((currentStep + 1) / fields.length) * 100)} className="h-1.5 mb-2" />
+            <Progress
+              value={Math.min(
+                100,
+                Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, stepHistory.length + 1)) * 100)
+              )}
+              className="h-1.5 mb-2"
+            />
             <CardTitle className="text-base font-bold">{currentField.label}</CardTitle>
             {isCurrentFieldRequired && (
               <span className="text-[11px] text-destructive font-medium">* Required Field</span>
