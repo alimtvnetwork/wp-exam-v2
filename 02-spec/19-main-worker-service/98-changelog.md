@@ -1,3 +1,9 @@
+## v0.2.0 — 2026-09-24 (Enterprise Google Forms builder, dynamic theming, and focus quiz editor)
+
+**Scope:** Version bump. Enterprise Google Forms builder, dynamic theming, and focus quiz editor.
+
+---
+
 ## v6.45.0 — 2026-09-22 (enhance release orchestrator with automated release notes and GitHub release creation)
 
 **Scope:** Version bump. enhance release orchestrator with automated release notes and GitHub release creation.
