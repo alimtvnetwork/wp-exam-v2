@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
   CheckCircle2, 
   AlertCircle, 
@@ -22,6 +23,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+
+export interface JobPositionOption {
+  id: string;
+  title: string;
+  department: string;
+  type: string;
+}
+
+const AVAILABLE_JOB_POSITIONS: JobPositionOption[] = [
+  { id: 'intern-programmer', title: 'Intern Programmer', department: 'Engineering', type: 'Internship' },
+  { id: 'junior-software-engineer', title: 'Junior Software Engineer', department: 'Engineering', type: 'Full-Time' },
+  { id: 'frontend-developer', title: 'Frontend Developer (React / TS)', department: 'Frontend', type: 'Full-Time' },
+  { id: 'full-stack-architect', title: 'Full-Stack Web Architect', department: 'Engineering', type: 'Full-Time' },
+  { id: 'backend-systems-engineer', title: 'Backend Systems Engineer (Go & Cloud)', department: 'Platform', type: 'Full-Time' },
+  { id: 'devops-cloud-engineer', title: 'DevOps & Cloud Infrastructure Engineer', department: 'Operations', type: 'Full-Time' },
+  { id: 'qa-automation-specialist', title: 'QA & Test Automation Specialist', department: 'Quality Assurance', type: 'Full-Time' },
+  { id: 'product-uiux-designer', title: 'Product UI/UX Designer', department: 'Product Design', type: 'Full-Time' },
+];
 
 interface CountryOption {
   code: string;
@@ -51,8 +70,22 @@ const THEME_OPTIONS: { id: AppThemeType; name: string }[] = [
 ];
 
 export const WizardRunner: React.FC = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const { theme, setTheme } = useTheme();
+
+  // Job Position Selection State (auto-populated from URL ?job= if present)
+  const [selectedJob, setSelectedJob] = useState<JobPositionOption>(() => {
+    const jobParam = searchParams.get('job') || searchParams.get('role');
+    if (jobParam) {
+      const match = AVAILABLE_JOB_POSITIONS.find(
+        (j) => j.id.toLowerCase() === jobParam.toLowerCase() ||
+               j.title.toLowerCase().includes(jobParam.toLowerCase())
+      );
+      if (match) return match;
+    }
+    return AVAILABLE_JOB_POSITIONS[0];
+  });
 
   // Form State
   const [fullName, setFullName] = useState<string>('');
@@ -154,14 +187,20 @@ export const WizardRunner: React.FC = () => {
 
   return (
     <div className="form-wizard-container max-w-4xl mx-auto p-6 rounded-2xl shadow-xl bg-card border border-border text-foreground transition-all duration-300 font-sans">
-      {/* Theme Selector Top Bar */}
+      {/* Theme & Job Title Top Bar */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 mb-6 border-b border-border gap-3">
         <div>
-          <h2 className="text-xl font-bold tracking-tight text-foreground font-heading">
-            WP Exam & Form Engine
-          </h2>
-          <p className="text-xs text-muted-foreground">
-            Universal 4-Step Dynamic Candidate Application
+          <div className="flex items-center gap-2 flex-wrap">
+            <h2 className="text-xl font-bold tracking-tight text-foreground font-heading">
+              Candidate Application
+            </h2>
+            <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-primary/10 text-primary border border-primary/20 font-heading">
+              <Briefcase className="w-3 h-3 text-primary" />
+              {selectedJob.title}
+            </span>
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {selectedJob.department} • {selectedJob.type} • 4-Step Dynamic Assessment
           </p>
         </div>
         <div className="flex items-center space-x-2">
@@ -172,7 +211,7 @@ export const WizardRunner: React.FC = () => {
             value={theme} 
             onValueChange={(val) => setTheme(val as AppThemeType)}
           >
-            <SelectTrigger className="h-8 text-xs w-[240px] rounded-lg border border-border bg-background text-foreground font-medium shadow-sm">
+            <SelectTrigger className="h-8 text-xs w-[220px] rounded-lg border border-border bg-background text-foreground font-medium shadow-sm">
               <SelectValue placeholder="Select Theme" />
             </SelectTrigger>
             <SelectContent className="border border-border shadow-xl bg-card text-foreground rounded-xl">
@@ -246,12 +285,52 @@ export const WizardRunner: React.FC = () => {
       {/* Step Contents */}
       {!isSubmitted ? (
         <form onSubmit={handleSubmit}>
-          {/* STEP 1: Personal & WhatsApp Details */}
+          {/* STEP 1: Target Position & Personal Information */}
           {currentStep === 1 && (
             <div className="space-y-5 animate-in fade-in-50 duration-200">
               <h3 className="text-base font-semibold border-b border-border pb-2 flex items-center gap-2 font-heading">
-                <User className="w-4 h-4 text-primary" /> Step 1: Personal Information & Contact
+                <Briefcase className="w-4 h-4 text-primary" /> Step 1: Target Position & Contact Information
               </h3>
+
+              {/* Job Position Selection */}
+              <div>
+                <label className="block text-xs font-semibold mb-1 text-foreground">
+                  Job Position Applied For *
+                </label>
+                <Select
+                  value={selectedJob.id}
+                  onValueChange={(val) => {
+                    const found = AVAILABLE_JOB_POSITIONS.find((j) => j.id === val);
+                    if (found) {
+                      setSelectedJob(found);
+                      setSearchParams((prev) => {
+                        const next = new URLSearchParams(prev);
+                        next.set('job', found.id);
+                        return next;
+                      });
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full h-10 text-xs border border-border bg-background text-foreground rounded-md shadow-sm">
+                    <div className="flex items-center gap-2">
+                      <Briefcase className="w-3.5 h-3.5 text-primary shrink-0" />
+                      <SelectValue placeholder="Select Target Position" />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent className="border border-border shadow-xl bg-card text-foreground rounded-xl max-h-60">
+                    {AVAILABLE_JOB_POSITIONS.map((j) => (
+                      <SelectItem key={j.id} value={j.id} className="text-xs cursor-pointer focus:bg-accent/40">
+                        <div className="flex items-center justify-between w-full gap-4">
+                          <span className="font-semibold">{j.title}</span>
+                          <span className="text-[10px] text-muted-foreground font-mono">
+                            {j.department} • {j.type}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
               <div>
                 <label className="block text-xs font-medium mb-1">Full Legal Name *</label>
@@ -487,15 +566,27 @@ export const WizardRunner: React.FC = () => {
               </h3>
 
               <div className="p-4 bg-muted/40 border border-border rounded-md space-y-3 text-xs">
-                <div className="grid grid-cols-2 gap-2">
+                <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-between flex-wrap gap-2">
+                  <div className="flex items-center gap-2">
+                    <Briefcase className="w-4 h-4 text-primary" />
+                    <span className="font-semibold text-foreground text-sm">
+                      Target Role: <span className="text-primary">{selectedJob.title}</span>
+                    </span>
+                  </div>
+                  <span className="text-[11px] font-mono text-muted-foreground">
+                    {selectedJob.department} • {selectedJob.type}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2 pt-1">
                   <div><strong>Full Name:</strong> {fullName || '—'}</div>
                   <div><strong>Email:</strong> {email || '—'}</div>
                   <div><strong>Country:</strong> {selectedCountry.name}</div>
-                  <div><strong>WhatsApp Link:</strong> {whatsAppDeepLink || '—'}</div>
-                  <div><strong>Open to Work:</strong> {isOpenToWork}</div>
+                  <div><strong>WhatsApp:</strong> {selectedCountry.prefix} {rawPhone || '—'}</div>
+                  <div><strong>Open to Work:</strong> {isOpenToWork === 'yes' ? 'Yes, immediately' : 'No, in notice period'}</div>
                   <div><strong>Experience:</strong> {yearsOfExperience} years</div>
                   <div><strong>Portfolio:</strong> {portfolioUrl || 'None provided'}</div>
-                  <div><strong>Selected Architecture:</strong> {selectedMcq || 'None selected'}</div>
+                  <div><strong>Technical Choice:</strong> {selectedMcq || 'None selected'}</div>
                 </div>
               </div>
 
@@ -557,7 +648,7 @@ export const WizardRunner: React.FC = () => {
           </div>
           <h3 className="text-xl font-bold font-heading">Application Submitted Successfully!</h3>
           <p className="text-xs text-muted-foreground max-w-md mx-auto">
-            Your application has been received successfully. We will review your details and get back to you soon.
+            Your application for <strong className="text-foreground font-semibold">{selectedJob.title}</strong> has been received successfully. We will review your details and get back to you soon.
           </p>
           <div className="pt-4">
             <button
