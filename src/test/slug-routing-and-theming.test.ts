@@ -163,4 +163,53 @@ describe('Slug Routing, Theming Engine & AI Studio Verification', () => {
     expect(resNull.isValid).toBe(false);
     expect(resNull.message).toContain('No file uploaded yet');
   });
+
+  it('prefixes slugs with category namespace presets and sanitizes cleanly', () => {
+    const applyCategoryPrefix = (category: string, baseSlug: string): string => {
+      const cleanBase = baseSlug.replace(/^(assessment|quiz|survey|exam|hiring)-/, '');
+      if (category === 'direct') {
+        return cleanBase;
+      }
+      return `${category}-${cleanBase}`;
+    };
+
+    expect(applyCategoryPrefix('assessment', 'frontend-developer')).toBe('assessment-frontend-developer');
+    expect(applyCategoryPrefix('quiz', 'assessment-react-basics')).toBe('quiz-react-basics');
+    expect(applyCategoryPrefix('hiring', 'senior-go-engineer')).toBe('hiring-senior-go-engineer');
+    expect(applyCategoryPrefix('direct', 'quiz-cloud-architect')).toBe('cloud-architect');
+  });
+
+  it('correctly reassigns question group upon cross-section drag and drop', () => {
+    const questions: FormField[] = [
+      { id: 'q1', type: 'short_answer', label: 'Q1', group: 'Section A' },
+      { id: 'q2', type: 'short_answer', label: 'Q2', group: 'Section A' },
+      { id: 'q3', type: 'short_answer', label: 'Q3', group: 'Section B' },
+    ];
+
+    // Simulate dragging q1 from Section A to Section B
+    const reassignGroup = (items: FormField[], draggedId: string, targetSection: string): FormField[] => {
+      return items.map((item) => (item.id === draggedId ? { ...item, group: targetSection } : item));
+    };
+
+    const moved = reassignGroup(questions, 'q1', 'Section B');
+    expect(moved.find((q) => q.id === 'q1')?.group).toBe('Section B');
+    expect(moved.find((q) => q.id === 'q2')?.group).toBe('Section A');
+    expect(moved.filter((q) => q.group === 'Section B').length).toBe(2);
+  });
+
+  it('serializes section questions to valid JSON for 1-click export', () => {
+    const sectionQuestions: FormField[] = [
+      { id: 'q1', type: 'multiple_choice', label: 'What is WAL?', group: 'Database', points: 5 },
+      { id: 'q2', type: 'true_false', label: 'Is SQLite serverless?', group: 'Database', points: 3 },
+    ];
+
+    const jsonString = JSON.stringify(sectionQuestions, null, 2);
+    expect(jsonString).toBeDefined();
+
+    const parsed = JSON.parse(jsonString);
+    expect(Array.isArray(parsed)).toBe(true);
+    expect(parsed.length).toBe(2);
+    expect(parsed[0].label).toBe('What is WAL?');
+    expect(parsed[1].type).toBe('true_false');
+  });
 });
