@@ -35,6 +35,7 @@ Any content that analyzes bugs, failures, root causes, or fixes for application-
 
 ## Contents
 
+- [03-runner-file-upload-slug-inspector-ai-schema-theming.md](03-runner-file-upload-slug-inspector-ai-schema-theming.md): Runner file upload rendering, slug management inspector, question AI schema export/import, and theme color synchronization.
 - [02-slug-routing-file-upload-validation-and-theming.md](02-slug-routing-file-upload-validation-and-theming.md): Live browser address bar slug synchronization, dedicated file upload validation configurator, cross-section DnD mover, and fluid theming animations.
 
 ---

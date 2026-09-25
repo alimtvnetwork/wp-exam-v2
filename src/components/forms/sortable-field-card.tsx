@@ -14,6 +14,7 @@ import {
 } from '@/lib/types/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -35,6 +36,15 @@ import {
   DropdownMenuSubContent,
   DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from '@/components/ui/dialog';
+import { toast } from 'sonner';
 import { BranchingRuleEditor } from './branching-rule-editor';
 import { QuestionAiStudioModal } from './question-ai-studio-modal';
 import {
@@ -60,6 +70,8 @@ import {
   AlertTriangle,
   UploadCloud,
   FileText,
+  FileJson,
+  Upload,
   Sparkles,
   X,
 } from 'lucide-react';
@@ -123,6 +135,39 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
     uploadedAt: string;
   } | null>(null);
   const [isDraggingFile, setIsDraggingFile] = useState(false);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [pastedJson, setPastedJson] = useState('');
+
+  const handleApplyPastedJson = () => {
+    try {
+      const parsed = JSON.parse(pastedJson);
+
+      if (!parsed || typeof parsed !== 'object') {
+        toast.error('Invalid JSON structure: Must be an object');
+
+        return;
+      }
+
+      delete parsed.id;
+      onUpdate(id, parsed);
+      setIsImportModalOpen(false);
+      setPastedJson('');
+      toast.success('Question updated successfully from JSON!');
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : 'Invalid JSON syntax';
+      toast.error('JSON Parse Error: ' + msg);
+    }
+  };
+
+  const handleExportJson = () => {
+    try {
+      const jsonStr = JSON.stringify(field, null, 2);
+      navigator.clipboard.writeText(jsonStr);
+      toast.success(`Question #${index + 1} JSON copied to clipboard!`);
+    } catch {
+      toast.error('Failed to copy to clipboard');
+    }
+  };
 
   const isChoiceField =
     field.type === 'multiple_choice' ||
@@ -318,6 +363,23 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 #{index + 1}
               </span>
 
+              {field.isRequired ? (
+                <Badge
+                  variant="outline"
+                  className="text-[10px] px-2 py-0.5 border-amber-500/30 text-amber-500 bg-amber-500/10 font-mono tracking-wide shrink-0 flex items-center gap-1 font-semibold"
+                >
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  Required
+                </Badge>
+              ) : (
+                <Badge
+                  variant="outline"
+                  className="text-[10px] px-2 py-0.5 border-border/80 text-muted-foreground bg-muted/20 font-mono shrink-0"
+                >
+                  Optional
+                </Badge>
+              )}
+
               <Badge
                 variant="outline"
                 className={`uppercase text-[10px] tracking-wide font-mono px-2.5 py-0.5 rounded-md whitespace-nowrap shrink-0 ${getBadgeStyle(
@@ -437,6 +499,35 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   </div>
                   <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-indigo-500/10 text-indigo-400 border-indigo-500/30 font-mono">
                     JSON
+                  </Badge>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={handleExportJson}
+                  className="text-xs flex items-center justify-between cursor-pointer py-1.5"
+                >
+                  <div className="flex items-center gap-2">
+                    <FileJson className="w-3.5 h-3.5 text-cyan-400" />
+                    <span>Export Question JSON</span>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-cyan-500/10 text-cyan-400 border-cyan-500/30 font-mono">
+                    Copy
+                  </Badge>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => {
+                    setPastedJson(JSON.stringify(field, null, 2));
+                    setIsImportModalOpen(true);
+                  }}
+                  className="text-xs flex items-center justify-between cursor-pointer py-1.5"
+                >
+                  <div className="flex items-center gap-2">
+                    <Upload className="w-3.5 h-3.5 text-emerald-400" />
+                    <span>Import / Replace JSON</span>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/30 font-mono">
+                    Paste
                   </Badge>
                 </DropdownMenuItem>
 
@@ -1424,7 +1515,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
           {/* Card Footer: Required Toggle & Points */}
           <div className="flex items-center justify-between pt-2.5 border-t border-border/60 text-xs">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-3">
               <Switch
                 id={`field-required-${id}`}
                 checked={field.isRequired}
@@ -1432,9 +1523,19 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               />
               <Label
                 htmlFor={`field-required-${id}`}
-                className="text-xs font-semibold text-foreground cursor-pointer select-none"
+                className="text-xs font-semibold text-foreground cursor-pointer select-none flex items-center gap-2"
               >
-                Required Field
+                <span>Required Field</span>
+                {field.isRequired ? (
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-amber-500/30 text-amber-500 bg-amber-500/10 font-mono flex items-center gap-1 font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    Mandatory
+                  </Badge>
+                ) : (
+                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 border-border/70 text-muted-foreground bg-muted/20 font-mono">
+                    Optional
+                  </Badge>
+                )}
               </Label>
             </div>
 
@@ -1462,6 +1563,54 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
         questionIndex={index}
         onUpdateQuestion={(updated) => onUpdate(id, updated)}
       />
+
+      {/* 1-Click JSON Import / Replace Modal */}
+      <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
+        <DialogContent className="sm:max-w-[540px] bg-card border border-border shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold flex items-center gap-2 text-foreground">
+              <Upload className="w-4 h-4 text-emerald-400" />
+              <span>Import / Replace Question JSON</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Paste a FormField JSON object below to update Question #{index + 1}. You can modify type, label, options, validation, or triggers directly.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="py-2 space-y-2">
+            <Label className="text-xs font-semibold text-muted-foreground">JSON Payload</Label>
+            <Textarea
+              value={pastedJson}
+              onChange={(e) => setPastedJson(e.target.value)}
+              rows={12}
+              placeholder="Paste FormField JSON object here..."
+              className="font-mono text-xs bg-muted/30 border-border text-foreground leading-relaxed resize-y"
+            />
+          </div>
+
+          <DialogFooter className="gap-2 sm:gap-0">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsImportModalOpen(false)}
+              className="text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={handleApplyPastedJson}
+              className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
+            >
+              <Check className="w-3.5 h-3.5" />
+              Apply JSON
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

@@ -173,32 +173,32 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
 }) => {
   return (
     <aside
-      className={`relative flex flex-col bg-[#141422] border-r border-[#292942] transition-all duration-300 z-30 select-none ${
+      className={`relative flex flex-col bg-card border-r border-border transition-all duration-300 z-30 select-none ${
         isCollapsed ? 'w-16' : 'w-64'
       }`}
     >
       {/* WordPress Admin Brand Header */}
-      <div className="h-14 px-3 flex items-center justify-between border-b border-[#292942]/80 bg-[#0E0E18]">
+      <div className="h-14 px-3 flex items-center justify-between border-b border-border bg-muted/30">
         <div
           onClick={onNavigateHome}
           className="flex items-center gap-2.5 cursor-pointer group"
           title="WP Exam Console"
         >
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#FFAD01] to-[#D97706] text-[#0A0A14] font-black text-sm flex items-center justify-center shadow-md shadow-[#FFAD01]/10 group-hover:scale-105 transition-transform shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground font-black text-sm flex items-center justify-center shadow-md shadow-primary/20 group-hover:scale-105 transition-transform shrink-0 font-serif">
             WP
           </div>
 
           {!isCollapsed && (
             <div className="overflow-hidden">
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-xs tracking-tight text-white group-hover:text-[#FFAD01] transition-colors">
+                <span className="font-bold text-xs tracking-tight text-foreground group-hover:text-primary transition-colors">
                   WP Exam
                 </span>
-                <span className="text-[10px] px-1 rounded bg-[#292942] text-[#FFAD01] font-mono">
+                <span className="text-[10px] px-1 rounded bg-muted text-primary font-mono border border-border">
                   v2.5
                 </span>
               </div>
-              <p className="text-[10px] text-[#94A3B8] font-mono truncate">
+              <p className="text-[10px] text-muted-foreground font-mono truncate">
                 Admin Console
               </p>
             </div>
@@ -209,7 +209,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="w-6 h-6 rounded-md flex items-center justify-center text-[#94A3B8] hover:text-white hover:bg-[#292942] transition-colors"
+            className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Collapse Sidebar"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -223,14 +223,14 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
           <div key={sectionIdx} className="space-y-1">
             {!isCollapsed && (
               <div className="px-2.5 pb-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-[#94A3B8] font-mono">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono">
                   {section.title}
                 </span>
               </div>
             )}
 
             {isCollapsed && sectionIdx > 0 && (
-              <div className="my-2 border-t border-[#292942]/60 mx-1" />
+              <div className="my-2 border-t border-border mx-1" />
             )}
 
             <div className="space-y-0.5">
@@ -246,20 +246,20 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
                     title={isCollapsed ? item.label : undefined}
                     className={`relative w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-all group ${
                       isActive
-                        ? 'bg-[#FFAD01]/15 text-[#FFF1D6] font-semibold shadow-xs'
-                        : 'text-[#CBD5E1] hover:text-white hover:bg-[#1E1E32]/70'
+                        ? 'bg-primary/15 text-primary font-semibold shadow-xs'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
                     }`}
                   >
                     {/* Active Accent Bar */}
                     {isActive && (
-                      <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r bg-[#FFAD01]" />
+                      <span className="absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r bg-primary" />
                     )}
 
                     <IconComponent
                       className={`w-4 h-4 shrink-0 transition-colors ${
                         isActive
-                          ? 'text-[#FFAD01]'
-                          : 'text-[#94A3B8] group-hover:text-white'
+                          ? 'text-primary'
+                          : 'text-muted-foreground group-hover:text-foreground'
                       }`}
                     />
 
@@ -271,10 +271,10 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
                           <span
                             className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-medium shrink-0 ml-1.5 ${
                               item.badgeVariant === 'amber'
-                                ? 'bg-[#FFAD01]/20 text-[#FFAD01] border border-[#FFAD01]/30'
+                                ? 'bg-primary/20 text-primary border border-primary/30'
                                 : item.badgeVariant === 'secondary'
-                                ? 'bg-indigo-500/20 text-indigo-300 border border-indigo-500/30'
-                                : 'bg-[#292942] text-[#CBD5E1]'
+                                ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
+                                : 'bg-muted text-muted-foreground border border-border'
                             }`}
                           >
                             {item.badge}
@@ -291,23 +291,23 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
       </div>
 
       {/* Sidebar Footer & Collapse Toggle */}
-      <div className="p-2 border-t border-[#292942]/80 bg-[#0E0E18]">
+      <div className="p-2 border-t border-border bg-muted/20">
         {isCollapsed ? (
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="w-full h-8 rounded-lg flex items-center justify-center text-[#94A3B8] hover:text-white hover:bg-[#292942] transition-colors"
+            className="w-full h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
             title="Expand Sidebar"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
         ) : (
-          <div className="flex items-center justify-between px-2 py-1 text-[11px] text-[#94A3B8]">
+          <div className="flex items-center justify-between px-2 py-1 text-[11px] text-muted-foreground">
             <span className="font-mono text-[10px]">WP Admin UI v2.5</span>
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="text-[#94A3B8] hover:text-white transition-colors flex items-center gap-1 font-mono text-[10px]"
+              className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 font-mono text-[10px]"
             >
               <span>Collapse</span>
               <ChevronLeft className="w-3.5 h-3.5" />

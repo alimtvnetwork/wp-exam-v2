@@ -11,6 +11,7 @@ Master directory of architectural and execution plans.
 
 ## Completed Plans
 
+- [61-slug-management-file-upload-ai-schema-theming.md](completed/61-slug-management-file-upload-ai-schema-theming.md): Visual Slug Management Inspector ribbon & canonical URLs, interactive runner file upload dropzone & live diagnostics, modern Required badge redesign, question AI instruction studio & 1-click JSON import/export, and fluid HSL theming with button hover micro-interactions (71/71 tests passed).
 - [60-slug-routing-file-upload-validation-and-theming.md](completed/60-slug-routing-file-upload-validation-and-theming.md): Live browser address bar URL sync (/admin/form/:slug), dedicated file upload validation engine & interactive dropzone verification, 1-click cross-section mover submenu, and fluid CSS theming transitions (71/71 tests passed).
 - [59-slug-routing-file-upload-preview-and-ai-studio.md](completed/59-slug-routing-file-upload-preview-and-ai-studio.md): Dynamic slug routing (/f/:slug, /preview/:slug, /admin/form/:slug), interactive file upload preview dropzone, terminology standardization to Section, Question AI Instruction Studio, and dynamic HSL theming engine (70/70 tests passed).
 - [58-agm-mailbox-and-temp-e2e.md](completed/58-agm-mailbox-and-temp-e2e.md): AGM mailbox auto-configuration (mail.<domain>), organic navigation redesign, and isolated temporary E2E test suite (RUN_TEMP_E2E=1).

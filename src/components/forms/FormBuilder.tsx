@@ -35,6 +35,7 @@ import { DesignValidationPanel, DesignValidationSidebarView } from './design-val
 import { auditFormDesign, DesignHealthReport } from '@/lib/design-validation-engine';
 import { AiSectionAssistant } from '@/components/admin/ai-section-assistant';
 import { BranchingFlowModal } from './branching-flow-modal';
+import { SlugManagementModal } from './slug-management-modal';
 import { SortableFieldCard } from './sortable-field-card';
 import { FieldPalette } from './field-palette';
 import { toast } from 'sonner';
@@ -63,6 +64,7 @@ import {
   ChevronDown,
   Clock,
   CheckCircle2,
+  Globe,
 } from 'lucide-react';
 import {
   DndContext,
@@ -109,6 +111,7 @@ export const FormBuilder: React.FC = () => {
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
+  const [isSlugModalOpen, setIsSlugModalOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
   const [outlineFilter, setOutlineFilter] = useState<string>('');
@@ -357,9 +360,16 @@ export const FormBuilder: React.FC = () => {
 
           {/* Integrated Live URL & Customizable Slug Ribbon */}
           <div className="flex items-center gap-2 flex-wrap text-xs pt-0.5">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/40 border border-border/60 font-mono text-[11px] text-muted-foreground focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/40 border border-border/60 font-mono text-[11px] text-muted-foreground focus-within:border-primary focus-within:ring-1 focus-within:ring-primary shadow-2xs">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span className="text-foreground/80 font-bold shrink-0">/f/</span>
+              <button
+                type="button"
+                onClick={() => setIsSlugModalOpen(true)}
+                className="text-foreground/80 hover:text-primary font-bold shrink-0 transition-colors"
+                title="Open Slug Manager"
+              >
+                /f/
+              </button>
               <input
                 type="text"
                 value={slug || ''}
@@ -370,13 +380,42 @@ export const FormBuilder: React.FC = () => {
               />
               <button
                 type="button"
+                onClick={() => {
+                  if (!title || title.trim().length === 0) {
+                    toast.error('Enter form title first');
+
+                    return;
+                  }
+                  const auto = title.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+                  setSlug(auto);
+                  toast.success(`Slug auto-generated: "${auto}"`);
+                }}
+                className="p-0.5 hover:text-primary text-muted-foreground transition-colors rounded hover:bg-muted"
+                title="Auto-generate slug from title"
+              >
+                <Wand2 className="w-3 h-3" />
+              </button>
+              <button
+                type="button"
                 onClick={handleCopyLiveUrl}
-                className="p-0.5 hover:text-foreground text-muted-foreground transition-colors ml-1 rounded hover:bg-muted"
+                className="p-0.5 hover:text-foreground text-muted-foreground transition-colors ml-0.5 rounded hover:bg-muted"
                 title="Copy Public Form URL to clipboard"
               >
                 <Copy className="w-3 h-3" />
               </button>
             </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsSlugModalOpen(true)}
+              className="h-6 text-[11px] px-2 text-primary border-primary/30 hover:bg-primary/10 gap-1 font-medium transition-all"
+              title="Open Visual Slug & Canonical URL Inspector"
+            >
+              <Globe className="w-3 h-3" />
+              <span>Slug Manager</span>
+            </Button>
 
             <Button
               type="button"
@@ -685,9 +724,27 @@ export const FormBuilder: React.FC = () => {
                               Section: {field.group}
                             </span>
                           </div>
-                          <Badge variant="outline" className="text-[10px] bg-background">
-                            Section
-                          </Badge>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-6 text-[10px] px-2 text-primary hover:bg-primary/10 gap-1 font-mono font-medium"
+                              onClick={() => {
+                                const sectionFields = fields.filter((f) => f.group === field.group);
+                                const jsonStr = JSON.stringify(sectionFields, null, 2);
+                                navigator.clipboard.writeText(jsonStr);
+                                toast.success(`Section "${field.group}" JSON copied (${sectionFields.length} questions)!`);
+                              }}
+                              title="Export all questions in this section as JSON"
+                            >
+                              <FileJson className="w-3 h-3" />
+                              <span>Export Section JSON</span>
+                            </Button>
+                            <Badge variant="outline" className="text-[10px] bg-background">
+                              Section
+                            </Badge>
+                          </div>
                         </div>
                       )}
 
@@ -1094,6 +1151,15 @@ export const FormBuilder: React.FC = () => {
         isOpen={isFlowModalOpen}
         onClose={() => setIsFlowModalOpen(false)}
         fields={fields}
+      />
+
+      {/* Visual Slug & Canonical URL Management Inspector */}
+      <SlugManagementModal
+        isOpen={isSlugModalOpen}
+        onClose={() => setIsSlugModalOpen(false)}
+        currentSlug={slug || ''}
+        formTitle={title}
+        onUpdateSlug={(newSlug) => setSlug(newSlug)}
       />
 
       {/* Design Validation & Quality Health Inspector Panel */}

@@ -96,66 +96,66 @@ export const Index: React.FC = () => {
   // If not authenticated, render professional admin login screen
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-[#0A0A14] text-white flex items-center justify-center p-4 font-sans selection:bg-[#FFAD01] selection:text-[#0A0A14]">
-        <div className="w-full max-w-md bg-[#141422] border border-[#292942] rounded-2xl shadow-2xl p-8 space-y-6">
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 font-sans selection:bg-primary selection:text-primary-foreground">
+        <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl p-8 space-y-6">
           <div className="text-center space-y-2">
-            <div className="w-12 h-12 rounded-2xl bg-[#FFAD01]/10 border border-[#FFAD01]/30 text-[#FFAD01] flex items-center justify-center mx-auto">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/30 text-primary flex items-center justify-center mx-auto">
               <Shield className="w-6 h-6" />
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-white">WP Exam Console</h1>
-            <p className="text-xs text-[#94A3B8]">
+            <h1 className="text-2xl font-black tracking-tight text-foreground">WP Exam Console</h1>
+            <p className="text-xs text-muted-foreground">
               Restricted administrative portal for curriculum authoring and candidate scoring.
             </p>
           </div>
 
           <form onSubmit={handleInlineLogin} className="space-y-4">
             {loginError && (
-              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-xs text-red-400 flex items-center gap-2">
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{loginError}</span>
               </div>
             )}
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-[#CBD5E1]">Username</Label>
+              <Label className="text-xs font-semibold text-foreground">Username</Label>
               <div className="relative">
-                <User className="w-4 h-4 absolute left-3 top-2.5 text-[#94A3B8]" />
+                <User className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
                 <Input
                   type="text"
                   value={loginUser}
                   onChange={(e) => setLoginUser(e.target.value)}
-                  className="pl-9 bg-[#0A0A14] border-[#292942] text-xs h-9 text-white font-mono"
+                  className="pl-9 bg-background border-border text-xs h-9 text-foreground font-mono"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-[#CBD5E1]">Password</Label>
+              <Label className="text-xs font-semibold text-foreground">Password</Label>
               <div className="relative">
-                <KeyRound className="w-4 h-4 absolute left-3 top-2.5 text-[#94A3B8]" />
+                <KeyRound className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
                 <Input
                   type="password"
                   value={loginPass}
                   onChange={(e) => setLoginPass(e.target.value)}
-                  className="pl-9 bg-[#0A0A14] border-[#292942] text-xs h-9 text-white font-mono"
+                  className="pl-9 bg-background border-border text-xs h-9 text-foreground font-mono"
                   required
                 />
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#0A0A14] border border-[#292942] text-xs space-y-1">
-              <div className="flex items-center gap-1.5 text-[#FFAD01] font-semibold">
+            <div className="p-3 rounded-xl bg-muted/40 border border-border text-xs space-y-1">
+              <div className="flex items-center gap-1.5 text-primary font-semibold">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Test Credentials:</span>
               </div>
-              <p className="text-[11px] text-[#94A3B8]">
-                User: <code className="text-white font-mono bg-[#1E1E32] px-1 rounded">admin</code> |
-                Password: <code className="text-white font-mono bg-[#1E1E32] px-1 rounded">admin</code>
+              <p className="text-[11px] text-muted-foreground">
+                User: <code className="text-foreground font-mono bg-muted px-1 rounded">admin</code> |
+                Password: <code className="text-foreground font-mono bg-muted px-1 rounded">admin</code>
               </p>
             </div>
 
-            <Button type="submit" className="w-full bg-[#FFAD01] hover:bg-[#F59E0B] text-[#0A0A14] font-bold text-xs h-10">
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs h-10 shadow-xs">
               Sign In to Administration &rarr;
             </Button>
 
@@ -163,7 +163,7 @@ export const Index: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/')}
-                className="text-xs text-[#94A3B8] hover:text-[#FFAD01] transition"
+                className="text-xs text-muted-foreground hover:text-primary transition"
               >
                 &larr; Return to Public Website
               </button>
@@ -176,39 +176,39 @@ export const Index: React.FC = () => {
 
   // Theme container classes
   const themeClassMap: Record<string, string> = {
-    riseup: 'theme-riseup-asia bg-[#0A0A14] text-[#F8FAFC]',
-    letterly: 'theme-letterly bg-[#0F0E1E] text-white',
-    dracula: 'theme-dracula bg-[#191A21] text-[#F8F8F2]',
-    obsidian: 'theme-dark bg-[#090D16] text-[#F8FAFC]',
-    clean: 'theme-light bg-slate-50 text-slate-900',
+    riseup: 'theme-riseup-asia bg-background text-foreground',
+    letterly: 'theme-letterly bg-background text-foreground',
+    dracula: 'theme-dracula bg-background text-foreground',
+    obsidian: 'theme-obsidian bg-background text-foreground',
+    clean: 'theme-clean bg-background text-foreground',
   };
 
   return (
     <div className={`min-h-screen ${themeClassMap[theme] || themeClassMap.riseup} transition-colors duration-300 font-sans`}>
       {/* WordPress Top Admin Bar */}
-      <header className="h-12 border-b border-[#292942] bg-[#0E0E18] sticky top-0 z-40 px-3 sm:px-4 flex items-center justify-between">
+      <header className="h-12 border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-4 flex items-center justify-between">
         {/* Left Side: Brand, Portal Link */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-[#FFAD01] text-[#0A0A14] font-black text-xs flex items-center justify-center font-serif shadow-xs">
+            <div className="w-6 h-6 rounded bg-primary text-primary-foreground font-black text-xs flex items-center justify-center font-serif shadow-xs">
               W
             </div>
-            <span className="font-bold text-xs tracking-tight text-white hidden sm:inline">
+            <span className="font-bold text-xs tracking-tight text-foreground hidden sm:inline">
               WP Exam Console
             </span>
-            <Badge variant="outline" className="text-[9px] font-mono py-0 border-[#292942] text-[#94A3B8]">
+            <Badge variant="outline" className="text-[9px] font-mono py-0 border-border text-muted-foreground">
               v2.5
             </Badge>
           </div>
 
-          <div className="h-4 w-px bg-[#292942] hidden sm:block" />
+          <div className="h-4 w-px bg-border hidden sm:block" />
 
           {/* Quick link to public site */}
           <Button
             variant="ghost"
             size="sm"
             onClick={() => navigate('/')}
-            className="text-xs h-7 px-2 gap-1.5 text-[#94A3B8] hover:text-[#FFAD01] hover:bg-[#1E1E32]"
+            className="text-xs h-7 px-2 gap-1.5 text-muted-foreground hover:text-primary hover:bg-muted"
             title="Visit Public Candidate Portal"
           >
             <ExternalLink className="w-3.5 h-3.5" />
@@ -220,13 +220,13 @@ export const Index: React.FC = () => {
         <div className="flex items-center gap-2 sm:gap-3">
           <ThemeSwitcher />
 
-          <div className="h-4 w-px bg-[#292942]" />
+          <div className="h-4 w-px bg-border" />
 
           {/* User Profile */}
-          <div className="flex items-center gap-1.5 text-xs text-[#94A3B8]">
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
             <span className="hidden md:inline">Howdy,</span>
-            <span className="font-semibold text-white">admin</span>
-            <div className="w-5 h-5 rounded-full bg-[#1E1E32] border border-[#292942] flex items-center justify-center text-[#FFAD01]">
+            <span className="font-semibold text-foreground">admin</span>
+            <div className="w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center text-primary">
               <User className="w-3 h-3" />
             </div>
           </div>
@@ -235,7 +235,7 @@ export const Index: React.FC = () => {
             variant="ghost"
             size="sm"
             onClick={logout}
-            className="text-xs h-7 px-2 gap-1 text-[#94A3B8] hover:text-red-400 hover:bg-[#1E1E32]"
+            className="text-xs h-7 px-2 gap-1 text-muted-foreground hover:text-destructive hover:bg-muted"
             title="Log Out"
           >
             <LogOut className="w-3.5 h-3.5" />

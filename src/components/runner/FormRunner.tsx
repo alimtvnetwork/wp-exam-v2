@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { FormModel, FormField, FormSubmissionResult } from '@/lib/types/form';
+import { FormModel, FormField, FormSubmissionResult, evaluateFileUploadValidation } from '@/lib/types/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,7 +10,19 @@ import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { useExamAppStore } from '@/quiz/store/exam-store';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
-import { ExternalLink, AlertCircle, CheckCircle2, Play, Copy, Share2, Layers, Palette } from 'lucide-react';
+import {
+  ExternalLink,
+  AlertCircle,
+  CheckCircle2,
+  Play,
+  Copy,
+  Share2,
+  Layers,
+  Palette,
+  UploadCloud,
+  FileText,
+  X,
+} from 'lucide-react';
 import { toast } from 'sonner';
 import { getTheme, getThemeCssVariables, THEME_PRESETS } from '@/themes/theme-definitions';
 import {
@@ -766,7 +778,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             />
             <CardTitle className="text-base font-bold">{currentField.label}</CardTitle>
             {isCurrentFieldRequired && (
-              <span className="text-[11px] text-destructive font-medium">* Required Field</span>
+              <Badge variant="outline" className="text-[10px] font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1 w-fit mt-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                <span>Mandatory Response</span>
+              </Badge>
             )}
           </CardHeader>
 
@@ -840,7 +855,14 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   <div key={f.id} className="p-3.5 rounded-lg border border-border bg-card space-y-2">
                     <label className="font-semibold text-xs flex items-center justify-between">
                       <span>{idx + 1}. {f.label}</span>
-                      {isFieldRequired && <span className="text-[10px] text-destructive font-medium">* Required</span>}
+                      {isFieldRequired ? (
+                        <Badge variant="outline" className="text-[10px] font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1">
+                          <span className="w-1 h-1 rounded-full bg-amber-500" />
+                          <span>Required</span>
+                        </Badge>
+                      ) : (
+                        <span className="text-[10px] text-muted-foreground font-mono">Optional</span>
+                      )}
                     </label>
                     {renderFieldInput(f, answers[f.id], (val) => handleAnswerChange(f.id, val))}
                   </div>
@@ -860,10 +882,168 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   );
 };
 
+const RunnerFileUpload: React.FC<{
+  field: FormField;
+  value: unknown;
+  onChange: (val: unknown) => void;
+}> = ({ field, value, onChange }) => {
+  const [isDragging, setIsDragging] = useState(false);
+  const [validationError, setValidationError] = useState<string | null>(null);
+
+  const fileValue = (value as {
+    name?: string;
+    size?: number;
+    type?: string;
+    uploadedAt?: string;
+  }) || null;
+
+  const handleProcessFile = (file?: File | null) => {
+    if (!file) {
+      return;
+    }
+
+    const evaluation = evaluateFileUploadValidation(field.fileValidation, {
+      name: file.name,
+      size: file.size,
+      type: file.type,
+    });
+
+    if (evaluation.isValid) {
+      setValidationError(null);
+      onChange({
+        name: file.name,
+        size: file.size,
+        type: file.type || 'application/octet-stream',
+        uploadedAt: new Date().toLocaleTimeString(),
+      });
+      toast.success(`File accepted: ${file.name}`);
+    } else {
+      setValidationError(evaluation.message);
+      onChange(null);
+      toast.error(evaluation.message);
+    }
+  };
+
+  const handleRemove = () => {
+    onChange(null);
+    setValidationError(null);
+  };
+
+  const allowedExts =
+    field.fileValidation?.allowedExtensions &&
+    field.fileValidation.allowedExtensions.length > 0
+      ? field.fileValidation.allowedExtensions
+      : ['pdf', 'docx', 'zip', 'png', 'jpg'];
+
+  const maxSize = field.fileValidation?.maxSizeMb || 10;
+
+  return (
+    <div className="space-y-2">
+      {fileValue && fileValue.name ? (
+        <div className="p-3.5 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center justify-between shadow-2xs animate-in fade-in-50 duration-200">
+          <div className="flex items-center gap-3 min-w-0">
+            <div className="w-9 h-9 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+              <FileText className="w-5 h-5" />
+            </div>
+            <div className="min-w-0">
+              <div className="text-xs font-bold text-foreground truncate max-w-xs sm:max-w-md">
+                {fileValue.name}
+              </div>
+              <div className="text-[10px] text-muted-foreground flex items-center gap-2 mt-0.5">
+                {fileValue.size && (
+                  <span className="font-mono">
+                    {(fileValue.size / (1024 * 1024)).toFixed(2)} MB
+                  </span>
+                )}
+                <span>•</span>
+                <span className="text-emerald-400 font-semibold flex items-center gap-1">
+                  <CheckCircle2 className="w-3 h-3" /> Validated
+                </span>
+                {fileValue.uploadedAt && (
+                  <>
+                    <span>•</span>
+                    <span>{fileValue.uploadedAt}</span>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleRemove}
+            className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+            title="Remove and upload different file"
+          >
+            <X className="w-4 h-4" />
+          </Button>
+        </div>
+      ) : (
+        <div
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragging(false);
+            const dropped = e.dataTransfer.files?.[0];
+            handleProcessFile(dropped);
+          }}
+          className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
+            isDragging
+              ? 'border-primary bg-primary/10 scale-[1.01]'
+              : 'border-border/80 hover:border-primary/50 hover:bg-muted/30 bg-background/50'
+          }`}
+        >
+          <input
+            type="file"
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            onChange={(e) => {
+              const selected = e.target.files?.[0];
+              handleProcessFile(selected);
+            }}
+          />
+          <UploadCloud className="w-8 h-8 text-primary/70 mb-2" />
+          <span className="text-xs font-semibold text-foreground">
+            Drag and drop file here, or <span className="text-primary underline font-bold">browse</span>
+          </span>
+          <span className="text-[10px] text-muted-foreground mt-1 font-mono">
+            Supported: {allowedExts.map((e) => '.' + e.toLowerCase().replace(/^\./, '')).join(', ')} • Max: {maxSize} MB
+          </span>
+        </div>
+      )}
+
+      {validationError && (
+        <div className="p-2.5 rounded-lg bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center justify-between gap-2 animate-in fade-in-50 duration-150">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+            <span className="truncate">{validationError}</span>
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => setValidationError(null)}
+            className="h-6 px-1.5 text-[10px] text-rose-400 hover:text-rose-300 hover:bg-rose-500/20"
+          >
+            Dismiss
+          </Button>
+        </div>
+      )}
+    </div>
+  );
+};
+
 function renderFieldInput(field: FormField, value: unknown, onChange: (val: unknown) => void) {
   const strValue = typeof value === 'string' ? value : '';
 
   switch (field.type) {
+    case 'file_upload':
+      return <RunnerFileUpload field={field} value={value} onChange={onChange} />;
     case 'link':
       return (
         <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-between">
@@ -990,61 +1170,6 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
               {star}
             </button>
           ))}
-        </div>
-      );
-    }
-
-    case 'file_upload': {
-      const fileValue = (value as { name?: string; size?: number }) || null;
-
-      return (
-        <div className="space-y-2">
-          {fileValue && fileValue.name ? (
-            <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center justify-between">
-              <div className="flex items-center gap-2.5 text-xs text-foreground font-medium">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span className="font-semibold">{fileValue.name}</span>
-                {fileValue.size && (
-                  <span className="text-[10px] text-muted-foreground font-mono">
-                    ({(fileValue.size / (1024 * 1024)).toFixed(2)} MB)
-                  </span>
-                )}
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => onChange(null)}
-                className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
-              >
-                Remove
-              </Button>
-            </div>
-          ) : (
-            <label className="p-4 border-2 border-dashed border-border/80 hover:border-primary/60 rounded-lg text-center bg-muted/20 hover:bg-muted/30 transition cursor-pointer flex flex-col items-center justify-center">
-              <input
-                type="file"
-                className="hidden"
-                onChange={(e) => {
-                  const file = e.target.files?.[0];
-
-                  if (file) {
-                    onChange({
-                      name: file.name,
-                      size: file.size,
-                      type: file.type || 'application/octet-stream',
-                    });
-                  }
-                }}
-              />
-              <span className="text-xs text-muted-foreground block font-medium">
-                Click to upload document or drag-and-drop file
-              </span>
-              <span className="text-[10px] text-muted-foreground block mt-0.5 font-mono">
-                Supported formats: PDF, DOCX, ZIP, PNG (Max 10MB)
-              </span>
-            </label>
-          )}
         </div>
       );
     }
