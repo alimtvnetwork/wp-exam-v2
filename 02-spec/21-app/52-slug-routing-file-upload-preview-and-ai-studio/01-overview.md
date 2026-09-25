@@ -7,7 +7,7 @@ This specification addresses core functional, architectural, and visual deficits
 3. **Terminology Standardization ("Section"):** Removing confusing dual "Section / Module" terminology, standardizing strictly on "Section" throughout all labels, models, and UI headers.
 4. **Modern UI Component Elevating:** Replacing raw browser default HTML checkboxes with modern Radix/shadcn `Switch` components, styled numeric scoring steppers, and glassmorphic card surfaces.
 5. **Per-Question AI Instruction Studio & Quick JSON Actions:** Adding an AI prompt and schema studio directly inside each question's Actions menu, enabling 1-click JSON import/export and LLM generation contracts.
-6. **Live Theme Engine & Visual Palette Propagation:** Ensuring theme presets (e.g. Letterly, Rise Up Asia) dynamically inject CSS variables, accent colors, gradients, button hover states, and glow effects across all builder cards and runners.
+6. **Live Theme Engine & Visual Palette Propagation:** Ensuring theme presets (e.g. Purple Theme, Rise Up Asia) dynamically inject CSS variables, accent colors, gradients, button hover states, and glow effects across all builder cards and runners.
 
 ```
 ┌────────────────────────────────────────────────────────────────────────────────────────┐
@@ -22,7 +22,7 @@ This specification addresses core functional, architectural, and visual deficits
 │  │                                              │ │ [Fields] [Outline] [Audit] [Cfg] │ │
 │  │  Live Interactive Preview:                   │ │                                  │ │
 │  │  ┌────────────────────────────────────────┐  │ │ • Dynamic Theme Injection        │ │
-│  │  │ ☁️ Drag and drop resume / work samples  │  │ │   (Letterly / Rise Up Asia)      │ │
+│  │  │ ☁️ Drag and drop resume / work samples  │  │ │   (Purple Theme / Rise Up Asia)  │ │
 │  │  │    PDF, ZIP, DOCX up to 25MB           │  │ │                                  │ │
 │  │  │    [ Browse Files ]                    │  │ │ • Section Filtering & Reordering │ │
 │  │  └────────────────────────────────────────┘  │ │                                  │ │

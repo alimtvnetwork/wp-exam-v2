@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 
-export type AppThemeType = 'riseup' | 'dracula' | 'letterly' | 'obsidian' | 'clean';
+export type AppThemeType = 'riseup' | 'dracula' | 'purple' | 'obsidian' | 'clean';
 
 export interface ThemeConfig {
   id: AppThemeType;
@@ -80,10 +80,10 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
       '--muted-foreground': '225 15% 65%',
     },
   },
-  letterly: {
-    id: 'letterly',
-    name: 'Letterly',
-    tagline: 'Electric Indigo & Night Sky',
+  purple: {
+    id: 'purple',
+    name: 'Purple Theme',
+    tagline: 'Electric Indigo & Deep Violet',
     primaryColor: '#5C45FD',
     bgColor: '#0F0E1E',
     cardColor: '#171530',
@@ -183,6 +183,11 @@ const STORAGE_KEY = 'wpexam_active_theme';
 export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [theme, setThemeState] = useState<AppThemeType>(() => {
     const saved = localStorage.getItem(STORAGE_KEY);
+
+    if (saved === 'letterly') {
+      return 'purple';
+    }
+
     if (saved && saved in THEME_CONFIGS) {
       return saved as AppThemeType;
     }

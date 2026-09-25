@@ -1,6 +1,6 @@
 # Hierarchical Learning, Exam, & Project System Specification
 
-> **/goal** Provide an end-to-end specification for the hierarchical project/exam platform, split SQLite databases, Letterly and Rise Up Asia themes, remote uploader, and local testing runners.
+> **/goal** Provide an end-to-end specification for the hierarchical project/exam platform, split SQLite databases, Purple and Rise Up Asia themes, remote uploader, and local testing runners.
 > **/learn** Grounded in the user prompt, Rise Up Asia uploader architecture, and modern mobile/web focus-mode exam UX.
 
 ---
@@ -40,14 +40,14 @@ The application is structured into four core subsystems:
 3. **Learning Flow, Step Verification & Focus UI**:
    - **Study Phase**: Step-by-step reading documentation and embedded video training.
    - **Interactive Checklist**: Mandatory pre-quiz checklist verification.
-   - **Focus Quiz Runner**: Single-question focus view inspired by Letterly (top progress bar, highlighted typography, large interactive cards with icons/emojis, 1-col or 2-col grid layouts, sticky bottom progression button).
+   - **Focus Quiz Runner**: Single-question focus view featuring Purple theme (top progress bar, highlighted typography, large interactive cards with icons/emojis, 1-col or 2-col grid layouts, sticky bottom progression button).
    - **Diverse Question Types**: Single-select MCQ, Multi-select checkbox, Free text/paragraph, Mindmap/Workflowy/XMind link submission with URL verification, File upload (PDF, Doc).
    - **Question Hints & Reference Links/Images**.
    - **Question Reporting & Feedback**: User bug report / question contest with email dispatch & admin log.
    - **Anti-Cheat Grading**: Hides correct answers on failure; candidates only see "You have done the wrong answer" until comprehension is demonstrated.
 
 4. **Multi-Theme Engine & Custom Theme Injector**:
-   - **Letterly Dark**: Deep navy (`#0F0E1E`), purple accents (`#6366F1`), amber highlights (`#FBBF24`).
+   - **Purple Theme**: Deep violet-navy (`#0F0E1E`), purple accents (`#5C45FD`), amber highlights (`#FBBF24`).
    - **Rise Up Asia (Bright Gold)**: Amber `#FFAD01`, near-black `#0A0A14`, cream `#FFF1D6` (from `D:\work\global-ppt\src\themes\presets.ts`).
    - **Dark Mode**: High-contrast slate/charcoal.
    - **White Mode**: Clean light layout.
@@ -74,13 +74,13 @@ The application is structured into four core subsystems:
 
 ---
 
-### 2.2 Visual References & Focus UI Patterns
+### 2.2 Purple Theme & Focus UI Patterns
 
-The user provided 5 reference UI screenshots demonstrating the Letterly-style focus interaction and diverse question layouts:
-1. `02-spec/21-app/assets/letterly-sample-01.png`: Single-item focus with bold highlighted keywords (`**What** do you write?`) and large pill cards with icons.
-2. `02-spec/21-app/assets/letterly-sample-02.png`: Multi-select problem identification with emoji icons and 1-column pill cards.
-3. `02-spec/21-app/assets/letterly-sample-03.png`: 2-column grid layout for platform selection with full-width option.
-4. `02-spec/21-app/assets/letterly-sample-04.png`: Hero intro screen with motivational message and progress indicator.
-5. `02-spec/21-app/assets/letterly-sample-05.png`: Single-choice evaluation with subtitle instructions.
+The focus interaction and diverse question layouts feature:
+1. Single-item focus with bold highlighted keywords (`**What** do you write?`) and large pill cards with icons.
+2. Multi-select problem identification with emoji icons and 1-column pill cards.
+3. 2-column grid layout for platform selection with full-width option.
+4. Hero intro screen with motivational message and progress indicator.
+5. Single-choice evaluation with subtitle instructions.
 
-These visual reference assets are stored in `02-spec/21-app/assets/` and fully realized in `src/components/runner/FocusQuizRunner.tsx`.
+These visual patterns are implemented in `src/components/runner/FocusQuizRunner.tsx` using the `purple` theme preset.

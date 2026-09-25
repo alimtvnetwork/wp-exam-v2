@@ -114,9 +114,9 @@ interface FocusQuizRunnerProps {
 }
 
 const DEFAULT_SAMPLE_CONFIG: FocusQuizConfig = {
-  id: 'letterly-sample',
+  id: 'purple-sample',
   title: 'Personalized Writing Assessment',
-  themeId: 'letterly',
+  themeId: 'purple',
   hasIntro: true,
   introTitle: "You're in the **right place**!",
   introSubtitle: "To give the best solution to your problems, we need to ask a few questions about you.",
@@ -295,7 +295,9 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
   const initialStage: RunnerStage = config.hasIntro ? 'intro' : 'reading';
 
   const [currentStage, setCurrentStage] = useState<RunnerStage>(initialStage);
-  const [activeThemeId, setActiveThemeId] = useState<string>(config.themeId || 'letterly');
+  const [activeThemeId, setActiveThemeId] = useState<string>(
+    config.themeId === 'letterly' ? 'purple' : (config.themeId || 'purple')
+  );
   const [currentReadingPageIndex, setCurrentReadingPageIndex] = useState<number>(0);
   const [completedChecklistIds, setCompletedChecklistIds] = useState<string[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState<number>(0);

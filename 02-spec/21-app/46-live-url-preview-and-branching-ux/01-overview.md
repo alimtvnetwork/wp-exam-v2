@@ -19,7 +19,7 @@
 1. **Live Preview Ignored Custom Form:** In `src/components/runner/FormRunner.tsx`, `getInitialProjectId()` returned `'intern-programmer'` by default. The active form resolution evaluated `PRESET_PROJECTS[selectedProjectId]` before `initialForm`. As a result, opening Live Preview in FormBuilder or Live Runner in admin always rendered the static "Intern Programmer" preset with SQL injection questions rather than the user's active form.
 2. **Static Admin URL ("Same URL"):** In `src/pages/Index.tsx`, all admin tabs (`builder`, `projects`, `focus-runner`, `runner`, `invites`, etc.) were controlled by local React state without URL query synchronization. The browser URL stayed at `/admin` across all views.
 3. **Admin URL Leakage in Public Share Links:** `FocusQuizRunner.tsx` built share links using `window.location.pathname`. When opened from `/admin`, it generated `${origin}/admin?quiz=...&q=...`, which forced unauthenticated candidates into the admin login screen.
-4. **Dropped Project in Hierarchy Runner:** `ProjectHierarchyManager` passed `project` to `onLaunchFocusRunner(project)`, but `Index.tsx` discarded the parameter, causing `FocusQuizRunner` to always load `DEFAULT_SAMPLE_CONFIG` (`letterly-sample`) and generate the identical URL.
+4. **Dropped Project in Hierarchy Runner:** `ProjectHierarchyManager` passed `project` to `onLaunchFocusRunner(project)`, but `Index.tsx` discarded the parameter, causing `FocusQuizRunner` to always load `DEFAULT_SAMPLE_CONFIG` (`purple-sample`) and generate the identical URL.
 5. **Broken Invite Links:** `invites-manager.tsx` copied links to `/wp-exam-runner/?invite=...`, which did not exist in `App.tsx` routes and returned 404.
 
 ### B. Branching Engine & UX Defects

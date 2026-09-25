@@ -41,7 +41,7 @@ The theme catalog must provide unified presets accessible identically across `Fo
 | `riseup-asia` / `riseup` | Rise Up Asia | `#0A0A14` | `#121224` | `#FFAD01` (Gold) | `#FFF1D6` | Dark |
 | `dracula` | Antigravity Dracula | `#1E1F29` | `#282A36` | `#BD93F9` (Purple) | `#F8F8F2` | Dark |
 | `vscode-dark` / `obsidian` | VS Code Dark | `#0E1117` | `#161B22` | `#007ACC` / `#38BDF8` | `#E6EDF3` | Dark |
-| `letterly` | Letterly Night | `#0F0E1E` | `#18162F` | `#5C45FD` (Indigo) | `#FFFFFF` | Dark |
+| `purple` | Purple Theme | `#0F0E1E` | `#18162F` | `#5C45FD` (Indigo) | `#FFFFFF` | Dark |
 | `clean` / `white` | Clean Paper Light | `#F8FAFC` | `#FFFFFF` | `#2563EB` (Blue) | `#0F172A` | Light |
 
 ### 2.3 Scoped Application in Runners

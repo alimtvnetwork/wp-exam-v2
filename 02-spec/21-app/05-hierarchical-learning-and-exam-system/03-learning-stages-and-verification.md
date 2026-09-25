@@ -2,7 +2,7 @@
 
 ## 1. 4-Stage Learning State Machine
 
-In accordance with the Letterly-inspired focus learning design, the candidate experience is structured into an isolated, sequential 4-stage pipeline:
+In accordance with the Purple focus learning design, the candidate experience is structured into an isolated, sequential 4-stage pipeline:
 
 ```
 [Stage 0: Intro Hero] ──> [Stage 1: Study Docs & Video] ──> [Stage 2: Practical Checklist] ──> [Stage 3: Focus Quiz] ──> [Stage 4: Anti-Cheat Score Screen]

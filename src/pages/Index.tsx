@@ -177,7 +177,7 @@ export const Index: React.FC = () => {
   // Theme container classes
   const themeClassMap: Record<string, string> = {
     riseup: 'theme-riseup-asia bg-background text-foreground',
-    letterly: 'theme-letterly bg-background text-foreground',
+    purple: 'theme-purple bg-background text-foreground',
     dracula: 'theme-dracula bg-background text-foreground',
     obsidian: 'theme-obsidian bg-background text-foreground',
     clean: 'theme-clean bg-background text-foreground',

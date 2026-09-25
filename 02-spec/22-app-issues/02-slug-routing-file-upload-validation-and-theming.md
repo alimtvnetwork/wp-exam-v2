@@ -20,7 +20,7 @@ Spec Reference: [02-spec/22-app-issues/01-index.md](01-index.md)
    - Questions in other sections are hidden, preventing authors from dragging questions across sections when filtered, with no explicit 1-click "Move to Section" control.
 
 4. **Lack of Visual Theming Fluidity & Hover Animations:**
-   - Switching between "Rise Up Asia", "Letterly", and "Antigravity Dracula" causes abrupt color switches without CSS interpolation.
+   - Switching between "Rise Up Asia", "Purple Theme", and "Antigravity Dracula" causes abrupt color switches without CSS interpolation.
    - Action buttons lack fluid hover micro-interactions (no glow, no lift, no smooth border transitions).
 
 ---

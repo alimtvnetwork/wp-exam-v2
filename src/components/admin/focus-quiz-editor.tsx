@@ -41,7 +41,7 @@ const STORAGE_KEY = 'wp_exam_saved_focus_quiz';
 const INITIAL_FOCUS_CONFIG: FocusQuizConfig = {
   id: 'custom-focus-quiz',
   title: 'Engineering Technical Assessment',
-  themeId: 'letterly',
+  themeId: 'purple',
   hasIntro: true,
   introTitle: "You're in the **right place**!",
   introSubtitle: 'To tailor the assessment to your background, please complete the sequential steps.',
@@ -281,7 +281,7 @@ export const FocusQuizEditor: React.FC<FocusQuizEditorProps> = ({ onLaunchRunner
             <h1 className="text-xl font-bold tracking-tight text-foreground">
               Focus Quiz Authoring Studio
             </h1>
-            <Badge variant="secondary" className="text-xs font-mono">Letterly Engine</Badge>
+            <Badge variant="secondary" className="text-xs font-mono">Focus Engine</Badge>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">
             Create sequential, 4-stage distraction-free candidate assessments with video briefings and checklists.
@@ -325,7 +325,7 @@ export const FocusQuizEditor: React.FC<FocusQuizEditorProps> = ({ onLaunchRunner
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-3 bg-card border border-border rounded-xl">
           <span className="text-[11px] text-muted-foreground block">Active Theme</span>
-          <span className="text-sm font-bold capitalize text-primary">{config.themeId || 'letterly'}</span>
+          <span className="text-sm font-bold capitalize text-primary">{config.themeId || 'purple'}</span>
         </div>
         <div className="p-3 bg-card border border-border rounded-xl">
           <span className="text-[11px] text-muted-foreground block">Passing Threshold</span>
@@ -431,14 +431,14 @@ export const FocusQuizEditor: React.FC<FocusQuizEditorProps> = ({ onLaunchRunner
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold">Visual Theme Preset</Label>
                 <Select
-                  value={config.themeId || 'letterly'}
+                  value={config.themeId || 'purple'}
                   onValueChange={(val) => setConfig((p) => ({ ...p, themeId: val }))}
                 >
                   <SelectTrigger className="h-9 text-xs bg-background">
                     <SelectValue placeholder="Select Theme" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="letterly">Letterly Modern (Clean Serif & Focus)</SelectItem>
+                    <SelectItem value="purple">Purple Theme (Deep Purple & Focus)</SelectItem>
                     <SelectItem value="riseup-asia">Rise Up Asia (Gold & Modern Dark)</SelectItem>
                     <SelectItem value="dracula">Dracula (Vibrant Purple & Slate)</SelectItem>
                     <SelectItem value="vscode-dark">VS Code Dark (Professional Slate)</SelectItem>

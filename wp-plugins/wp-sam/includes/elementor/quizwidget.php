@@ -34,8 +34,8 @@ class QuizWidget {
     }
 
     public function renderWidget(array $settings = []): string {
-        $projectId = !empty($settings['project_id']) ? esc_attr($settings['project_id']) : 'letterly-sample';
-        $theme = !empty($settings['theme']) ? esc_attr($settings['theme']) : 'letterly';
+        $projectId = !empty($settings['project_id']) ? esc_attr($settings['project_id']) : 'purple-sample';
+        $theme = !empty($settings['theme']) ? esc_attr($settings['theme']) : 'purple';
         $hasCustomClass = !empty($settings['custom_class']);
         $customClass = $hasCustomClass ? esc_attr($settings['custom_class']) : '';
 

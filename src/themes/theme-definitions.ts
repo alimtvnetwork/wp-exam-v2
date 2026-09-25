@@ -1,6 +1,6 @@
 /**
  * Multi-Theme Catalog and CSS Variable Engine.
- * Supports Letterly (Indigo/Navy), Rise Up Asia (Bright Gold Amber), Antigravity Dracula,
+ * Supports Purple (Indigo/Violet), Rise Up Asia (Bright Gold Amber), Antigravity Dracula,
  * VS Code Dark (Slate & Cyan), and Clean Light / Paper.
  */
 
@@ -27,10 +27,10 @@ export interface ThemeDefinition {
 }
 
 export const THEME_PRESETS: Record<string, ThemeDefinition> = {
-  letterly: {
-    id: 'letterly',
-    name: 'Letterly (Deep Navy & Violet)',
-    description: 'Modern focus UI inspired by Letterly — vivid indigo on deep violet-navy with warm amber accents.',
+  purple: {
+    id: 'purple',
+    name: 'Purple Theme (Deep Purple & Violet)',
+    description: 'Modern focus UI with vivid electric indigo on deep violet-navy with warm amber accents.',
     appearance: 'dark',
     colors: {
       background: '#0F0E1E',
@@ -140,6 +140,7 @@ export const THEME_PRESETS: Record<string, ThemeDefinition> = {
 
 // Aliases for seamless backward compatibility across different views
 export const THEME_ALIASES: Record<string, string> = {
+  letterly: 'purple',
   riseup: 'riseup-asia',
   'bright-gold': 'riseup-asia',
   obsidian: 'vscode-dark',

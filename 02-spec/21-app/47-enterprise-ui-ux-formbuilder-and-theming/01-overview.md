@@ -26,7 +26,7 @@ All user-uploaded screenshots and review points have been ingested into the repo
 |                                                                                                |
 |  [ Theme System ]                                                                             |
 |    |-- Dynamic CSS variables: --wp-exam-bg, --wp-exam-card, --wp-exam-border, --wp-exam-primary |
-|    |-- Presets: Rise Up Asia (Gold), Dracula (Purple), VS Code (Cyan), Letterly (Indigo), Light|
+|    |-- Presets: Rise Up Asia (Gold), Dracula (Purple), VS Code (Cyan), Purple (Indigo), Light|
 |    |-- FormRunner & WizardRunner dynamically respond to theme selection                        |
 |                                                                                                |
 |  [ FormBuilder: Google Forms Layout ]                                                          |

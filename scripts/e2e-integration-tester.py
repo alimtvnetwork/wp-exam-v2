@@ -600,13 +600,13 @@ def test_multi_theme_tokens() -> None:
         with open(theme_file, "r", encoding="utf-8") as f:
             content = f.read()
 
-        has_letterly = "letterly" in content
+        has_purple = "purple" in content or "letterly" in content
         has_bright_gold = "bright-gold" in content or "Rise Up" in content
         has_dark = "dark" in content
         has_white = "white" in content
 
-        has_all_themes = has_letterly and has_bright_gold and has_dark and has_white
-        log_test("Theme Presets Registered (letterly, bright-gold/Rise Up, dark, white)", has_all_themes)
+        has_all_themes = has_purple and has_bright_gold and has_dark and has_white
+        log_test("Theme Presets Registered (purple, bright-gold/Rise Up, dark, white)", has_all_themes)
 
 
 # =====================================================================
@@ -2610,14 +2610,14 @@ def test_elementor_shortcode_parsing_and_sanitization() -> None:
     import re
 
     class ShortcodeParser:
-        ALLOWED_THEMES = {"letterly", "bright-gold", "dark", "white"}
+        ALLOWED_THEMES = {"purple", "letterly", "bright-gold", "dark", "white"}
         ALLOWED_MODES = {"focus", "compact", "full", "stepped"}
 
         @staticmethod
         def parse_wp_exam_shortcode(tag: str) -> Dict[str, Any]:
             defaults = {
                 "quiz_id": "",
-                "theme": "letterly",
+                "theme": "purple",
                 "mode": "focus",
                 "enable_telemetry": True,
                 "passing_score": 75,
@@ -2660,7 +2660,7 @@ def test_elementor_shortcode_parsing_and_sanitization() -> None:
     malicious_tag = '[wp_exam quiz_id="123<script>alert(1)</script>" theme="unknown_hacked_theme" mode="stepped" enable_telemetry="false" passing_score="999"]'
     res_malicious = ShortcodeParser.parse_wp_exam_shortcode(malicious_tag)
     is_script_stripped = "<script>" not in res_malicious["quiz_id"] and "alert" in res_malicious["quiz_id"]
-    is_theme_fallen_back = res_malicious["theme"] == "letterly"
+    is_theme_fallen_back = res_malicious["theme"] == "purple"
     is_score_clamped = res_malicious["passing_score"] == 75
     is_telemetry_disabled = not res_malicious["enable_telemetry"]
 
@@ -2866,7 +2866,7 @@ def test_curriculum_schema_migration() -> None:
                 "project_id": legacy_curriculum.get("id", "migrated_project"),
                 "title": legacy_curriculum.get("title", "Migrated Curriculum"),
                 "category": legacy_curriculum.get("category", "General"),
-                "theme": legacy_curriculum.get("theme", "letterly"),
+                "theme": legacy_curriculum.get("theme", "purple"),
                 "sections": v2_sections,
                 "sub_projects": [],
                 "is_migrated": True,

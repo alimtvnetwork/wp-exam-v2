@@ -17,7 +17,7 @@ Spec Reference: [02-spec/22-app-issues/01-index.md](01-index.md)
 5. **Missing Per-Question AI Instruction & 1-Click JSON Import/Export:**
    - Authors cannot view the structured AI prompt, system JSON format, and expected AI output format directly on each question with quick 1-click import/export.
 6. **Theming Inefficacy & Absence of Hover Micro-Animations:**
-   - Switching between themes (Rise Up Asia Gold, Letterly Indigo, Dracula Purple, Obsidian Emerald, Clean Slate) has weak visual impact because hardcoded color classes (`bg-slate-900`, `text-slate-400`, `border-slate-800`) override the theme's HSL variables. Action buttons lack smooth hover micro-animations and glow effects.
+   - Switching between themes (Rise Up Asia Gold, Purple Theme, Dracula Purple, Obsidian Emerald, Clean Slate) has weak visual impact because hardcoded color classes (`bg-slate-900`, `text-slate-400`, `border-slate-800`) override the theme's HSL variables. Action buttons lack smooth hover micro-animations and glow effects.
 
 ---
 

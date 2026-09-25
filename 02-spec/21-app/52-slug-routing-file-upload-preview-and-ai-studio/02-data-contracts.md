@@ -65,7 +65,7 @@ export interface FileUploadPreviewState {
 
 ```typescript
 export interface ThemeVisualTokens {
-  id: 'letterly' | 'riseup' | 'default';
+  id: 'purple' | 'riseup' | 'default';
   name: string;
   primaryHsl: string;
   accentHsl: string;

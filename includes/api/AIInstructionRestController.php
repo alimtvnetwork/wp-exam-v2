@@ -70,7 +70,7 @@ class AIInstructionRestController extends WP_REST_Controller {
                     'title'            => 'Step 3: Knowledge Check',
                     'content_type'     => 'quiz',
                     'settings'         => [
-                        'theme'            => 'letterly',
+                        'theme'            => 'purple',
                         'time_limit_mins'  => 15,
                         'pass_percent'     => 80,
                         'hide_answers'     => true,

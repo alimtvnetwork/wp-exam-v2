@@ -36,7 +36,7 @@ describe('Slug Routing, Theming Engine & AI Studio Verification', () => {
   });
 
   it('provides complete HSL CSS tokens across all supported themes', () => {
-    const themeKeys: AppThemeType[] = ['riseup', 'dracula', 'letterly', 'obsidian', 'clean'];
+    const themeKeys: AppThemeType[] = ['riseup', 'dracula', 'purple', 'obsidian', 'clean'];
 
     themeKeys.forEach((themeKey) => {
       const config = THEME_CONFIGS[themeKey];
@@ -52,8 +52,8 @@ describe('Slug Routing, Theming Engine & AI Studio Verification', () => {
     // Rise Up Asia must feature Gold primary (41 100% 50%)
     expect(THEME_CONFIGS.riseup.hslValues['--primary']).toBe('41 100% 50%');
 
-    // Letterly must feature Electric Indigo primary (247 98% 63%)
-    expect(THEME_CONFIGS.letterly.hslValues['--primary']).toBe('247 98% 63%');
+    // Purple theme must feature Electric Indigo primary (247 98% 63%)
+    expect(THEME_CONFIGS.purple.hslValues['--primary']).toBe('247 98% 63%');
 
     // Dracula must feature purple primary (265 89% 78%)
     expect(THEME_CONFIGS.dracula.hslValues['--primary']).toBe('265 89% 78%');

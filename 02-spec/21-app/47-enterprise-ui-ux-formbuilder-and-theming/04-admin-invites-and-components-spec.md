@@ -41,7 +41,7 @@ All dropdowns must utilize styled Radix UI Select primitives or high-polish cust
 ## 3. Focus Quiz Authoring Studio in Admin Panel
 
 ### 3.1 Need & Objective
-The Focus Quiz runner (`FocusQuizRunner.tsx`) delivers an engaging Letterly-style sequential quiz experience. However, admins had no editing studio in the admin panel to create or customize focus quizzes.
+The Focus Quiz runner (`FocusQuizRunner.tsx`) delivers an engaging distraction-free sequential quiz experience. However, admins had no editing studio in the admin panel to create or customize focus quizzes.
 
 ### 3.2 Focus Quiz Studio (`src/components/admin/focus-quiz-editor.tsx`)
 - Accessible directly from `WpAdminSidebar.tsx` under **Focus Quiz Editor** (or tab switch).

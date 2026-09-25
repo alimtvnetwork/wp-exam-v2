@@ -58,7 +58,7 @@ graph TD
 - Section header banner provides 1-click "Export Section JSON".
 
 ### 1.6 Theming Fluidity & Micro-Animations
-- Mapped all 5 themes (Rise Up Asia Gold, Letterly Indigo, Dracula Purple, Obsidian Sky, Clean Light) to standard Tailwind HSL variables (`--primary`, `--background`, `--card`, `--border`, `--ring`).
+- Mapped all 5 themes (Rise Up Asia Gold, Purple Theme, Dracula Purple, Obsidian Sky, Clean Light) to standard Tailwind HSL variables (`--primary`, `--background`, `--card`, `--border`, `--ring`).
 - Replaced hardcoded hex values in `Index.tsx`, `wp-admin-sidebar.tsx`, and `App.tsx` with semantic tokens.
 - Implemented button hover micro-scale (`hover:scale-[1.015] active:scale-[0.985]`) and `.shadow-primary-glow`.
 

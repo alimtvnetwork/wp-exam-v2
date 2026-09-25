@@ -64,7 +64,7 @@ const STATIC_COUNTRIES: CountryOption[] = [
 const THEME_OPTIONS: { id: AppThemeType; name: string }[] = [
   { id: 'riseup', name: 'Rise Up Asia (Warm Gold & Navy)' },
   { id: 'dracula', name: 'Antigravity Dracula (Dark Purple)' },
-  { id: 'letterly', name: 'Letterly (Deep Navy & Violet)' },
+  { id: 'purple', name: 'Purple Theme (Deep Purple & Violet)' },
   { id: 'obsidian', name: 'VS Code Dark (Slate & Cyan)' },
   { id: 'clean', name: 'Clean Light (Enterprise Clean)' },
 ];

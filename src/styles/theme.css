@@ -149,6 +149,8 @@
   background-color: var(--wp-exam-bg);
   color: var(--wp-exam-text-primary);
 }
+.theme-purple,
+[data-theme="purple"],
 .theme-letterly,
 [data-theme="letterly"] {
   --primary: 248 98% 63%;

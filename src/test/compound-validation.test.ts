@@ -140,8 +140,9 @@ describe('Theme Definitions & CSS Variable Generator', () => {
     expect(vscode.id).toBe('vscode-dark');
     expect(vscode.colors.primary).toBe('#38BDF8');
 
-    const letterly = getTheme('letterly');
-    expect(letterly.id).toBe('letterly');
+    const purple = getTheme('purple');
+    expect(purple.id).toBe('purple');
+    expect(getTheme('letterly').id).toBe('purple');
   });
 
   it('should generate valid CSS variables record for theme injection', () => {

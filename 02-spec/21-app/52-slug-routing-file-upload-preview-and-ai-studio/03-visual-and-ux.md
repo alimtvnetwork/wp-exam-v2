@@ -50,4 +50,4 @@ Replacing the static generic text input with an interactive drag-and-drop file u
 ## 4. Theme System & Live Visual Feedback
 - Fix theme CSS variable injection in `theme-context.tsx`.
 - Add active theme styling classes to cards, buttons, and badges (`group-hover:border-primary`, `transition-all duration-300`, `shadow-xs hover:shadow-primary/10`).
-- Ensure `Letterly` applies vibrant purple/violet gradients and `Rise Up Asia` applies amber/gold/emerald tones with perceptible button hover micro-animations.
+- Ensure `Purple Theme` applies vibrant purple/violet gradients and `Rise Up Asia` applies amber/gold/emerald tones with perceptible button hover micro-animations.

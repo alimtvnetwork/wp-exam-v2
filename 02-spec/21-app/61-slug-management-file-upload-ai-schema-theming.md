@@ -56,7 +56,7 @@ Few serious issues. That's why I always say verify your task. You would have don
 
 ### 1.6 Theming Engine Overhaul & Micro-Animations
 - Replace hardcoded color classes with dynamic CSS variable tokens (`hsl(var(--primary))`, `hsl(var(--card))`, `hsl(var(--accent))`).
-- Ensure all 5 themes (Rise Up Asia Gold, Letterly Indigo, Dracula Purple, Obsidian Emerald, Clean Slate) transform the entire UI instantaneously.
+- Ensure all 5 themes (Rise Up Asia Gold, Purple Theme, Dracula Purple, Obsidian Emerald, Clean Slate) transform the entire UI instantaneously.
 - Add rich button hover micro-interactions: scale transitions (`hover:scale-[1.02] active:scale-[0.98]`), vibrant glow micro-shadows, and smooth CSS color transitions.
 
 ---
