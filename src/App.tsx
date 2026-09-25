@@ -29,8 +29,22 @@ const App = () => (
             <Route path="/" element={<LandingPage />} />
             <Route path="/admin" element={<Index />} />
             <Route path="/admin/form/:slug" element={<Index />} />
-            <Route path="/apply" element={<WizardRunner />} />
-            <Route path="/forms/wizard" element={<WizardRunner />} />
+            <Route
+              path="/apply"
+              element={
+                <div className="min-h-screen bg-background text-foreground transition-colors duration-300 py-8 px-4 sm:px-6 flex items-center justify-center">
+                  <WizardRunner />
+                </div>
+              }
+            />
+            <Route
+              path="/forms/wizard"
+              element={
+                <div className="min-h-screen bg-background text-foreground transition-colors duration-300 py-8 px-4 sm:px-6 flex items-center justify-center">
+                  <WizardRunner />
+                </div>
+              }
+            />
             <Route path="/forms/canvas" element={<VisualNodeCanvas />} />
             <Route path="/forms/nodes" element={<VisualNodeCanvas />} />
             <Route
