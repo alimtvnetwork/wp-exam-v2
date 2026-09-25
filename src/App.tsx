@@ -36,7 +36,15 @@ const App = () => (
             <Route
               path="/f/:slug"
               element={
-                <div className="min-h-screen bg-slate-950 p-4 sm:p-6">
+                <div className="min-h-screen bg-background text-foreground transition-colors duration-300 p-4 sm:p-6">
+                  <FormRunner />
+                </div>
+              }
+            />
+            <Route
+              path="/f/:category/:slug"
+              element={
+                <div className="min-h-screen bg-background text-foreground transition-colors duration-300 p-4 sm:p-6">
                   <FormRunner />
                 </div>
               }
@@ -44,7 +52,7 @@ const App = () => (
             <Route
               path="/preview/:slug"
               element={
-                <div className="min-h-screen bg-slate-950 p-4 sm:p-6">
+                <div className="min-h-screen bg-background text-foreground transition-colors duration-300 p-4 sm:p-6">
                   <FormRunner isPreviewRoute={true} />
                 </div>
               }
@@ -52,7 +60,7 @@ const App = () => (
             <Route
               path="/preview"
               element={
-                <div className="min-h-screen bg-slate-950 p-4 sm:p-6">
+                <div className="min-h-screen bg-background text-foreground transition-colors duration-300 p-4 sm:p-6">
                   <FormRunner isPreviewRoute={true} />
                 </div>
               }
@@ -60,7 +68,7 @@ const App = () => (
             <Route
               path="/runner"
               element={
-                <div className="min-h-screen bg-slate-950 p-4 sm:p-6">
+                <div className="min-h-screen bg-background text-foreground transition-colors duration-300 p-4 sm:p-6">
                   <FormRunner />
                 </div>
               }

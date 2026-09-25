@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist } from 'zustand/middleware';
 import { FormField, FormModel, FormType, FormAccessType, FormSettings } from '@/lib/types/form';
 import { executeQuery } from '@/lib/query-wrapper';
 
@@ -82,7 +83,9 @@ const defaultFields: FormField[] = [
   },
 ];
 
-export const useQuizStore = create<QuizState>((set, get) => ({
+export const useQuizStore = create<QuizState>()(
+  persist(
+    (set, get) => ({
   id: undefined,
   title: 'Sample Sequential Knowledge Quiz',
   slug: 'sample-sequential-knowledge-quiz',
@@ -210,7 +213,25 @@ export const useQuizStore = create<QuizState>((set, get) => ({
   },
 
 
-  saveQuiz: async () => {
-    return get().saveForm();
-  },
-}));
+    saveQuiz: async () => {
+      return get().saveForm();
+    },
+  }),
+  {
+    name: 'wp-exam-builder-store',
+    partialize: (state) => ({
+      id: state.id,
+      title: state.title,
+      slug: state.slug,
+      description: state.description,
+      formType: state.formType,
+      formAccess: state.formAccess,
+      isSequential: state.isSequential,
+      isPublished: state.isPublished,
+      settings: state.settings,
+      fields: state.fields,
+      questions: state.questions,
+    }),
+  }
+  )
+);

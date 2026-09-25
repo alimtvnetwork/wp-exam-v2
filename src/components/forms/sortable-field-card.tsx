@@ -607,6 +607,22 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     ) : (
                       <div className="p-2 text-[11px] text-muted-foreground italic">No other sections yet</div>
                     )}
+                    <DropdownMenuSeparator className="my-1 border-border/80" />
+                    <DropdownMenuItem
+                      onClick={() => {
+                        const name = window.prompt('Enter new section name:');
+
+                        if (name && name.trim().length > 0) {
+                          onUpdate(id, { group: name.trim() });
+                          toast.success(`Moved question to new section: "${name.trim()}"`);
+                        }
+                      }}
+                      className="text-xs flex items-center gap-2 cursor-pointer py-1.5 text-primary hover:bg-primary/10 font-medium"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>New Section...</span>
+                    </DropdownMenuItem>
+
                     {field.group && (
                       <>
                         <DropdownMenuSeparator className="my-1 border-border/80" />

@@ -317,6 +317,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   };
 
   const handleProjectSwitch = (newProjectId: string) => {
+    const targetSlug = newProjectId === 'custom-active' 
+      ? (quizStore.slug || 'custom-form') 
+      : newProjectId;
+
     setSelectedProjectId(newProjectId);
     setCurrentStep(0);
     setStepHistory([]);
@@ -324,22 +328,21 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     setIsSubmitted(false);
     setResult(null);
 
-    // Update browser URL query without reloading
+    // Update browser address bar path directly to canonical /preview/:slug or /f/:slug
     if (typeof window !== 'undefined') {
-      const url = new URL(window.location.href);
-      url.searchParams.set('project', newProjectId);
-      window.history.replaceState({}, '', url.toString());
+      const nextPath = isPreviewRoute ? `/preview/${targetSlug}` : `/f/${targetSlug}`;
+      window.history.replaceState({}, '', nextPath);
     }
   };
 
   const handleCopyProjectLink = () => {
-    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://127.0.0.1:5173';
-    let link = `${origin}/runner?project=${selectedProjectId}`;
-    if (selectedProjectId === 'custom-active') {
-      link = `${origin}/preview`;
-    }
+    const targetSlug = selectedProjectId === 'custom-active' 
+      ? (quizStore.slug || 'custom-form') 
+      : selectedProjectId;
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
+    const link = isPreviewRoute ? `${origin}/preview/${targetSlug}` : `${origin}/f/${targetSlug}`;
     navigator.clipboard.writeText(link);
-    toast.success(`Copied live URL: ${link}`);
+    toast.success(`Copied live canonical URL: ${link}`);
   };
 
   const handleVerifyToken = () => {
@@ -643,6 +646,21 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 )}
               </SelectContent>
             </Select>
+          </div>
+
+          {/* Active Canonical Slug Indicator */}
+          <div 
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[11px] font-mono shadow-2xs"
+            style={{
+              backgroundColor: currentTheme.colors.background,
+              borderColor: currentTheme.colors.cardBorder,
+            }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <span style={{ color: currentTheme.colors.textSecondary }}>{isPreviewRoute ? '/preview/' : '/f/'}</span>
+            <span className="font-bold" style={{ color: currentTheme.colors.primary }}>
+              {selectedProjectId === 'custom-active' ? (quizStore.slug || 'custom-form') : selectedProjectId}
+            </span>
           </div>
 
           {/* Theme Selector */}

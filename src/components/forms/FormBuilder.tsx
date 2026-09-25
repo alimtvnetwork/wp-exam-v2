@@ -190,14 +190,16 @@ export const FormBuilder: React.FC = () => {
       if (active.id !== over.id) {
         const oldIndex = fields.findIndex((f) => f.id === active.id);
         const newIndex = fields.findIndex((f) => f.id === over.id);
-        const targetField = fields[newIndex];
-        const newFields = arrayMove(fields, oldIndex, newIndex);
 
-        if (targetField && targetField.group) {
-          newFields[newIndex] = { ...newFields[newIndex], group: targetField.group };
+        if (oldIndex !== -1 && newIndex !== -1) {
+          const targetField = fields[newIndex];
+          const newFields = arrayMove(fields, oldIndex, newIndex);
+
+          // Update section group to match target location (or clear if target has no group)
+          newFields[newIndex] = { ...newFields[newIndex], group: targetField ? targetField.group : undefined };
+
+          setFields(newFields);
         }
-
-        setFields(newFields);
       }
     }
   };
