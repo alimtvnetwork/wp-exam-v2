@@ -74,6 +74,10 @@ import {
   Upload,
   Sparkles,
   X,
+  Star,
+  Calendar,
+  CircleDot,
+  CheckSquare,
 } from 'lucide-react';
 import { DesignValidationIssue } from '@/lib/design-validation-engine';
 
@@ -127,6 +131,11 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   const [previewTestCountry, setPreviewTestCountry] = useState('+1');
   const [previewTestPhone, setPreviewTestPhone] = useState('');
   const [previewSelectedChoice, setPreviewSelectedChoice] = useState<string>('');
+  const [previewMultipleChoices, setPreviewMultipleChoices] = useState<string[]>([]);
+  const [previewRating, setPreviewRating] = useState<number>(0);
+  const [previewDate, setPreviewDate] = useState<string>('');
+  const [previewScale, setPreviewScale] = useState<number>(5);
+  const [previewParagraph, setPreviewParagraph] = useState<string>('');
   const [isAiStudioOpen, setIsAiStudioOpen] = useState(false);
   const [previewUploadedFile, setPreviewUploadedFile] = useState<{
     name: string;
@@ -828,35 +837,338 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 </div>
               )}
 
-              {/* Choice Fields Interactive Preview */}
-              {isChoiceField && (
-                <div className="space-y-2 bg-background/60 p-3 rounded-lg border border-border">
-                  <Label className="text-xs font-semibold text-foreground">Clickable Options Simulation:</Label>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    {(field.options || []).map((opt, i) => (
+              {/* Rating Scale (1-5) Interactive Preview */}
+              {field.type === 'rating' && (
+                <div className="space-y-3 bg-background/60 p-3.5 rounded-xl border border-border">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
+                      <span>Candidate Rating Scale Simulation (1 - 5 Stars):</span>
+                    </Label>
+                    {previewRating > 0 && (
                       <button
-                        key={i}
                         type="button"
-                        onClick={() => setPreviewSelectedChoice(opt)}
-                        className={`p-2.5 rounded-lg border text-left text-xs font-medium transition-all ${
-                          previewSelectedChoice === opt
-                            ? 'bg-primary/20 border-primary text-primary font-bold shadow-xs'
-                            : 'bg-card border-border hover:bg-muted/40 text-foreground'
+                        onClick={() => setPreviewRating(0)}
+                        className="text-[10px] text-muted-foreground hover:text-foreground underline transition-colors"
+                      >
+                        Reset Rating
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 flex-wrap">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setPreviewRating(star)}
+                        className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border font-bold text-xs transition-all ${
+                          previewRating >= star
+                            ? 'border-amber-500 bg-amber-500/15 text-amber-500 shadow-xs'
+                            : 'border-border bg-card text-muted-foreground hover:bg-muted/40 hover:text-foreground'
                         }`}
                       >
-                        <span className="mr-2 font-mono text-muted-foreground">{String.fromCharCode(65 + i)}.</span>
-                        {opt}
+                        <Star
+                          className={`w-4 h-4 transition-transform ${
+                            previewRating >= star
+                              ? 'text-amber-500 fill-amber-500 scale-110'
+                              : 'text-muted-foreground/60'
+                          }`}
+                        />
+                        <span>{star}</span>
                       </button>
                     ))}
                   </div>
-                  {previewSelectedChoice && (
-                    <p className="text-[11px] text-muted-foreground pt-1">
-                      Selected: <strong className="text-primary">{previewSelectedChoice}</strong>
-                      {isQuiz && field.correctAnswer === previewSelectedChoice && (
-                        <span className="ml-2 text-emerald-400 font-bold">✓ Correct Answer!</span>
+
+                  <div className="p-2.5 rounded-lg bg-muted/30 border border-border/60 text-xs flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <span className="font-semibold text-foreground">Selected Rating:</span>
+                      {previewRating > 0 ? (
+                        <span className="text-amber-500 font-bold font-mono">
+                          {previewRating} / 5 {'★'.repeat(previewRating)}{'☆'.repeat(5 - previewRating)}
+                        </span>
+                      ) : (
+                        <span className="text-muted-foreground italic">No rating selected (click a star above to rate)</span>
                       )}
+                    </div>
+                    {previewRating > 0 && (
+                      <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-500 bg-amber-500/10 font-mono">
+                        {previewRating === 5
+                          ? 'Excellent / Mastery'
+                          : previewRating === 4
+                          ? 'Very Good'
+                          : previewRating === 3
+                          ? 'Moderate'
+                          : previewRating === 2
+                          ? 'Fair'
+                          : 'Needs Improvement'}
+                      </Badge>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* True / False Interactive Preview */}
+              {field.type === 'true_false' && (
+                <div className="space-y-3 bg-background/60 p-3.5 rounded-xl border border-border">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground">Binary Choice Simulation:</Label>
+                    {previewSelectedChoice && (
+                      <button
+                        type="button"
+                        onClick={() => setPreviewSelectedChoice('')}
+                        className="text-[10px] text-muted-foreground hover:text-foreground underline transition-colors"
+                      >
+                        Reset Selection
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3 max-w-sm">
+                    {['True', 'False'].map((val) => {
+                      const isSelected = previewSelectedChoice === val;
+                      return (
+                        <button
+                          key={val}
+                          type="button"
+                          onClick={() => setPreviewSelectedChoice(val)}
+                          className={`p-3 rounded-xl border text-center text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                            isSelected
+                              ? val === 'True'
+                                ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400 shadow-xs'
+                                : 'border-rose-500 bg-rose-500/20 text-rose-400 shadow-xs'
+                              : 'border-border bg-card text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+                          }`}
+                        >
+                          {val === 'True' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                          <span>{val}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {previewSelectedChoice && (
+                    <div className="p-2.5 rounded-lg bg-muted/30 border border-border/60 text-xs flex items-center justify-between flex-wrap gap-2">
+                      <span className="text-muted-foreground">
+                        Selected: <strong className="text-foreground">{previewSelectedChoice}</strong>
+                      </span>
+                      {isQuiz && field.correctAnswer && (
+                        <span
+                          className={`text-[11px] font-semibold flex items-center gap-1 ${
+                            field.correctAnswer === previewSelectedChoice ? 'text-emerald-400' : 'text-rose-400'
+                          }`}
+                        >
+                          {field.correctAnswer === previewSelectedChoice
+                            ? '✓ Matches Correct Answer (+points)'
+                            : '✗ Incorrect Answer (0 points)'}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Multiple Choice Interactive Preview */}
+              {field.type === 'multiple_choice' && (
+                <div className="space-y-2.5 bg-background/60 p-3.5 rounded-xl border border-border">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <CheckSquare className="w-3.5 h-3.5 text-primary" />
+                      <span>Multi-Select Checkboxes Simulation:</span>
+                    </Label>
+                    {previewMultipleChoices.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setPreviewMultipleChoices([])}
+                        className="text-[10px] text-muted-foreground hover:text-foreground underline transition-colors"
+                      >
+                        Clear Selected ({previewMultipleChoices.length})
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {(field.options || []).map((opt, i) => {
+                      const isChecked = previewMultipleChoices.includes(opt);
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => {
+                            if (isChecked) {
+                              setPreviewMultipleChoices(previewMultipleChoices.filter((c) => c !== opt));
+                            } else {
+                              setPreviewMultipleChoices([...previewMultipleChoices, opt]);
+                            }
+                          }}
+                          className={`p-2.5 rounded-lg border text-left text-xs font-medium transition-all flex items-center justify-between ${
+                            isChecked
+                              ? 'bg-primary/20 border-primary text-primary font-bold shadow-xs'
+                              : 'bg-card border-border hover:bg-muted/40 text-foreground'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-muted-foreground">{String.fromCharCode(65 + i)}.</span>
+                            <span>{opt}</span>
+                          </div>
+                          <div
+                            className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
+                              isChecked ? 'bg-primary border-primary text-primary-foreground' : 'border-muted-foreground/40'
+                            }`}
+                          >
+                            {isChecked && <Check className="w-3 h-3" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {previewMultipleChoices.length > 0 && (
+                    <div className="p-2 rounded-lg bg-muted/30 border border-border/60 text-[11px] text-muted-foreground flex items-center justify-between flex-wrap gap-2">
+                      <span>
+                        Selected ({previewMultipleChoices.length}): <strong className="text-primary">{previewMultipleChoices.join(', ')}</strong>
+                      </span>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Single Choice Interactive Preview */}
+              {field.type === 'single_choice' && (
+                <div className="space-y-2.5 bg-background/60 p-3.5 rounded-xl border border-border">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <CircleDot className="w-3.5 h-3.5 text-primary" />
+                      <span>Single-Choice Radio Simulation:</span>
+                    </Label>
+                    {previewSelectedChoice && (
+                      <button
+                        type="button"
+                        onClick={() => setPreviewSelectedChoice('')}
+                        className="text-[10px] text-muted-foreground hover:text-foreground underline transition-colors"
+                      >
+                        Clear Selection
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    {(field.options || []).map((opt, i) => {
+                      const isSelected = previewSelectedChoice === opt;
+                      return (
+                        <button
+                          key={i}
+                          type="button"
+                          onClick={() => setPreviewSelectedChoice(opt)}
+                          className={`p-2.5 rounded-lg border text-left text-xs font-medium transition-all flex items-center justify-between ${
+                            isSelected
+                              ? 'bg-primary/20 border-primary text-primary font-bold shadow-xs'
+                              : 'bg-card border-border hover:bg-muted/40 text-foreground'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono text-muted-foreground">{String.fromCharCode(65 + i)}.</span>
+                            <span>{opt}</span>
+                          </div>
+                          <div
+                            className={`w-4 h-4 rounded-full border flex items-center justify-center shrink-0 ${
+                              isSelected ? 'border-primary ring-2 ring-primary/30' : 'border-muted-foreground/40'
+                            }`}
+                          >
+                            {isSelected && <div className="w-2 h-2 rounded-full bg-primary" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  {previewSelectedChoice && (
+                    <div className="p-2 rounded-lg bg-muted/30 border border-border/60 text-[11px] text-muted-foreground flex items-center justify-between flex-wrap gap-2">
+                      <span>
+                        Selected: <strong className="text-primary">{previewSelectedChoice}</strong>
+                      </span>
+                      {isQuiz && field.correctAnswer && (
+                        <span
+                          className={`font-semibold flex items-center gap-1 ${
+                            field.correctAnswer === previewSelectedChoice ? 'text-emerald-400' : 'text-rose-400'
+                          }`}
+                        >
+                          {field.correctAnswer === previewSelectedChoice ? '✓ Correct Answer (+points)' : '✗ Incorrect Answer (0 points)'}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Dropdown Select Interactive Preview */}
+              {field.type === 'dropdown' && (
+                <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border max-w-md">
+                  <Label className="text-xs font-semibold text-foreground">Dropdown Selection Simulation:</Label>
+                  <Select value={previewSelectedChoice} onValueChange={setPreviewSelectedChoice}>
+                    <SelectTrigger className="w-full h-9 text-xs bg-background border-border">
+                      <SelectValue placeholder={field.placeholder || 'Select an option...'} />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border">
+                      {(field.options || []).map((opt, i) => (
+                        <SelectItem key={i} value={opt} className="text-xs">
+                          {opt}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {previewSelectedChoice && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Selected: <strong className="text-primary">{previewSelectedChoice}</strong>
                     </p>
                   )}
+                </div>
+              )}
+
+              {/* Date Field Interactive Preview */}
+              {field.type === 'date' && (
+                <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border max-w-sm">
+                  <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 text-primary" />
+                    <span>Date Selection Simulation:</span>
+                  </Label>
+                  <Input
+                    type="date"
+                    value={previewDate}
+                    onChange={(e) => setPreviewDate(e.target.value)}
+                    className="text-xs h-9 bg-background"
+                  />
+                  {previewDate && (
+                    <p className="text-[11px] text-muted-foreground">
+                      Selected Date: <strong className="text-primary font-mono">{previewDate}</strong>
+                    </p>
+                  )}
+                </div>
+              )}
+
+              {/* Numerical Scale (1-10) Interactive Preview */}
+              {field.type === 'scale' && (
+                <div className="space-y-3 bg-background/60 p-3.5 rounded-xl border border-border">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground">Numerical Scale Simulation (1 - 10):</Label>
+                    <span className="font-mono text-primary font-bold text-xs">{previewScale} / 10</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                      <button
+                        key={num}
+                        type="button"
+                        onClick={() => setPreviewScale(num)}
+                        className={`w-8 h-8 rounded-lg border text-xs font-bold transition-all ${
+                          previewScale === num
+                            ? 'border-primary bg-primary text-primary-foreground shadow-xs'
+                            : 'border-border bg-card text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+                        }`}
+                      >
+                        {num}
+                      </button>
+                    ))}
+                  </div>
                 </div>
               )}
 
@@ -1014,24 +1326,88 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 </div>
               )}
 
-              {/* Text & Regex Fields Live Compound Evaluation Test */}
-              {isTextInputField && (
-                <div className="space-y-2 bg-background/60 p-3 rounded-lg border border-border">
-                  <Label className="text-xs font-semibold text-foreground">Real-Time Validation Test Box:</Label>
+              {/* Paragraph Multi-Line Text Interactive Preview */}
+              {field.type === 'paragraph' && (
+                <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground">Multi-Line Essay Simulation:</Label>
+                    <span className="text-[10px] text-muted-foreground font-mono">
+                      {previewParagraph.length} chars • {previewParagraph.trim() ? previewParagraph.trim().split(/\s+/).length : 0} words
+                    </span>
+                  </div>
+                  <Textarea
+                    value={previewParagraph}
+                    onChange={(e) => setPreviewParagraph(e.target.value)}
+                    placeholder={field.placeholder || 'Type long-form candidate commentary or essay response...'}
+                    rows={3}
+                    className="text-xs bg-background text-foreground resize-y"
+                  />
+                  {previewParagraph && (
+                    <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-0.5">
+                      <span className="text-emerald-400 flex items-center gap-1 font-medium">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> Input Captured ({previewParagraph.length} chars)
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewParagraph('')}
+                        className="text-[10px] hover:text-foreground underline transition-colors"
+                      >
+                        Clear Text
+                      </button>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Short Answer, Email & Regex Fields Live Compound Evaluation Test */}
+              {(field.type === 'short_answer' || field.type === 'email' || field.type === 'regex_text') && (
+                <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground">
+                      {field.type === 'email' ? 'Email Validation Test Box:' : 'Real-Time Validation Test Box:'}
+                    </Label>
+                    {testInputValue && (
+                      <button
+                        type="button"
+                        onClick={() => setTestInputValue('')}
+                        className="text-[10px] text-muted-foreground hover:text-foreground underline transition-colors"
+                      >
+                        Clear Text
+                      </button>
+                    )}
+                  </div>
                   <Input
+                    type={field.type === 'email' ? 'email' : 'text'}
                     value={testInputValue}
                     onChange={(e) => setTestInputValue(e.target.value)}
-                    placeholder="Type candidate sample response here..."
+                    placeholder={field.placeholder || (field.type === 'email' ? 'candidate@example.com' : 'Type candidate sample response here...')}
                     className="text-xs h-9 bg-background"
                   />
                   {testInputValue && (
-                    <div className={`p-2 rounded border text-xs flex items-center gap-2 ${
-                      testFeedback.isValid ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
-                    }`}>
+                    <div
+                      className={`p-2 rounded border text-xs flex items-center gap-2 ${
+                        testFeedback.isValid
+                          ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+                          : 'bg-rose-500/10 border-rose-500/30 text-rose-400'
+                      }`}
+                    >
                       {testFeedback.isValid ? <CheckCircle2 className="w-4 h-4 shrink-0" /> : <AlertCircle className="w-4 h-4 shrink-0" />}
                       <span>{testFeedback.message}</span>
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Fallback Simulation for Other Field Types (Never Blank) */}
+              {!['phone', 'multiple_choice', 'single_choice', 'dropdown', 'rating', 'true_false', 'paragraph', 'short_answer', 'email', 'regex_text', 'date', 'scale', 'link', 'file_upload'].includes(field.type) && (
+                <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border">
+                  <Label className="text-xs font-semibold text-foreground">Interactive Response Simulation:</Label>
+                  <Input
+                    value={testInputValue}
+                    onChange={(e) => setTestInputValue(e.target.value)}
+                    placeholder={field.placeholder || `Enter response for ${field.type.replace('_', ' ')}...`}
+                    className="text-xs h-9 bg-background"
+                  />
                 </div>
               )}
             </div>

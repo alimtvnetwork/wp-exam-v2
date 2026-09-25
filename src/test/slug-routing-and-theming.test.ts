@@ -212,4 +212,55 @@ describe('Slug Routing, Theming Engine & AI Studio Verification', () => {
     expect(parsed[0].label).toBe('What is WAL?');
     expect(parsed[1].type).toBe('true_false');
   });
+
+  it('evaluates interactive rating scale preview selection and qualitative labels', () => {
+    const getRatingLabel = (rating: number): string => {
+      switch (rating) {
+        case 5:
+          return 'Excellent / Mastery';
+        case 4:
+          return 'Very Good';
+        case 3:
+          return 'Moderate';
+        case 2:
+          return 'Fair';
+        case 1:
+          return 'Needs Improvement';
+        default:
+          return 'No rating selected';
+      }
+    };
+
+    expect(getRatingLabel(5)).toBe('Excellent / Mastery');
+    expect(getRatingLabel(4)).toBe('Very Good');
+    expect(getRatingLabel(3)).toBe('Moderate');
+    expect(getRatingLabel(2)).toBe('Fair');
+    expect(getRatingLabel(1)).toBe('Needs Improvement');
+    expect(getRatingLabel(0)).toBe('No rating selected');
+  });
+
+  it('simulates multi-select toggle and true/false preview checks', () => {
+    // Multi-select toggle helper
+    const toggleMultiSelect = (current: string[], option: string): string[] => {
+      return current.includes(option) ? current.filter((item) => item !== option) : [...current, option];
+    };
+
+    let selected: string[] = [];
+    selected = toggleMultiSelect(selected, 'TypeScript');
+    expect(selected).toEqual(['TypeScript']);
+
+    selected = toggleMultiSelect(selected, 'Golang');
+    expect(selected).toEqual(['TypeScript', 'Golang']);
+
+    selected = toggleMultiSelect(selected, 'TypeScript');
+    expect(selected).toEqual(['Golang']);
+
+    // True/False answer matching
+    const checkTrueFalse = (userChoice: string, correctAnswer: string) => {
+      return userChoice === correctAnswer;
+    };
+
+    expect(checkTrueFalse('True', 'True')).toBe(true);
+    expect(checkTrueFalse('False', 'True')).toBe(false);
+  });
 });
