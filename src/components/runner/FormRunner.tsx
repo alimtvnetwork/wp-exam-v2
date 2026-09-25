@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
-import { FormModel, FormField, FormSubmissionResult, evaluateFileUploadValidation } from '@/lib/types/form';
+import {
+  FormModel,
+  FormField,
+  FormSubmissionResult,
+  evaluateFileUploadValidation,
+  parseVideoEmbedUrl,
+} from '@/lib/types/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -22,6 +28,8 @@ import {
   UploadCloud,
   FileText,
   X,
+  Video,
+  Film,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getTheme, getThemeCssVariables, THEME_PRESETS } from '@/themes/theme-definitions';
@@ -804,6 +812,13 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           </CardHeader>
 
           <CardContent className="space-y-4 p-6">
+            {currentField.type !== 'video' && currentField.videoUrl && (
+              <RunnerVideoPlayer
+                videoUrl={currentField.videoUrl}
+                videoCaption={currentField.videoCaption}
+                title={currentField.label}
+              />
+            )}
             {renderFieldInput(currentField, answers[currentField.id], (val) => handleAnswerChange(currentField.id, val))}
 
             <div className="flex justify-between items-center pt-4 border-t border-border">
@@ -882,6 +897,13 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                         <span className="text-[10px] text-muted-foreground font-mono">Optional</span>
                       )}
                     </label>
+                    {f.type !== 'video' && f.videoUrl && (
+                      <RunnerVideoPlayer
+                        videoUrl={f.videoUrl}
+                        videoCaption={f.videoCaption}
+                        title={f.label}
+                      />
+                    )}
                     {renderFieldInput(f, answers[f.id], (val) => handleAnswerChange(f.id, val))}
                   </div>
                 );
@@ -1056,10 +1078,72 @@ const RunnerFileUpload: React.FC<{
   );
 };
 
+const RunnerVideoPlayer: React.FC<{
+  videoUrl?: string;
+  videoCaption?: string;
+  title?: string;
+}> = ({ videoUrl, videoCaption, title }) => {
+  const embedInfo = parseVideoEmbedUrl(videoUrl);
+  const hasEmbed = Boolean(embedInfo && embedInfo.embedUrl);
+
+  if (!hasEmbed) {
+    return (
+      <div className="w-full aspect-video rounded-xl border-2 border-dashed border-border/80 flex flex-col items-center justify-center p-6 text-center bg-muted/20">
+        <Film className="w-9 h-9 text-muted-foreground/50 mb-2" />
+        <p className="text-xs font-semibold text-foreground">Video Stream Unavailable</p>
+        <p className="text-[11px] text-muted-foreground mt-1">
+          No valid video URL was configured for this question.
+        </p>
+      </div>
+    );
+  }
+
+  const isDirectVideo = Boolean(embedInfo && embedInfo.isDirectVideo);
+
+  return (
+    <div className="space-y-2">
+      <div className="w-full aspect-video rounded-xl overflow-hidden border border-border shadow-md bg-black/60">
+        {isDirectVideo ? (
+          <video
+            controls
+            className="w-full h-full object-contain"
+            src={embedInfo ? embedInfo.embedUrl : ''}
+          >
+            Your browser does not support HTML5 video playback.
+          </video>
+        ) : (
+          <iframe
+            className="w-full h-full"
+            src={embedInfo ? embedInfo.embedUrl : ''}
+            title={title || 'Assessment Video Stream'}
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        )}
+      </div>
+
+      {videoCaption && (
+        <p className="text-xs text-muted-foreground italic px-1 flex items-center gap-1.5">
+          <span>ℹ️</span>
+          <span>{videoCaption}</span>
+        </p>
+      )}
+    </div>
+  );
+};
+
 function renderFieldInput(field: FormField, value: unknown, onChange: (val: unknown) => void) {
   const strValue = typeof value === 'string' ? value : '';
 
   switch (field.type) {
+    case 'video':
+      return (
+        <RunnerVideoPlayer
+          videoUrl={field.videoUrl}
+          videoCaption={field.videoCaption}
+          title={field.label}
+        />
+      );
     case 'file_upload':
       return <RunnerFileUpload field={field} value={value} onChange={onChange} />;
     case 'link':

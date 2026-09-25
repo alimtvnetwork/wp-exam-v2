@@ -14,7 +14,8 @@ export type FieldType =
   | 'rating'
   | 'file_upload'
   | 'link'
-  | 'regex_text';
+  | 'regex_text'
+  | 'video';
 
 export type StringMatchRuleType =
   | 'starts_with'
@@ -92,6 +93,8 @@ export interface FormField {
   moduleName?: string;
   url?: string;
   linkText?: string;
+  videoUrl?: string;
+  videoCaption?: string;
   validationRule?: FieldValidationRule;
   fileValidation?: FileValidationRule;
   triggers?: FieldActionTrigger[];
@@ -408,3 +411,82 @@ export function evaluateFileUploadValidation(
     message: `Valid file upload: ${file.name} (${fileSizeMb} MB). Verified and accepted.`,
   };
 }
+
+export interface VideoEmbedDetails {
+  platform: 'youtube' | 'vimeo' | 'loom' | 'direct' | 'custom';
+  embedUrl: string;
+  isDirectVideo: boolean;
+}
+
+/**
+ * Parses video URLs from YouTube, Vimeo, Loom, or direct MP4/WebM files into responsive embed URLs.
+ */
+export function parseVideoEmbedUrl(rawUrl?: string): VideoEmbedDetails | null {
+  const hasUrl = Boolean(rawUrl && rawUrl.trim().length > 0);
+
+  if (!hasUrl) {
+    return null;
+  }
+
+  const cleanUrl = (rawUrl || '').trim();
+
+  // YouTube format check: watch?v=ID, youtu.be/ID, embed/ID, shorts/ID
+  const ytMatch = cleanUrl.match(/(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/);
+  const hasYtMatch = Boolean(ytMatch && ytMatch[1]);
+
+  if (hasYtMatch) {
+    const videoId = ytMatch ? ytMatch[1] : '';
+
+    return {
+      platform: 'youtube',
+      embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}`,
+      isDirectVideo: false,
+    };
+  }
+
+  // Vimeo format check: vimeo.com/ID
+  const vimeoMatch = cleanUrl.match(/vimeo\.com\/(?:channels\/(?:\w+\/)?|groups\/(?:[^/]*)\/videos\/|album\/(?:\d+)\/video\/|video\/|)(\d+)/);
+  const hasVimeoMatch = Boolean(vimeoMatch && vimeoMatch[1]);
+
+  if (hasVimeoMatch) {
+    const videoId = vimeoMatch ? vimeoMatch[1] : '';
+
+    return {
+      platform: 'vimeo',
+      embedUrl: `https://player.vimeo.com/video/${videoId}`,
+      isDirectVideo: false,
+    };
+  }
+
+  // Loom format check: loom.com/share/ID or loom.com/embed/ID
+  const loomMatch = cleanUrl.match(/loom\.com\/(?:share|embed)\/([a-zA-Z0-9]+)/);
+  const hasLoomMatch = Boolean(loomMatch && loomMatch[1]);
+
+  if (hasLoomMatch) {
+    const videoId = loomMatch ? loomMatch[1] : '';
+
+    return {
+      platform: 'loom',
+      embedUrl: `https://www.loom.com/embed/${videoId}`,
+      isDirectVideo: false,
+    };
+  }
+
+  // Direct video file extensions
+  const isDirect = /\.(mp4|webm|ogg|mov)(\?.*)?$/i.test(cleanUrl);
+
+  if (isDirect) {
+    return {
+      platform: 'direct',
+      embedUrl: cleanUrl,
+      isDirectVideo: true,
+    };
+  }
+
+  return {
+    platform: 'custom',
+    embedUrl: cleanUrl,
+    isDirectVideo: false,
+  };
+}
+

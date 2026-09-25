@@ -11,6 +11,7 @@ import {
   evaluateFileUploadValidation,
   FileValidationRule,
   FieldActionTrigger,
+  parseVideoEmbedUrl,
 } from '@/lib/types/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -78,6 +79,8 @@ import {
   Calendar,
   CircleDot,
   CheckSquare,
+  Video,
+  Film,
 } from 'lucide-react';
 import { DesignValidationIssue } from '@/lib/design-validation-engine';
 
@@ -183,6 +186,9 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
     field.type === 'single_choice' ||
     field.type === 'dropdown';
   const isLinkField = field.type === 'link';
+  const isVideoField = field.type === 'video';
+  const hasAttachedVideo = Boolean(field.videoUrl && field.videoUrl.trim().length > 0);
+  const [showVideoConfig, setShowVideoConfig] = useState(Boolean(field.videoUrl));
   const isRegexField = field.type === 'regex_text';
   const isFileUploadField = field.type === 'file_upload';
   const isTextInputField =
@@ -283,6 +289,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
       case 'link':
       case 'file_upload':
         return 'bg-purple-500/15 text-purple-400 border-purple-500/30';
+      case 'video':
+        return 'bg-rose-500/15 text-rose-400 border-rose-500/30';
       default:
         return 'bg-muted text-muted-foreground border-border';
     }
@@ -591,6 +599,21 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   )}
                 </DropdownMenuItem>
 
+                <DropdownMenuItem
+                  onClick={() => setShowVideoConfig(!showVideoConfig)}
+                  className="text-xs flex items-center justify-between cursor-pointer py-1.5"
+                >
+                  <div className="flex items-center gap-2">
+                    <Video className="w-3.5 h-3.5 text-rose-400" />
+                    <span>Attach Video / Walkthrough</span>
+                  </div>
+                  {field.videoUrl ? (
+                    <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-rose-500/10 text-rose-400 border-rose-500/30 font-mono">
+                      Active
+                    </Badge>
+                  ) : null}
+                </DropdownMenuItem>
+
                 <DropdownMenuSeparator className="my-1 border-border/80" />
 
                 <DropdownMenuSub>
@@ -731,6 +754,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <SelectItem value="regex_text" className="text-xs">🔤 Regex Verified Input</SelectItem>
                   <SelectItem value="link" className="text-xs">🔗 Reference Link</SelectItem>
                   <SelectItem value="file_upload" className="text-xs">File Upload</SelectItem>
+                  <SelectItem value="video" className="text-xs">🎥 Video Briefing / Walkthrough</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -778,6 +802,59 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     value={field.linkText || ''}
                     onChange={(e) => onUpdate(id, { linkText: e.target.value })}
                     placeholder="Review Official Guidelines"
+                    className="text-xs h-8 bg-background text-foreground"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Video Walkthrough & Media Configuration */}
+          {(isVideoField || showVideoConfig || hasAttachedVideo) && (
+            <div className="p-3.5 bg-muted/30 rounded-lg border border-border space-y-2.5">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                  <Video className="w-3.5 h-3.5 text-rose-500" />
+                  <span>Video Briefing & Media Configuration</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-[10px] font-mono border-border text-muted-foreground">
+                    YouTube • Vimeo • Loom • MP4
+                  </Badge>
+                  {!isVideoField && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowVideoConfig(false);
+                        onUpdate(id, { videoUrl: undefined, videoCaption: undefined });
+                      }}
+                      className="h-5 px-1.5 text-[10px] text-muted-foreground hover:text-destructive"
+                      title="Detach video"
+                    >
+                      <X className="w-3 h-3" /> Detach
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div>
+                  <Label className="text-[11px] text-muted-foreground block mb-1">Video Stream or Embed URL</Label>
+                  <Input
+                    value={field.videoUrl || ''}
+                    onChange={(e) => onUpdate(id, { videoUrl: e.target.value })}
+                    placeholder="https://www.youtube.com/watch?v=... or direct .mp4"
+                    className="text-xs h-8 font-mono bg-background text-foreground"
+                  />
+                </div>
+                <div>
+                  <Label className="text-[11px] text-muted-foreground block mb-1">Optional Video Caption / Prompt Instructions</Label>
+                  <Input
+                    value={field.videoCaption || ''}
+                    onChange={(e) => onUpdate(id, { videoCaption: e.target.value })}
+                    placeholder="e.g. Watch until 02:45 before answering below"
                     className="text-xs h-8 bg-background text-foreground"
                   />
                 </div>
@@ -1398,8 +1475,78 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 </div>
               )}
 
+              {/* Video Walkthrough / Briefing Interactive Live Preview */}
+              {(isVideoField || hasAttachedVideo) && (
+                <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <Video className="w-3.5 h-3.5 text-rose-500" />
+                      <span>Video Stream Preview:</span>
+                    </Label>
+                    {field.videoUrl && (
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-6 text-[10px] gap-1 border-primary/40 text-primary"
+                        onClick={() => window.open(field.videoUrl, '_blank')}
+                      >
+                        <ExternalLink className="w-3 h-3" /> Open Stream
+                      </Button>
+                    )}
+                  </div>
+
+                  {(() => {
+                    const embedInfo = parseVideoEmbedUrl(field.videoUrl);
+                    const hasEmbed = Boolean(embedInfo && embedInfo.embedUrl);
+
+                    if (hasEmbed) {
+                      return (
+                        <div className="space-y-2">
+                          <div className="w-full aspect-video rounded-lg overflow-hidden border border-border bg-black/60 shadow-inner">
+                            {embedInfo && embedInfo.isDirectVideo ? (
+                              <video
+                                controls
+                                className="w-full h-full object-contain"
+                                src={embedInfo.embedUrl}
+                              >
+                                Your browser does not support HTML5 video playback.
+                              </video>
+                            ) : (
+                              <iframe
+                                className="w-full h-full"
+                                src={embedInfo ? embedInfo.embedUrl : ''}
+                                title={field.label || 'Question Video'}
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                              />
+                            )}
+                          </div>
+                          {field.videoCaption && (
+                            <p className="text-[11px] text-muted-foreground italic flex items-center gap-1">
+                              <span>ℹ️</span>
+                              <span>{field.videoCaption}</span>
+                            </p>
+                          )}
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="p-4 rounded-lg border-2 border-dashed border-border/80 text-center space-y-1.5 bg-muted/20">
+                        <Film className="w-8 h-8 mx-auto text-muted-foreground/60" />
+                        <p className="text-xs font-medium text-foreground">No Video URL Configured</p>
+                        <p className="text-[10px] text-muted-foreground max-w-sm mx-auto">
+                          Paste a valid YouTube (e.g. youtube.com/watch?v=...), Vimeo, Loom, or direct MP4 link in the field editor above to preview playback.
+                        </p>
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
+
               {/* Fallback Simulation for Other Field Types (Never Blank) */}
-              {!['phone', 'multiple_choice', 'single_choice', 'dropdown', 'rating', 'true_false', 'paragraph', 'short_answer', 'email', 'regex_text', 'date', 'scale', 'link', 'file_upload'].includes(field.type) && (
+              {!['phone', 'multiple_choice', 'single_choice', 'dropdown', 'rating', 'true_false', 'paragraph', 'short_answer', 'email', 'regex_text', 'date', 'scale', 'link', 'file_upload', 'video'].includes(field.type) && (
                 <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border">
                   <Label className="text-xs font-semibold text-foreground">Field Preview:</Label>
                   <Input

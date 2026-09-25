@@ -13,6 +13,7 @@ import {
   Link,
   ShieldCheck,
   Upload,
+  Video,
   Plus,
   Layers,
   Search,
@@ -144,6 +145,15 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     icon: Upload,
     category: 'media',
     colorClass: 'text-rose-400 bg-rose-500/10 border-rose-500/25',
+  },
+  {
+    type: 'video',
+    label: 'Video Briefing / Walkthrough',
+    shortLabel: 'Video Embed',
+    description: 'YouTube, Vimeo, Loom, or direct MP4 video',
+    icon: Video,
+    category: 'media',
+    colorClass: 'text-rose-500 bg-rose-500/10 border-rose-500/25',
   },
 ];
 

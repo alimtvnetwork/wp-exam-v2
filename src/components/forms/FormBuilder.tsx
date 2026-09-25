@@ -266,6 +266,11 @@ export const FormBuilder: React.FC = () => {
       file_upload: {
         label: 'Upload CV / Work Samples (PDF, ZIP)',
       },
+      video: {
+        label: 'Watch the Technical Walkthrough / Video Briefing',
+        videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+        videoCaption: 'Watch the briefing video carefully before proceeding.',
+      },
     };
 
     addField({
@@ -273,13 +278,15 @@ export const FormBuilder: React.FC = () => {
       type,
       label: defaults[type]?.label || 'New Question',
       placeholder: defaults[type]?.placeholder || '',
-      isRequired: true,
+      isRequired: type !== 'video' && type !== 'link',
       options: defaults[type]?.options,
       correctAnswer: defaults[type]?.correctAnswer,
       url: defaults[type]?.url,
       linkText: defaults[type]?.linkText,
+      videoUrl: defaults[type]?.videoUrl,
+      videoCaption: defaults[type]?.videoCaption,
       validationRule: defaults[type]?.validationRule,
-      points: 10,
+      points: type === 'video' || type === 'link' ? 0 : 10,
     });
 
     toast.success(`Added ${type.replace('_', ' ')} question`);

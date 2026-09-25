@@ -58,6 +58,8 @@ CURRENT QUESTION CONTEXT:
 ${question.options && question.options.length > 0 ? `- Options:\n${question.options.map((o, idx) => `  [${String.fromCharCode(65 + idx)}] ${o}`).join('\n')}` : ''}
 ${question.correctAnswer ? `- Designated Correct Answer: ${Array.isArray(question.correctAnswer) ? question.correctAnswer.join(', ') : question.correctAnswer}` : ''}
 ${question.placeholder ? `- Input Placeholder: "${question.placeholder}"` : ''}
+${question.videoUrl ? `- Video URL: "${question.videoUrl}"` : ''}
+${question.videoCaption ? `- Video Caption: "${question.videoCaption}"` : ''}
 
 OUTPUT CONTRACT:
 Return ONLY a valid JSON object matching this schema (no surrounding markdown or markdown code blocks):
@@ -68,7 +70,9 @@ Return ONLY a valid JSON object matching this schema (no surrounding markdown or
   "correctAnswer": "Option A",
   "points": 10,
   "isRequired": true,
-  "placeholder": "Descriptive placeholder guidance..."
+  "placeholder": "Descriptive placeholder guidance...",
+  "videoUrl": "https://www.youtube.com/watch?v=... (optional)",
+  "videoCaption": "Watch video briefing before answering (optional)"
 }`;
 
   // Current Question JSON
@@ -129,6 +133,14 @@ Return ONLY a valid JSON object matching this schema (no surrounding markdown or
 
       if (typeof parsed.group === 'string') {
         updates.group = parsed.group;
+      }
+
+      if (typeof parsed.videoUrl === 'string') {
+        updates.videoUrl = parsed.videoUrl;
+      }
+
+      if (typeof parsed.videoCaption === 'string') {
+        updates.videoCaption = parsed.videoCaption;
       }
 
       onUpdateQuestion(updates);

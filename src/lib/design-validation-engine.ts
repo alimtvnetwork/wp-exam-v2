@@ -141,7 +141,9 @@ export function auditFormDesign(
     }
 
     // 3. Quiz Scoring Invariants
-    if (formType === 'quiz') {
+    const isInformationalField = field.type === 'link' || field.type === 'video';
+
+    if (formType === 'quiz' && !isInformationalField) {
       if (!field.points || field.points <= 0) {
         issues.push({
           id: `issue-points-${field.id}`,
