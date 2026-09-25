@@ -14,7 +14,7 @@ import {
   Briefcase,
   Play
 } from 'lucide-react';
-import { getTheme, getThemeCssVariables } from '@/themes/theme-definitions';
+import { useTheme, AppThemeType } from '@/lib/theme-context';
 import {
   Select,
   SelectContent,
@@ -42,16 +42,17 @@ const STATIC_COUNTRIES: CountryOption[] = [
   { code: 'MY', name: 'Malaysia', prefix: '+60', flag: '🇲🇾' },
 ];
 
-const THEME_OPTIONS = [
-  { id: 'riseup-asia', name: 'Rise Up Asia (Warm Gold & Navy)' },
+const THEME_OPTIONS: { id: AppThemeType; name: string }[] = [
+  { id: 'riseup', name: 'Rise Up Asia (Warm Gold & Navy)' },
   { id: 'dracula', name: 'Antigravity Dracula (Dark Purple)' },
-  { id: 'vscode-dark', name: 'VS Code Dark (Slate & Cyan)' },
-  { id: 'microsoft-blue', name: 'Clean Light (Enterprise Clean)' },
+  { id: 'letterly', name: 'Letterly (Deep Navy & Violet)' },
+  { id: 'obsidian', name: 'VS Code Dark (Slate & Cyan)' },
+  { id: 'clean', name: 'Clean Light (Enterprise Clean)' },
 ];
 
 export const WizardRunner: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<number>(1);
-  const [activeTheme, setActiveTheme] = useState<string>('riseup-asia');
+  const { theme, setTheme } = useTheme();
 
   // Form State
   const [fullName, setFullName] = useState<string>('');
@@ -151,68 +152,35 @@ export const WizardRunner: React.FC = () => {
     setIsSubmitted(true);
   };
 
-  const themeDef = getTheme(activeTheme);
-  const themeVars = getThemeCssVariables(themeDef);
-
   return (
-    <div 
-      className={`form-wizard-container theme-${activeTheme} max-w-4xl mx-auto p-6 rounded-2xl shadow-2xl border transition-all duration-300 font-sans`}
-      style={{
-        backgroundColor: themeDef.colors.cardBg,
-        borderColor: themeDef.colors.cardBorder,
-        color: themeDef.colors.textPrimary,
-        ...themeVars,
-      }}
-    >
+    <div className="form-wizard-container max-w-4xl mx-auto p-6 rounded-2xl shadow-xl bg-card border border-border text-foreground transition-all duration-300 font-sans">
       {/* Theme Selector Top Bar */}
-      <div 
-        className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 mb-6 border-b gap-3"
-        style={{ borderColor: themeDef.colors.cardBorder }}
-      >
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center pb-4 mb-6 border-b border-border gap-3">
         <div>
-          <h2 className="text-xl font-bold tracking-tight" style={{ color: themeDef.colors.textPrimary }}>
+          <h2 className="text-xl font-bold tracking-tight text-foreground font-heading">
             WP Exam & Form Engine
           </h2>
-          <p className="text-xs" style={{ color: themeDef.colors.textSecondary }}>
+          <p className="text-xs text-muted-foreground">
             Universal 4-Step Dynamic Candidate Application
           </p>
         </div>
         <div className="flex items-center space-x-2">
-          <label className="text-xs font-semibold" style={{ color: themeDef.colors.textSecondary }}>
+          <label className="text-xs font-semibold text-muted-foreground">
             Theme:
           </label>
           <Select 
-            value={activeTheme} 
-            onValueChange={(val) => {
-              setActiveTheme(val);
-              const nextTheme = getTheme(val);
-              document.documentElement.setAttribute('data-theme', nextTheme.id);
-            }}
+            value={theme} 
+            onValueChange={(val) => setTheme(val as AppThemeType)}
           >
-            <SelectTrigger 
-              className="h-8 text-xs w-[240px] rounded-lg border font-medium shadow-sm"
-              style={{
-                backgroundColor: themeDef.colors.background,
-                borderColor: themeDef.colors.cardBorder,
-                color: themeDef.colors.textPrimary,
-              }}
-            >
+            <SelectTrigger className="h-8 text-xs w-[240px] rounded-lg border border-border bg-background text-foreground font-medium shadow-sm">
               <SelectValue placeholder="Select Theme" />
             </SelectTrigger>
-            <SelectContent 
-              className="border shadow-xl backdrop-blur-md rounded-xl"
-              style={{
-                backgroundColor: themeDef.colors.cardBg,
-                borderColor: themeDef.colors.cardBorder,
-                color: themeDef.colors.textPrimary,
-              }}
-            >
+            <SelectContent className="border border-border shadow-xl bg-card text-foreground rounded-xl">
               {THEME_OPTIONS.map((t) => (
                 <SelectItem 
                   key={t.id} 
                   value={t.id}
                   className="text-xs cursor-pointer focus:bg-accent/40"
-                  style={{ color: themeDef.colors.textPrimary }}
                 >
                   {t.name}
                 </SelectItem>
@@ -281,7 +249,7 @@ export const WizardRunner: React.FC = () => {
           {/* STEP 1: Personal & WhatsApp Details */}
           {currentStep === 1 && (
             <div className="space-y-5 animate-in fade-in-50 duration-200">
-              <h3 className="text-base font-semibold border-b pb-2 flex items-center gap-2">
+              <h3 className="text-base font-semibold border-b border-border pb-2 flex items-center gap-2 font-heading">
                 <User className="w-4 h-4 text-primary" /> Step 1: Personal Information & Contact
               </h3>
 
@@ -292,7 +260,7 @@ export const WizardRunner: React.FC = () => {
                   value={fullName} 
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. Alexandra Chen"
-                  className="w-full px-3 py-2 text-sm bg-background border border-border rounded-md focus:ring-2 focus:ring-primary focus:outline-none"
+                  className="w-full px-3 py-2 text-sm bg-background border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                   required
                 />
               </div>
@@ -305,7 +273,7 @@ export const WizardRunner: React.FC = () => {
                     value={email} 
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="alexandra@example.com"
-                    className={`w-full px-3 py-2 text-sm bg-background border rounded-md focus:ring-2 focus:ring-primary focus:outline-none ${
+                    className={`w-full px-3 py-2 text-sm bg-background border rounded-md text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none ${
                       emailError ? 'border-destructive' : 'border-border'
                     }`}
                     required
@@ -320,8 +288,9 @@ export const WizardRunner: React.FC = () => {
               </div>
 
               {/* Country & WhatsApp Phone Input */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                <div>
+              <div>
+                <label className="block text-xs font-medium mb-1">WhatsApp Phone Number *</label>
+                <div className="flex gap-2">
                   <Select
                     value={selectedCountry.code}
                     onValueChange={(val) => {
@@ -329,62 +298,41 @@ export const WizardRunner: React.FC = () => {
                       if (found) setSelectedCountry(found);
                     }}
                   >
-                    <SelectTrigger 
-                      className="w-full h-10 text-xs border rounded-md"
-                      style={{
-                        backgroundColor: themeDef.colors.background,
-                        borderColor: themeDef.colors.cardBorder,
-                        color: themeDef.colors.textPrimary,
-                      }}
-                    >
+                    <SelectTrigger className="w-[180px] sm:w-[220px] h-10 text-xs border border-border bg-background text-foreground rounded-md shadow-sm shrink-0">
                       <SelectValue placeholder="Select Country" />
                     </SelectTrigger>
-                    <SelectContent 
-                      className="border shadow-xl backdrop-blur-md rounded-xl max-h-56"
-                      style={{
-                        backgroundColor: themeDef.colors.cardBg,
-                        borderColor: themeDef.colors.cardBorder,
-                        color: themeDef.colors.textPrimary,
-                      }}
-                    >
+                    <SelectContent className="border border-border shadow-xl bg-card text-foreground rounded-xl max-h-56">
                       {STATIC_COUNTRIES.map((c) => (
                         <SelectItem 
                           key={c.code} 
                           value={c.code}
                           className="text-xs cursor-pointer focus:bg-accent/40"
-                          style={{ color: themeDef.colors.textPrimary }}
                         >
                           {c.flag} {c.name} ({c.prefix})
                         </SelectItem>
                       ))}
                     </SelectContent>
                   </Select>
-                </div>
 
-                <div className="sm:col-span-2">
-                  <label className="block text-xs font-medium mb-1">WhatsApp Phone Number *</label>
-                  <div className="flex gap-2">
-                    <span className="inline-flex items-center px-3 text-sm bg-muted border border-border rounded-md">
-                      {selectedCountry.flag} {selectedCountry.prefix}
-                    </span>
+                  <div className="relative flex-1">
                     <input 
                       type="tel"
                       value={rawPhone}
                       onChange={(e) => setRawPhone(e.target.value)}
                       placeholder="1712345678"
-                      className="flex-1 px-3 py-2 text-sm bg-background border border-border rounded-md focus:ring-2 focus:ring-primary focus:outline-none"
+                      className="w-full h-10 px-3 py-2 text-sm bg-background border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                       required
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Real-time WhatsApp Deep Link Ping Verification */}
+              {/* Real-time WhatsApp Link Preview */}
               {whatsAppDeepLink && (
-                <div className="p-3 bg-muted/60 border border-border rounded-md flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs">
+                <div className="p-2.5 bg-muted/40 border border-border rounded-md flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
                     <Phone className="w-4 h-4 text-emerald-500" />
-                    <span>Formatted WhatsApp Deep Link: <code>{whatsAppDeepLink}</code></span>
+                    <span>WhatsApp: <strong className="text-foreground">{selectedCountry.prefix} {rawPhone}</strong></span>
                   </div>
                   <a 
                     href={whatsAppDeepLink} 
@@ -392,22 +340,22 @@ export const WizardRunner: React.FC = () => {
                     rel="noopener noreferrer"
                     className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline"
                   >
-                    Test WhatsApp <ExternalLink className="w-3 h-3" />
+                    Open Chat <ExternalLink className="w-3 h-3" />
                   </a>
                 </div>
               )}
             </div>
           )}
 
-          {/* STEP 2: Experience & Dynamic Conditional Branching */}
+          {/* STEP 2: Experience & Qualifications */}
           {currentStep === 2 && (
             <div className="space-y-5 animate-in fade-in-50 duration-200">
-              <h3 className="text-base font-semibold border-b pb-2 flex items-center gap-2">
-                <Briefcase className="w-4 h-4 text-primary" /> Step 2: Experience & Conditional Qualifications
+              <h3 className="text-base font-semibold border-b border-border pb-2 flex items-center gap-2 font-heading">
+                <Briefcase className="w-4 h-4 text-primary" /> Step 2: Experience & Qualifications
               </h3>
 
               <div>
-                <label className="block text-xs font-medium mb-2">Are you currently open to work immediately? *</label>
+                <label className="block text-xs font-medium mb-2 text-foreground">Are you currently open to work immediately? *</label>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2 cursor-pointer text-sm">
                     <input 
@@ -432,36 +380,30 @@ export const WizardRunner: React.FC = () => {
                 </div>
               </div>
 
-              {/* Dynamic Branching: Show conditional field only when openToWork === 'yes' */}
+              {/* Dynamic Branching: Show years of experience when openToWork === 'yes' */}
               {isOpenToWork === 'yes' && (
-                <div className="p-4 border border-primary/30 bg-primary/5 rounded-md space-y-3 animate-in fade-in duration-300">
-                  <div className="flex items-center gap-2 text-xs font-semibold text-primary">
-                    <CheckCircle2 className="w-4 h-4" /> Conditional Section Triggered (Open to Work)
-                  </div>
-                  <label className="block text-xs font-medium">Years of Relevant Experience *</label>
+                <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
+                  <label className="block text-xs font-medium text-foreground">Years of Relevant Experience *</label>
                   <input 
                     type="number" 
                     min="0"
                     max="30"
                     value={yearsOfExperience}
                     onChange={(e) => setYearsOfExperience(e.target.value)}
-                    className="w-32 px-3 py-2 text-sm bg-background border border-border rounded-md"
+                    className="w-full sm:w-48 px-3 py-2 text-sm bg-background border border-border rounded-md text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                     required
                   />
-                  <p className="text-xs text-muted-foreground">
-                    Required on server only when Open to Work is marked Yes.
-                  </p>
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-medium mb-1">Portfolio or GitHub URL</label>
+                <label className="block text-xs font-medium mb-1 text-foreground">Portfolio or GitHub URL</label>
                 <input 
                   type="url"
                   value={portfolioUrl}
                   onChange={(e) => setPortfolioUrl(e.target.value)}
                   placeholder="https://github.com/my-profile"
-                  className={`w-full px-3 py-2 text-sm bg-background border rounded-md ${
+                  className={`w-full px-3 py-2 text-sm bg-background border rounded-md text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none ${
                     portfolioError ? 'border-destructive' : 'border-border'
                   }`}
                 />
@@ -472,26 +414,26 @@ export const WizardRunner: React.FC = () => {
             </div>
           )}
 
-          {/* STEP 3: Knowledge, Video Embed & FAQ Accordion */}
+          {/* STEP 3: Knowledge Screening & Questions */}
           {currentStep === 3 && (
             <div className="space-y-5 animate-in fade-in-50 duration-200">
-              <h3 className="text-base font-semibold border-b pb-2 flex items-center gap-2">
-                <HelpCircle className="w-4 h-4 text-primary" /> Step 3: Technical Screening & Mandatory FAQ
+              <h3 className="text-base font-semibold border-b border-border pb-2 flex items-center gap-2 font-heading">
+                <HelpCircle className="w-4 h-4 text-primary" /> Step 3: Technical Screening & Questions
               </h3>
 
-              {/* Video Embed Simulation */}
-              <div className="p-4 bg-muted/40 border border-border rounded-md space-y-2">
+              {/* Video Embed */}
+              <div className="p-4 bg-muted/30 border border-border rounded-md space-y-2">
                 <div className="flex items-center gap-2 text-xs font-semibold text-muted-foreground">
-                  <Play className="w-4 h-4 text-primary" /> Embedded Briefing Video
+                  <Play className="w-4 h-4 text-primary" /> Technical Briefing Video
                 </div>
-                <div className="aspect-video w-full max-w-md bg-black/80 rounded flex items-center justify-center text-white text-xs">
-                  <span>[ Video Question: Architecture & DAG Topologies ]</span>
+                <div className="aspect-video w-full max-w-md bg-muted rounded flex items-center justify-center text-muted-foreground text-xs border border-border">
+                  <span>Architecture & System Design Briefing</span>
                 </div>
               </div>
 
               {/* Rich MCQ Radio */}
               <div>
-                <label className="block text-xs font-medium mb-2">
+                <label className="block text-xs font-medium mb-2 text-foreground">
                   Which database design pattern isolates tenant workloads while keeping schema queries lean? *
                 </label>
                 <div className="space-y-2">
@@ -519,8 +461,8 @@ export const WizardRunner: React.FC = () => {
                 </div>
               </div>
 
-              {/* Mandatory FAQ Gating Checkbox */}
-              <div className="p-4 bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 rounded-md">
+              {/* Agreement Checkbox */}
+              <div className="p-4 bg-muted/30 border border-border rounded-md">
                 <label className="flex items-start gap-2 cursor-pointer text-xs">
                   <input 
                     type="checkbox"
@@ -529,8 +471,8 @@ export const WizardRunner: React.FC = () => {
                     className="mt-0.5"
                     required
                   />
-                  <span>
-                    <strong>Mandatory Gating:</strong> I have reviewed the curriculum FAQs and acknowledge that submissions undergo automated cycle and conditional validation.
+                  <span className="text-foreground">
+                    I confirm that the information provided is accurate and agree to the assessment terms.
                   </span>
                 </label>
               </div>
@@ -540,8 +482,8 @@ export const WizardRunner: React.FC = () => {
           {/* STEP 4: Review & Final Submission */}
           {currentStep === 4 && (
             <div className="space-y-5 animate-in fade-in-50 duration-200">
-              <h3 className="text-base font-semibold border-b pb-2 flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-primary" /> Step 4: Final Verification & Submit
+              <h3 className="text-base font-semibold border-b border-border pb-2 flex items-center gap-2 font-heading">
+                <CheckCircle2 className="w-4 h-4 text-primary" /> Step 4: Review & Submit
               </h3>
 
               <div className="p-4 bg-muted/40 border border-border rounded-md space-y-3 text-xs">
@@ -560,7 +502,7 @@ export const WizardRunner: React.FC = () => {
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <AlertCircle className="w-4 h-4 text-primary" />
                 <span>
-                  By clicking Submit, your application will be dispatched to the Laravel REST API with authoritative conditional verification.
+                  Please review your information carefully before submitting your application.
                 </span>
               </div>
             </div>
@@ -613,9 +555,9 @@ export const WizardRunner: React.FC = () => {
           <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
             <CheckCircle2 className="w-8 h-8" />
           </div>
-          <h3 className="text-xl font-bold">Application Submitted Successfully!</h3>
+          <h3 className="text-xl font-bold font-heading">Application Submitted Successfully!</h3>
           <p className="text-xs text-muted-foreground max-w-md mx-auto">
-            Your candidate submission has passed authoritative conditional validation and has been persisted in the project SQLite database.
+            Your application has been received successfully. We will review your details and get back to you soon.
           </p>
           <div className="pt-4">
             <button

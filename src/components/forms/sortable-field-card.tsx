@@ -798,7 +798,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {/* Phone / WhatsApp Interactive Live Tester */}
               {field.type === 'phone' && (
                 <div className="space-y-2 bg-background/60 p-3 rounded-lg border border-border">
-                  <Label className="text-xs font-semibold text-foreground">Candidate WhatsApp Input Simulation:</Label>
+                  <Label className="text-xs font-semibold text-foreground">WhatsApp Preview:</Label>
                   <div className="flex gap-2">
                     <Select value={previewTestCountry} onValueChange={setPreviewTestCountry}>
                       <SelectTrigger className="w-24 h-9 text-xs bg-background border-border">
@@ -843,7 +843,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                       <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                      <span>Candidate Rating Scale Simulation (1 - 5 Stars):</span>
+                      <span>Rating Scale (1 - 5):</span>
                     </Label>
                     {previewRating > 0 && (
                       <button
@@ -912,7 +912,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {field.type === 'true_false' && (
                 <div className="space-y-3 bg-background/60 p-3.5 rounded-xl border border-border">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-semibold text-foreground">Binary Choice Simulation:</Label>
+                    <Label className="text-xs font-semibold text-foreground">True / False Preview:</Label>
                     {previewSelectedChoice && (
                       <button
                         type="button"
@@ -974,7 +974,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                       <CheckSquare className="w-3.5 h-3.5 text-primary" />
-                      <span>Multi-Select Checkboxes Simulation:</span>
+                      <span>Multiple Choice Preview:</span>
                     </Label>
                     {previewMultipleChoices.length > 0 && (
                       <button
@@ -1039,7 +1039,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                       <CircleDot className="w-3.5 h-3.5 text-primary" />
-                      <span>Single-Choice Radio Simulation:</span>
+                      <span>Single Choice Preview:</span>
                     </Label>
                     {previewSelectedChoice && (
                       <button
@@ -1104,7 +1104,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {/* Dropdown Select Interactive Preview */}
               {field.type === 'dropdown' && (
                 <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border max-w-md">
-                  <Label className="text-xs font-semibold text-foreground">Dropdown Selection Simulation:</Label>
+                  <Label className="text-xs font-semibold text-foreground">Dropdown Preview:</Label>
                   <Select value={previewSelectedChoice} onValueChange={setPreviewSelectedChoice}>
                     <SelectTrigger className="w-full h-9 text-xs bg-background border-border">
                       <SelectValue placeholder={field.placeholder || 'Select an option...'} />
@@ -1130,7 +1130,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border max-w-sm">
                   <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-primary" />
-                    <span>Date Selection Simulation:</span>
+                    <span>Date Picker Preview:</span>
                   </Label>
                   <Input
                     type="date"
@@ -1150,7 +1150,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {field.type === 'scale' && (
                 <div className="space-y-3 bg-background/60 p-3.5 rounded-xl border border-border">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-semibold text-foreground">Numerical Scale Simulation (1 - 10):</Label>
+                    <Label className="text-xs font-semibold text-foreground">Scale (1 - 10):</Label>
                     <span className="font-mono text-primary font-bold text-xs">{previewScale} / 10</span>
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -1319,7 +1319,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                         <span className="text-primary underline">browse</span>
                       </span>
                       <span className="text-[10px] text-muted-foreground mt-1">
-                        Simulates file upload validation, size inspection & preview
+                        Click to test file selection and preview
                       </span>
                     </label>
                   )}
@@ -1330,7 +1330,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {field.type === 'paragraph' && (
                 <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border">
                   <div className="flex items-center justify-between">
-                    <Label className="text-xs font-semibold text-foreground">Multi-Line Essay Simulation:</Label>
+                    <Label className="text-xs font-semibold text-foreground">Text Area Preview:</Label>
                     <span className="text-[10px] text-muted-foreground font-mono">
                       {previewParagraph.length} chars • {previewParagraph.trim() ? previewParagraph.trim().split(/\s+/).length : 0} words
                     </span>
@@ -1364,7 +1364,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border">
                   <div className="flex items-center justify-between">
                     <Label className="text-xs font-semibold text-foreground">
-                      {field.type === 'email' ? 'Email Validation Test Box:' : 'Real-Time Validation Test Box:'}
+                      {field.type === 'email' ? 'Email Preview:' : 'Input Preview:'}
                     </Label>
                     {testInputValue && (
                       <button
@@ -1401,7 +1401,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {/* Fallback Simulation for Other Field Types (Never Blank) */}
               {!['phone', 'multiple_choice', 'single_choice', 'dropdown', 'rating', 'true_false', 'paragraph', 'short_answer', 'email', 'regex_text', 'date', 'scale', 'link', 'file_upload'].includes(field.type) && (
                 <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border">
-                  <Label className="text-xs font-semibold text-foreground">Interactive Response Simulation:</Label>
+                  <Label className="text-xs font-semibold text-foreground">Field Preview:</Label>
                   <Input
                     value={testInputValue}
                     onChange={(e) => setTestInputValue(e.target.value)}
