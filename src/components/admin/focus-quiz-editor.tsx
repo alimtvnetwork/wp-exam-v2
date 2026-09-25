@@ -889,7 +889,7 @@ export const FocusQuizEditor: React.FC<FocusQuizEditorProps> = ({ onLaunchRunner
                                     handleUpdateQuestion(q.id, { correctAnswer: next });
                                   }
                                 }}
-                                className="text-[10px] h-7 px-2 shrink-0"
+                                className="text-[10px] h-7 w-24 px-2 shrink-0 justify-center whitespace-nowrap"
                                 title="Mark as correct answer"
                               >
                                 {isCorrect ? 'Correct ✓' : 'Mark Correct'}

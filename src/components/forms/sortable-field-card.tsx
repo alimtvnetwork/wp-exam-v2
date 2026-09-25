@@ -1958,9 +1958,9 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                           type="button"
                           variant={isCorrect ? 'default' : 'outline'}
                           size="sm"
-                          className={`h-8 text-xs whitespace-nowrap transition-all ${
+                          className={`h-8 w-32 shrink-0 text-xs whitespace-nowrap transition-all justify-center ${
                             isCorrect
-                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-semibold'
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs'
                               : 'text-muted-foreground hover:text-foreground'
                           }`}
                           onClick={() => onUpdate(id, { correctAnswer: opt })}
@@ -1973,7 +1973,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive"
+                        className="h-8 w-8 shrink-0 p-0 text-muted-foreground hover:text-destructive text-base font-semibold"
                         onClick={() => {
                           const newOpts = field.options?.filter((_, i) => i !== optIndex);
                           onUpdate(id, { options: newOpts });
@@ -2018,7 +2018,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                       type="button"
                       variant={isSelected ? 'default' : 'outline'}
                       size="sm"
-                      className={`h-7 text-xs font-semibold transition-all ${
+                      className={`h-7 w-20 justify-center text-xs font-semibold transition-all ${
                         isSelected
                           ? val === 'True'
                             ? 'bg-emerald-600 text-white hover:bg-emerald-700'
