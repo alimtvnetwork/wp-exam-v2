@@ -20,6 +20,14 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { FormRunner } from '@/components/runner/FormRunner';
 import { JsonModal } from './json-modal';
 import { GoogleFormsImportModal } from './google-forms-import-modal';
@@ -50,6 +58,11 @@ import {
   Trash2,
   Search,
   Shield,
+  ShieldCheck,
+  Wand2,
+  ChevronDown,
+  Clock,
+  CheckCircle2,
 } from 'lucide-react';
 import {
   DndContext,
@@ -201,6 +214,10 @@ export const FormBuilder: React.FC = () => {
         placeholder: 'candidate@company.org',
       },
       phone: {
+        label: 'Candidate Direct Phone Number',
+        placeholder: '+880 1700 000000',
+      },
+      whatsapp: {
         label: 'Candidate Direct WhatsApp Number',
         placeholder: '+880 1700 000000',
       },
@@ -292,51 +309,57 @@ export const FormBuilder: React.FC = () => {
   const totalPoints = fields.reduce((acc, f) => acc + (f.points || 0), 0);
   const requiredCount = fields.filter((f) => f.isRequired).length;
 
+  const currentLiveUrl =
+    typeof window !== 'undefined' ? `${window.location.origin}/preview` : 'https://wpexam.io/preview';
+
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
-      {/* Top Action Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-card rounded-xl border border-border shadow-xs">
-        <div>
+      {/* Top Action Bar with Integrated Live URL Ribbon */}
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-card rounded-xl border border-border/80 shadow-xs">
+        <div className="space-y-1.5 min-w-0">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold tracking-tight text-foreground">
+            <h1 className="text-xl font-bold tracking-tight text-foreground truncate">
               Form & Assessment Builder
             </h1>
-            <Badge variant="secondary" className="text-xs font-mono">Google Forms Studio</Badge>
+            <Badge variant="secondary" className="text-[10px] font-mono shrink-0">
+              Studio
+            </Badge>
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
-            Design professional assessments, compound validations, custom branching, and scored quizzes.
-          </p>
+
+          {/* Integrated Live URL Pill */}
+          <div className="flex items-center gap-2 flex-wrap text-xs pt-0.5">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/40 border border-border/60 font-mono text-[11px] text-muted-foreground">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span className="truncate max-w-[200px] sm:max-w-xs">{currentLiveUrl}</span>
+              <button
+                type="button"
+                onClick={handleCopyLiveUrl}
+                className="p-0.5 hover:text-foreground text-muted-foreground transition-colors ml-1 rounded hover:bg-muted"
+                title="Copy Public Live URL to clipboard"
+              >
+                <Copy className="w-3 h-3" />
+              </button>
+            </div>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => window.open('/preview', '_blank')}
+              className="h-6 text-[11px] px-2 text-primary hover:bg-primary/10 gap-1 font-medium"
+              title="Open Dedicated Full-Screen Live Preview in New Tab"
+            >
+              <span>Open Tab</span>
+              <ExternalLink className="w-3 h-3" />
+            </Button>
+          </div>
         </div>
 
-        <div className="flex items-center gap-2 flex-wrap">
-          {/* AI Instruction Studio Button */}
-          <AiSectionAssistant section="builder" title="AI Architect" />
-
-          {/* Compacted JSON Import/Export Actions Menu */}
+        {/* Compact Aligned Action Controls */}
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
+          {/* Design Health Score Pill */}
           <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsJsonModalOpen(true)}
-            className="text-xs h-8 gap-1.5 border-border"
-          >
-            <FileJson className="w-3.5 h-3.5" />
-            <span>Actions ▾</span>
-          </Button>
-
-          {/* Import from Google Forms Button */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsGoogleModalOpen(true)}
-            className="text-xs h-8 gap-1.5 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 font-medium"
-            title="Import questions directly from a Google Form or API"
-          >
-            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Import Google Form</span>
-          </Button>
-
-          {/* Form Design Health & Validation Inspector */}
-          <Button
+            type="button"
             variant="outline"
             size="sm"
             onClick={() => setIsDesignPanelOpen(true)}
@@ -365,27 +388,83 @@ export const FormBuilder: React.FC = () => {
             </Badge>
           </Button>
 
-          {/* Visual Branching Flow Inspector */}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsFlowModalOpen(true)}
-            className="text-xs h-8 gap-1.5 border-border text-primary hover:bg-primary/10"
-            title="Inspect visual branching dependency map and simulate candidate path"
-          >
-            <GitBranch className="w-3.5 h-3.5" />
-            <span>Branching Flow</span>
-          </Button>
+          {/* Unified Tools ▾ Dropdown Menu */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-xs h-8 gap-1.5 border-border hover:bg-muted"
+                title="Open secondary builder tools and integrations"
+              >
+                <Wand2 className="w-3.5 h-3.5 text-primary" />
+                <span>Tools</span>
+                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-64 bg-popover border border-border shadow-xl p-1 text-xs">
+              <DropdownMenuLabel className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1">
+                Integrations & Tools
+              </DropdownMenuLabel>
 
-          {/* Live Runner Preview Modal */}
+              <DropdownMenuItem
+                onClick={() => setIsGoogleModalOpen(true)}
+                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-muted focus:bg-muted"
+              >
+                <div className="w-7 h-7 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                  <FileSpreadsheet className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="font-semibold text-foreground">Import Google Form</div>
+                  <div className="text-[10px] text-muted-foreground">Import fields, auth & customize logic</div>
+                </div>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => setIsFlowModalOpen(true)}
+                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-muted focus:bg-muted"
+              >
+                <div className="w-7 h-7 rounded-md bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
+                  <GitBranch className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="font-semibold text-foreground">Branching Flow & DAG</div>
+                  <div className="text-[10px] text-muted-foreground">Visual graph & path simulation</div>
+                </div>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => setIsJsonModalOpen(true)}
+                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-muted focus:bg-muted"
+              >
+                <div className="w-7 h-7 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center shrink-0">
+                  <FileJson className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="font-semibold text-foreground">JSON Schema Studio</div>
+                  <div className="text-[10px] text-muted-foreground">Export, backup or edit raw JSON</div>
+                </div>
+              </DropdownMenuItem>
+
+              <DropdownMenuSeparator className="my-1 bg-border/60" />
+
+              <div className="p-1">
+                <AiSectionAssistant section="builder" title="AI Section Studio" />
+              </div>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Interactive Modal Preview Button */}
           <Button
+            type="button"
             variant="outline"
             size="sm"
             onClick={() => setIsPreviewOpen(true)}
-            className="text-xs h-8 gap-1.5 border-border"
+            className="text-xs h-8 gap-1.5 border-border hover:bg-muted"
+            title="Preview interactive form in modal runner"
           >
-            <Eye className="w-3.5 h-3.5" />
-            <span>Modal Preview</span>
+            <Eye className="w-3.5 h-3.5 text-sky-400" />
+            <span>Preview</span>
           </Button>
 
           {/* Save Button */}
@@ -393,48 +472,10 @@ export const FormBuilder: React.FC = () => {
             onClick={handleSave}
             disabled={isSaving}
             size="sm"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs h-8 gap-1.5 font-semibold"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs h-8 gap-1.5 font-semibold shadow-xs"
           >
             <Save className="w-3.5 h-3.5" />
             <span>{isSaving ? 'Saving...' : 'Save Form'}</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Live Form URL & Direct Access Toolbar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-3 bg-muted/20 rounded-xl border border-border/80">
-        <div className="flex items-center gap-2 flex-wrap">
-          <Badge className="bg-emerald-500/15 text-emerald-500 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-mono uppercase">
-            ● Live Form URL
-          </Badge>
-          <span className="text-xs text-muted-foreground font-mono truncate max-w-xs sm:max-w-md">
-            {typeof window !== 'undefined' ? `${window.location.origin}/preview` : 'https://wpexam.io/preview'}
-          </span>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleCopyLiveUrl}
-            className="text-xs h-7 px-2.5 gap-1.5 border-border hover:bg-muted"
-            title="Copy Public Live URL to Clipboard"
-          >
-            <Copy className="w-3.5 h-3.5" />
-            <span>Copy Live URL</span>
-          </Button>
-
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => window.open('/preview', '_blank')}
-            className="text-xs h-7 px-2.5 gap-1.5 border-border text-primary hover:bg-primary/10"
-            title="Open Dedicated Full-Screen Live Preview in New Tab"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span>Open in New Tab</span>
           </Button>
         </div>
       </div>
@@ -745,37 +786,46 @@ export const FormBuilder: React.FC = () => {
                         .map(({ field: f, index: idx }) => (
                           <div
                             key={f.id}
-                            className="flex items-center justify-between p-1.5 rounded-lg border border-border/60 bg-background/60 hover:bg-muted/40 transition-colors group text-xs"
+                            className="flex items-center justify-between p-2 rounded-xl border border-border/70 bg-card/60 hover:bg-muted/40 transition-colors group text-xs shadow-2xs"
                           >
                             <button
                               type="button"
                               onClick={() => scrollToField(f.id)}
-                              className="flex items-center gap-1.5 min-w-0 flex-1 text-left truncate mr-2"
-                              title="Click to scroll to question"
+                              className="flex items-center gap-2 min-w-0 flex-1 text-left truncate mr-2"
+                              title="Click to jump to this question on canvas"
                             >
-                              <span className="font-mono text-[10px] text-muted-foreground w-4 shrink-0">
-                                #{idx + 1}
+                              <span className="font-mono text-[10px] text-muted-foreground w-5 h-5 rounded-md bg-muted/60 flex items-center justify-center shrink-0 border border-border/60">
+                                {idx + 1}
                               </span>
-                              <span className="truncate text-foreground group-hover:text-primary transition-colors text-[11px] font-medium">
-                                {f.label || 'Untitled Question'}
-                              </span>
+                              <div className="min-w-0 flex-1">
+                                <span className="truncate text-foreground group-hover:text-primary transition-colors text-[11px] font-semibold block">
+                                  {f.label || 'Untitled Question'}
+                                </span>
+                                <span className="text-[9px] text-muted-foreground block truncate capitalize font-mono">
+                                  {f.type.replace('_', ' ')}
+                                </span>
+                              </div>
                             </button>
 
-                            <div className="flex items-center gap-1 shrink-0">
+                            <div className="flex items-center gap-1.5 shrink-0">
                               {f.isRequired && (
-                                <span className="text-[10px] text-rose-500 font-bold" title="Required">*</span>
+                                <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-rose-500/30 text-rose-500 bg-rose-500/10 font-bold" title="Required">
+                                  Req
+                                </Badge>
                               )}
-                              <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 font-mono">
-                                {f.points || 0}pt
-                              </Badge>
+                              {f.points && f.points > 0 ? (
+                                <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 font-mono bg-primary/5 text-primary border-primary/20">
+                                  {f.points}pt
+                                </Badge>
+                              ) : null}
 
                               {/* Reorder Buttons */}
-                              <div className="flex items-center opacity-40 group-hover:opacity-100 transition-opacity">
+                              <div className="flex items-center gap-0.5 opacity-40 group-hover:opacity-100 transition-opacity">
                                 <button
                                   type="button"
                                   disabled={idx === 0}
                                   onClick={() => handleMoveField(idx, 'up')}
-                                  className="p-0.5 hover:bg-muted rounded text-muted-foreground hover:text-foreground disabled:opacity-20"
+                                  className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors"
                                   title="Move question up"
                                 >
                                   <ArrowUp className="w-3 h-3" />
@@ -784,7 +834,7 @@ export const FormBuilder: React.FC = () => {
                                   type="button"
                                   disabled={idx === fields.length - 1}
                                   onClick={() => handleMoveField(idx, 'down')}
-                                  className="p-0.5 hover:bg-muted rounded text-muted-foreground hover:text-foreground disabled:opacity-20"
+                                  className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors"
                                   title="Move question down"
                                 >
                                   <ArrowDown className="w-3 h-3" />
@@ -797,18 +847,24 @@ export const FormBuilder: React.FC = () => {
                   )}
 
                   {/* Summary Stats Row */}
-                  <div className="pt-2 border-t border-border/60 grid grid-cols-3 gap-1.5 text-center text-[10px] text-muted-foreground">
-                    <div className="p-1.5 bg-muted/30 rounded border border-border/40">
-                      <span className="block font-bold text-foreground">{fields.length}</span>
-                      <span>Total</span>
+                  <div className="pt-2 border-t border-border/60 grid grid-cols-4 gap-1.5 text-center text-[10px] text-muted-foreground">
+                    <div className="p-1.5 bg-muted/30 rounded-lg border border-border/40">
+                      <span className="block font-bold text-foreground text-xs">{fields.length}</span>
+                      <span>Questions</span>
                     </div>
-                    <div className="p-1.5 bg-muted/30 rounded border border-border/40">
-                      <span className="block font-bold text-foreground">{requiredCount}</span>
+                    <div className="p-1.5 bg-muted/30 rounded-lg border border-border/40">
+                      <span className="block font-bold text-foreground text-xs">{requiredCount}</span>
                       <span>Required</span>
                     </div>
-                    <div className="p-1.5 bg-muted/30 rounded border border-border/40">
-                      <span className="block font-bold text-foreground">{totalPoints}</span>
+                    <div className="p-1.5 bg-muted/30 rounded-lg border border-border/40">
+                      <span className="block font-bold text-foreground text-xs">{totalPoints}</span>
                       <span>Points</span>
+                    </div>
+                    <div className="p-1.5 bg-muted/30 rounded-lg border border-border/40">
+                      <span className="block font-bold text-foreground text-xs">
+                        ~{Math.max(1, Math.round(fields.length * 1.5))}m
+                      </span>
+                      <span>Est. Time</span>
                     </div>
                   </div>
                 </div>
@@ -816,105 +872,124 @@ export const FormBuilder: React.FC = () => {
 
               {/* Tab 3: Form Settings / Config */}
               <TabsContent value="settings" className="p-3 m-0 space-y-3 focus-visible:outline-none text-xs">
-                {/* Form Access Type */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-foreground">Form Access Policy</Label>
-                  <Select
-                    value={formAccess}
-                    onValueChange={(val) => setFormAccess(val as FormAccessType)}
-                  >
-                    <SelectTrigger className="w-full h-8 text-xs bg-background">
-                      <SelectValue placeholder="Select Access Policy" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover border-border">
-                      <SelectItem value="public" className="text-xs">
-                        🌍 Public (Anyone with link)
-                      </SelectItem>
-                      <SelectItem value="token" className="text-xs">
-                        🔑 Secret Token Required
-                      </SelectItem>
-                      <SelectItem value="invite_only" className="text-xs">
-                        ✉️ Invite Only (White-listed candidates)
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Form Type (Survey vs Quiz) */}
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-semibold text-foreground">Assessment Mode</Label>
-                  <Select
-                    value={formType}
-                    onValueChange={(val) => setFormType(val as FormType)}
-                  >
-                    <SelectTrigger className="w-full h-8 text-xs bg-background">
-                      <SelectValue placeholder="Select Form Type" />
-                    </SelectTrigger>
-                    <SelectContent className="bg-popover border-border">
-                      <SelectItem value="quiz" className="text-xs">
-                        🏆 Graded Knowledge Quiz (Points & Pass/Fail)
-                      </SelectItem>
-                      <SelectItem value="survey" className="text-xs">
-                        📝 Survey / Application Form (No grading)
-                      </SelectItem>
-                      <SelectItem value="poll" className="text-xs">
-                        📊 Live Instant Poll
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {/* Presentation Style */}
-                <div className="flex items-center justify-between p-2 rounded-lg border border-border/60 bg-muted/20">
-                  <div>
-                    <span className="font-semibold text-foreground block">Focus Step-by-Step</span>
-                    <span className="text-[10px] text-muted-foreground">Present 1 question per screen</span>
+                {/* 1. Access & Candidate Permissions */}
+                <div className="p-3 rounded-xl border border-border/70 bg-card/60 space-y-2">
+                  <div className="flex items-center gap-1.5 text-foreground font-semibold">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                    <span>Access & Security</span>
                   </div>
-                  <Switch
-                    checked={isSequential}
-                    onCheckedChange={setIsSequential}
-                    className="scale-75"
-                  />
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">Form Access Policy</Label>
+                    <Select
+                      value={formAccess}
+                      onValueChange={(val) => setFormAccess(val as FormAccessType)}
+                    >
+                      <SelectTrigger className="w-full h-8 text-xs bg-background">
+                        <SelectValue placeholder="Select Access Policy" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover border-border">
+                        <SelectItem value="public" className="text-xs">
+                          🌍 Public (Anyone with link)
+                        </SelectItem>
+                        <SelectItem value="token" className="text-xs">
+                          🔑 Secret Token Required
+                        </SelectItem>
+                        <SelectItem value="invite_only" className="text-xs">
+                          ✉️ Invite Only (White-listed candidates)
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
 
-                {/* Quiz Passing Score & Time Limit */}
-                {formType === 'quiz' && (
-                  <div className="space-y-2 pt-1 border-t border-border/60">
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Passing Score Threshold:</span>
-                      <div className="flex items-center gap-1 font-mono">
-                        <Input
-                          type="number"
-                          value={settings.passingScore ?? 70}
-                          onChange={(e) =>
-                            updateSettings({ passingScore: Number(e.target.value) || 0 })
-                          }
-                          className="h-7 w-16 text-xs text-right bg-background"
-                        />
-                        <span>%</span>
+                {/* 2. Assessment Mode & Scoring Engine */}
+                <div className="p-3 rounded-xl border border-border/70 bg-card/60 space-y-2.5">
+                  <div className="flex items-center gap-1.5 text-foreground font-semibold">
+                    <Award className="w-3.5 h-3.5 text-primary" />
+                    <span>Assessment & Evaluation</span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-[11px] text-muted-foreground">Evaluation Mode</Label>
+                    <Select
+                      value={formType}
+                      onValueChange={(val) => setFormType(val as FormType)}
+                    >
+                      <SelectTrigger className="w-full h-8 text-xs bg-background">
+                        <SelectValue placeholder="Select Form Type" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover border-border">
+                        <SelectItem value="quiz" className="text-xs">
+                          🏆 Graded Knowledge Quiz (Points & Pass/Fail)
+                        </SelectItem>
+                        <SelectItem value="survey" className="text-xs">
+                          📝 Survey / Application Form (No grading)
+                        </SelectItem>
+                        <SelectItem value="poll" className="text-xs">
+                          📊 Live Instant Poll
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {/* Quiz Passing Score & Time Limit */}
+                  {formType === 'quiz' && (
+                    <div className="space-y-2 pt-2 border-t border-border/60">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground text-[11px]">Pass Threshold:</span>
+                        <div className="flex items-center gap-1 font-mono">
+                          <Input
+                            type="number"
+                            value={settings.passingScore ?? 70}
+                            onChange={(e) =>
+                              updateSettings({ passingScore: Number(e.target.value) || 0 })
+                            }
+                            className="h-7 w-16 text-xs text-right bg-background"
+                          />
+                          <span>%</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground text-[11px] flex items-center gap-1">
+                          <Clock className="w-3 h-3 text-amber-500" />
+                          <span>Time Limit:</span>
+                        </span>
+                        <div className="flex items-center gap-1 font-mono">
+                          <Input
+                            type="number"
+                            value={settings.timeLimitSeconds ?? 600}
+                            onChange={(e) =>
+                              updateSettings({ timeLimitSeconds: Number(e.target.value) || 0 })
+                            }
+                            className="h-7 w-20 text-xs text-right bg-background"
+                          />
+                          <span>sec</span>
+                        </div>
                       </div>
                     </div>
+                  )}
+                </div>
 
-                    <div className="flex items-center justify-between">
-                      <span className="text-muted-foreground">Time Limit (seconds):</span>
-                      <div className="flex items-center gap-1 font-mono">
-                        <Input
-                          type="number"
-                          value={settings.timeLimitSeconds ?? 600}
-                          onChange={(e) =>
-                            updateSettings({ timeLimitSeconds: Number(e.target.value) || 0 })
-                          }
-                          className="h-7 w-20 text-xs text-right bg-background"
-                        />
-                        <span>s</span>
-                      </div>
+                {/* 3. Presentation Pacing */}
+                <div className="p-3 rounded-xl border border-border/70 bg-card/60 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-semibold text-foreground block text-xs">Focus Step-by-Step</span>
+                      <span className="text-[10px] text-muted-foreground">Present 1 question per screen</span>
                     </div>
+                    <Switch
+                      checked={isSequential}
+                      onCheckedChange={setIsSequential}
+                      className="scale-75"
+                    />
                   </div>
-                )}
+                </div>
 
-                {/* Quick Save Notice */}
-                <div className="p-2 rounded-lg bg-primary/5 border border-primary/20 text-[11px] text-muted-foreground">
-                  Changes to form configuration apply immediately in preview and save automatically.
+                {/* Auto-Save Notice */}
+                <div className="p-2.5 rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-[11px] text-muted-foreground flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  <span>Changes apply immediately and persist automatically.</span>
                 </div>
               </TabsContent>
             </Tabs>
