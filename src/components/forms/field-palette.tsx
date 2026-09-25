@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   Upload,
   Plus,
-  Sparkles,
   Layers,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -22,6 +21,7 @@ import { Badge } from '@/components/ui/badge';
 interface PaletteOption {
   type: FieldType;
   label: string;
+  shortLabel: string;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
   category: 'choice' | 'text' | 'media';
@@ -33,7 +33,8 @@ const PALETTE_OPTIONS: PaletteOption[] = [
   {
     type: 'multiple_choice',
     label: 'Multiple Choice',
-    description: 'Select one or more choices with points',
+    shortLabel: 'Multiple Choice',
+    description: 'Multi-select checkboxes with scoring',
     icon: CheckSquare,
     category: 'choice',
     colorClass: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
@@ -41,7 +42,8 @@ const PALETTE_OPTIONS: PaletteOption[] = [
   {
     type: 'single_choice',
     label: 'Single Choice',
-    description: 'Radio selection for single answer',
+    shortLabel: 'Single Choice',
+    description: 'Radio buttons for single answer',
     icon: CircleDot,
     category: 'choice',
     colorClass: 'text-sky-400 bg-sky-500/10 border-sky-500/20',
@@ -49,7 +51,8 @@ const PALETTE_OPTIONS: PaletteOption[] = [
   {
     type: 'true_false',
     label: 'True / False',
-    description: 'Binary claim verification with scoring',
+    shortLabel: 'True / False',
+    description: 'Binary claim verification',
     icon: ToggleLeft,
     category: 'choice',
     colorClass: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
@@ -57,15 +60,17 @@ const PALETTE_OPTIONS: PaletteOption[] = [
   {
     type: 'dropdown',
     label: 'Dropdown Select',
-    description: 'Compact dropdown list of options',
+    shortLabel: 'Dropdown',
+    description: 'Compact select menu options',
     icon: ListFilter,
     category: 'choice',
     colorClass: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/20',
   },
   {
     type: 'rating',
-    label: 'Rating Scale (1-5)',
-    description: 'Candidate confidence or skill rating',
+    label: 'Rating Scale',
+    shortLabel: 'Rating (1-5)',
+    description: 'Candidate confidence rating',
     icon: Star,
     category: 'choice',
     colorClass: 'text-amber-400 bg-amber-500/10 border-amber-500/20',
@@ -75,7 +80,8 @@ const PALETTE_OPTIONS: PaletteOption[] = [
   {
     type: 'short_answer',
     label: 'Short Answer',
-    description: 'Single-line text input for names or terms',
+    shortLabel: 'Short Text',
+    description: 'Single-line input for names or terms',
     icon: Type,
     category: 'text',
     colorClass: 'text-blue-400 bg-blue-500/10 border-blue-500/20',
@@ -83,7 +89,8 @@ const PALETTE_OPTIONS: PaletteOption[] = [
   {
     type: 'paragraph',
     label: 'Paragraph Text',
-    description: 'Multi-line commentary and explanations',
+    shortLabel: 'Paragraph',
+    description: 'Multi-line commentary and essays',
     icon: AlignLeft,
     category: 'text',
     colorClass: 'text-violet-400 bg-violet-500/10 border-violet-500/20',
@@ -91,6 +98,7 @@ const PALETTE_OPTIONS: PaletteOption[] = [
   {
     type: 'email',
     label: 'Verified Email',
+    shortLabel: 'Email Input',
     description: 'Validated candidate email address',
     icon: Mail,
     category: 'text',
@@ -99,7 +107,8 @@ const PALETTE_OPTIONS: PaletteOption[] = [
   {
     type: 'phone',
     label: 'WhatsApp / Phone',
-    description: 'Direct phone number with country prefix',
+    shortLabel: 'WhatsApp',
+    description: 'Direct phone with country selector',
     icon: Phone,
     category: 'text',
     colorClass: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
@@ -108,7 +117,8 @@ const PALETTE_OPTIONS: PaletteOption[] = [
   // Media & Verification Category
   {
     type: 'regex_text',
-    label: 'Regex Verified Input',
+    label: 'Regex Verified',
+    shortLabel: 'Regex Match',
     description: 'Pattern-enforced IDs, codes, or rolls',
     icon: ShieldCheck,
     category: 'media',
@@ -116,15 +126,17 @@ const PALETTE_OPTIONS: PaletteOption[] = [
   },
   {
     type: 'link',
-    label: 'External Reference Link',
-    description: 'Document or external assignment URL',
+    label: 'Reference Link',
+    shortLabel: 'Doc Link',
+    description: 'External link or document assignment',
     icon: Link,
     category: 'media',
     colorClass: 'text-purple-400 bg-purple-500/10 border-purple-500/20',
   },
   {
     type: 'file_upload',
-    label: 'File Upload (PDF / ZIP)',
+    label: 'File Upload',
+    shortLabel: 'File / CV',
     description: 'CV, portfolio, or work sample uploads',
     icon: Upload,
     category: 'media',
@@ -140,7 +152,6 @@ interface FieldPaletteProps {
 
 export const FieldPalette: React.FC<FieldPaletteProps> = ({ 
   onAddField, 
-  activeCount,
   layoutMode = 'vertical',
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'choice' | 'text' | 'media'>('all');
@@ -154,73 +165,74 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
   });
 
   return (
-    <div className="bg-card border border-border rounded-xl p-4 shadow-xs space-y-3.5">
-      {/* Palette Header & Filter Pills */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-border/80">
-        <div className="flex items-center gap-2">
-          <div className="w-7 h-7 rounded-lg bg-primary/10 border border-primary/20 text-primary flex items-center justify-center">
-            <Plus className="w-4 h-4" />
-          </div>
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-foreground">
-              Add Question or Input Field
-            </span>
-            <span className="text-[10px] text-muted-foreground block">
-              Click any element below to append it to your form sequence
-            </span>
-          </div>
+    <div className="bg-card border border-border rounded-xl p-3.5 shadow-xs space-y-3">
+      {/* Sleek Palette Header */}
+      <div className="flex items-center justify-between pb-2 border-b border-border/80">
+        <div className="flex items-center gap-1.5">
+          <Layers className="w-3.5 h-3.5 text-primary" />
+          <span className="text-xs font-bold text-foreground">Field Palette</span>
         </div>
-
-        <div className="flex items-center gap-1.5 flex-wrap">
-          <button
-            type="button"
-            onClick={() => setSelectedCategory('all')}
-            className={`text-[11px] px-2.5 py-1 rounded-md transition-all font-medium ${
-              selectedCategory === 'all'
-                ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                : 'bg-muted/50 text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            All Types (12)
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedCategory('choice')}
-            className={`text-[11px] px-2.5 py-1 rounded-md transition-all font-medium ${
-              selectedCategory === 'choice'
-                ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                : 'bg-muted/50 text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Choice & Quiz
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedCategory('text')}
-            className={`text-[11px] px-2.5 py-1 rounded-md transition-all font-medium ${
-              selectedCategory === 'text'
-                ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                : 'bg-muted/50 text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Text Inputs
-          </button>
-          <button
-            type="button"
-            onClick={() => setSelectedCategory('media')}
-            className={`text-[11px] px-2.5 py-1 rounded-md transition-all font-medium ${
-              selectedCategory === 'media'
-                ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                : 'bg-muted/50 text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            Media & Regex
-          </button>
-        </div>
+        <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0 h-4">
+          {filteredOptions.length} items
+        </Badge>
       </div>
 
-      {/* Grid of Palette Cards */}
-      <div className={layoutMode === 'vertical' ? 'grid grid-cols-1 gap-2 max-h-[calc(100vh-280px)] overflow-y-auto pr-1' : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5'}>
+      {/* Segmented Category Filter Pills */}
+      <div className="flex items-center gap-1 p-0.5 bg-muted/40 rounded-lg border border-border/60">
+        <button
+          type="button"
+          onClick={() => setSelectedCategory('all')}
+          className={`flex-1 text-[10px] py-1 px-1 rounded-md transition-all font-medium text-center ${
+            selectedCategory === 'all'
+              ? 'bg-background text-foreground font-semibold shadow-2xs'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          All
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedCategory('choice')}
+          className={`flex-1 text-[10px] py-1 px-1 rounded-md transition-all font-medium text-center ${
+            selectedCategory === 'choice'
+              ? 'bg-background text-foreground font-semibold shadow-2xs'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          Choice
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedCategory('text')}
+          className={`flex-1 text-[10px] py-1 px-1 rounded-md transition-all font-medium text-center ${
+            selectedCategory === 'text'
+              ? 'bg-background text-foreground font-semibold shadow-2xs'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          Text
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedCategory('media')}
+          className={`flex-1 text-[10px] py-1 px-1 rounded-md transition-all font-medium text-center ${
+            selectedCategory === 'media'
+              ? 'bg-background text-foreground font-semibold shadow-2xs'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          Media
+        </button>
+      </div>
+
+      {/* Compact 2-Column Grid in Vertical Sidebar */}
+      <div
+        className={
+          layoutMode === 'vertical'
+            ? 'grid grid-cols-2 gap-1.5 max-h-[calc(100vh-320px)] overflow-y-auto pr-0.5 custom-scrollbar'
+            : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2'
+        }
+      >
         {filteredOptions.map((opt) => {
           const IconComp = opt.icon;
 
@@ -229,20 +241,21 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
               key={opt.type}
               type="button"
               onClick={() => onAddField(opt.type)}
-              className="flex items-start gap-2.5 p-2.5 rounded-lg border border-border bg-card/60 hover:bg-muted/60 hover:border-primary/40 transition-all text-left group hover:scale-[1.01] active:scale-[0.99] shadow-2xs"
+              title={`${opt.label}: ${opt.description}`}
+              className="flex items-center gap-2 p-2 rounded-lg border border-border/80 bg-background/60 hover:bg-primary/5 hover:border-primary/40 transition-all text-left group hover:scale-[1.01] active:scale-[0.99] shadow-2xs"
             >
               <div
-                className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${opt.colorClass} group-hover:scale-105 transition-transform`}
+                className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 border ${opt.colorClass} group-hover:scale-105 transition-transform`}
               >
-                <IconComp className="w-4 h-4" />
+                <IconComp className="w-3.5 h-3.5" />
               </div>
 
-              <div className="overflow-hidden">
-                <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors block truncate">
-                  {opt.label}
+              <div className="overflow-hidden min-w-0">
+                <span className="text-[11px] font-semibold text-foreground group-hover:text-primary transition-colors block truncate leading-tight">
+                  {opt.shortLabel}
                 </span>
-                <span className="text-[10px] text-muted-foreground line-clamp-1 block">
-                  {opt.description}
+                <span className="text-[9px] text-muted-foreground truncate block leading-tight">
+                  {opt.category}
                 </span>
               </div>
             </button>

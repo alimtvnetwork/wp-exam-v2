@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/select';
 import { FormRunner } from '@/components/runner/FormRunner';
 import { JsonModal } from './json-modal';
+import { GoogleFormsImportModal } from './google-forms-import-modal';
 import { AiSectionAssistant } from '@/components/admin/ai-section-assistant';
 import { BranchingFlowModal } from './branching-flow-modal';
 import { SortableFieldCard } from './sortable-field-card';
@@ -30,6 +31,7 @@ import {
   Eye,
   Save,
   FileJson,
+  FileSpreadsheet,
   GitBranch,
   Copy,
   ExternalLink,
@@ -80,9 +82,29 @@ export const FormBuilder: React.FC = () => {
 
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
+  const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+
+  const handleImportGoogleForm = (
+    data: { title: string; description: string; fields: FormField[] },
+    isReplaceMode: boolean
+  ) => {
+    if (data.title) {
+      setTitle(data.title);
+    }
+
+    if (data.description) {
+      setDescription(data.description);
+    }
+
+    if (isReplaceMode) {
+      setFields(data.fields);
+    } else {
+      setFields([...fields, ...data.fields]);
+    }
+  };
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -266,6 +288,18 @@ export const FormBuilder: React.FC = () => {
           >
             <FileJson className="w-3.5 h-3.5" />
             <span>Actions ▾</span>
+          </Button>
+
+          {/* Import from Google Forms Button */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsGoogleModalOpen(true)}
+            className="text-xs h-8 gap-1.5 border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 font-medium"
+            title="Import questions directly from a Google Form or API"
+          >
+            <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
+            <span>Import Google Form</span>
           </Button>
 
           {/* Visual Branching Flow Inspector */}
@@ -633,6 +667,13 @@ export const FormBuilder: React.FC = () => {
 
       {/* JSON Import/Export Modal */}
       <JsonModal isOpen={isJsonModalOpen} onClose={() => setIsJsonModalOpen(false)} />
+
+      {/* Google Forms Importer Modal */}
+      <GoogleFormsImportModal
+        isOpen={isGoogleModalOpen}
+        onClose={() => setIsGoogleModalOpen(false)}
+        onImport={handleImportGoogleForm}
+      />
 
       {/* Visual Branching Flow & Dependency Simulation Modal */}
       <BranchingFlowModal

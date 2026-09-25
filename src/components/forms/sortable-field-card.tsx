@@ -22,6 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { BranchingRuleEditor } from './branching-rule-editor';
 import {
   GripVertical,
@@ -41,6 +48,7 @@ import {
   Phone,
   Mail,
   Layers,
+  ChevronDown,
 } from 'lucide-react';
 
 interface SortableFieldCardProps {
@@ -224,13 +232,13 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
             {/* Question Index & Badges */}
             <CardTitle className="text-xs font-semibold flex items-center gap-2 flex-wrap">
-              <span className="font-mono text-xs px-1.5 py-0.5 rounded bg-muted text-muted-foreground font-bold">
+              <span className="font-mono text-xs px-2 py-0.5 rounded bg-muted text-muted-foreground font-bold shrink-0">
                 #{index + 1}
               </span>
 
               <Badge
                 variant="outline"
-                className={`uppercase text-[10px] tracking-wide font-mono px-2 py-0.5 ${getBadgeStyle(
+                className={`uppercase text-[10px] tracking-wide font-mono px-2.5 py-0.5 rounded-md whitespace-nowrap shrink-0 ${getBadgeStyle(
                   field.type
                 )}`}
               >
@@ -238,118 +246,129 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               </Badge>
 
               {field.group && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-primary/10 text-primary border border-primary/20 font-medium flex items-center gap-1">
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 font-medium flex items-center gap-1 shrink-0">
                   <Layers className="w-3 h-3" /> {field.group}
                 </span>
               )}
 
               {isQuiz && (
-                <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground font-mono">
+                <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground font-mono shrink-0">
                   {field.points ?? 1} pt{(field.points ?? 1) > 1 ? 's' : ''}
                 </span>
               )}
 
               {activeRules.length > 0 && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 border border-amber-500/30 font-mono">
-                  {activeRules.length} Validation Rule{activeRules.length > 1 ? 's' : ''}
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 font-mono shrink-0">
+                  {activeRules.length} Rule{activeRules.length > 1 ? 's' : ''}
                 </span>
               )}
 
               {activeTriggers.length > 0 && (
-                <span className="text-[10px] px-2 py-0.5 rounded-full bg-purple-500/15 text-purple-400 border border-purple-500/30 font-mono flex items-center gap-1">
-                  <BellRing className="w-3 h-3" /> {activeTriggers.length} Trigger{activeTriggers.length > 1 ? 's' : ''}
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20 font-mono flex items-center gap-1 shrink-0">
+                  <BellRing className="w-3 h-3" /> {activeTriggers.length}
                 </span>
               )}
             </CardTitle>
           </div>
 
-          {/* Action Toolbar */}
-          <div className="flex items-center gap-1">
+          {/* Action Toolbar: Compacted to Live Preview + Actions Dropdown */}
+          <div className="flex items-center gap-2 shrink-0">
             {/* Live Test Preview Mode Toggle */}
             <Button
               type="button"
-              variant="ghost"
+              variant={showLivePreview ? 'default' : 'outline'}
               size="sm"
-              className={`text-xs h-7 px-2 transition-all ${
-                showLivePreview ? 'bg-primary/20 text-primary font-semibold border border-primary/30' : 'text-muted-foreground hover:text-foreground'
+              className={`text-xs h-7 px-2.5 gap-1.5 transition-all ${
+                showLivePreview
+                  ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                  : 'border-border text-foreground hover:bg-muted'
               }`}
               onClick={() => setShowLivePreview(!showLivePreview)}
               title="Toggle interactive live input preview test"
             >
-              <Eye className="w-3.5 h-3.5 mr-1 text-primary" />
+              <Eye className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Test Preview</span>
             </Button>
 
-            {/* Validation Settings Toggle */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className={`text-xs h-7 px-2 transition-all ${
-                showAdvanced ? 'bg-muted text-foreground' : 'text-muted-foreground hover:text-foreground'
-              }`}
-              onClick={() => setShowAdvanced(!showAdvanced)}
-              title="Configure multi-rule validation"
-            >
-              <SlidersHorizontal className="w-3.5 h-3.5 mr-1" />
-              <span className="hidden sm:inline">Validation</span>
-            </Button>
+            {/* Compact Actions Dropdown */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-7 px-2.5 gap-1.5 border-border hover:bg-muted font-medium text-foreground"
+                >
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span>Actions</span>
+                  <ChevronDown className="w-3 h-3 opacity-60" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56 p-1 bg-popover border border-border shadow-lg">
+                <DropdownMenuItem
+                  onClick={() => setShowAdvanced(!showAdvanced)}
+                  className="text-xs flex items-center justify-between cursor-pointer py-1.5"
+                >
+                  <div className="flex items-center gap-2">
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Validation Rules</span>
+                  </div>
+                  {activeRules.length > 0 && (
+                    <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-amber-500/10 text-amber-500 border-amber-500/30 font-mono">
+                      {activeRules.length}
+                    </Badge>
+                  )}
+                </DropdownMenuItem>
 
-            {/* Notification Triggers Toggle */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className={`text-xs h-7 px-2 transition-all ${
-                showTriggers ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30' : 'text-muted-foreground hover:text-foreground'
-              }`}
-              onClick={() => setShowTriggers(!showTriggers)}
-              title="Configure email/WhatsApp notification triggers"
-            >
-              <BellRing className="w-3.5 h-3.5 mr-1" />
-              <span className="hidden sm:inline">Triggers</span>
-            </Button>
+                <DropdownMenuItem
+                  onClick={() => setShowTriggers(!showTriggers)}
+                  className="text-xs flex items-center justify-between cursor-pointer py-1.5"
+                >
+                  <div className="flex items-center gap-2">
+                    <BellRing className="w-3.5 h-3.5 text-purple-400" />
+                    <span>Notification Triggers</span>
+                  </div>
+                  {activeTriggers.length > 0 && (
+                    <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-purple-500/10 text-purple-400 border-purple-500/30 font-mono">
+                      {activeTriggers.length}
+                    </Badge>
+                  )}
+                </DropdownMenuItem>
 
-            {/* Branching Flow Toggle */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className={`text-xs h-7 px-2 transition-all ${
-                showConditions || (field.conditions && field.conditions.length > 0)
-                  ? 'bg-primary/15 text-primary font-semibold border border-primary/25'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              onClick={() => setShowConditions(!showConditions)}
-              title="Configure conditional logic and branching"
-            >
-              <GitBranch className="w-3.5 h-3.5 mr-1 text-primary" />
-              <span className="hidden sm:inline">Branching</span>
-            </Button>
+                <DropdownMenuItem
+                  onClick={() => setShowConditions(!showConditions)}
+                  className="text-xs flex items-center justify-between cursor-pointer py-1.5"
+                >
+                  <div className="flex items-center gap-2">
+                    <GitBranch className="w-3.5 h-3.5 text-primary" />
+                    <span>Branching & Logic</span>
+                  </div>
+                  {field.conditions && field.conditions.length > 0 && (
+                    <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-primary/10 text-primary border-primary/30 font-mono">
+                      {field.conditions.length}
+                    </Badge>
+                  )}
+                </DropdownMenuItem>
 
-            {/* Duplicate */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-xs h-7 px-2 text-muted-foreground hover:text-foreground"
-              onClick={() => onDuplicate(id)}
-              title="Duplicate this question"
-            >
-              <Copy className="w-3.5 h-3.5" />
-            </Button>
+                <DropdownMenuSeparator className="my-1 border-border/80" />
 
-            {/* Remove */}
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs h-7 px-2"
-              onClick={() => onRemove(id)}
-              title="Delete this question"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-            </Button>
+                <DropdownMenuItem
+                  onClick={() => onDuplicate(id)}
+                  className="text-xs flex items-center gap-2 cursor-pointer py-1.5"
+                >
+                  <Copy className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span>Duplicate Question</span>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem
+                  onClick={() => onRemove(id)}
+                  className="text-xs flex items-center gap-2 cursor-pointer py-1.5 text-destructive focus:text-destructive focus:bg-destructive/10"
+                >
+                  <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                  <span>Delete Question</span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </CardHeader>
 
@@ -738,7 +757,18 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 <span className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
                   <BellRing className="w-4 h-4" /> Field Action & Notification Triggers
                 </span>
-                <span className="text-[10px] text-purple-200">Alert managers or external webhooks</span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-purple-200">Alert managers or webhooks</span>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-6 px-1.5 text-[11px] text-purple-300 hover:text-white hover:bg-purple-500/20"
+                    onClick={() => setShowTriggers(false)}
+                  >
+                    Close ✕
+                  </Button>
+                </div>
               </div>
 
               <div className="space-y-2">
@@ -787,17 +817,30 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
           {/* Conditional Branching Drawer */}
           {showConditions && (
-            <BranchingRuleEditor
-              field={field}
-              otherFields={otherFields}
-              allFields={allFields}
-              onUpdateConditions={(newConditions, matchMode) => {
-                onUpdate(id, { conditions: newConditions, conditionMatch: matchMode });
-              }}
-              onUpdateOptionBranching={(newOptionBranching) => {
-                onUpdate(id, { optionBranching: newOptionBranching });
-              }}
-            />
+            <div className="relative space-y-1.5">
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="h-6 px-2 text-[11px] text-muted-foreground hover:text-foreground"
+                  onClick={() => setShowConditions(false)}
+                >
+                  Close Branching ✕
+                </Button>
+              </div>
+              <BranchingRuleEditor
+                field={field}
+                otherFields={otherFields}
+                allFields={allFields}
+                onUpdateConditions={(newConditions, matchMode) => {
+                  onUpdate(id, { conditions: newConditions, conditionMatch: matchMode });
+                }}
+                onUpdateOptionBranching={(newOptionBranching) => {
+                  onUpdate(id, { optionBranching: newOptionBranching });
+                }}
+              />
+            </div>
           )}
 
           {/* Choice Options Editor */}
