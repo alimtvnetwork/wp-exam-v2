@@ -19,6 +19,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { FormRunner } from '@/components/runner/FormRunner';
 import { JsonModal } from './json-modal';
 import { GoogleFormsImportModal } from './google-forms-import-modal';
@@ -41,6 +42,12 @@ import {
   ListOrdered,
   Award,
   Sparkles,
+  Settings,
+  ArrowUp,
+  ArrowDown,
+  Trash2,
+  Search,
+  Shield,
 } from 'lucide-react';
 import {
   DndContext,
@@ -73,6 +80,7 @@ export const FormBuilder: React.FC = () => {
     setFormType,
     setFormAccess,
     setIsSequential,
+    updateSettings,
     addField,
     updateField,
     removeField,
@@ -86,10 +94,12 @@ export const FormBuilder: React.FC = () => {
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
+  const [outlineFilter, setOutlineFilter] = useState<string>('');
 
   const handleImportGoogleForm = (
     data: { title: string; description: string; fields: FormField[] },
-    isReplaceMode: boolean
+    isReplaceMode: boolean,
+    openBranchingFlow?: boolean
   ) => {
     if (data.title) {
       setTitle(data.title);
@@ -104,6 +114,21 @@ export const FormBuilder: React.FC = () => {
     } else {
       setFields([...fields, ...data.fields]);
     }
+
+    if (openBranchingFlow) {
+      setIsFlowModalOpen(true);
+    }
+  };
+
+  const handleMoveField = (index: number, direction: 'up' | 'down') => {
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    if (targetIndex < 0 || targetIndex >= fields.length) {
+      return;
+    }
+    const newFields = [...fields];
+    const [moved] = newFields.splice(index, 1);
+    newFields.splice(targetIndex, 0, moved);
+    setFields(newFields);
   };
 
   const sensors = useSensors(
@@ -593,75 +618,268 @@ export const FormBuilder: React.FC = () => {
           )}
         </div>
 
-        {/* Right Column: Sticky Sidebar with Palette & Navigator */}
-        <div className="lg:col-span-4 sticky top-6 space-y-4">
-          {/* Quick Navigator Outline */}
-          <Card className="border-border bg-card shadow-xs">
-            <CardContent className="p-3.5 space-y-2.5">
-              <div className="flex items-center justify-between pb-2 border-b border-border/80">
-                <div className="flex items-center gap-1.5">
-                  <ListOrdered className="w-3.5 h-3.5 text-primary" />
-                  <span className="text-xs font-bold text-foreground">Questions Outline</span>
-                </div>
-                <Badge variant="secondary" className="text-[10px] font-mono">
-                  {fields.length} items
-                </Badge>
+        {/* Right Column: Unified Inspector Dock */}
+        <div className="lg:col-span-4 sticky top-6">
+          <Card className="border border-border bg-card shadow-sm rounded-xl overflow-hidden">
+            <Tabs defaultValue="palette" className="w-full">
+              {/* Sleek Segmented Dock Tabs Header */}
+              <div className="p-2.5 border-b border-border/80 bg-muted/20">
+                <TabsList className="grid grid-cols-3 h-8 p-0.5 bg-muted/60 rounded-lg">
+                  <TabsTrigger
+                    value="palette"
+                    className="text-xs py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-medium transition-all"
+                  >
+                    <Layers className="w-3.5 h-3.5 text-primary" />
+                    <span>Fields</span>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="outline"
+                    className="text-xs py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-medium transition-all"
+                  >
+                    <ListOrdered className="w-3.5 h-3.5 text-sky-400" />
+                    <span>Outline</span>
+                    <Badge variant="secondary" className="text-[9px] px-1 py-0 h-3.5 font-mono">
+                      {fields.length}
+                    </Badge>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="settings"
+                    className="text-xs py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-medium transition-all"
+                  >
+                    <Settings className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Config</span>
+                  </TabsTrigger>
+                </TabsList>
               </div>
 
-              {fields.length === 0 ? (
-                <p className="text-[11px] text-muted-foreground py-2 text-center">
-                  Add questions to see the outline.
-                </p>
-              ) : (
-                <div className="max-h-48 overflow-y-auto space-y-1 pr-1 custom-scrollbar">
-                  {fields.map((f, idx) => (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => scrollToField(f.id)}
-                      className="w-full flex items-center justify-between text-left p-1.5 rounded hover:bg-muted text-xs transition-colors group"
-                    >
-                      <div className="flex items-center gap-1.5 truncate">
-                        <span className="text-[10px] font-mono text-muted-foreground w-4">
-                          {idx + 1}.
-                        </span>
-                        <span className="truncate text-foreground group-hover:text-primary transition-colors text-[11px]">
-                          {f.label || 'Untitled Question'}
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1 shrink-0 ml-1">
-                        {f.isRequired && (
-                          <span className="text-[9px] text-rose-500 font-bold" title="Required">*</span>
-                        )}
-                        <span className="text-[10px] font-mono text-muted-foreground">
-                          {f.points || 0}pt
-                        </span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              )}
+              {/* Tab 1: Component Palette */}
+              <TabsContent value="palette" className="p-3 m-0 focus-visible:outline-none">
+                <FieldPalette
+                  onAddField={handleQuickAdd}
+                  activeCount={fields.length}
+                  layoutMode="vertical"
+                  isEmbedded={true}
+                />
+              </TabsContent>
 
-              {/* Summary Stats Row */}
-              <div className="pt-2 border-t border-border/60 grid grid-cols-2 gap-2 text-center text-[10px] text-muted-foreground">
-                <div className="p-1.5 bg-muted/30 rounded border border-border/40">
-                  <span className="block font-bold text-foreground">{requiredCount}</span>
-                  <span>Required</span>
+              {/* Tab 2: Questions Outline */}
+              <TabsContent value="outline" className="p-3 m-0 space-y-3 focus-visible:outline-none">
+                <div className="space-y-2">
+                  {/* Outline Search Filter */}
+                  <div className="relative">
+                    <Input
+                      value={outlineFilter}
+                      onChange={(e) => setOutlineFilter(e.target.value)}
+                      placeholder="Filter questions outline..."
+                      className="h-8 text-xs pl-7 pr-7 bg-muted/30 border-border/80 rounded-lg placeholder:text-muted-foreground/70"
+                    />
+                    <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+                    {outlineFilter && (
+                      <button
+                        type="button"
+                        onClick={() => setOutlineFilter('')}
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs p-0.5"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Scrollable Questions List */}
+                  {fields.length === 0 ? (
+                    <div className="py-8 text-center text-xs text-muted-foreground">
+                      No questions in this form yet. Use the Fields tab to add questions.
+                    </div>
+                  ) : (
+                    <div className="max-h-[calc(100vh-380px)] overflow-y-auto space-y-1 pr-1 custom-scrollbar">
+                      {fields
+                        .map((f, idx) => ({ field: f, index: idx }))
+                        .filter(({ field }) => {
+                          if (!outlineFilter.trim()) return true;
+                          const q = outlineFilter.toLowerCase();
+                          return (
+                            field.label.toLowerCase().includes(q) ||
+                            field.type.toLowerCase().includes(q) ||
+                            (field.group && field.group.toLowerCase().includes(q))
+                          );
+                        })
+                        .map(({ field: f, index: idx }) => (
+                          <div
+                            key={f.id}
+                            className="flex items-center justify-between p-1.5 rounded-lg border border-border/60 bg-background/60 hover:bg-muted/40 transition-colors group text-xs"
+                          >
+                            <button
+                              type="button"
+                              onClick={() => scrollToField(f.id)}
+                              className="flex items-center gap-1.5 min-w-0 flex-1 text-left truncate mr-2"
+                              title="Click to scroll to question"
+                            >
+                              <span className="font-mono text-[10px] text-muted-foreground w-4 shrink-0">
+                                #{idx + 1}
+                              </span>
+                              <span className="truncate text-foreground group-hover:text-primary transition-colors text-[11px] font-medium">
+                                {f.label || 'Untitled Question'}
+                              </span>
+                            </button>
+
+                            <div className="flex items-center gap-1 shrink-0">
+                              {f.isRequired && (
+                                <span className="text-[10px] text-rose-500 font-bold" title="Required">*</span>
+                              )}
+                              <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 font-mono">
+                                {f.points || 0}pt
+                              </Badge>
+
+                              {/* Reorder Buttons */}
+                              <div className="flex items-center opacity-40 group-hover:opacity-100 transition-opacity">
+                                <button
+                                  type="button"
+                                  disabled={idx === 0}
+                                  onClick={() => handleMoveField(idx, 'up')}
+                                  className="p-0.5 hover:bg-muted rounded text-muted-foreground hover:text-foreground disabled:opacity-20"
+                                  title="Move question up"
+                                >
+                                  <ArrowUp className="w-3 h-3" />
+                                </button>
+                                <button
+                                  type="button"
+                                  disabled={idx === fields.length - 1}
+                                  onClick={() => handleMoveField(idx, 'down')}
+                                  className="p-0.5 hover:bg-muted rounded text-muted-foreground hover:text-foreground disabled:opacity-20"
+                                  title="Move question down"
+                                >
+                                  <ArrowDown className="w-3 h-3" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  )}
+
+                  {/* Summary Stats Row */}
+                  <div className="pt-2 border-t border-border/60 grid grid-cols-3 gap-1.5 text-center text-[10px] text-muted-foreground">
+                    <div className="p-1.5 bg-muted/30 rounded border border-border/40">
+                      <span className="block font-bold text-foreground">{fields.length}</span>
+                      <span>Total</span>
+                    </div>
+                    <div className="p-1.5 bg-muted/30 rounded border border-border/40">
+                      <span className="block font-bold text-foreground">{requiredCount}</span>
+                      <span>Required</span>
+                    </div>
+                    <div className="p-1.5 bg-muted/30 rounded border border-border/40">
+                      <span className="block font-bold text-foreground">{totalPoints}</span>
+                      <span>Points</span>
+                    </div>
+                  </div>
                 </div>
-                <div className="p-1.5 bg-muted/30 rounded border border-border/40">
-                  <span className="block font-bold text-foreground">{totalPoints}</span>
-                  <span>Total Points</span>
+              </TabsContent>
+
+              {/* Tab 3: Form Settings / Config */}
+              <TabsContent value="settings" className="p-3 m-0 space-y-3 focus-visible:outline-none text-xs">
+                {/* Form Access Type */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-foreground">Form Access Policy</Label>
+                  <Select
+                    value={formAccess}
+                    onValueChange={(val) => setFormAccess(val as FormAccessType)}
+                  >
+                    <SelectTrigger className="w-full h-8 text-xs bg-background">
+                      <SelectValue placeholder="Select Access Policy" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border">
+                      <SelectItem value="public" className="text-xs">
+                        🌍 Public (Anyone with link)
+                      </SelectItem>
+                      <SelectItem value="token" className="text-xs">
+                        🔑 Secret Token Required
+                      </SelectItem>
+                      <SelectItem value="invite_only" className="text-xs">
+                        ✉️ Invite Only (White-listed candidates)
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
-              </div>
-            </CardContent>
+
+                {/* Form Type (Survey vs Quiz) */}
+                <div className="space-y-1.5">
+                  <Label className="text-xs font-semibold text-foreground">Assessment Mode</Label>
+                  <Select
+                    value={formType}
+                    onValueChange={(val) => setFormType(val as FormType)}
+                  >
+                    <SelectTrigger className="w-full h-8 text-xs bg-background">
+                      <SelectValue placeholder="Select Form Type" />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border">
+                      <SelectItem value="quiz" className="text-xs">
+                        🏆 Graded Knowledge Quiz (Points & Pass/Fail)
+                      </SelectItem>
+                      <SelectItem value="survey" className="text-xs">
+                        📝 Survey / Application Form (No grading)
+                      </SelectItem>
+                      <SelectItem value="poll" className="text-xs">
+                        📊 Live Instant Poll
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Presentation Style */}
+                <div className="flex items-center justify-between p-2 rounded-lg border border-border/60 bg-muted/20">
+                  <div>
+                    <span className="font-semibold text-foreground block">Focus Step-by-Step</span>
+                    <span className="text-[10px] text-muted-foreground">Present 1 question per screen</span>
+                  </div>
+                  <Switch
+                    checked={isSequential}
+                    onCheckedChange={setIsSequential}
+                    className="scale-75"
+                  />
+                </div>
+
+                {/* Quiz Passing Score & Time Limit */}
+                {formType === 'quiz' && (
+                  <div className="space-y-2 pt-1 border-t border-border/60">
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Passing Score Threshold:</span>
+                      <div className="flex items-center gap-1 font-mono">
+                        <Input
+                          type="number"
+                          value={settings.passingScore ?? 70}
+                          onChange={(e) =>
+                            updateSettings({ passingScore: Number(e.target.value) || 0 })
+                          }
+                          className="h-7 w-16 text-xs text-right bg-background"
+                        />
+                        <span>%</span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <span className="text-muted-foreground">Time Limit (seconds):</span>
+                      <div className="flex items-center gap-1 font-mono">
+                        <Input
+                          type="number"
+                          value={settings.timeLimitSeconds ?? 600}
+                          onChange={(e) =>
+                            updateSettings({ timeLimitSeconds: Number(e.target.value) || 0 })
+                          }
+                          className="h-7 w-20 text-xs text-right bg-background"
+                        />
+                        <span>s</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Quick Save Notice */}
+                <div className="p-2 rounded-lg bg-primary/5 border border-primary/20 text-[11px] text-muted-foreground">
+                  Changes to form configuration apply immediately in preview and save automatically.
+                </div>
+              </TabsContent>
+            </Tabs>
           </Card>
-
-          {/* Vertical Field Palette */}
-          <FieldPalette
-            onAddField={handleQuickAdd}
-            activeCount={fields.length}
-            layoutMode="vertical"
-          />
         </div>
       </div>
 

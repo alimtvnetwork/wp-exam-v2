@@ -15,8 +15,10 @@ import {
   Upload,
   Plus,
   Layers,
+  Search,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 
 interface PaletteOption {
   type: FieldType;
@@ -148,21 +150,127 @@ interface FieldPaletteProps {
   onAddField: (type: FieldType) => void;
   activeCount: number;
   layoutMode?: 'horizontal' | 'vertical';
+  isEmbedded?: boolean;
 }
 
 export const FieldPalette: React.FC<FieldPaletteProps> = ({ 
   onAddField, 
   layoutMode = 'vertical',
+  isEmbedded = false,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'choice' | 'text' | 'media'>('all');
+  const [searchQuery, setSearchQuery] = useState('');
 
   const filteredOptions = PALETTE_OPTIONS.filter((opt) => {
-    if (selectedCategory === 'all') {
+    const matchesCategory = selectedCategory === 'all' || opt.category === selectedCategory;
+    if (!matchesCategory) {
+      return false;
+    }
+
+    if (!searchQuery.trim()) {
       return true;
     }
 
-    return opt.category === selectedCategory;
+    const query = searchQuery.toLowerCase();
+    return (
+      opt.label.toLowerCase().includes(query) ||
+      opt.shortLabel.toLowerCase().includes(query) ||
+      opt.description.toLowerCase().includes(query)
+    );
   });
+
+  const content = (
+    <div className="space-y-3">
+      {/* Search Input for Field Types */}
+      <div className="relative">
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Filter components..."
+          className="h-8 text-xs pl-7 pr-7 bg-muted/30 border-border/80 rounded-lg placeholder:text-muted-foreground/70"
+        />
+        <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground text-xs pointer-events-none">
+          🔍
+        </span>
+        {searchQuery && (
+          <button
+            type="button"
+            onClick={() => setSearchQuery('')}
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs p-0.5"
+            title="Clear search"
+          >
+            ✕
+          </button>
+        )}
+      </div>
+
+      {/* Segmented Category Filter Pills */}
+      <div className="flex items-center gap-1 p-0.5 bg-muted/40 rounded-lg border border-border/60">
+        {(['all', 'choice', 'text', 'media'] as const).map((cat) => (
+          <button
+            key={cat}
+            type="button"
+            onClick={() => setSelectedCategory(cat)}
+            className={`flex-1 text-[10px] py-1 px-1 rounded-md transition-all font-medium text-center capitalize ${
+              selectedCategory === cat
+                ? 'bg-background text-foreground font-semibold shadow-2xs'
+                : 'text-muted-foreground hover:text-foreground'
+            }`}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
+      {/* Grid of Components */}
+      {filteredOptions.length === 0 ? (
+        <div className="py-6 text-center text-xs text-muted-foreground">
+          No component types match "{searchQuery}"
+        </div>
+      ) : (
+        <div
+          className={
+            layoutMode === 'vertical'
+              ? 'grid grid-cols-2 gap-1.5 max-h-[calc(100vh-340px)] overflow-y-auto pr-0.5 custom-scrollbar'
+              : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2'
+          }
+        >
+          {filteredOptions.map((opt) => {
+            const IconComp = opt.icon;
+
+            return (
+              <button
+                key={opt.type}
+                type="button"
+                onClick={() => onAddField(opt.type)}
+                title={`${opt.label}: ${opt.description}`}
+                className="flex items-center gap-2 p-2 rounded-lg border border-border/80 bg-background/60 hover:bg-primary/5 hover:border-primary/40 transition-all text-left group hover:scale-[1.01] active:scale-[0.99] shadow-2xs"
+              >
+                <div
+                  className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 border ${opt.colorClass} group-hover:scale-105 transition-transform`}
+                >
+                  <IconComp className="w-3.5 h-3.5" />
+                </div>
+
+                <div className="overflow-hidden min-w-0">
+                  <span className="text-[11px] font-semibold text-foreground group-hover:text-primary transition-colors block truncate leading-tight">
+                    {opt.shortLabel}
+                  </span>
+                  <span className="text-[9px] text-muted-foreground truncate block leading-tight">
+                    {opt.category}
+                  </span>
+                </div>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+
+  if (isEmbedded) {
+    return content;
+  }
 
   return (
     <div className="bg-card border border-border rounded-xl p-3.5 shadow-xs space-y-3">
@@ -177,91 +285,7 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
         </Badge>
       </div>
 
-      {/* Segmented Category Filter Pills */}
-      <div className="flex items-center gap-1 p-0.5 bg-muted/40 rounded-lg border border-border/60">
-        <button
-          type="button"
-          onClick={() => setSelectedCategory('all')}
-          className={`flex-1 text-[10px] py-1 px-1 rounded-md transition-all font-medium text-center ${
-            selectedCategory === 'all'
-              ? 'bg-background text-foreground font-semibold shadow-2xs'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          All
-        </button>
-        <button
-          type="button"
-          onClick={() => setSelectedCategory('choice')}
-          className={`flex-1 text-[10px] py-1 px-1 rounded-md transition-all font-medium text-center ${
-            selectedCategory === 'choice'
-              ? 'bg-background text-foreground font-semibold shadow-2xs'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Choice
-        </button>
-        <button
-          type="button"
-          onClick={() => setSelectedCategory('text')}
-          className={`flex-1 text-[10px] py-1 px-1 rounded-md transition-all font-medium text-center ${
-            selectedCategory === 'text'
-              ? 'bg-background text-foreground font-semibold shadow-2xs'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Text
-        </button>
-        <button
-          type="button"
-          onClick={() => setSelectedCategory('media')}
-          className={`flex-1 text-[10px] py-1 px-1 rounded-md transition-all font-medium text-center ${
-            selectedCategory === 'media'
-              ? 'bg-background text-foreground font-semibold shadow-2xs'
-              : 'text-muted-foreground hover:text-foreground'
-          }`}
-        >
-          Media
-        </button>
-      </div>
-
-      {/* Compact 2-Column Grid in Vertical Sidebar */}
-      <div
-        className={
-          layoutMode === 'vertical'
-            ? 'grid grid-cols-2 gap-1.5 max-h-[calc(100vh-320px)] overflow-y-auto pr-0.5 custom-scrollbar'
-            : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2'
-        }
-      >
-        {filteredOptions.map((opt) => {
-          const IconComp = opt.icon;
-
-          return (
-            <button
-              key={opt.type}
-              type="button"
-              onClick={() => onAddField(opt.type)}
-              title={`${opt.label}: ${opt.description}`}
-              className="flex items-center gap-2 p-2 rounded-lg border border-border/80 bg-background/60 hover:bg-primary/5 hover:border-primary/40 transition-all text-left group hover:scale-[1.01] active:scale-[0.99] shadow-2xs"
-            >
-              <div
-                className={`w-6 h-6 rounded-md flex items-center justify-center shrink-0 border ${opt.colorClass} group-hover:scale-105 transition-transform`}
-              >
-                <IconComp className="w-3.5 h-3.5" />
-              </div>
-
-              <div className="overflow-hidden min-w-0">
-                <span className="text-[11px] font-semibold text-foreground group-hover:text-primary transition-colors block truncate leading-tight">
-                  {opt.shortLabel}
-                </span>
-                <span className="text-[9px] text-muted-foreground truncate block leading-tight">
-                  {opt.category}
-                </span>
-              </div>
-            </button>
-          );
-        })}
-      </div>
+      {content}
     </div>
   );
 };

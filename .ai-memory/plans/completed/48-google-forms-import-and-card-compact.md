@@ -1,32 +1,69 @@
-# Completed Plan [48]: Google Forms Import Engine & Field Card Actions Compact
+# Completed Plan: Google Forms Deep Import, Logic Customization Studio & Senior-Grade UI/UX
 
 Spec Reference: [02-spec/21-app/48-google-forms-import-and-card-compact/01-overview.md](../../../02-spec/21-app/48-google-forms-import-and-card-compact/01-overview.md)
-
-## 1. Executive Summary & Blast Radius
-This task resolved all UI/UX issues highlighted in the user review (`media_1790312461166.png`) and delivered full Google Forms import capabilities:
-1. **Compact Actions Dropdown:** In `sortable-field-card.tsx`, replaced the loose horizontal sprawl of 6 buttons (`Test Preview`, `Validation`, `Triggers`, `Branching`, `Duplicate`, `Delete`) with an elegant `Actions ▾` dropdown menu (Radix UI `DropdownMenu`).
-2. **Badge Alignment & Fix:** Added `whitespace-nowrap shrink-0` and refined padding to the field type badge (`[MULTIPLE CHOICE]`), permanently preventing squishing or clipped text.
-3. **Fluid Right-Hand Palette:** Redesigned `field-palette.tsx` into a modern, compact 2-column grid with refined typography, micro-cards, and responsive fluidity.
-4. **Google Forms Import Engine:** Built `google-forms-importer.ts` with support for Google Forms v1 API, public viewform URL extraction, and schema conversions.
-5. **Google Forms Import Modal:** Built `google-forms-import-modal.tsx` with 3 tabs (Public URL, API/OAuth, Raw JSON) and wired it directly into the top action bar of `FormBuilder.tsx`.
-6. **Post-Import Customization:** Imported questions immediately populate `useQuizStore`, allowing live scoring, branching rules, compound validation, and instant previewing.
+Start Origin: User review screenshot `https://prnt.sc/e53IZKChkVu4` (`assets/screenshots/google-forms-import-and-card-compact-01.png`)
+Total Loops / Steps: 2 Continuous Execution Loops (Phase 1 Planning + Phase 2 Execution & Polish)
 
 ---
 
-## 2. Completed Subtasks Ledger
+## 1. Executive Summary & Problem Resolution
 
-| Subtask File | Traceability ID | Deliverables Summary | Status |
-|---|---|---|---|
-| `01-compact-card-actions-and-badge.md` | Task-01 | Replaced loose buttons with `Actions ▾` dropdown, preserved Live Preview toggle, and fixed type badge clipping. | Verified |
-| `02-fluid-palette-and-sidebar.md` | Task-02 | Redesigned `field-palette.tsx` into a compact, modern 2-column grid with refined design tokens. | Verified |
-| `03-google-forms-importer-engine.md` | Task-03 | Implemented Google Forms API v1 client, public viewform parser, and type conversion matrix in `google-forms-importer.ts`. | Verified |
-| `04-google-forms-import-modal-and-wiring.md` | Task-04 | Implemented `google-forms-import-modal.tsx` with 3 import tabs and integrated with `FormBuilder.tsx`. | Verified |
-| `05-quality-gates-and-testing.md` | Task-05 | Unit test coverage for Google Forms importer in `src/test/google-forms-import.test.ts`. | Verified |
+The user requested four core deliverables:
+1. **Compact Question Card Buttons:** Replace overcrowded buttons on question cards with an elegant dropdown menu while keeping the live test preview immediately accessible and ensuring clean alignment everywhere.
+2. **Badge Clipping Resolution:** Eliminate squished/clipped `[MULTIPLE CHOICE]` type badge in the card header.
+3. **Right-Hand Sidebar Fluid Redesign:** Overhaul the right-hand panel from a clunky two-card stack into a senior-grade, unified inspector dock.
+4. **Google Forms Ingestion & OAuth Engine:** Ingest entire Google Forms via OAuth2 access token, official Google Forms API v1, public URLs, or JSON payloads, preserving question types, point grading, and choice options.
+5. **Post-Import Logic Customization Studio:** Allow users to customize logic (points, compound validation rules, and conditional DAG branching) immediately upon import.
 
 ---
 
-## 3. Test & Verification Evidence
-- `npm run lint`: 0 errors.
-- `npx tsc --noEmit`: 0 type errors.
-- `npx vitest run`: 7 test files, 50 tests passed.
-- `npm run build`: Production bundle generated in 2.85s (`dist/assets/index-7r7LFCmL.js`).
+## 2. Completed Subtasks & Technical Accomplishments
+
+### Subtask 01: Refined Card Actions & Responsive Alignment (`sortable-field-card.tsx`)
+- Compacted 6 loose buttons into a single Radix UI `Actions ▾` dropdown menu (`DropdownMenu`).
+- Kept `Test Preview` prominently toggleable with active background/border highlight.
+- Added active drawer indicator dot on the `Actions` button whenever validation, triggers, or branching drawers are open.
+- Fixed badge clipping with `whitespace-nowrap shrink-0` and balanced padding.
+- Added explicit `Close ✕` buttons inside all drawers.
+
+### Subtask 02: Unified Right Dock & Palette Overhaul (`FormBuilder.tsx`, `field-palette.tsx`)
+- Replaced the clunky two-card vertical stack with a unified, tabbed inspector dock (`Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`):
+  - **Tab 1 ("Fields"):** Embedded `FieldPalette` with live component search input (`Filter components...`), segmented category pills (`All`, `Choice`, `Text`, `Media`), and 2-column micro-card grid.
+  - **Tab 2 ("Outline"):** Searchable question outline with quick scroll-to-field, required indicators, points badges, reorder up/down buttons, and aggregate summary metrics (Total Questions, Required, Total Points).
+  - **Tab 3 ("Config"):** In-dock form configuration (Access Policy: Public/Token/Invite, Focus Step-by-Step Mode, Quiz Passing Score %, Time Limit seconds).
+
+### Subtask 03: Full Google Forms API & OAuth Engine (`google-forms-importer.ts`)
+- Ingestion engine supporting official Google Forms API v1 (`https://forms.googleapis.com/v1/forms/{formId}`).
+- Full mapping of Google Form items:
+  - `RADIO` -> `single_choice`
+  - `CHECKBOX` -> `multiple_choice`
+  - `DROP_DOWN` -> `dropdown`
+  - `TEXT` (short/paragraph) -> `short_answer` / `paragraph`
+  - `SCALE` -> `rating`
+  - `DATE` & `TIME` -> `regex_text` with YYYY-MM-DD / HH:MM validation
+  - `FILE_UPLOAD` -> `file_upload`
+  - Page breaks -> section grouping
+- Automatic extraction of quiz point values and correct answer keys.
+- Demo OAuth token handler for zero-friction evaluation and testing.
+
+### Subtask 04: Post-Import Logic Customization Studio (`google-forms-import-modal.tsx`)
+- Staged preview featuring collapsible **"Customize Form Logic & Rules"** studio:
+  - Default quiz points override (5, 10, 20 pts).
+  - Smart contact validation auto-injector (Email & WhatsApp rules).
+  - Conditional skip/branching generator for multiple choice options.
+  - Toggle to immediately launch the Visual Branching Flow Editor (`BranchingFlowModal`) upon import completion.
+
+### Subtask 05: Quality Verification & Testing
+- Vitest suite in `src/test/google-forms-import.test.ts` (11/11 tests passed).
+- TypeScript compiler verification (`npx tsc --noEmit` passed with 0 errors).
+- ESLint verification (`npm run lint` passed with 0 errors).
+
+---
+
+## 3. Verification & Acceptance Proof
+
+| Quality Check | Command | Status |
+| :--- | :--- | :--- |
+| TypeScript Conformance | `npx tsc --noEmit` | **PASSED** (0 errors) |
+| ESLint Verification | `npm run lint` | **PASSED** (0 errors) |
+| Importer Test Suite | `npx vitest run src/test/google-forms-import.test.ts` | **PASSED** (11/11 tests) |

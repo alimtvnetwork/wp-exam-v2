@@ -272,7 +272,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
           </div>
 
           {/* Action Toolbar: Compacted to Live Preview + Actions Dropdown */}
-          <div className="flex items-center gap-2 shrink-0">
+          <div className="flex items-center gap-1.5 shrink-0">
             {/* Live Test Preview Mode Toggle */}
             <Button
               type="button"
@@ -297,10 +297,17 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="text-xs h-7 px-2.5 gap-1.5 border-border hover:bg-muted font-medium text-foreground"
+                  className={`text-xs h-7 px-2.5 gap-1.5 border transition-all font-medium ${
+                    showAdvanced || showTriggers || showConditions
+                      ? 'border-primary/50 bg-primary/10 text-primary hover:bg-primary/15'
+                      : 'border-border text-foreground hover:bg-muted'
+                  }`}
                 >
                   <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
                   <span>Actions</span>
+                  {(showAdvanced || showTriggers || showConditions) && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                  )}
                   <ChevronDown className="w-3 h-3 opacity-60" />
                 </Button>
               </DropdownMenuTrigger>

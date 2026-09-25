@@ -34,14 +34,20 @@ import {
   Download,
   Loader2,
   HelpCircle,
+  GitBranch,
+  SlidersHorizontal,
+  ChevronDown,
+  ChevronUp,
 } from 'lucide-react';
+import { applyLogicCustomizationsToFields } from '@/lib/google-forms-importer';
 
 interface GoogleFormsImportModalProps {
   isOpen: boolean;
   onClose: () => void;
   onImport: (
     data: { title: string; description: string; fields: FormField[] },
-    isReplaceMode: boolean
+    isReplaceMode: boolean,
+    openBranchingFlow?: boolean
   ) => void;
 }
 
@@ -68,12 +74,26 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
   const [stagedResult, setStagedResult] = useState<GoogleFormsImportResult | null>(null);
   const [isReplaceMode, setIsReplaceMode] = useState(true);
 
+  // Post-Import Logic Customization State
+  const [showLogicCustomizer, setShowLogicCustomizer] = useState(false);
+  const [defaultPoints, setDefaultPoints] = useState(10);
+  const [enforceAllRequired, setEnforceAllRequired] = useState(false);
+  const [autoDetectContactRules, setAutoDetectContactRules] = useState(true);
+  const [generateSequentialBranching, setGenerateSequentialBranching] = useState(false);
+  const [openBranchingEditorOnImport, setOpenBranchingEditorOnImport] = useState(false);
+
   const resetState = () => {
     setPublicUrl('');
     setApiFormId('');
     setAccessToken('');
     setJsonContent('');
     setStagedResult(null);
+    setShowLogicCustomizer(false);
+    setDefaultPoints(10);
+    setEnforceAllRequired(false);
+    setAutoDetectContactRules(true);
+    setGenerateSequentialBranching(false);
+    setOpenBranchingEditorOnImport(false);
   };
 
   const handleClose = () => {
@@ -201,13 +221,21 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
       return;
     }
 
+    const customizedFields = applyLogicCustomizationsToFields(stagedResult.fields, {
+      defaultPoints,
+      enforceAllRequired: enforceAllRequired ? true : undefined,
+      autoDetectContactRules,
+      generateSequentialBranching,
+    });
+
     onImport(
       {
         title: stagedResult.formTitle,
         description: stagedResult.formDescription,
-        fields: stagedResult.fields,
+        fields: customizedFields,
       },
-      isReplaceMode
+      isReplaceMode,
+      openBranchingEditorOnImport
     );
 
     toast.success(
@@ -341,9 +369,23 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
               </div>
             </div>
 
-            <p className="text-[11px] text-muted-foreground">
-              Directly connects to official Google Forms API v1 (<code>https://forms.googleapis.com/v1/forms/&#123;formId&#125;</code>) with scopes <code>forms.body.readonly</code>.
-            </p>
+            <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
+              <p className="text-[11px]">
+                Connects to official Google Forms API v1 (<code>https://forms.googleapis.com/v1/forms/&#123;formId&#125;</code>).
+              </p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setApiFormId('sample-engineering-101');
+                  setAccessToken('demo_oauth_token');
+                }}
+                className="text-[10px] h-6 px-2 shrink-0 border-primary/30 text-primary hover:bg-primary/10"
+              >
+                Use Demo Token
+              </Button>
+            </div>
 
             <Button
               type="button"
@@ -444,6 +486,95 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
                   </Badge>
                 </div>
               ))}
+            </div>
+
+            {/* Logic & Rules Customization Studio (Post-Import) */}
+            <div className="border border-border/80 rounded-lg p-2.5 bg-background/60 space-y-2">
+              <button
+                type="button"
+                onClick={() => setShowLogicCustomizer(!showLogicCustomizer)}
+                className="w-full flex items-center justify-between text-xs font-semibold text-foreground hover:text-primary transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
+                  <span>Customize Form Logic & Rules</span>
+                  <Badge variant="outline" className="text-[9px] h-4 px-1 border-primary/30 text-primary font-mono">
+                    Points, Validation, Branching
+                  </Badge>
+                </div>
+                {showLogicCustomizer ? (
+                  <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
+                ) : (
+                  <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+                )}
+              </button>
+
+              {showLogicCustomizer && (
+                <div className="pt-2 border-t border-border/60 space-y-2.5 text-xs animate-in fade-in-50 duration-150">
+                  {/* Default points selection */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-medium text-foreground block">Default Quiz Points</span>
+                      <span className="text-[10px] text-muted-foreground">Applied to all imported questions</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      {[5, 10, 20].map((pts) => (
+                        <button
+                          key={pts}
+                          type="button"
+                          onClick={() => setDefaultPoints(pts)}
+                          className={`text-[11px] px-2 py-0.5 rounded border transition-all ${
+                            defaultPoints === pts
+                              ? 'bg-primary text-primary-foreground font-semibold border-primary'
+                              : 'bg-muted/50 border-border hover:bg-muted text-foreground'
+                          }`}
+                        >
+                          {pts}pt
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Auto-detect contact fields */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-medium text-foreground block">Smart Contact Validation</span>
+                      <span className="text-[10px] text-muted-foreground">Auto-inject Email & WhatsApp verification rules</span>
+                    </div>
+                    <Switch
+                      checked={autoDetectContactRules}
+                      onCheckedChange={setAutoDetectContactRules}
+                      className="scale-75"
+                    />
+                  </div>
+
+                  {/* Sequential branching generation */}
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-medium text-foreground block">Conditional Skip / Branching</span>
+                      <span className="text-[10px] text-muted-foreground">Auto-link multiple choice options to subsequent questions</span>
+                    </div>
+                    <Switch
+                      checked={generateSequentialBranching}
+                      onCheckedChange={setGenerateSequentialBranching}
+                      className="scale-75"
+                    />
+                  </div>
+
+                  {/* Open visual DAG editor after import */}
+                  <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                    <div className="flex items-center gap-1.5 text-primary font-medium">
+                      <GitBranch className="w-3.5 h-3.5" />
+                      <span>Open Branching Flow Editor on Import</span>
+                    </div>
+                    <Switch
+                      checked={openBranchingEditorOnImport}
+                      onCheckedChange={setOpenBranchingEditorOnImport}
+                      className="scale-75"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Import Mode Switcher */}

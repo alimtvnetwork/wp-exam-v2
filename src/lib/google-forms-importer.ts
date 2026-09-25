@@ -28,6 +28,21 @@ export interface GoogleQuestionScaleQuestion {
   highLabel?: string;
 }
 
+export interface GoogleQuestionDateQuestion {
+  includeYear?: boolean;
+  includeTime?: boolean;
+}
+
+export interface GoogleQuestionTimeQuestion {
+  duration?: boolean;
+}
+
+export interface GoogleQuestionFileUploadQuestion {
+  folderId?: string;
+  types?: string[];
+  maxFiles?: number;
+}
+
 export interface GoogleQuestionItem {
   question: {
     questionId: string;
@@ -35,6 +50,9 @@ export interface GoogleQuestionItem {
     choiceQuestion?: GoogleQuestionChoiceQuestion;
     textQuestion?: GoogleQuestionTextQuestion;
     scaleQuestion?: GoogleQuestionScaleQuestion;
+    dateQuestion?: GoogleQuestionDateQuestion;
+    timeQuestion?: GoogleQuestionTimeQuestion;
+    fileUploadQuestion?: GoogleQuestionFileUploadQuestion;
     grading?: {
       pointValue?: number;
       correctAnswers?: {
@@ -59,6 +77,13 @@ export interface GoogleFormSchema {
   items: GoogleFormItem[];
   revisionId?: string;
   responderUri?: string;
+}
+
+export interface LogicCustomizationOptions {
+  defaultPoints?: number;
+  enforceAllRequired?: boolean;
+  autoDetectContactRules?: boolean;
+  generateSequentialBranching?: boolean;
 }
 
 export interface GoogleFormsImportResult {
@@ -147,6 +172,7 @@ export function convertGoogleFormSchemaToWpExam(schema: GoogleFormSchema): Googl
       let fieldType: FieldType = 'short_answer';
       let options: string[] | undefined = undefined;
       let correctAnswer: string | string[] | undefined = undefined;
+      let validationRule = undefined;
 
       if (q.choiceQuestion) {
         const choiceType = q.choiceQuestion.type;
@@ -168,9 +194,31 @@ export function convertGoogleFormSchemaToWpExam(schema: GoogleFormSchema): Googl
           fieldType = 'paragraph';
         } else {
           fieldType = 'short_answer';
+          const lower = questionTitle.toLowerCase();
+          if (lower.includes('email')) {
+            fieldType = 'email';
+          } else if (lower.includes('phone') || lower.includes('whatsapp') || lower.includes('mobile')) {
+            fieldType = 'phone';
+          }
         }
       } else if (q.scaleQuestion) {
         fieldType = 'rating';
+      } else if (q.dateQuestion) {
+        fieldType = 'regex_text';
+        validationRule = {
+          ruleType: 'regex' as const,
+          pattern: '^[0-9]{4}-[0-9]{2}-[0-9]{2}$',
+          errorMessage: 'Date format must be YYYY-MM-DD',
+        };
+      } else if (q.timeQuestion) {
+        fieldType = 'regex_text';
+        validationRule = {
+          ruleType: 'regex' as const,
+          pattern: '^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$',
+          errorMessage: 'Time format must be HH:MM',
+        };
+      } else if (q.fileUploadQuestion) {
+        fieldType = 'file_upload';
       }
 
       const newField: FormField = {
@@ -183,6 +231,7 @@ export function convertGoogleFormSchemaToWpExam(schema: GoogleFormSchema): Googl
         correctAnswer,
         points,
         group: currentGroup || undefined,
+        validationRule,
       };
 
       fields.push(newField);
@@ -197,6 +246,67 @@ export function convertGoogleFormSchemaToWpExam(schema: GoogleFormSchema): Googl
     message: `Successfully converted ${fields.length} questions from Google Form.`,
     importedCount: fields.length,
   };
+}
+
+/**
+ * Applies user logic customizations (scoring, validations, branching) across staged fields.
+ */
+export function applyLogicCustomizationsToFields(
+  fields: FormField[],
+  options: LogicCustomizationOptions
+): FormField[] {
+  return fields.map((f, idx) => {
+    const updated: FormField = { ...f };
+
+    if (options.defaultPoints !== undefined) {
+      updated.points = options.defaultPoints;
+    }
+
+    if (options.enforceAllRequired !== undefined) {
+      updated.isRequired = options.enforceAllRequired;
+    }
+
+    if (options.autoDetectContactRules) {
+      const lower = updated.label.toLowerCase();
+      if (lower.includes('email') || updated.type === 'email') {
+        updated.type = 'email';
+        updated.validationRules = [
+          {
+            id: `rule-email-${Date.now()}-${idx}`,
+            ruleType: 'email',
+            errorMessage: 'Please enter a valid email address.',
+          },
+        ];
+      } else if (lower.includes('phone') || lower.includes('whatsapp') || updated.type === 'phone') {
+        updated.type = 'phone';
+        updated.validationRules = [
+          {
+            id: `rule-phone-${Date.now()}-${idx}`,
+            ruleType: 'min_length',
+            value: 8,
+            errorMessage: 'Phone number must have at least 8 digits.',
+          },
+        ];
+      }
+    }
+
+    if (options.generateSequentialBranching && updated.options && updated.options.length > 1) {
+      const nextField = fields[idx + 1];
+      if (nextField) {
+        updated.conditions = [
+          {
+            fieldId: updated.id,
+            operator: 'equals',
+            value: updated.options[0],
+            action: 'jump_to_field',
+            targetFieldId: nextField.id,
+          },
+        ];
+      }
+    }
+
+    return updated;
+  });
 }
 
 /**
@@ -398,6 +508,13 @@ export async function fetchGoogleFormViaApi(
       message: 'Google Cloud OAuth access token is required.',
       importedCount: 0,
     };
+  }
+
+  // Support demo / mock token for immediate developer testing
+  if (cleanToken.startsWith('demo_') || cleanToken === 'mock_token' || cleanToken === 'test_token') {
+    const sample = getSampleGoogleFormSchema();
+    sample.formId = cleanId;
+    return convertGoogleFormSchemaToWpExam(sample);
   }
 
   const endpoint = `https://forms.googleapis.com/v1/forms/${cleanId}`;

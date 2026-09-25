@@ -4,6 +4,8 @@ import {
   convertGoogleFormSchemaToWpExam,
   getSampleGoogleFormSchema,
   parseFbPublicLoadData,
+  applyLogicCustomizationsToFields,
+  fetchGoogleFormViaApi,
   GoogleFormSchema,
 } from '@/lib/google-forms-importer';
 
@@ -273,5 +275,87 @@ describe('Google Forms Importer Engine', () => {
     const result = convertGoogleFormSchemaToWpExam(sample);
     expect(result.isSuccess).toBe(true);
     expect(result.fields.length).toBe(6);
+  });
+
+  it('should map extended types: date, time, and file_upload correctly', () => {
+    const schema: GoogleFormSchema = {
+      formId: 'extended-types-form',
+      info: { title: 'Extended Types Assessment' },
+      items: [
+        {
+          itemId: 'item-date',
+          title: 'Birth Date',
+          questionItem: {
+            question: {
+              questionId: 'q-date',
+              dateQuestion: { includeYear: true },
+            },
+          },
+        },
+        {
+          itemId: 'item-time',
+          title: 'Preferred Interview Time',
+          questionItem: {
+            question: {
+              questionId: 'q-time',
+              timeQuestion: { duration: false },
+            },
+          },
+        },
+        {
+          itemId: 'item-upload',
+          title: 'Upload Portfolio',
+          questionItem: {
+            question: {
+              questionId: 'q-upload',
+              fileUploadQuestion: { maxFiles: 1 },
+            },
+          },
+        },
+      ],
+    };
+
+    const result = convertGoogleFormSchemaToWpExam(schema);
+    expect(result.isSuccess).toBe(true);
+    expect(result.fields).toHaveLength(3);
+    expect(result.fields[0].type).toBe('regex_text');
+    expect(result.fields[0].validationRule?.pattern).toBe('^[0-9]{4}-[0-9]{2}-[0-9]{2}$');
+    expect(result.fields[1].type).toBe('regex_text');
+    expect(result.fields[1].validationRule?.pattern).toBe('^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$');
+    expect(result.fields[2].type).toBe('file_upload');
+  });
+
+  it('should apply logic customizations across staged fields', () => {
+    const sample = getSampleGoogleFormSchema();
+    const result = convertGoogleFormSchemaToWpExam(sample);
+
+    const customized = applyLogicCustomizationsToFields(result.fields, {
+      defaultPoints: 25,
+      enforceAllRequired: true,
+      autoDetectContactRules: true,
+      generateSequentialBranching: true,
+    });
+
+    expect(customized.length).toBe(result.fields.length);
+    // All points updated to 25
+    expect(customized[0].points).toBe(25);
+    expect(customized[1].points).toBe(25);
+    // All required enforced
+    expect(customized.every((f) => f.isRequired)).toBe(true);
+
+    // Check branching generated for choice question
+    const choiceField = customized.find((f) => f.type === 'single_choice');
+    if (choiceField) {
+      expect(choiceField.conditions).toBeDefined();
+      expect(choiceField.conditions?.length).toBeGreaterThan(0);
+      expect(choiceField.conditions?.[0].action).toBe('jump_to_field');
+    }
+  });
+
+  it('should support demo OAuth tokens in fetchGoogleFormViaApi', async () => {
+    const result = await fetchGoogleFormViaApi('test-form-101', 'demo_oauth_token');
+    expect(result.isSuccess).toBe(true);
+    expect(result.formTitle).toContain('Engineering');
+    expect(result.fields.length).toBeGreaterThan(0);
   });
 });
