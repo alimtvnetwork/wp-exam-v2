@@ -49,7 +49,9 @@ import {
   Mail,
   Layers,
   ChevronDown,
+  AlertTriangle,
 } from 'lucide-react';
+import { DesignValidationIssue } from '@/lib/design-validation-engine';
 
 interface SortableFieldCardProps {
   id: string;
@@ -58,6 +60,7 @@ interface SortableFieldCardProps {
   otherFields: FormField[];
   allFields?: FormField[];
   isQuiz: boolean;
+  designIssues?: DesignValidationIssue[];
   onUpdate: (id: string, updates: Partial<FormField>) => void;
   onRemove: (id: string) => void;
   onDuplicate: (id: string) => void;
@@ -70,6 +73,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   otherFields,
   allFields,
   isQuiz,
+  designIssues,
   onUpdate,
   onRemove,
   onDuplicate,
@@ -268,6 +272,20 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <BellRing className="w-3 h-3" /> {activeTriggers.length}
                 </span>
               )}
+
+              {designIssues && designIssues.length > 0 && (
+                <span
+                  className={`text-[10px] px-1.5 py-0.5 rounded-md border font-mono flex items-center gap-1 shrink-0 ${
+                    designIssues.some((i) => i.severity === 'error')
+                      ? 'bg-rose-500/10 text-rose-500 border-rose-500/30'
+                      : 'bg-amber-500/10 text-amber-500 border-amber-500/30'
+                  }`}
+                  title={designIssues.map((i) => `• ${i.title}`).join('\n')}
+                >
+                  <AlertTriangle className="w-3 h-3" />
+                  <span>{designIssues.length} issue{designIssues.length > 1 ? 's' : ''}</span>
+                </span>
+              )}
             </CardTitle>
           </div>
 
@@ -381,6 +399,29 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
         {/* Card Content & Question Editor */}
         <CardContent className="space-y-4 p-4">
+          {/* Inline Design Diagnostics Notice */}
+          {designIssues && designIssues.length > 0 && (
+            <div
+              className={`p-2.5 rounded-lg border text-xs space-y-1 ${
+                designIssues.some((i) => i.severity === 'error')
+                  ? 'bg-rose-500/5 border-rose-500/20 text-rose-600 dark:text-rose-400'
+                  : 'bg-amber-500/5 border-amber-500/20 text-amber-600 dark:text-amber-400'
+              }`}
+            >
+              <div className="font-semibold flex items-center gap-1.5 text-[11px]">
+                <AlertTriangle className="w-3.5 h-3.5" />
+                <span>Design & Validation Recommendation:</span>
+              </div>
+              <ul className="list-disc pl-4 space-y-0.5 text-[11px]">
+                {designIssues.map((issue) => (
+                  <li key={issue.id}>
+                    <span className="font-medium">{issue.title}:</span> {issue.recommendation}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
             {/* Primary Question / Field Label */}
             <div className="md:col-span-2">

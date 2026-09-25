@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
 import {
   FormField,
@@ -23,6 +23,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { FormRunner } from '@/components/runner/FormRunner';
 import { JsonModal } from './json-modal';
 import { GoogleFormsImportModal } from './google-forms-import-modal';
+import { DesignValidationPanel } from './design-validation-panel';
+import { auditFormDesign, DesignHealthReport } from '@/lib/design-validation-engine';
 import { AiSectionAssistant } from '@/components/admin/ai-section-assistant';
 import { BranchingFlowModal } from './branching-flow-modal';
 import { SortableFieldCard } from './sortable-field-card';
@@ -95,6 +97,12 @@ export const FormBuilder: React.FC = () => {
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
   const [outlineFilter, setOutlineFilter] = useState<string>('');
+  const [isDesignPanelOpen, setIsDesignPanelOpen] = useState(false);
+
+  const designReport: DesignHealthReport = useMemo(
+    () => auditFormDesign(fields, formType, settings),
+    [fields, formType, settings]
+  );
 
   const handleImportGoogleForm = (
     data: { title: string; description: string; fields: FormField[] },
@@ -325,6 +333,36 @@ export const FormBuilder: React.FC = () => {
           >
             <FileSpreadsheet className="w-3.5 h-3.5 text-emerald-500" />
             <span>Import Google Form</span>
+          </Button>
+
+          {/* Form Design Health & Validation Inspector */}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setIsDesignPanelOpen(true)}
+            className={`text-xs h-8 gap-1.5 font-medium transition-colors ${
+              designReport.score >= 90
+                ? 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10'
+                : designReport.score >= 75
+                ? 'border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10'
+                : 'border-destructive/40 text-destructive hover:bg-destructive/10'
+            }`}
+            title="Inspect form health, design validation warnings, and 1-click auto-fixes"
+          >
+            <Shield className="w-3.5 h-3.5" />
+            <span>Health: {designReport.score}%</span>
+            <Badge
+              variant="secondary"
+              className={`text-[9px] px-1 py-0 h-4 font-bold ${
+                designReport.score >= 90
+                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                  : designReport.score >= 75
+                  ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                  : 'bg-destructive/15 text-destructive'
+              }`}
+            >
+              {designReport.grade}
+            </Badge>
           </Button>
 
           {/* Visual Branching Flow Inspector */}
@@ -568,6 +606,7 @@ export const FormBuilder: React.FC = () => {
                           otherFields={fields.filter((f) => f.id !== field.id)}
                           allFields={fields}
                           isQuiz={formType === 'quiz'}
+                          designIssues={designReport.issues.filter((i) => i.fieldId === field.id)}
                           onUpdate={(fieldId, updates) => updateField(fieldId, updates)}
                           onRemove={(fieldId) => removeField(fieldId)}
                           onDuplicate={handleDuplicateField}
@@ -898,6 +937,16 @@ export const FormBuilder: React.FC = () => {
         isOpen={isFlowModalOpen}
         onClose={() => setIsFlowModalOpen(false)}
         fields={fields}
+      />
+
+      {/* Design Validation & Quality Health Inspector Panel */}
+      <DesignValidationPanel
+        isOpen={isDesignPanelOpen}
+        onClose={() => setIsDesignPanelOpen(false)}
+        report={designReport}
+        fields={fields}
+        onUpdateFields={setFields}
+        onJumpToField={scrollToField}
       />
 
       {/* Live Preview Modal */}
