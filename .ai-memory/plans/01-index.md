@@ -11,6 +11,7 @@ Master directory of architectural and execution plans.
 
 ## Completed Plans
 
+- [59-slug-routing-file-upload-preview-and-ai-studio.md](completed/59-slug-routing-file-upload-preview-and-ai-studio.md): Dynamic slug routing (/f/:slug, /preview/:slug, /admin/form/:slug), interactive file upload preview dropzone, terminology standardization to Section, Question AI Instruction Studio, and dynamic HSL theming engine (70/70 tests passed).
 - [58-agm-mailbox-and-temp-e2e.md](completed/58-agm-mailbox-and-temp-e2e.md): AGM mailbox auto-configuration (mail.<domain>), organic navigation redesign, and isolated temporary E2E test suite (RUN_TEMP_E2E=1).
 - [57-forms-spec-and-laravel-architecture.md](completed/57-forms-spec-and-laravel-architecture.md): Universal form engine, visual project tree, split SQLite schemas, and Laravel 11 application architecture with 29 passing unit tests (69/69 E2E assertions passed).
 - [56-e2e-python-testing-security-and-media-orchestration.md](completed/56-e2e-python-testing-security-and-media-orchestration.md): 43-suite Python E2E integration test suite, candidate feedback & CSAT rating survey pipeline, media pre-flight availability & fallback detection, and admin audit log streaming & threat event flagging (69/69 tests passed).
@@ -73,24 +74,24 @@ Master directory of architectural and execution plans.
 
 Compact registry of the last 20 tasks and milestone plans:
 
-1. **Task 57:** [Universal Form Engine & Laravel Application Architecture](completed/57-forms-spec-and-laravel-architecture.md) — 4-step DAG wizard, debounced validation, WhatsApp testing, Split SQLite DB.
-2. **Task 56:** [E2E Testing, Security & Media Orchestration](completed/56-e2e-python-testing-security-and-media-orchestration.md) — 43-suite Python E2E integration test runner.
-3. **Task 55:** [Exam Countdown & Certificate Issuance](completed/55-e2e-python-testing-security-and-media-orchestration.md) — Real-time countdown timer and cryptographic certificates.
-4. **Task 54:** [Offline Storage & Scoring Engine](completed/54-e2e-python-testing-security-and-media-orchestration.md) — Monotonic sync engine and weighted section thresholds.
-5. **Task 53:** [i18n Localization & Concept Map Schema](completed/53-e2e-python-testing-security-and-media-orchestration.md) — RTL tokens and mind map nodes.
-6. **Task 52:** [Topological Sequencing & Seeded Shuffle](completed/52-e2e-python-testing-security-and-media-orchestration.md) — DAG cycle prevention and question shuffle.
-7. **Task 51:** [Progress Bar & Split DB Backup Dual-Dispatch](completed/51-e2e-python-testing-security-and-media-orchestration.md) — Email digest queues and automated DB backups.
-8. **Task 50:** [Permission Inheritance & Form Validation Matrix](completed/50-e2e-python-testing-security-and-media-orchestration.md) — Multi-tier permission scopes.
-9. **Task 49:** [Question Hints & Theme Injection](completed/49-e2e-python-testing-security-and-media-orchestration.md) — CSS variable compilation and hint gating.
-10. **Task 48:** [Curriculum Revisions & Public Analytics](completed/48-e2e-python-testing-security-and-media-orchestration.md) — 1-click snapshot rollback and OpenGraph cards.
-11. **Task 47:** [Notification Cadence & Execution Pipeline](completed/47-e2e-python-testing-security-and-media-orchestration.md) — Submission verification pipelines.
-12. **Task 46:** [Candidate Telemetry & Bug Triage](completed/46-e2e-python-testing-security-and-media-orchestration.md) — Salted IP hashing and bug triage state machine.
-13. **Task 45:** [Multi-Project Hierarchy & JWT Security](completed/45-e2e-python-testing-security-and-media-orchestration.md) — Category/project resolution and REST security.
-14. **Task 44:** [Continuous Loop & E2E Certification](completed/44-e2e-python-testing-security-and-media-orchestration.md) — SQL injection defense and Elementor integration.
-15. **Task 43:** [Comprehensive Security & Media Embeds](completed/43-comprehensive-e2e-security-media-and-elementor.md) — Question media embeds and live validation.
-16. **Task 42:** [Audio Spec Audit & Verification](completed/42-audio-spec-audit-and-continuous-loop.md) — Sub-project recursion and focus quiz runner.
-17. **Task 41:** [Continuous Loop Orchestration](completed/41-audio-spec-audit-and-continuous-loop.md) — Remote deployment uploader protocol.
-18. **Task 40:** [Audio Spec Deep Audit](completed/40-audio-spec-deep-audit-and-verification.md) — Learning pipeline verification.
-19. **Task 39:** [Missing Elements Verification](completed/39-audit-and-missing-elements-verification.md) — Multi-agent audit compliance.
-20. **Task 38:** [Audit & Compliance](completed/38-audit-and-missing-elements-verification.md) — Quality gates and schema verification.
+1. **Task 59:** [Slug Routing, File Upload Preview, AI Studio & Theming](completed/59-slug-routing-file-upload-preview-and-ai-studio.md) — Dynamic slug routing (/f/:slug, /preview/:slug), interactive dropzone, Section terminology, Question AI Studio, and HSL theming.
+2. **Task 58:** [AGM Mailbox & Isolated Temp E2E](completed/58-agm-mailbox-and-temp-e2e.md) — AGM mailbox auto-configuration, organic navigation redesign, and isolated temporary E2E test suite.
+3. **Task 57:** [Universal Form Engine & Laravel Application Architecture](completed/57-forms-spec-and-laravel-architecture.md) — 4-step DAG wizard, debounced validation, WhatsApp testing, Split SQLite DB.
+4. **Task 56:** [E2E Testing, Security & Media Orchestration](completed/56-e2e-python-testing-security-and-media-orchestration.md) — 43-suite Python E2E integration test runner.
+5. **Task 55:** [Exam Countdown & Certificate Issuance](completed/55-e2e-python-testing-security-and-media-orchestration.md) — Real-time countdown timer and cryptographic certificates.
+6. **Task 54:** [Offline Storage & Scoring Engine](completed/54-e2e-python-testing-security-and-media-orchestration.md) — Monotonic sync engine and weighted section thresholds.
+7. **Task 53:** [i18n Localization & Concept Map Schema](completed/53-e2e-python-testing-security-and-media-orchestration.md) — RTL tokens and mind map nodes.
+8. **Task 52:** [Topological Sequencing & Seeded Shuffle](completed/52-e2e-python-testing-security-and-media-orchestration.md) — DAG cycle prevention and question shuffle.
+9. **Task 51:** [Progress Bar & Split DB Backup Dual-Dispatch](completed/51-e2e-python-testing-security-and-media-orchestration.md) — Email digest queues and automated DB backups.
+10. **Task 50:** [Permission Inheritance & Form Validation Matrix](completed/50-e2e-python-testing-security-and-media-orchestration.md) — Multi-tier permission scopes.
+11. **Task 49:** [Question Hints & Theme Injection](completed/49-e2e-python-testing-security-and-media-orchestration.md) — CSS variable compilation and hint gating.
+12. **Task 48:** [Curriculum Revisions & Public Analytics](completed/48-e2e-python-testing-security-and-media-orchestration.md) — 1-click snapshot rollback and OpenGraph cards.
+13. **Task 47:** [Notification Cadence & Execution Pipeline](completed/47-e2e-python-testing-security-and-media-orchestration.md) — Submission verification pipelines.
+14. **Task 46:** [Candidate Telemetry & Bug Triage](completed/46-e2e-python-testing-security-and-media-orchestration.md) — Salted IP hashing and bug triage state machine.
+15. **Task 45:** [Multi-Project Hierarchy & JWT Security](completed/45-e2e-python-testing-security-and-media-orchestration.md) — Category/project resolution and REST security.
+16. **Task 44:** [Continuous Loop & E2E Certification](completed/44-e2e-python-testing-security-and-media-orchestration.md) — SQL injection defense and Elementor integration.
+17. **Task 43:** [Comprehensive Security & Media Embeds](completed/43-comprehensive-e2e-security-media-and-elementor.md) — Question media embeds and live validation.
+18. **Task 42:** [Audio Spec Audit & Verification](completed/42-audio-spec-audit-and-continuous-loop.md) — Sub-project recursion and focus quiz runner.
+19. **Task 41:** [Continuous Loop Orchestration](completed/41-audio-spec-audit-and-continuous-loop.md) — Remote deployment uploader protocol.
+20. **Task 40:** [Audio Spec Deep Audit](completed/40-audio-spec-deep-audit-and-verification.md) — Learning pipeline verification.
 

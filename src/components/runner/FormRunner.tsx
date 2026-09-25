@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
+import { useParams } from 'react-router-dom';
 import { FormModel, FormField, FormSubmissionResult } from '@/lib/types/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -169,6 +170,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   onClose,
   isPreviewRoute,
 }) => {
+  const { slug: routeSlug } = useParams<{ slug?: string }>();
   const examStore = useExamAppStore();
   const session = examStore.session;
   const quizStore = useQuizStore();
@@ -190,19 +192,32 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     if (initialForm) {
       return 'custom-active';
     }
+
+    if (routeSlug) {
+      if (PRESET_PROJECTS[routeSlug]) {
+        return routeSlug;
+      }
+
+      return 'custom-active';
+    }
+
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlProject = params.get('project');
+
       if (urlProject && PRESET_PROJECTS[urlProject]) {
         return urlProject;
       }
+
       if (params.get('preview') || isPreviewRoute) {
         return 'custom-active';
       }
     }
+
     if (isPreviewRoute || quizStore.fields.length > 0) {
       return 'custom-active';
     }
+
     return 'intern-programmer';
   };
 
@@ -979,17 +994,60 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
       );
     }
 
-    case 'file_upload':
+    case 'file_upload': {
+      const fileValue = (value as { name?: string; size?: number }) || null;
+
       return (
-        <div className="p-4 border-2 border-dashed rounded-lg text-center bg-muted/20 hover:bg-muted/30 transition cursor-pointer">
-          <span className="text-xs text-muted-foreground block">
-            Click to upload document or drag-and-drop file
-          </span>
-          <span className="text-[10px] text-muted-foreground block mt-0.5">
-            Supported formats: PDF, DOCX, ZIP (Max 10MB)
-          </span>
+        <div className="space-y-2">
+          {fileValue && fileValue.name ? (
+            <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center justify-between">
+              <div className="flex items-center gap-2.5 text-xs text-foreground font-medium">
+                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span className="font-semibold">{fileValue.name}</span>
+                {fileValue.size && (
+                  <span className="text-[10px] text-muted-foreground font-mono">
+                    ({(fileValue.size / (1024 * 1024)).toFixed(2)} MB)
+                  </span>
+                )}
+              </div>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => onChange(null)}
+                className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+              >
+                Remove
+              </Button>
+            </div>
+          ) : (
+            <label className="p-4 border-2 border-dashed border-border/80 hover:border-primary/60 rounded-lg text-center bg-muted/20 hover:bg-muted/30 transition cursor-pointer flex flex-col items-center justify-center">
+              <input
+                type="file"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0];
+
+                  if (file) {
+                    onChange({
+                      name: file.name,
+                      size: file.size,
+                      type: file.type || 'application/octet-stream',
+                    });
+                  }
+                }}
+              />
+              <span className="text-xs text-muted-foreground block font-medium">
+                Click to upload document or drag-and-drop file
+              </span>
+              <span className="text-[10px] text-muted-foreground block mt-0.5 font-mono">
+                Supported formats: PDF, DOCX, ZIP, PNG (Max 10MB)
+              </span>
+            </label>
+          )}
         </div>
       );
+    }
 
     case 'short_answer':
     case 'email':

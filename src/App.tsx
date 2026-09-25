@@ -28,10 +28,27 @@ const App = () => (
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/admin" element={<Index />} />
+            <Route path="/admin/form/:slug" element={<Index />} />
             <Route path="/apply" element={<WizardRunner />} />
             <Route path="/forms/wizard" element={<WizardRunner />} />
             <Route path="/forms/canvas" element={<VisualNodeCanvas />} />
             <Route path="/forms/nodes" element={<VisualNodeCanvas />} />
+            <Route
+              path="/f/:slug"
+              element={
+                <div className="min-h-screen bg-slate-950 p-4 sm:p-6">
+                  <FormRunner />
+                </div>
+              }
+            />
+            <Route
+              path="/preview/:slug"
+              element={
+                <div className="min-h-screen bg-slate-950 p-4 sm:p-6">
+                  <FormRunner isPreviewRoute={true} />
+                </div>
+              }
+            />
             <Route
               path="/preview"
               element={

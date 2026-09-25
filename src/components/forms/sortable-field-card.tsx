@@ -15,6 +15,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -30,6 +31,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { BranchingRuleEditor } from './branching-rule-editor';
+import { QuestionAiStudioModal } from './question-ai-studio-modal';
 import {
   GripVertical,
   Trash2,
@@ -50,6 +52,10 @@ import {
   Layers,
   ChevronDown,
   AlertTriangle,
+  UploadCloud,
+  FileText,
+  Sparkles,
+  X,
 } from 'lucide-react';
 import { DesignValidationIssue } from '@/lib/design-validation-engine';
 
@@ -103,6 +109,14 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   const [previewTestCountry, setPreviewTestCountry] = useState('+1');
   const [previewTestPhone, setPreviewTestPhone] = useState('');
   const [previewSelectedChoice, setPreviewSelectedChoice] = useState<string>('');
+  const [isAiStudioOpen, setIsAiStudioOpen] = useState(false);
+  const [previewUploadedFile, setPreviewUploadedFile] = useState<{
+    name: string;
+    size: number;
+    type: string;
+    uploadedAt: string;
+  } | null>(null);
+  const [isDraggingFile, setIsDraggingFile] = useState(false);
 
   const isChoiceField =
     field.type === 'multiple_choice' ||
@@ -110,6 +124,12 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
     field.type === 'dropdown';
   const isLinkField = field.type === 'link';
   const isRegexField = field.type === 'regex_text';
+  const isFileUploadField = field.type === 'file_upload';
+  const isTextInputField =
+    field.type === 'short_answer' ||
+    field.type === 'paragraph' ||
+    field.type === 'email' ||
+    field.type === 'regex_text';
 
   // Normalize validation rules to compound array structure
   const rawRules = field.validationRule?.rules;
@@ -308,6 +328,19 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               <span className="hidden sm:inline">Test Preview</span>
             </Button>
 
+            {/* Inline AI Studio Quick Button */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="text-xs h-7 px-2 gap-1.5 border-border text-foreground hover:bg-muted transition-all"
+              onClick={() => setIsAiStudioOpen(true)}
+              title="Open AI Prompt Instructions & Question JSON Schema"
+            >
+              <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+              <span className="hidden sm:inline">AI Studio</span>
+            </Button>
+
             {/* Compact Actions Dropdown */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -330,6 +363,21 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 p-1 bg-popover border border-border shadow-lg">
+                <DropdownMenuItem
+                  onClick={() => setIsAiStudioOpen(true)}
+                  className="text-xs flex items-center justify-between cursor-pointer py-1.5"
+                >
+                  <div className="flex items-center gap-2">
+                    <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                    <span>AI Studio & Schema</span>
+                  </div>
+                  <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-indigo-500/10 text-indigo-400 border-indigo-500/30 font-mono">
+                    JSON
+                  </Badge>
+                </DropdownMenuItem>
+
+                <DropdownMenuSeparator className="my-1 border-border/80" />
+
                 <DropdownMenuItem
                   onClick={() => setShowAdvanced(!showAdvanced)}
                   className="text-xs flex items-center justify-between cursor-pointer py-1.5"
@@ -463,14 +511,14 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               </Select>
             </div>
 
-            {/* Section / Module Grouping (Clarified) */}
+            {/* Section Grouping */}
             <div>
               <div className="flex items-center justify-between mb-1">
                 <Label className="text-xs font-semibold text-foreground flex items-center gap-1">
                   <Layers className="w-3 h-3 text-primary" />
-                  <span>Section / Module</span>
+                  <span>Section</span>
                 </Label>
-                <span className="text-[10px] text-muted-foreground" title="Groups related questions in multi-step assessments">
+                <span className="text-[10px] text-muted-foreground" title="Groups related questions into logical sections">
                   Optional
                 </span>
               </div>
@@ -618,8 +666,106 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 </div>
               )}
 
+              {/* File Upload Interactive Test Preview Dropzone */}
+              {isFileUploadField && (
+                <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <UploadCloud className="w-3.5 h-3.5 text-primary" />
+                      <span>Interactive File Dropzone Preview:</span>
+                    </Label>
+                    <span className="text-[10px] text-muted-foreground font-mono">
+                      Max: 10MB (PDF, DOCX, ZIP, PNG)
+                    </span>
+                  </div>
+
+                  {previewUploadedFile ? (
+                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center justify-between animate-in fade-in-50 duration-200">
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        <div className="w-8 h-8 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                          <FileText className="w-4 h-4" />
+                        </div>
+                        <div className="min-w-0">
+                          <div className="text-xs font-bold text-foreground truncate max-w-xs sm:max-w-md">
+                            {previewUploadedFile.name}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground flex items-center gap-2">
+                            <span>{(previewUploadedFile.size / (1024 * 1024)).toFixed(2)} MB</span>
+                            <span>•</span>
+                            <span className="font-mono text-emerald-400 font-semibold">Valid & Verified</span>
+                            <span>•</span>
+                            <span>{previewUploadedFile.uploadedAt}</span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setPreviewUploadedFile(null)}
+                        className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                        title="Remove file and test again"
+                      >
+                        <X className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <label
+                      onDragOver={(e) => {
+                        e.preventDefault();
+                        setIsDraggingFile(true);
+                      }}
+                      onDragLeave={() => setIsDraggingFile(false)}
+                      onDrop={(e) => {
+                        e.preventDefault();
+                        setIsDraggingFile(false);
+                        const file = e.dataTransfer.files?.[0];
+                        if (file) {
+                          setPreviewUploadedFile({
+                            name: file.name,
+                            size: file.size,
+                            type: file.type || 'application/octet-stream',
+                            uploadedAt: new Date().toLocaleTimeString(),
+                          });
+                        }
+                      }}
+                      className={`flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg cursor-pointer transition-colors text-center ${
+                        isDraggingFile
+                          ? 'border-primary bg-primary/10'
+                          : 'border-border/80 hover:border-primary/50 hover:bg-muted/30 bg-background/40'
+                      }`}
+                    >
+                      <input
+                        type="file"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) {
+                            setPreviewUploadedFile({
+                              name: file.name,
+                              size: file.size,
+                              type: file.type || 'application/octet-stream',
+                              uploadedAt: new Date().toLocaleTimeString(),
+                            });
+                          }
+                        }}
+                      />
+                      <UploadCloud className="w-8 h-8 text-primary/70 mb-2" />
+                      <span className="text-xs font-semibold text-foreground">
+                        Drag and drop candidate test file here, or{' '}
+                        <span className="text-primary underline">browse</span>
+                      </span>
+                      <span className="text-[10px] text-muted-foreground mt-1">
+                        Simulates file upload validation, size inspection & preview
+                      </span>
+                    </label>
+                  )}
+                </div>
+              )}
+
               {/* Text & Regex Fields Live Compound Evaluation Test */}
-              {!isLinkField && field.type !== 'phone' && (
+              {isTextInputField && (
                 <div className="space-y-2 bg-background/60 p-3 rounded-lg border border-border">
                   <Label className="text-xs font-semibold text-foreground">Real-Time Validation Test Box:</Label>
                   <Input
@@ -1026,25 +1172,29 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
           )}
 
           {/* Card Footer: Required Toggle & Points */}
-          <div className="flex items-center justify-between pt-2 border-t border-border/60 text-xs">
-            <label className="flex items-center gap-2 cursor-pointer select-none">
-              <input
-                type="checkbox"
+          <div className="flex items-center justify-between pt-2.5 border-t border-border/60 text-xs">
+            <div className="flex items-center gap-2.5">
+              <Switch
+                id={`field-required-${id}`}
                 checked={field.isRequired}
-                onChange={(e) => onUpdate(id, { isRequired: e.target.checked })}
-                className="rounded border-input text-primary focus:ring-primary"
+                onCheckedChange={(checked) => onUpdate(id, { isRequired: checked })}
               />
-              <span className="font-medium text-foreground">Required Field</span>
-            </label>
+              <Label
+                htmlFor={`field-required-${id}`}
+                className="text-xs font-semibold text-foreground cursor-pointer select-none"
+              >
+                Required Field
+              </Label>
+            </div>
 
             {isQuiz && (
               <div className="flex items-center gap-2">
-                <Label className="text-xs text-muted-foreground">Scoring Points:</Label>
+                <Label className="text-xs text-muted-foreground font-medium">Scoring Points:</Label>
                 <Input
                   type="number"
                   value={field.points ?? 1}
                   onChange={(e) => onUpdate(id, { points: Number(e.target.value) || 1 })}
-                  className="w-16 h-7 text-xs font-mono bg-background text-foreground"
+                  className="w-16 h-7 text-xs font-mono bg-background text-foreground text-center font-bold"
                   min={1}
                 />
               </div>
@@ -1052,6 +1202,15 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Per-Question AI Instruction Studio & Quick JSON In/Out */}
+      <QuestionAiStudioModal
+        isOpen={isAiStudioOpen}
+        onClose={() => setIsAiStudioOpen(false)}
+        question={field}
+        questionIndex={index}
+        onUpdateQuestion={(updated) => onUpdate(id, updated)}
+      />
     </div>
   );
 };

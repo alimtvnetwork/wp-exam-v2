@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useParams } from 'react-router-dom';
 import { QuizEditor } from '../quiz/components/QuizEditor';
 import { FormRunner } from '@/components/runner/FormRunner';
 import { FocusQuizRunner, FocusQuizConfig } from '@/components/runner/FocusQuizRunner';
@@ -33,6 +33,7 @@ import { toast } from 'sonner';
 export const Index: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { slug: routeSlug } = useParams<{ slug?: string }>();
   const tabFromUrl = searchParams.get('tab') as AdminTab;
   const [activeTab, setActiveTabState] = useState<AdminTab>(tabFromUrl || 'builder');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -40,6 +41,14 @@ export const Index: React.FC = () => {
   const { isAuthenticated, login, logout } = useAdminAuth();
   const { theme } = useTheme();
   const store = useQuizStore();
+
+  useEffect(() => {
+    if (routeSlug) {
+      if (routeSlug !== store.slug) {
+        store.setSlug(routeSlug);
+      }
+    }
+  }, [routeSlug, store]);
 
   const handleLaunchFocusProject = (project: ProjectItem) => {
     const focusConfig: FocusQuizConfig = {
@@ -169,6 +178,7 @@ export const Index: React.FC = () => {
   const themeClassMap: Record<string, string> = {
     riseup: 'theme-riseup-asia bg-[#0A0A14] text-[#F8FAFC]',
     letterly: 'theme-letterly bg-[#0F0E1E] text-white',
+    dracula: 'theme-dracula bg-[#191A21] text-[#F8F8F2]',
     obsidian: 'theme-dark bg-[#090D16] text-[#F8FAFC]',
     clean: 'theme-light bg-slate-50 text-slate-900',
   };

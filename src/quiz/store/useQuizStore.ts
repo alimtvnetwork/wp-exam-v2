@@ -2,9 +2,19 @@ import { create } from 'zustand';
 import { FormField, FormModel, FormType, FormAccessType, FormSettings } from '@/lib/types/form';
 import { executeQuery } from '@/lib/query-wrapper';
 
+export function generateSlug(text: string): string {
+  return text
+    .toLowerCase()
+    .trim()
+    .replace(/[^\w\s-]/g, '')
+    .replace(/[\s_-]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'form-assessment';
+}
+
 interface QuizState {
   id?: number | string;
   title: string;
+  slug: string;
   description: string;
   formType: FormType;
   formAccess: FormAccessType;
@@ -19,6 +29,7 @@ interface QuizState {
   questions: FormField[];
 
   setTitle: (title: string) => void;
+  setSlug: (slug: string) => void;
   setDescription: (description: string) => void;
   setFormType: (type: FormType) => void;
   setFormAccess: (access: FormAccessType) => void;
@@ -74,6 +85,7 @@ const defaultFields: FormField[] = [
 export const useQuizStore = create<QuizState>((set, get) => ({
   id: undefined,
   title: 'Sample Sequential Knowledge Quiz',
+  slug: 'sample-sequential-knowledge-quiz',
   description: 'Evaluate foundational web development knowledge with sequential question progression.',
   formType: 'quiz',
   formAccess: 'public',
@@ -85,7 +97,13 @@ export const useQuizStore = create<QuizState>((set, get) => ({
   isLoading: false,
   isSaving: false,
 
-  setTitle: (title) => set({ title }),
+  setTitle: (title) => {
+    const currentSlug = get().slug;
+    const isAutoSlug = !currentSlug || currentSlug === generateSlug(get().title);
+    const newSlug = isAutoSlug ? generateSlug(title) : currentSlug;
+    set({ title, slug: newSlug });
+  },
+  setSlug: (slug) => set({ slug: generateSlug(slug) }),
   setDescription: (description) => set({ description }),
   setFormType: (formType) => set({ formType }),
   setFormAccess: (formAccess) => set({ formAccess }),

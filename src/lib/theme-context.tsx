@@ -20,6 +20,7 @@ export interface ThemeConfig {
   borderColor: string;
   accentColor: string;
   badgeClass: string;
+  hslValues: Record<string, string>;
 }
 
 export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
@@ -33,6 +34,23 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
     borderColor: '#2A2A44',
     accentColor: '#FFAD01',
     badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    hslValues: {
+      '--primary': '41 100% 50%',
+      '--primary-foreground': '240 33% 6%',
+      '--background': '240 33% 6%',
+      '--foreground': '210 40% 98%',
+      '--card': '240 33% 11%',
+      '--card-foreground': '210 40% 98%',
+      '--popover': '240 33% 11%',
+      '--popover-foreground': '210 40% 98%',
+      '--border': '240 24% 22%',
+      '--input': '240 24% 22%',
+      '--ring': '41 100% 50%',
+      '--accent': '41 100% 50%',
+      '--accent-foreground': '240 33% 6%',
+      '--muted': '240 20% 16%',
+      '--muted-foreground': '215 20% 65%',
+    },
   },
   dracula: {
     id: 'dracula',
@@ -44,6 +62,23 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
     borderColor: '#44475A',
     accentColor: '#50FA7B',
     badgeClass: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
+    hslValues: {
+      '--primary': '265 89% 78%',
+      '--primary-foreground': '231 15% 11%',
+      '--background': '231 15% 11%',
+      '--foreground': '60 30% 96%',
+      '--card': '231 15% 18%',
+      '--card-foreground': '60 30% 96%',
+      '--popover': '231 15% 18%',
+      '--popover-foreground': '60 30% 96%',
+      '--border': '232 14% 31%',
+      '--input': '232 14% 31%',
+      '--ring': '265 89% 78%',
+      '--accent': '135 94% 65%',
+      '--accent-foreground': '231 15% 11%',
+      '--muted': '232 14% 24%',
+      '--muted-foreground': '225 15% 65%',
+    },
   },
   letterly: {
     id: 'letterly',
@@ -55,6 +90,23 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
     borderColor: '#35306B',
     accentColor: '#8C7CFF',
     badgeClass: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
+    hslValues: {
+      '--primary': '247 98% 63%',
+      '--primary-foreground': '0 0% 100%',
+      '--background': '244 36% 9%',
+      '--foreground': '210 40% 98%',
+      '--card': '244 38% 14%',
+      '--card-foreground': '210 40% 98%',
+      '--popover': '244 38% 14%',
+      '--popover-foreground': '210 40% 98%',
+      '--border': '245 38% 31%',
+      '--input': '245 38% 31%',
+      '--ring': '247 98% 63%',
+      '--accent': '247 100% 74%',
+      '--accent-foreground': '244 36% 9%',
+      '--muted': '245 25% 18%',
+      '--muted-foreground': '215 20% 65%',
+    },
   },
   obsidian: {
     id: 'obsidian',
@@ -66,6 +118,23 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
     borderColor: '#30363D',
     accentColor: '#38BDF8',
     badgeClass: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
+    hslValues: {
+      '--primary': '199 89% 48%',
+      '--primary-foreground': '216 28% 7%',
+      '--background': '216 28% 7%',
+      '--foreground': '212 50% 96%',
+      '--card': '215 21% 11%',
+      '--card-foreground': '212 50% 96%',
+      '--popover': '215 21% 11%',
+      '--popover-foreground': '212 50% 96%',
+      '--border': '213 12% 21%',
+      '--input': '213 12% 21%',
+      '--ring': '199 89% 48%',
+      '--accent': '199 89% 48%',
+      '--accent-foreground': '216 28% 7%',
+      '--muted': '214 15% 16%',
+      '--muted-foreground': '215 20% 65%',
+    },
   },
   clean: {
     id: 'clean',
@@ -77,6 +146,23 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
     borderColor: '#E2E8F0',
     accentColor: '#3B82F6',
     badgeClass: 'bg-blue-100 text-blue-800 border-blue-300',
+    hslValues: {
+      '--primary': '221 83% 53%',
+      '--primary-foreground': '0 0% 100%',
+      '--background': '210 40% 98%',
+      '--foreground': '222 47% 11%',
+      '--card': '0 0% 100%',
+      '--card-foreground': '222 47% 11%',
+      '--popover': '0 0% 100%',
+      '--popover-foreground': '222 47% 11%',
+      '--border': '214 32% 91%',
+      '--input': '214 32% 91%',
+      '--ring': '221 83% 53%',
+      '--accent': '217 91% 60%',
+      '--accent-foreground': '0 0% 100%',
+      '--muted': '210 40% 96%',
+      '--muted-foreground': '215 16% 47%',
+    },
   },
 };
 
@@ -100,6 +186,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     if (saved && saved in THEME_CONFIGS) {
       return saved as AppThemeType;
     }
+
     return 'riseup';
   });
 
@@ -123,6 +210,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     root.style.setProperty('--color-theme-card', config.cardColor);
     root.style.setProperty('--color-theme-border', config.borderColor);
     root.style.setProperty('--color-theme-accent', config.accentColor);
+
+    // Propagate standard Tailwind HSL color tokens
+    if (config.hslValues) {
+      Object.entries(config.hslValues).forEach(([cssKey, hslValue]) => {
+        root.style.setProperty(cssKey, hslValue);
+      });
+    }
 
     if (theme === 'clean') {
       root.classList.remove('dark');

@@ -84,6 +84,7 @@ export const FormBuilder: React.FC = () => {
   const {
     title,
     description,
+    slug,
     formType,
     formAccess,
     isSequential,
@@ -92,6 +93,7 @@ export const FormBuilder: React.FC = () => {
     isSaving,
     setTitle,
     setDescription,
+    setSlug,
     setFormType,
     setFormAccess,
     setIsSequential,
@@ -165,7 +167,14 @@ export const FormBuilder: React.FC = () => {
       if (active.id !== over.id) {
         const oldIndex = fields.findIndex((f) => f.id === active.id);
         const newIndex = fields.findIndex((f) => f.id === over.id);
-        setFields(arrayMove(fields, oldIndex, newIndex));
+        const targetField = fields[newIndex];
+        const newFields = arrayMove(fields, oldIndex, newIndex);
+
+        if (targetField && targetField.group) {
+          newFields[newIndex] = { ...newFields[newIndex], group: targetField.group };
+        }
+
+        setFields(newFields);
       }
     }
   };
@@ -285,11 +294,13 @@ export const FormBuilder: React.FC = () => {
     }
   };
 
+  const activeSlug = slug || 'custom-form';
+
   const handleCopyLiveUrl = () => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'http://127.0.0.1:5173';
-    const liveUrl = `${origin}/preview`;
+    const liveUrl = `${origin}/f/${activeSlug}`;
     navigator.clipboard.writeText(liveUrl);
-    toast.success(`Copied Live Form URL: ${liveUrl}`);
+    toast.success(`Copied Public Form URL: ${liveUrl}`);
   };
 
   const scrollToField = (fieldId: string) => {
@@ -310,12 +321,9 @@ export const FormBuilder: React.FC = () => {
   const totalPoints = fields.reduce((acc, f) => acc + (f.points || 0), 0);
   const requiredCount = fields.filter((f) => f.isRequired).length;
 
-  const currentLiveUrl =
-    typeof window !== 'undefined' ? `${window.location.origin}/preview` : 'https://wpexam.io/preview';
-
   return (
     <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
-      {/* Top Action Bar with Integrated Live URL Ribbon */}
+      {/* Top Action Bar with Integrated Live URL & Customizable Slug Ribbon */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-card rounded-xl border border-border/80 shadow-xs">
         <div className="space-y-1.5 min-w-0">
           <div className="flex items-center gap-2">
@@ -327,16 +335,24 @@ export const FormBuilder: React.FC = () => {
             </Badge>
           </div>
 
-          {/* Integrated Live URL Pill */}
+          {/* Integrated Live URL & Customizable Slug Ribbon */}
           <div className="flex items-center gap-2 flex-wrap text-xs pt-0.5">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/40 border border-border/60 font-mono text-[11px] text-muted-foreground">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/40 border border-border/60 font-mono text-[11px] text-muted-foreground focus-within:border-primary focus-within:ring-1 focus-within:ring-primary">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-              <span className="truncate max-w-[200px] sm:max-w-xs">{currentLiveUrl}</span>
+              <span className="text-foreground/80 font-bold shrink-0">/f/</span>
+              <input
+                type="text"
+                value={slug || ''}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="form-slug"
+                className="bg-transparent border-0 font-mono text-[11px] text-primary font-semibold focus:outline-none focus:ring-0 w-28 sm:w-36"
+                title="Edit customizable URL slug for this form"
+              />
               <button
                 type="button"
                 onClick={handleCopyLiveUrl}
                 className="p-0.5 hover:text-foreground text-muted-foreground transition-colors ml-1 rounded hover:bg-muted"
-                title="Copy Public Live URL to clipboard"
+                title="Copy Public Form URL to clipboard"
               >
                 <Copy className="w-3 h-3" />
               </button>
@@ -346,11 +362,23 @@ export const FormBuilder: React.FC = () => {
               type="button"
               variant="ghost"
               size="sm"
-              onClick={() => window.open('/preview', '_blank')}
+              onClick={() => window.open(`/f/${activeSlug}`, '_blank')}
               className="h-6 text-[11px] px-2 text-primary hover:bg-primary/10 gap-1 font-medium"
+              title="Open Public Candidate URL in New Tab"
+            >
+              <span>Public</span>
+              <ExternalLink className="w-3 h-3" />
+            </Button>
+
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => window.open(`/preview/${activeSlug}`, '_blank')}
+              className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground hover:bg-muted gap-1 font-medium"
               title="Open Dedicated Full-Screen Live Preview in New Tab"
             >
-              <span>Open Tab</span>
+              <span>Preview</span>
               <ExternalLink className="w-3 h-3" />
             </Button>
           </div>
@@ -587,7 +615,7 @@ export const FormBuilder: React.FC = () => {
             </CardContent>
           </Card>
 
-          {/* Group / Module Filter Toolbar */}
+          {/* Section Filter Toolbar */}
           <div className="flex items-center justify-between gap-3 px-1">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-semibold text-foreground tracking-tight">Questions & Fields</h2>
@@ -638,7 +666,7 @@ export const FormBuilder: React.FC = () => {
                             </span>
                           </div>
                           <Badge variant="outline" className="text-[10px] bg-background">
-                            Module Group
+                            Section
                           </Badge>
                         </div>
                       )}
