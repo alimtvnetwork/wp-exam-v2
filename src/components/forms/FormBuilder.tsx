@@ -31,7 +31,7 @@ import {
 import { FormRunner } from '@/components/runner/FormRunner';
 import { JsonModal } from './json-modal';
 import { GoogleFormsImportModal } from './google-forms-import-modal';
-import { DesignValidationPanel } from './design-validation-panel';
+import { DesignValidationPanel, DesignValidationSidebarView } from './design-validation-panel';
 import { auditFormDesign, DesignHealthReport } from '@/lib/design-validation-engine';
 import { AiSectionAssistant } from '@/components/admin/ai-section-assistant';
 import { BranchingFlowModal } from './branching-flow-modal';
@@ -111,6 +111,7 @@ export const FormBuilder: React.FC = () => {
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
   const [outlineFilter, setOutlineFilter] = useState<string>('');
   const [isDesignPanelOpen, setIsDesignPanelOpen] = useState(false);
+  const [inspectorTab, setInspectorTab] = useState<string>('palette');
 
   const designReport: DesignHealthReport = useMemo(
     () => auditFormDesign(fields, formType, settings),
@@ -362,7 +363,10 @@ export const FormBuilder: React.FC = () => {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setIsDesignPanelOpen(true)}
+            onClick={() => {
+              setInspectorTab('audit');
+              setIsDesignPanelOpen(true);
+            }}
             className={`text-xs h-8 gap-1.5 font-medium transition-colors ${
               designReport.score >= 90
                 ? 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10'
@@ -701,32 +705,51 @@ export const FormBuilder: React.FC = () => {
         {/* Right Column: Unified Inspector Dock */}
         <div className="lg:col-span-4 sticky top-6">
           <Card className="border border-border bg-card shadow-sm rounded-xl overflow-hidden">
-            <Tabs defaultValue="palette" className="w-full">
+            <Tabs value={inspectorTab} onValueChange={setInspectorTab} className="w-full">
               {/* Sleek Segmented Dock Tabs Header */}
-              <div className="p-2.5 border-b border-border/80 bg-muted/20">
-                <TabsList className="grid grid-cols-3 h-8 p-0.5 bg-muted/60 rounded-lg">
+              <div className="p-2 border-b border-border/80 bg-muted/20">
+                <TabsList className="grid grid-cols-4 h-8 p-0.5 bg-muted/60 rounded-lg">
                   <TabsTrigger
                     value="palette"
-                    className="text-xs py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-medium transition-all"
+                    className="text-[11px] py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
                   >
-                    <Layers className="w-3.5 h-3.5 text-primary" />
+                    <Layers className="w-3 h-3 text-primary" />
                     <span>Fields</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="outline"
-                    className="text-xs py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-medium transition-all"
+                    className="text-[11px] py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
                   >
-                    <ListOrdered className="w-3.5 h-3.5 text-sky-400" />
+                    <ListOrdered className="w-3 h-3 text-sky-400" />
                     <span>Outline</span>
-                    <Badge variant="secondary" className="text-[9px] px-1 py-0 h-3.5 font-mono">
+                    <Badge variant="secondary" className="text-[8px] px-1 py-0 h-3 font-mono">
                       {fields.length}
                     </Badge>
                   </TabsTrigger>
                   <TabsTrigger
-                    value="settings"
-                    className="text-xs py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-medium transition-all"
+                    value="audit"
+                    className="text-[11px] py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
                   >
-                    <Settings className="w-3.5 h-3.5 text-amber-400" />
+                    <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                    <span>Audit</span>
+                    <Badge
+                      variant="secondary"
+                      className={`text-[8px] px-1 py-0 h-3 font-mono font-bold ${
+                        designReport.score >= 90
+                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
+                          : designReport.score >= 70
+                          ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
+                          : 'bg-destructive/15 text-destructive'
+                      }`}
+                    >
+                      {designReport.grade}
+                    </Badge>
+                  </TabsTrigger>
+                  <TabsTrigger
+                    value="settings"
+                    className="text-[11px] py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
+                  >
+                    <Settings className="w-3 h-3 text-amber-400" />
                     <span>Config</span>
                   </TabsTrigger>
                 </TabsList>
@@ -870,7 +893,18 @@ export const FormBuilder: React.FC = () => {
                 </div>
               </TabsContent>
 
-              {/* Tab 3: Form Settings / Config */}
+              {/* Tab 3: Embedded Design Validation Audit */}
+              <TabsContent value="audit" className="p-3 m-0 focus-visible:outline-none">
+                <DesignValidationSidebarView
+                  report={designReport}
+                  fields={fields}
+                  onUpdateFields={setFields}
+                  onJumpToField={scrollToField}
+                  onOpenFullDialog={() => setIsDesignPanelOpen(true)}
+                />
+              </TabsContent>
+
+              {/* Tab 4: Form Settings / Config */}
               <TabsContent value="settings" className="p-3 m-0 space-y-3 focus-visible:outline-none text-xs">
                 {/* 1. Access & Candidate Permissions */}
                 <div className="p-3 rounded-xl border border-border/70 bg-card/60 space-y-2">
