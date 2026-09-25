@@ -11,6 +11,7 @@ Master directory of architectural and execution plans.
 
 ## Completed Plans
 
+- [60-slug-routing-file-upload-validation-and-theming.md](completed/60-slug-routing-file-upload-validation-and-theming.md): Live browser address bar URL sync (/admin/form/:slug), dedicated file upload validation engine & interactive dropzone verification, 1-click cross-section mover submenu, and fluid CSS theming transitions (71/71 tests passed).
 - [59-slug-routing-file-upload-preview-and-ai-studio.md](completed/59-slug-routing-file-upload-preview-and-ai-studio.md): Dynamic slug routing (/f/:slug, /preview/:slug, /admin/form/:slug), interactive file upload preview dropzone, terminology standardization to Section, Question AI Instruction Studio, and dynamic HSL theming engine (70/70 tests passed).
 - [58-agm-mailbox-and-temp-e2e.md](completed/58-agm-mailbox-and-temp-e2e.md): AGM mailbox auto-configuration (mail.<domain>), organic navigation redesign, and isolated temporary E2E test suite (RUN_TEMP_E2E=1).
 - [57-forms-spec-and-laravel-architecture.md](completed/57-forms-spec-and-laravel-architecture.md): Universal form engine, visual project tree, split SQLite schemas, and Laravel 11 application architecture with 29 passing unit tests (69/69 E2E assertions passed).
@@ -74,7 +75,8 @@ Master directory of architectural and execution plans.
 
 Compact registry of the last 20 tasks and milestone plans:
 
-1. **Task 59:** [Slug Routing, File Upload Preview, AI Studio & Theming](completed/59-slug-routing-file-upload-preview-and-ai-studio.md) — Dynamic slug routing (/f/:slug, /preview/:slug), interactive dropzone, Section terminology, Question AI Studio, and HSL theming.
+1. **Task 60:** [Live Browser Address Bar URL Sync, File Upload Validation Engine & Theming Fluidity](completed/60-slug-routing-file-upload-validation-and-theming.md) — Live address bar sync (/admin/form/:slug), dedicated file upload validation configurator, 1-click section mover, and smooth CSS theme transitions.
+2. **Task 59:** [Slug Routing, File Upload Preview, AI Studio & Theming](completed/59-slug-routing-file-upload-preview-and-ai-studio.md) — Dynamic slug routing (/f/:slug, /preview/:slug), interactive dropzone, Section terminology, Question AI Studio, and HSL theming.
 2. **Task 58:** [AGM Mailbox & Isolated Temp E2E](completed/58-agm-mailbox-and-temp-e2e.md) — AGM mailbox auto-configuration, organic navigation redesign, and isolated temporary E2E test suite.
 3. **Task 57:** [Universal Form Engine & Laravel Application Architecture](completed/57-forms-spec-and-laravel-architecture.md) — 4-step DAG wizard, debounced validation, WhatsApp testing, Split SQLite DB.
 4. **Task 56:** [E2E Testing, Security & Media Orchestration](completed/56-e2e-python-testing-security-and-media-orchestration.md) — 43-suite Python E2E integration test runner.

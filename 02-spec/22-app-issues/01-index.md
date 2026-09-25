@@ -35,7 +35,7 @@ Any content that analyzes bugs, failures, root causes, or fixes for application-
 
 ## Contents
 
-_No app issue analyses added yet. Add issue files as numbered entries within this folder._
+- [02-slug-routing-file-upload-validation-and-theming.md](02-slug-routing-file-upload-validation-and-theming.md): Live browser address bar slug synchronization, dedicated file upload validation configurator, cross-section DnD mover, and fluid theming animations.
 
 ---
 

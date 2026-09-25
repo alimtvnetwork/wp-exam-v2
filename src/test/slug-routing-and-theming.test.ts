@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { THEME_CONFIGS, AppThemeType } from '../lib/theme-context';
-import { FormField } from '../lib/types/form';
+import { FormField, evaluateFileUploadValidation, FileValidationRule } from '../lib/types/form';
 
 describe('Slug Routing, Theming Engine & AI Studio Verification', () => {
   it('converts complex title strings into valid kebab-case URL slugs', () => {
@@ -114,5 +114,53 @@ describe('Slug Routing, Theming Engine & AI Studio Verification', () => {
 
     const oversizedResult = validateFileUpload(oversizedFile);
     expect(oversizedResult.isValid).toBe(false);
+  });
+
+  it('evaluates file upload validation rule engine under default and custom limits', () => {
+    // 1. Default limits (10MB, pdf/docx/zip/png/jpg)
+    const validPdf = { name: 'resume.pdf', size: 2 * 1024 * 1024, type: 'application/pdf' };
+    const res1 = evaluateFileUploadValidation(undefined, validPdf);
+    expect(res1.isValid).toBe(true);
+    expect(res1.message).toContain('Valid file upload: resume.pdf');
+
+    // 2. Oversized file exceeds default 10MB limit
+    const oversizedFile = { name: 'huge_archive.zip', size: 15 * 1024 * 1024, type: 'application/zip' };
+    const res2 = evaluateFileUploadValidation(undefined, oversizedFile);
+    expect(res2.isValid).toBe(false);
+    expect(res2.message).toContain('File too large (15.00 MB)');
+    expect(res2.message).toContain('Maximum permitted file size is 10 MB');
+
+    // 3. Disallowed extension with default settings
+    const exeFile = { name: 'malicious.exe', size: 1 * 1024 * 1024, type: 'application/x-msdownload' };
+    const res3 = evaluateFileUploadValidation(undefined, exeFile);
+    expect(res3.isValid).toBe(false);
+    expect(res3.message).toContain('Invalid format (.exe)');
+    expect(res3.message).toContain('.pdf, .docx, .zip, .png, .jpg');
+
+    // 4. Custom rule: Max 5MB, only PDF allowed
+    const customRule: FileValidationRule = {
+      maxSizeMb: 5,
+      allowedExtensions: ['pdf'],
+      customErrorMessage: 'Only PDF documents under 5MB are accepted for this assessment.',
+    };
+
+    const docxFile = { name: 'report.docx', size: 1 * 1024 * 1024, type: 'application/vnd.openxmlformats' };
+    const res4 = evaluateFileUploadValidation(customRule, docxFile);
+    expect(res4.isValid).toBe(false);
+    expect(res4.message).toBe('Only PDF documents under 5MB are accepted for this assessment.');
+
+    const largePdf = { name: 'big_spec.pdf', size: 7 * 1024 * 1024, type: 'application/pdf' };
+    const res5 = evaluateFileUploadValidation(customRule, largePdf);
+    expect(res5.isValid).toBe(false);
+    expect(res5.message).toBe('Only PDF documents under 5MB are accepted for this assessment.');
+
+    const compliantPdf = { name: 'compliant.pdf', size: 3 * 1024 * 1024, type: 'application/pdf' };
+    const res6 = evaluateFileUploadValidation(customRule, compliantPdf);
+    expect(res6.isValid).toBe(true);
+
+    // 5. Null file handling
+    const resNull = evaluateFileUploadValidation(customRule, null);
+    expect(resNull.isValid).toBe(false);
+    expect(resNull.message).toContain('No file uploaded yet');
   });
 });

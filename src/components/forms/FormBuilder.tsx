@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
 import {
   FormField,
@@ -119,6 +119,26 @@ export const FormBuilder: React.FC = () => {
     () => auditFormDesign(fields, formType, settings),
     [fields, formType, settings]
   );
+
+  // Live Browser Address Bar URL Synchronization without full page reload
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    const cleanSlug = slug?.trim();
+
+    if (cleanSlug && cleanSlug.length > 0) {
+      const url = new URL(window.location.href);
+      const expectedPath = `/admin/form/${encodeURIComponent(cleanSlug)}`;
+
+      if (url.pathname !== expectedPath) {
+        const search = url.search;
+        const newUrl = `${expectedPath}${search}`;
+        window.history.replaceState(null, '', newUrl);
+      }
+    }
+  }, [slug]);
 
   const handleImportGoogleForm = (
     data: { title: string; description: string; fields: FormField[] },

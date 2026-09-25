@@ -73,6 +73,12 @@ export interface FieldConditionRule {
   jumpToFieldId?: string;
 }
 
+export interface FileValidationRule {
+  maxSizeMb?: number; // e.g. 5, 10, 25, 50, 100
+  allowedExtensions?: string[]; // e.g. ['pdf', 'docx', 'zip', 'png', 'jpg']
+  customErrorMessage?: string;
+}
+
 export interface FormField {
   id: string;
   type: FieldType;
@@ -82,11 +88,12 @@ export interface FormField {
   options?: string[];
   correctAnswer?: string;
   points?: number;
-  group?: string; // Section or Module identifier
+  group?: string; // Section identifier
   moduleName?: string;
   url?: string;
   linkText?: string;
   validationRule?: FieldValidationRule;
+  fileValidation?: FileValidationRule;
   triggers?: FieldActionTrigger[];
   conditions?: FieldConditionRule[];
   conditionMatch?: 'all' | 'any';
@@ -355,4 +362,49 @@ export function evaluateCompoundValidation(
   }
 
   return { isValid: true, message: 'Valid' };
+}
+
+/**
+ * Validates a file candidate input against configured file size limits and extensions.
+ */
+export function evaluateFileUploadValidation(
+  rule?: FileValidationRule,
+  file?: { name: string; size: number; type?: string } | null
+): { isValid: boolean; message: string } {
+  if (!file) {
+    return { isValid: false, message: 'No file uploaded yet.' };
+  }
+
+  const maxSizeMb = rule?.maxSizeMb || 10;
+  const maxSizeBytes = maxSizeMb * 1024 * 1024;
+  const fileSizeMb = (file.size / (1024 * 1024)).toFixed(2);
+
+  if (file.size > maxSizeBytes) {
+    const errorMsg =
+      rule?.customErrorMessage ||
+      `File too large (${fileSizeMb} MB). Maximum permitted file size is ${maxSizeMb} MB.`;
+
+    return { isValid: false, message: errorMsg };
+  }
+
+  const rawExts = rule?.allowedExtensions;
+  const allowedExts =
+    rawExts && rawExts.length > 0
+      ? rawExts.map((e) => e.toLowerCase().replace(/^\./, ''))
+      : ['pdf', 'docx', 'zip', 'png', 'jpg'];
+
+  const fileExt = file.name.split('.').pop()?.toLowerCase() || '';
+
+  if (!allowedExts.includes(fileExt)) {
+    const errorMsg =
+      rule?.customErrorMessage ||
+      `Invalid format (.${fileExt}). Permitted extensions: ${allowedExts.map((e) => '.' + e).join(', ')}.`;
+
+    return { isValid: false, message: errorMsg };
+  }
+
+  return {
+    isValid: true,
+    message: `Valid file upload: ${file.name} (${fileSizeMb} MB). Verified and accepted.`,
+  };
 }

@@ -8,6 +8,8 @@ import {
   SingleValidationItem,
   VALIDATION_PRESETS,
   evaluateCompoundValidation,
+  evaluateFileUploadValidation,
+  FileValidationRule,
   FieldActionTrigger,
 } from '@/lib/types/form';
 import { Button } from '@/components/ui/button';
@@ -29,6 +31,9 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubContent,
+  DropdownMenuSubTrigger,
 } from '@/components/ui/dropdown-menu';
 import { BranchingRuleEditor } from './branching-rule-editor';
 import { QuestionAiStudioModal } from './question-ai-studio-modal';
@@ -39,6 +44,7 @@ import {
   GitBranch,
   Copy,
   CheckCircle2,
+  Check,
   AlertCircle,
   ExternalLink,
   Code,
@@ -232,6 +238,58 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   const cleanPhone = previewTestPhone.replace(/[^0-9]/g, '').replace(/^0+/, '');
   const previewWhatsAppLink = cleanPhone ? `https://wa.me/${previewTestCountry.replace('+', '')}${cleanPhone}` : '';
 
+  // Dedicated File Validation Helper
+  const currentFileValidation: FileValidationRule = field.fileValidation || {
+    maxSizeMb: 10,
+    allowedExtensions: ['pdf', 'docx', 'zip', 'png', 'jpg'],
+    customErrorMessage: '',
+  };
+
+  const handleUpdateFileValidation = (updates: Partial<FileValidationRule>) => {
+    onUpdate(id, {
+      fileValidation: {
+        ...currentFileValidation,
+        ...updates,
+      },
+    });
+  };
+
+  const handleToggleExtension = (ext: string) => {
+    const cleanExt = ext.toLowerCase().replace(/^\./, '');
+    const currentExts = currentFileValidation.allowedExtensions || [];
+    const hasExt = currentExts.includes(cleanExt);
+    const newExts = hasExt
+      ? currentExts.filter((e) => e !== cleanExt)
+      : [...currentExts, cleanExt];
+
+    handleUpdateFileValidation({ allowedExtensions: newExts });
+  };
+
+  const previewFileValidationResult = evaluateFileUploadValidation(
+    field.fileValidation,
+    previewUploadedFile
+  );
+
+  const availableSections = Array.from(
+    new Set(
+      (allFields || otherFields || [])
+        .map((f) => f.group?.trim())
+        .filter((g): g is string => Boolean(g && g.length > 0))
+    )
+  );
+
+  const isFileUploadValidationDrawerOpen = showAdvanced && isFileUploadField;
+
+  let isCompoundValidationDrawerOpen = false;
+
+  if (showAdvanced) {
+    if (isTextInputField || isRegexField || isChoiceField || isLinkField) {
+      isCompoundValidationDrawerOpen = true;
+    }
+  } else if (isRegexField) {
+    isCompoundValidationDrawerOpen = true;
+  }
+
   return (
     <div ref={setNodeRef} style={style} className="relative group/card mb-3.5">
       <Card
@@ -278,6 +336,12 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {isQuiz && (
                 <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted/60 text-muted-foreground font-mono shrink-0">
                   {field.points ?? 1} pt{(field.points ?? 1) > 1 ? 's' : ''}
+                </span>
+              )}
+
+              {isFileUploadField && (
+                <span className="text-[10px] px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20 font-mono shrink-0">
+                  Max {field.fileValidation?.maxSizeMb || 10}MB
                 </span>
               )}
 
@@ -384,13 +448,17 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 >
                   <div className="flex items-center gap-2">
                     <SlidersHorizontal className="w-3.5 h-3.5 text-amber-500" />
-                    <span>Validation Rules</span>
+                    <span>{isFileUploadField ? 'File Size & Allowed Formats' : 'Validation Rules'}</span>
                   </div>
-                  {activeRules.length > 0 && (
+                  {isFileUploadField ? (
+                    <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-purple-500/10 text-purple-400 border-purple-500/30 font-mono">
+                      {field.fileValidation?.maxSizeMb || 10}MB
+                    </Badge>
+                  ) : activeRules.length > 0 ? (
                     <Badge variant="outline" className="text-[10px] px-1 py-0 h-4 bg-amber-500/10 text-amber-500 border-amber-500/30 font-mono">
                       {activeRules.length}
                     </Badge>
-                  )}
+                  ) : null}
                 </DropdownMenuItem>
 
                 <DropdownMenuItem
@@ -422,6 +490,46 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     </Badge>
                   )}
                 </DropdownMenuItem>
+
+                <DropdownMenuSeparator className="my-1 border-border/80" />
+
+                <DropdownMenuSub>
+                  <DropdownMenuSubTrigger className="text-xs flex items-center gap-2 cursor-pointer py-1.5">
+                    <Layers className="w-3.5 h-3.5 text-primary" />
+                    <span>Move to Section</span>
+                  </DropdownMenuSubTrigger>
+                  <DropdownMenuSubContent className="w-48 p-1 bg-popover border border-border shadow-lg">
+                    {availableSections.length > 0 ? (
+                      availableSections.map((secName) => (
+                        <DropdownMenuItem
+                          key={secName}
+                          disabled={field.group === secName}
+                          onClick={() => onUpdate(id, { group: secName })}
+                          className={`text-xs flex items-center justify-between cursor-pointer py-1.5 ${
+                            field.group === secName ? 'bg-primary/10 font-bold text-primary' : ''
+                          }`}
+                        >
+                          <span className="truncate">{secName}</span>
+                          {field.group === secName && <Check className="w-3.5 h-3.5 text-primary" />}
+                        </DropdownMenuItem>
+                      ))
+                    ) : (
+                      <div className="p-2 text-[11px] text-muted-foreground italic">No other sections yet</div>
+                    )}
+                    {field.group && (
+                      <>
+                        <DropdownMenuSeparator className="my-1 border-border/80" />
+                        <DropdownMenuItem
+                          onClick={() => onUpdate(id, { group: undefined })}
+                          className="text-xs flex items-center gap-2 cursor-pointer py-1.5 text-muted-foreground hover:text-foreground"
+                        >
+                          <X className="w-3 h-3" />
+                          <span>Clear Section</span>
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuSubContent>
+                </DropdownMenuSub>
 
                 <DropdownMenuSeparator className="my-1 border-border/80" />
 
@@ -675,41 +783,76 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                       <span>Interactive File Dropzone Preview:</span>
                     </Label>
                     <span className="text-[10px] text-muted-foreground font-mono">
-                      Max: 10MB (PDF, DOCX, ZIP, PNG)
+                      Max: {currentFileValidation.maxSizeMb || 10}MB ({(currentFileValidation.allowedExtensions || ['pdf', 'docx', 'zip', 'png']).map((e) => e.toUpperCase()).join(', ')})
                     </span>
                   </div>
 
                   {previewUploadedFile ? (
-                    <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center justify-between animate-in fade-in-50 duration-200">
-                      <div className="flex items-center gap-2.5 min-w-0">
-                        <div className="w-8 h-8 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-                          <FileText className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0">
-                          <div className="text-xs font-bold text-foreground truncate max-w-xs sm:max-w-md">
-                            {previewUploadedFile.name}
+                    previewFileValidationResult.isValid ? (
+                      <div className="p-3 bg-emerald-500/10 border border-emerald-500/30 rounded-lg flex items-center justify-between animate-in fade-in-50 duration-200">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-md bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
+                            <CheckCircle2 className="w-4 h-4" />
                           </div>
-                          <div className="text-[10px] text-muted-foreground flex items-center gap-2">
-                            <span>{(previewUploadedFile.size / (1024 * 1024)).toFixed(2)} MB</span>
-                            <span>•</span>
-                            <span className="font-mono text-emerald-400 font-semibold">Valid & Verified</span>
-                            <span>•</span>
-                            <span>{previewUploadedFile.uploadedAt}</span>
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold text-foreground truncate max-w-xs sm:max-w-md">
+                              {previewUploadedFile.name}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground flex items-center gap-2">
+                              <span>{(previewUploadedFile.size / (1024 * 1024)).toFixed(2)} MB</span>
+                              <span>•</span>
+                              <span className="font-mono text-emerald-400 font-semibold">Valid & Approved</span>
+                              <span>•</span>
+                              <span>{previewUploadedFile.uploadedAt}</span>
+                            </div>
+                            <p className="text-[10px] text-emerald-400 mt-0.5">{previewFileValidationResult.message}</p>
                           </div>
                         </div>
-                      </div>
 
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="ghost"
-                        onClick={() => setPreviewUploadedFile(null)}
-                        className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
-                        title="Remove file and test again"
-                      >
-                        <X className="w-4 h-4" />
-                      </Button>
-                    </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setPreviewUploadedFile(null)}
+                          className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive"
+                          title="Remove file and test again"
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    ) : (
+                      <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-lg flex items-center justify-between animate-in fade-in-50 duration-200">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-md bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
+                            <AlertCircle className="w-4 h-4" />
+                          </div>
+                          <div className="min-w-0">
+                            <div className="text-xs font-bold text-foreground truncate max-w-xs sm:max-w-md">
+                              {previewUploadedFile.name}
+                            </div>
+                            <div className="text-[10px] text-muted-foreground flex items-center gap-2">
+                              <span>{(previewUploadedFile.size / (1024 * 1024)).toFixed(2)} MB</span>
+                              <span>•</span>
+                              <span className="font-mono text-rose-400 font-semibold">Validation Error</span>
+                              <span>•</span>
+                              <span>{previewUploadedFile.uploadedAt}</span>
+                            </div>
+                            <p className="text-[11px] font-medium text-rose-400 mt-0.5">{previewFileValidationResult.message}</p>
+                          </div>
+                        </div>
+
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setPreviewUploadedFile(null)}
+                          className="h-7 px-2 text-xs border-rose-500/40 text-rose-400 hover:bg-rose-500/10"
+                          title="Try another file"
+                        >
+                          Reset Test
+                        </Button>
+                      </div>
+                    )
                   ) : (
                     <label
                       onDragOver={(e) => {
@@ -787,8 +930,116 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             </div>
           )}
 
+          {/* Dedicated File Upload Validation Configurator */}
+          {isFileUploadValidationDrawerOpen && (
+            <div className="p-4 bg-muted/30 rounded-xl border border-border/80 space-y-4 animate-in fade-in-50 duration-200">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/60 pb-2">
+                <div className="flex items-center gap-2">
+                  <UploadCloud className="w-4 h-4 text-primary" />
+                  <span className="text-xs font-bold text-foreground">File Upload Validation & Limits</span>
+                  <Badge variant="outline" className="text-[10px] font-mono text-primary border-primary/30">
+                    Max {currentFileValidation.maxSizeMb || 10} MB
+                  </Badge>
+                </div>
+                <span className="text-[10px] text-muted-foreground">Configures upload restrictions</span>
+              </div>
+
+              {/* Max Size Selector & Input */}
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold text-foreground flex items-center justify-between">
+                  <span>Maximum Permitted File Size (MB):</span>
+                  <span className="text-muted-foreground font-mono text-[11px]">{currentFileValidation.maxSizeMb || 10} MB limit</span>
+                </Label>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {[2, 5, 10, 25, 50, 100].map((size) => (
+                    <Button
+                      key={size}
+                      type="button"
+                      variant={(currentFileValidation.maxSizeMb || 10) === size ? 'default' : 'outline'}
+                      size="sm"
+                      className="h-7 px-2.5 text-xs font-mono"
+                      onClick={() => handleUpdateFileValidation({ maxSizeMb: size })}
+                    >
+                      {size} MB
+                    </Button>
+                  ))}
+                  <div className="flex items-center gap-1 ml-auto">
+                    <span className="text-[11px] text-muted-foreground">Custom:</span>
+                    <Input
+                      type="number"
+                      min={1}
+                      max={500}
+                      value={currentFileValidation.maxSizeMb || 10}
+                      onChange={(e) => handleUpdateFileValidation({ maxSizeMb: parseInt(e.target.value, 10) || 10 })}
+                      className="h-7 w-20 text-xs font-mono bg-background"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Allowed File Extensions */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label className="text-xs font-semibold text-foreground">Allowed File Extensions:</Label>
+                  <span className="text-[10px] text-muted-foreground">Click to toggle formats</span>
+                </div>
+                <div className="flex flex-wrap gap-1.5">
+                  {['pdf', 'docx', 'xlsx', 'pptx', 'txt', 'png', 'jpg', 'jpeg', 'zip', 'csv', 'json'].map((ext) => {
+                    const isSelected = (currentFileValidation.allowedExtensions || []).includes(ext);
+
+                    return (
+                      <button
+                        key={ext}
+                        type="button"
+                        onClick={() => handleToggleExtension(ext)}
+                        className={`px-2 py-0.5 rounded text-xs font-mono font-medium border transition-colors ${
+                          isSelected
+                            ? 'bg-primary text-primary-foreground border-primary font-bold'
+                            : 'bg-background hover:bg-muted text-muted-foreground border-border'
+                        }`}
+                      >
+                        .{ext}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="pt-1">
+                  <Label className="text-[10px] text-muted-foreground block mb-1">
+                    Custom Allowed Extensions (Comma-separated)
+                  </Label>
+                  <Input
+                    value={(currentFileValidation.allowedExtensions || []).join(', ')}
+                    onChange={(e) => {
+                      const list = e.target.value
+                        .split(',')
+                        .map((s) => s.trim().toLowerCase().replace(/^\./, ''))
+                        .filter(Boolean);
+                      handleUpdateFileValidation({ allowedExtensions: list });
+                    }}
+                    placeholder="pdf, docx, zip, png"
+                    className="h-8 text-xs font-mono bg-background"
+                  />
+                </div>
+              </div>
+
+              {/* Custom Rejection Error Message */}
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">Custom Rejection Message (Optional):</Label>
+                <Input
+                  value={currentFileValidation.customErrorMessage || ''}
+                  onChange={(e) => handleUpdateFileValidation({ customErrorMessage: e.target.value })}
+                  placeholder="e.g. Please provide a PDF or DOCX file under 10 MB."
+                  className="h-8 text-xs bg-background"
+                />
+                <span className="text-[10px] text-muted-foreground">
+                  Leave blank to use the system default explanatory error message.
+                </span>
+              </div>
+            </div>
+          )}
+
           {/* Multi-Rule Compound Validation Drawer */}
-          {(showAdvanced || isRegexField) && (
+          {isCompoundValidationDrawerOpen && (
             <div className="p-4 bg-muted/30 rounded-xl border border-border/80 space-y-3.5">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-border/60 pb-2">
                 <div className="flex items-center gap-2">
