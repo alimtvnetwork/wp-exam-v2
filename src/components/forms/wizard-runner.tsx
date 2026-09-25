@@ -333,31 +333,31 @@ export const WizardRunner: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-xs font-medium mb-1">Full Legal Name *</label>
+                <label className="block text-xs font-semibold mb-1.5 text-foreground">Full Legal Name *</label>
                 <input 
                   type="text" 
                   value={fullName} 
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder="e.g. Alexandra Chen"
-                  className="w-full px-3 py-2 text-sm bg-background border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                  className="w-full h-10 px-3 py-2 text-sm bg-background border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                   required
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-medium mb-1">Email Address *</label>
+                <label className="block text-xs font-semibold mb-1.5 text-foreground">Email Address *</label>
                 <div className="relative">
                   <input 
                     type="email" 
                     value={email} 
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="alexandra@example.com"
-                    className={`w-full px-3 py-2 text-sm bg-background border rounded-md text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none ${
+                    className={`w-full h-10 px-3 py-2 text-sm bg-background border rounded-md text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none ${
                       emailError ? 'border-destructive' : 'border-border'
                     }`}
                     required
                   />
-                  <Mail className="absolute right-3 top-2.5 w-4 h-4 text-muted-foreground" />
+                  <Mail className="absolute right-3 top-3 w-4 h-4 text-muted-foreground" />
                 </div>
                 {emailError && (
                   <p className="text-xs text-destructive mt-1 flex items-center gap-1">
@@ -366,10 +366,10 @@ export const WizardRunner: React.FC = () => {
                 )}
               </div>
 
-              {/* Country & WhatsApp Phone Input */}
+              {/* Unified WhatsApp Phone Input */}
               <div>
-                <label className="block text-xs font-medium mb-1">WhatsApp Phone Number *</label>
-                <div className="flex gap-2">
+                <label className="block text-xs font-semibold mb-1.5 text-foreground">WhatsApp Phone Number *</label>
+                <div className="flex rounded-md shadow-sm border border-border bg-background focus-within:ring-2 focus-within:ring-primary transition-all">
                   <Select
                     value={selectedCountry.code}
                     onValueChange={(val) => {
@@ -377,8 +377,8 @@ export const WizardRunner: React.FC = () => {
                       if (found) setSelectedCountry(found);
                     }}
                   >
-                    <SelectTrigger className="w-[180px] sm:w-[220px] h-10 text-xs border border-border bg-background text-foreground rounded-md shadow-sm shrink-0">
-                      <SelectValue placeholder="Select Country" />
+                    <SelectTrigger className="w-[140px] sm:w-[170px] h-10 text-xs border-0 bg-transparent text-foreground rounded-r-none focus:ring-0 shadow-none border-r border-border shrink-0">
+                      <SelectValue placeholder="Country" />
                     </SelectTrigger>
                     <SelectContent className="border border-border shadow-xl bg-card text-foreground rounded-xl max-h-56">
                       {STATIC_COUNTRIES.map((c) => (
@@ -393,16 +393,14 @@ export const WizardRunner: React.FC = () => {
                     </SelectContent>
                   </Select>
 
-                  <div className="relative flex-1">
-                    <input 
-                      type="tel"
-                      value={rawPhone}
-                      onChange={(e) => setRawPhone(e.target.value)}
-                      placeholder="1712345678"
-                      className="w-full h-10 px-3 py-2 text-sm bg-background border border-border rounded-md text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none"
-                      required
-                    />
-                  </div>
+                  <input 
+                    type="tel"
+                    value={rawPhone}
+                    onChange={(e) => setRawPhone(e.target.value)}
+                    placeholder="1712345678"
+                    className="flex-1 h-10 px-3 py-2 text-sm bg-transparent border-0 text-foreground placeholder:text-muted-foreground focus:outline-none rounded-r-md"
+                    required
+                  />
                 </div>
               </div>
 
@@ -434,7 +432,7 @@ export const WizardRunner: React.FC = () => {
               </h3>
 
               <div>
-                <label className="block text-xs font-medium mb-2 text-foreground">Are you currently open to work immediately? *</label>
+                <label className="block text-xs font-semibold mb-2 text-foreground">Are you currently open to work immediately? *</label>
                 <div className="flex gap-4">
                   <label className="flex items-center gap-2 cursor-pointer text-sm">
                     <input 
@@ -462,27 +460,27 @@ export const WizardRunner: React.FC = () => {
               {/* Dynamic Branching: Show years of experience when openToWork === 'yes' */}
               {isOpenToWork === 'yes' && (
                 <div className="space-y-1.5 animate-in fade-in slide-in-from-top-1 duration-200">
-                  <label className="block text-xs font-medium text-foreground">Years of Relevant Experience *</label>
+                  <label className="block text-xs font-semibold text-foreground">Years of Relevant Experience *</label>
                   <input 
                     type="number" 
                     min="0"
                     max="30"
                     value={yearsOfExperience}
                     onChange={(e) => setYearsOfExperience(e.target.value)}
-                    className="w-full sm:w-48 px-3 py-2 text-sm bg-background border border-border rounded-md text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
+                    className="w-full sm:w-48 h-10 px-3 py-2 text-sm bg-background border border-border rounded-md text-foreground focus:ring-2 focus:ring-primary focus:outline-none"
                     required
                   />
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-medium mb-1 text-foreground">Portfolio or GitHub URL</label>
+                <label className="block text-xs font-semibold mb-1.5 text-foreground">Portfolio or GitHub URL</label>
                 <input 
                   type="url"
                   value={portfolioUrl}
                   onChange={(e) => setPortfolioUrl(e.target.value)}
                   placeholder="https://github.com/my-profile"
-                  className={`w-full px-3 py-2 text-sm bg-background border rounded-md text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none ${
+                  className={`w-full h-10 px-3 py-2 text-sm bg-background border rounded-md text-foreground placeholder:text-muted-foreground focus:ring-2 focus:ring-primary focus:outline-none ${
                     portfolioError ? 'border-destructive' : 'border-border'
                   }`}
                 />
