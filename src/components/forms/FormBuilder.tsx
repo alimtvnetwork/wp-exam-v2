@@ -53,6 +53,7 @@ import { toast } from 'sonner';
 import {
   Eye,
   Save,
+  Share2,
   FileJson,
   FileSpreadsheet,
   GitBranch,
@@ -396,9 +397,9 @@ export const FormBuilder: React.FC = () => {
   return (
     <div className="w-full px-3 sm:px-6 pt-1 pb-6 space-y-3.5">
       {/* Top Action Bar with Integrated Single-Line Live URL, HoverCard Health & Icon Actions */}
-      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2.5 p-2.5 sm:px-4 bg-card rounded-xl border border-border/80 shadow-xs">
-        {/* Left Side: Single-Line Navigation, Title & URL Management */}
-        <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
+      <div className="flex items-center justify-between gap-2 p-2 sm:px-3 bg-card rounded-xl border border-border/80 shadow-xs w-full overflow-x-auto">
+        {/* Left Side: Single-Line Navigation, Title, Slug Chip & Access Badge */}
+        <div className="flex items-center gap-2 min-w-0 shrink-0">
           <Button
             type="button"
             variant="ghost"
@@ -410,22 +411,18 @@ export const FormBuilder: React.FC = () => {
             <ArrowLeft className="w-5 h-5 text-foreground" />
           </Button>
 
-          <h1 className="text-lg sm:text-xl font-bold tracking-tight text-foreground whitespace-nowrap">
-            Form & Assessment <span className="text-primary">Builder</span>
+          <h1 className="text-base sm:text-lg font-bold tracking-tight text-foreground whitespace-nowrap">
+            Form <span className="text-primary">Builder</span>
           </h1>
 
-          <Badge variant="secondary" className="text-xs font-mono shrink-0 px-2 py-0.5 hidden sm:inline-flex">
-            Studio
-          </Badge>
-
           {/* De-cluttered Compact Slug Chip with Popover Editor & 1-Click Copy */}
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-muted/50 border border-border/80 font-mono text-xs text-muted-foreground shadow-2xs">
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0" />
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-muted/50 border border-border/80 font-mono text-xs text-muted-foreground shadow-2xs shrink-0">
+            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shrink-0" />
             <Popover>
               <PopoverTrigger asChild>
                 <button
                   type="button"
-                  className="text-foreground hover:text-primary font-semibold transition-colors cursor-pointer truncate max-w-[130px] sm:max-w-[190px]"
+                  className="text-foreground hover:text-primary font-semibold transition-colors cursor-pointer truncate max-w-[120px] sm:max-w-[180px]"
                   title="Click to edit form URL slug"
                 >
                   /f/{activeSlug}
@@ -502,46 +499,34 @@ export const FormBuilder: React.FC = () => {
             </button>
           </div>
 
-          {/* Public / Access Status Chip */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
+          {/* Compact Public / Access Badge */}
+          <Badge
+            variant="outline"
             onClick={() => window.open(`/f/${activeSlug}`, '_blank')}
-            className="h-8 px-2.5 text-xs text-primary hover:bg-primary/10 gap-1.5 font-medium cursor-pointer rounded-lg border border-primary/20"
-            title="Open Public Candidate URL in New Tab"
+            className="text-[11px] h-6 px-2 font-medium border-primary/30 text-primary bg-primary/5 capitalize shrink-0 cursor-pointer hover:bg-primary/10 transition-colors"
+            title="Access Policy (click to view live public URL)"
           >
-            <Globe className="w-3.5 h-3.5" />
-            <span>{formAccess === 'public' ? 'Public' : 'Token'}</span>
-            <ExternalLink className="w-3.5 h-3.5" />
-          </Button>
+            {formAccess === 'public' ? 'Public' : formAccess === 'token' ? 'Token' : 'Invite'}
+          </Badge>
         </div>
 
         {/* Right Side: Compact Aligned Action Controls with Icon-Only Actions */}
-        <div className="flex items-center gap-2 flex-wrap shrink-0">
-          {/* Design Health Score Pill with Rich HoverCard */}
-          <HoverCard openDelay={150} closeDelay={150}>
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Health Score Minimal Badge (Grade A+ or Score) with Rich HoverCard */}
+          <HoverCard openDelay={100} closeDelay={150}>
             <HoverCardTrigger asChild>
-              <Button
+              <button
                 type="button"
-                variant="outline"
-                size="sm"
                 onClick={() => {
                   setInspectorTab('audit');
                   setIsDesignPanelOpen(true);
                 }}
-                className="text-xs h-9 px-2.5 gap-1.5 font-semibold transition-all shadow-xs bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary rounded-xl cursor-pointer group"
-                title="Inspect form health, design validation warnings, and 1-click auto-fixes"
+                className="inline-flex items-center gap-1.5 h-9 px-2.5 rounded-xl font-mono font-bold text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer shrink-0"
+                title="Form Health Score (hover for diagnostic breakdown, click for audit dock)"
               >
-                <Shield className="w-4 h-4 text-emerald-500 group-hover:text-primary-foreground transition-colors" />
-                <span className="font-mono">{designReport.score}%</span>
-                <Badge
-                  variant="secondary"
-                  className="text-[11px] px-1.5 py-0 h-4 font-bold bg-primary/10 text-primary group-hover:bg-primary-foreground/20 group-hover:text-primary-foreground transition-colors"
-                >
-                  {designReport.grade}
-                </Badge>
-              </Button>
+                <Shield className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span>{designReport.grade || 'A+'}</span>
+              </button>
             </HoverCardTrigger>
             <HoverCardContent
               align="end"
@@ -594,8 +579,17 @@ export const FormBuilder: React.FC = () => {
             </HoverCardContent>
           </HoverCard>
 
-          {/* Dedicated AI Studio Trigger Button */}
-          <AiSectionAssistant section="builder" title="AI Studio" />
+          {/* Compact Share Icon Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={handleCopyLiveUrl}
+            className="h-9 w-9 bg-card border border-border text-foreground hover:bg-accent shadow-xs rounded-xl cursor-pointer shrink-0"
+            title="Share & Copy Candidate URL"
+          >
+            <Share2 className="w-4 h-4 text-foreground" />
+          </Button>
 
           {/* Unified Tools ▾ Dropdown Menu */}
           <DropdownMenu>
@@ -603,7 +597,7 @@ export const FormBuilder: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs h-9 px-3 gap-1.5 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs transition-all duration-150 rounded-xl font-semibold cursor-pointer group"
+                className="text-xs h-9 px-2.5 gap-1.5 bg-card border border-border text-foreground hover:bg-accent shadow-xs transition-all duration-150 rounded-xl font-semibold cursor-pointer shrink-0 group"
                 title="Open secondary builder tools and integrations"
               >
                 <Wand2 className="w-3.5 h-3.5 text-primary group-hover:text-primary-foreground transition-colors" />
@@ -669,7 +663,7 @@ export const FormBuilder: React.FC = () => {
             variant="outline"
             size="icon"
             onClick={() => window.open('/preview/' + activeSlug + '?test=true', '_blank')}
-            className="h-9 w-9 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all duration-150 rounded-xl cursor-pointer group"
+            className="h-9 w-9 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all duration-150 rounded-xl cursor-pointer shrink-0 group"
             title="Preview interactive form in a new tab"
           >
             <Eye className="w-4 h-4 stroke-[2.2] text-foreground group-hover:text-primary-foreground transition-colors" />
@@ -681,7 +675,7 @@ export const FormBuilder: React.FC = () => {
             onClick={handleSave}
             disabled={isSaving}
             size="icon"
-            className="h-9 w-9 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-xs hover:shadow-md transition-all duration-150 rounded-xl cursor-pointer"
+            className="h-9 w-9 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-xs hover:shadow-md transition-all duration-150 rounded-xl cursor-pointer shrink-0"
             title={isSaving ? 'Saving Form...' : 'Save Form (Ctrl+S)'}
           >
             {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}

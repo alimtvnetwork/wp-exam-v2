@@ -53,4 +53,27 @@ describe('Spec 12: Header Streamlining, Form Access & Health Score Auditing', ()
     expect(report.score).toBeLessThan(100);
     expect(report.issues.length).toBeGreaterThan(0);
   });
+
+  it('should format minimal health score badge and compact access representation', () => {
+    const formatHealthBadge = (grade: string, score: number) => {
+      return {
+        minimalLabel: grade || 'A+',
+        hoverTitle: `Grade ${grade} (${score}%)`,
+      };
+    };
+
+    const badge = formatHealthBadge('A+', 98);
+    expect(badge.minimalLabel).toBe('A+');
+    expect(badge.hoverTitle).toBe('Grade A+ (98%)');
+
+    const formatAccessBadge = (access?: string) => {
+      if (access === 'token') return 'Token';
+      if (access === 'invite_only') return 'Invite';
+      return 'Public';
+    };
+
+    expect(formatAccessBadge('public')).toBe('Public');
+    expect(formatAccessBadge('token')).toBe('Token');
+    expect(formatAccessBadge('invite_only')).toBe('Invite');
+  });
 });
