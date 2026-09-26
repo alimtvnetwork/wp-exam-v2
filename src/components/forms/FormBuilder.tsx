@@ -506,7 +506,7 @@ export const FormBuilder: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs h-8 gap-1.5 border-border hover:bg-muted"
+                className="text-xs h-8 gap-1.5 border-border"
                 title="Open secondary builder tools and integrations"
               >
                 <Wand2 className="w-3.5 h-3.5 text-primary" />
@@ -572,7 +572,7 @@ export const FormBuilder: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => window.open('/preview/' + activeSlug, '_blank')}
-            className="text-xs h-8 gap-1.5 border-border hover:bg-muted"
+            className="text-xs h-8 gap-1.5 border-border"
             title="Preview interactive form in a new tab"
           >
             <Eye className="w-3.5 h-3.5 text-sky-400" />

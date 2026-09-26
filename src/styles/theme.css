@@ -73,6 +73,10 @@
   --input: 240 24% 21%;
   --muted: 240 25% 16%;
   --muted-foreground: 38 22% 64%;
+  --accent: 246 32% 19%;
+  --accent-foreground: 0 0% 100%;
+  --secondary: 246 32% 19%;
+  --secondary-foreground: 0 0% 100%;
   --ring: 41 100% 50%;
   --wp-exam-bg: #0A0A14;
   --wp-exam-card: #141424;
@@ -199,6 +203,10 @@
   --input: 214 32% 91%;
   --muted: 210 40% 96%;
   --muted-foreground: 215 16% 47%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
   --ring: 221 83% 53%;
   --wp-exam-bg: #F8FAFC;
   --wp-exam-card: #FFFFFF;
