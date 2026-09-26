@@ -1663,38 +1663,46 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 {visibleFields.map((f, idx) => {
                   const isCurrent = currentStep === idx;
                   const isAnswered = answers[f.id] !== undefined && answers[f.id] !== '' && (Array.isArray(answers[f.id]) ? (answers[f.id] as unknown[]).length > 0 : true);
+                  const isNewGroup = Boolean(f.group && (idx === 0 || visibleFields[idx - 1]?.group !== f.group));
 
                   return (
-                    <button
-                      key={f.id}
-                      type="button"
-                      onClick={() => setCurrentStep(idx)}
-                      className={`w-full text-left px-3 py-2 rounded-xl text-xs font-sans transition-all flex items-center justify-between gap-2 cursor-pointer ${
-                        isCurrent
-                          ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                          : isAnswered
-                          ? 'bg-muted/40 hover:bg-muted text-foreground border border-border/60'
-                          : 'hover:bg-muted/30 text-muted-foreground border border-transparent'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono shrink-0 ${
+                    <React.Fragment key={f.id}>
+                      {isNewGroup ? (
+                        <div className="pt-2 pb-0.5 text-[10px] font-semibold text-primary uppercase tracking-wider px-1 flex items-center gap-1.5">
+                          <Layers className="w-3 h-3 text-primary" />
+                          <span>{f.group}</span>
+                        </div>
+                      ) : null}
+                      <button
+                        type="button"
+                        onClick={() => setCurrentStep(idx)}
+                        className={`w-full text-left px-3 py-2 rounded-xl text-xs font-sans transition-all flex items-center justify-between gap-2 cursor-pointer ${
                           isCurrent
-                            ? 'bg-primary-foreground text-primary font-bold'
+                            ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
                             : isAnswered
-                            ? 'bg-emerald-500/20 text-emerald-600 font-bold'
-                            : 'bg-muted text-muted-foreground'
-                        }`}>
-                          {idx + 1}
-                        </span>
-                        <span className="truncate">{f.label || `Question #${idx + 1}`}</span>
-                      </div>
-                      {isAnswered ? (
-                        <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? 'text-primary-foreground' : 'text-emerald-500'}`} />
-                      ) : (
-                        <Circle className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? 'text-primary-foreground/60' : 'text-muted-foreground/40'}`} />
-                      )}
-                    </button>
+                            ? 'bg-muted/40 hover:bg-muted text-foreground border border-border/60'
+                            : 'hover:bg-muted/30 text-muted-foreground border border-transparent'
+                        }`}
+                      >
+                        <div className="flex items-center gap-2 truncate">
+                          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono shrink-0 ${
+                            isCurrent
+                              ? 'bg-primary-foreground text-primary font-bold'
+                              : isAnswered
+                              ? 'bg-emerald-500/20 text-emerald-600 font-bold'
+                              : 'bg-muted text-muted-foreground'
+                          }`}>
+                            {idx + 1}
+                          </span>
+                          <span className="truncate">{f.label || `Question #${idx + 1}`}</span>
+                        </div>
+                        {isAnswered ? (
+                          <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? 'text-primary-foreground' : 'text-emerald-500'}`} />
+                        ) : (
+                          <Circle className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? 'text-primary-foreground/60' : 'text-muted-foreground/40'}`} />
+                        )}
+                      </button>
+                    </React.Fragment>
                   );
                 })}
               </div>
