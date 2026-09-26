@@ -50,7 +50,7 @@ export const LandingPage: React.FC = () => {
             <div>
               <span className="font-extrabold text-lg tracking-tight text-foreground flex items-center gap-1.5 font-heading">
                 WP Exam
-                <Badge variant="outline" className="border-primary/40 text-primary text-[10px] font-mono py-0">
+                <Badge variant="outline" className="border-primary/40 text-primary text-xs font-mono py-0">
                   Enterprise
                 </Badge>
               </span>

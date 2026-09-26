@@ -1039,7 +1039,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                     <div className="flex-1 text-xs">
                       <span className="font-semibold text-sm leading-snug block">{item.label}</span>
                       {item.isMandatory && (
-                        <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider mt-1 block">
+                        <span className="text-xs text-amber-400 font-bold uppercase tracking-wider mt-1 block">
                           * Mandatory Requirement
                         </span>
                       )}
@@ -1064,11 +1064,11 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
             <div className="space-y-2 text-center">
               <div className="flex items-center justify-between gap-2 pb-1">
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-[10px] uppercase font-mono">
+                  <Badge variant="outline" className="text-xs uppercase font-mono">
                     Question {currentQuestionIndex + 1} of {totalQuestions}
                   </Badge>
                   {isRandomized && (
-                    <Badge variant="secondary" className="text-[10px]">
+                    <Badge variant="secondary" className="text-xs">
                       🔀 Shuffled
                     </Badge>
                   )}
@@ -1199,7 +1199,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                           <div>
                             <span className="font-semibold text-sm leading-snug block">{optLabel}</span>
                             {branchTarget && (
-                              <span className="text-[10px] text-amber-400 font-mono flex items-center gap-1 mt-0.5">
+                              <span className="text-xs text-amber-400 font-mono flex items-center gap-1 mt-0.5">
                                 <GitBranch className="w-2.5 h-2.5" /> Branches to: {branchTarget}
                               </span>
                             )}
@@ -1468,7 +1468,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                     </li>
                   ))}
                 </ul>
-                <p className="text-slate-400 text-[11px] pt-1">
+                <p className="text-slate-400 text-xs pt-1">
                   Answers are locked to ensure comprehensive mastery. Review the documentation and retake.
                 </p>
               </div>
@@ -1485,11 +1485,11 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
               <span className="text-lg">📧</span>
               <div className="space-y-0.5">
                 <span className="font-bold text-foreground block">Notification Chain Dispatched:</span>
-                <span className="text-[11px] text-muted-foreground block">
+                <span className="text-xs text-muted-foreground block">
                   Results emailed to candidate and course owner (Delivery Cadence:{' '}
                   {config.emailCadence || 'per_section'}).
                 </span>
-                <span className="text-[10px] text-slate-500 block">
+                <span className="text-xs text-slate-500 block">
                   Client telemetry: {clickCount} user interactions recorded.
                 </span>
               </div>
@@ -1601,7 +1601,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
             </p>
 
             <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-400 block">Report Category:</label>
+              <label className="text-xs font-semibold text-slate-400 block">Report Category:</label>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <button
                   type="button"
@@ -1643,7 +1643,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-400 block">Your Email (Optional):</label>
+              <label className="text-xs font-semibold text-slate-400 block">Your Email (Optional):</label>
               <Input
                 placeholder="candidate@example.com"
                 value={reporterEmail}
@@ -1657,7 +1657,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
             </div>
 
             <div className="space-y-1">
-              <label className="text-[11px] font-semibold text-slate-400 block">Description / Feedback:</label>
+              <label className="text-xs font-semibold text-slate-400 block">Description / Feedback:</label>
               <Textarea
                 placeholder="Describe the problem, discrepancy, or bug in detail..."
                 rows={4}
@@ -1712,7 +1712,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
 
             {/* OpenGraph / Social Card Preview */}
             <div className="space-y-1.5">
-              <label className="text-[11px] font-semibold text-slate-400 block">OpenGraph / Twitter Card Preview:</label>
+              <label className="text-xs font-semibold text-slate-400 block">OpenGraph / Twitter Card Preview:</label>
               <div
                 className="rounded-2xl border overflow-hidden p-4 space-y-2.5 bg-slate-900/60"
                 style={{ borderColor: theme.colors.cardBorder }}
@@ -1727,7 +1727,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                   </div>
                 )}
                 <div className="space-y-1">
-                  <div className="text-[10px] uppercase font-bold tracking-wider text-indigo-400">
+                  <div className="text-xs uppercase font-bold tracking-wider text-indigo-400">
                     WP Exam Autonomous Assessment
                   </div>
                   <div className="text-sm font-bold leading-snug line-clamp-2">
@@ -1736,7 +1736,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                   <div className="text-xs text-slate-400 line-clamp-2">
                     {currentQuestion?.subtitle || 'Interactive quiz assessment question powered by WP Exam.'}
                   </div>
-                  <div className="text-[10px] text-slate-500 pt-1 font-mono">
+                  <div className="text-xs text-slate-500 pt-1 font-mono">
                     wpexam.io/quiz/{config.id}?q={currentQuestionIndex + 1}
                   </div>
                 </div>
@@ -1745,7 +1745,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
 
             {/* Sharing Action Buttons */}
             <div className="space-y-2 pt-1">
-              <label className="text-[11px] font-semibold text-slate-400 block">Share to Social Platforms:</label>
+              <label className="text-xs font-semibold text-slate-400 block">Share to Social Platforms:</label>
               <div className="grid grid-cols-2 gap-2">
                 <Button
                   variant="outline"

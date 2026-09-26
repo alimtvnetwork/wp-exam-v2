@@ -753,7 +753,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
           {/* Active Canonical Slug Indicator */}
           <div 
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-[11px] font-mono shadow-2xs"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-mono shadow-2xs"
             style={{
               backgroundColor: currentTheme.colors.background,
               borderColor: currentTheme.colors.cardBorder,
@@ -863,7 +863,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 ✓ Verified Respondent
               </Badge>
               <span className="text-xs font-semibold" style={{ color: currentTheme.colors.textPrimary }}>{session.respondentEmail}</span>
-              <Badge variant="outline" className="text-[10px] uppercase font-mono" style={{ borderColor: currentTheme.colors.primary, color: currentTheme.colors.primary }}>{session.role}</Badge>
+              <Badge variant="outline" className="text-xs uppercase font-mono" style={{ borderColor: currentTheme.colors.primary, color: currentTheme.colors.primary }}>{session.role}</Badge>
             </>
           ) : (
             <>
@@ -926,7 +926,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               <span className="font-semibold text-primary">
                 Step {stepHistory.length + 1} of ~{visibleFields.length} (Question #{currentStep + 1})
               </span>
-              <Badge variant="outline" className="font-mono text-[10px]">{activeForm.formType.replace('_', ' ')}</Badge>
+              <Badge variant="outline" className="font-mono text-xs">{activeForm.formType.replace('_', ' ')}</Badge>
             </div>
             <Progress
               value={Math.min(
@@ -1157,7 +1157,7 @@ const RunnerFileUpload: React.FC<{
               <div className="text-xs font-bold text-foreground truncate max-w-xs sm:max-w-md">
                 {fileValue.name}
               </div>
-              <div className="text-[10px] text-muted-foreground flex items-center gap-2 mt-0.5">
+              <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
                 {fileValue.size && (
                   <span className="font-mono">
                     {(fileValue.size / (1024 * 1024)).toFixed(2)} MB
@@ -1220,7 +1220,7 @@ const RunnerFileUpload: React.FC<{
           <span className="text-xs font-semibold text-foreground">
             Drag and drop file here, or <span className="text-primary underline font-bold">browse</span>
           </span>
-          <span className="text-[10px] text-muted-foreground mt-1 font-mono">
+          <span className="text-xs text-muted-foreground mt-1 font-mono">
             Supported: {allowedExts.map((e) => '.' + e.toLowerCase().replace(/^\./, '')).join(', ')} • Max: {maxSize} MB
           </span>
         </div>
@@ -1237,7 +1237,7 @@ const RunnerFileUpload: React.FC<{
             variant="ghost"
             size="sm"
             onClick={() => setValidationError(null)}
-            className="h-6 px-1.5 text-[10px] text-rose-400 hover:text-rose-300 hover:bg-rose-500/20"
+            className="h-6 px-1.5 text-xs text-rose-400 hover:text-rose-300 hover:bg-rose-500/20"
           >
             Dismiss
           </Button>
@@ -1260,7 +1260,7 @@ export const RunnerVideoPlayer: React.FC<{
       <div className="w-full aspect-video rounded-xl border-2 border-dashed border-border/80 flex flex-col items-center justify-center p-6 text-center bg-muted/20">
         <Film className="w-9 h-9 text-muted-foreground/50 mb-2" />
         <p className="text-xs font-semibold text-foreground">Video Stream Unavailable</p>
-        <p className="text-[11px] text-muted-foreground mt-1">
+        <p className="text-xs text-muted-foreground mt-1">
           No valid video URL was configured for this question.
         </p>
       </div>
@@ -1320,7 +1320,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
         <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-between">
           <div>
             <span className="text-xs font-semibold text-primary block">{field.linkText || 'Open Learning Resource'}</span>
-            <span className="text-[11px] text-muted-foreground font-mono truncate max-w-sm block">{field.url || '#'}</span>
+            <span className="text-xs text-muted-foreground font-mono truncate max-w-sm block">{field.url || '#'}</span>
           </div>
           <a
             href={field.url || '#'}
@@ -1355,7 +1355,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
             className={`font-mono text-xs bg-background h-8 ${!isValid && strValue ? 'border-destructive focus-visible:ring-destructive' : ''}`}
           />
           {!isValid && strValue && (
-            <span className="text-[11px] text-destructive flex items-center gap-1">
+            <span className="text-xs text-destructive flex items-center gap-1">
               <AlertCircle className="w-3 h-3" />
               <span>{field.validationRule?.errorMessage || 'Invalid format pattern'}</span>
             </span>

@@ -371,11 +371,11 @@ export const AnalyticsDashboard: React.FC = () => {
               <Share2 className="w-4 h-4 text-sky-400" />
               <span className="font-bold text-sm text-foreground">Public Analytics & Difficulty Preview</span>
               {currentProject.isPublicShared ? (
-                <Badge className="bg-emerald-500/20 text-emerald-400 text-[10px] border-emerald-500/30">
+                <Badge className="bg-emerald-500/20 text-emerald-400 text-xs border-emerald-500/30">
                   Publicly Shared
                 </Badge>
               ) : (
-                <Badge variant="outline" className="text-[10px] text-muted-foreground">
+                <Badge variant="outline" className="text-xs text-muted-foreground">
                   Internal Only
                 </Badge>
               )}
@@ -454,7 +454,7 @@ export const AnalyticsDashboard: React.FC = () => {
                     <td className="p-3 font-bold text-muted-foreground">{q.number}</td>
                     <td className="p-3 font-semibold max-w-sm">{q.title}</td>
                     <td className="p-3">
-                      <Badge variant="outline" className="text-[10px] uppercase font-mono">
+                      <Badge variant="outline" className="text-xs uppercase font-mono">
                         {q.type}
                       </Badge>
                     </td>
@@ -475,12 +475,12 @@ export const AnalyticsDashboard: React.FC = () => {
                     </td>
                     <td className="p-3 text-center">
                       {q.hasHighFailureAlert ? (
-                        <Badge className="bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 border-rose-500/30 text-[10px] gap-1 py-0.5">
+                        <Badge className="bg-rose-500/20 text-rose-400 hover:bg-rose-500/30 border-rose-500/30 text-xs gap-1 py-0.5">
                           <AlertTriangle className="w-3 h-3" />
                           High Failure Alert
                         </Badge>
                       ) : (
-                        <Badge variant="secondary" className="text-[10px] text-muted-foreground py-0.5">
+                        <Badge variant="secondary" className="text-xs text-muted-foreground py-0.5">
                           Normal
                         </Badge>
                       )}
@@ -526,7 +526,7 @@ export const AnalyticsDashboard: React.FC = () => {
                 variant={reportFilter === 'all' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setReportFilter('all')}
-                className="text-[11px] h-7 px-2"
+                className="text-xs h-7 px-2"
               >
                 All
               </Button>
@@ -534,7 +534,7 @@ export const AnalyticsDashboard: React.FC = () => {
                 variant={reportFilter === 'bug' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setReportFilter('bug')}
-                className="text-[11px] h-7 px-2 text-rose-400"
+                className="text-xs h-7 px-2 text-rose-400"
               >
                 🐛 Bugs
               </Button>
@@ -542,7 +542,7 @@ export const AnalyticsDashboard: React.FC = () => {
                 variant={reportFilter === 'feedback' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setReportFilter('feedback')}
-                className="text-[11px] h-7 px-2 text-sky-400"
+                className="text-xs h-7 px-2 text-sky-400"
               >
                 💬 Feedback
               </Button>
@@ -550,7 +550,7 @@ export const AnalyticsDashboard: React.FC = () => {
                 variant={reportFilter === 'typo' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setReportFilter('typo')}
-                className="text-[11px] h-7 px-2 text-amber-400"
+                className="text-xs h-7 px-2 text-amber-400"
               >
                 📝 Typos
               </Button>
@@ -558,7 +558,7 @@ export const AnalyticsDashboard: React.FC = () => {
                 variant={reportFilter === 'dispute' ? 'default' : 'ghost'}
                 size="sm"
                 onClick={() => setReportFilter('dispute')}
-                className="text-[11px] h-7 px-2 text-indigo-400"
+                className="text-xs h-7 px-2 text-indigo-400"
               >
                 ⚖️ Disputes
               </Button>
@@ -585,54 +585,54 @@ export const AnalyticsDashboard: React.FC = () => {
 
                   return (
                     <tr key={rep.id} className="hover:bg-muted/20 transition-colors">
-                      <td className="p-3 whitespace-nowrap text-muted-foreground font-mono text-[11px]">
+                      <td className="p-3 whitespace-nowrap text-muted-foreground font-mono text-xs">
                         {rep.created_at}
                       </td>
                       <td className="p-3 whitespace-nowrap">
                         {rep.report_type === 'bug' && (
-                          <Badge className="bg-rose-500/20 text-rose-400 border-rose-500/30 text-[10px]">
+                          <Badge className="bg-rose-500/20 text-rose-400 border-rose-500/30 text-xs">
                             🐛 Bug
                           </Badge>
                         )}
                         {rep.report_type === 'feedback' && (
-                          <Badge className="bg-sky-500/20 text-sky-400 border-sky-500/30 text-[10px]">
+                          <Badge className="bg-sky-500/20 text-sky-400 border-sky-500/30 text-xs">
                             💬 Feedback
                           </Badge>
                         )}
                         {rep.report_type === 'typo' && (
-                          <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px]">
+                          <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs">
                             📝 Typo
                           </Badge>
                         )}
                         {rep.report_type === 'dispute' && (
-                          <Badge className="bg-indigo-500/20 text-indigo-400 border-indigo-500/30 text-[10px]">
+                          <Badge className="bg-indigo-500/20 text-indigo-400 border-indigo-500/30 text-xs">
                             ⚖️ Dispute
                           </Badge>
                         )}
                       </td>
                       <td className="p-3 font-semibold max-w-xs">
                         <div>{rep.question_title || rep.question_id}</div>
-                        <span className="text-[10px] text-muted-foreground font-mono">
+                        <span className="text-xs text-muted-foreground font-mono">
                           ID: {rep.question_id}
                         </span>
                       </td>
                       <td className="p-3 max-w-sm text-foreground leading-relaxed">
                         {rep.feedback_text}
                       </td>
-                      <td className="p-3 text-muted-foreground font-mono text-[11px] whitespace-nowrap">
+                      <td className="p-3 text-muted-foreground font-mono text-xs whitespace-nowrap">
                         {rep.user_identifier}
                       </td>
                       <td className="p-3 text-center whitespace-nowrap">
                         {isResolved ? (
-                          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-[10px]">
+                          <Badge className="bg-emerald-500/20 text-emerald-400 border-emerald-500/30 text-xs">
                             Resolved
                           </Badge>
                         ) : rep.status === 'under_review' ? (
-                          <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-[10px]">
+                          <Badge className="bg-amber-500/20 text-amber-400 border-amber-500/30 text-xs">
                             Under Review
                           </Badge>
                         ) : (
-                          <Badge className="bg-rose-500/20 text-rose-400 border-rose-500/30 text-[10px]">
+                          <Badge className="bg-rose-500/20 text-rose-400 border-rose-500/30 text-xs">
                             Open
                           </Badge>
                         )}
@@ -640,13 +640,13 @@ export const AnalyticsDashboard: React.FC = () => {
                       <td className="p-3 text-right whitespace-nowrap">
                         <div className="flex items-center justify-end gap-1.5">
                           {isResolved ? (
-                            <span className="text-[11px] text-muted-foreground">Archived</span>
+                            <span className="text-xs text-muted-foreground">Archived</span>
                           ) : (
                             <Button
                               size="sm"
                               variant="outline"
                               onClick={() => handleResolveReport(rep.id)}
-                              className="text-[10px] h-6 px-2 text-emerald-400 border-emerald-500/30 hover:bg-emerald-950/40"
+                              className="text-xs h-6 px-2 text-emerald-400 border-emerald-500/30 hover:bg-emerald-950/40"
                             >
                               <Check className="w-3 h-3 mr-1" />
                               Resolve
@@ -656,7 +656,7 @@ export const AnalyticsDashboard: React.FC = () => {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleDismissReport(rep.id)}
-                            className="text-[10px] h-6 px-2 text-muted-foreground hover:text-rose-400"
+                            className="text-xs h-6 px-2 text-muted-foreground hover:text-rose-400"
                           >
                             Dismiss
                           </Button>
@@ -690,7 +690,7 @@ export const AnalyticsDashboard: React.FC = () => {
               <div className="text-2xl font-black text-amber-400">
                 {100 - currentProject.passRate}% Difficulty Index
               </div>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 Based on {currentProject.totalCompleted + currentProject.totalFailed} historical evaluations
               </p>
             </div>
@@ -706,7 +706,7 @@ export const AnalyticsDashboard: React.FC = () => {
                       className="p-2.5 rounded-xl border border-rose-500/20 bg-rose-500/10 text-xs flex items-center justify-between"
                     >
                       <span className="font-medium text-rose-300">Q{q.number}: {q.title}</span>
-                      <Badge className="bg-rose-500 text-white text-[10px]">
+                      <Badge className="bg-rose-500 text-white text-xs">
                         {q.failureRate}% Fail Rate
                       </Badge>
                     </div>
@@ -714,7 +714,7 @@ export const AnalyticsDashboard: React.FC = () => {
               </div>
             </div>
 
-            <div className="text-[11px] text-muted-foreground bg-card p-3 rounded-xl border">
+            <div className="text-xs text-muted-foreground bg-card p-3 rounded-xl border">
               ℹ️ Candidates are advised to review reading documentation and complete verification checklists before attempting this section.
             </div>
 

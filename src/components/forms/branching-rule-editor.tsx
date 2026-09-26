@@ -130,11 +130,11 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
           <div>
             <h4 className="text-xs font-semibold text-foreground flex items-center gap-1.5">
               <span>Conditional Branching & Logic</span>
-              <Badge variant="outline" className="text-[10px] font-mono px-1.5 py-0">
+              <Badge variant="outline" className="text-xs font-mono px-1.5 py-0">
                 {conditions.length} Active Rule(s)
               </Badge>
             </h4>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Dynamically display, hide, or require this question based on candidate answers.
             </p>
           </div>
@@ -143,11 +143,11 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
         {/* AND / OR Match Mode Toggle (when 2+ rules exist) */}
         {conditions.length >= 2 && (
           <div className="flex items-center gap-1.5 rounded-lg border border-border bg-muted/30 p-1 text-xs">
-            <span className="text-[10px] font-medium text-muted-foreground px-1">Logic:</span>
+            <span className="text-xs font-medium text-muted-foreground px-1">Logic:</span>
             <button
               type="button"
               onClick={() => handleToggleMatchMode('all')}
-              className={`rounded px-2 py-0.5 text-[11px] font-semibold transition-all ${
+              className={`rounded px-2 py-0.5 text-xs font-semibold transition-all ${
                 conditionMatch === 'all'
                   ? 'bg-primary text-primary-foreground shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
@@ -158,7 +158,7 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
             <button
               type="button"
               onClick={() => handleToggleMatchMode('any')}
-              className={`rounded px-2 py-0.5 text-[11px] font-semibold transition-all ${
+              className={`rounded px-2 py-0.5 text-xs font-semibold transition-all ${
                 conditionMatch === 'any'
                   ? 'bg-primary text-primary-foreground shadow-xs'
                   : 'text-muted-foreground hover:text-foreground'
@@ -175,7 +175,7 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
         <div className="rounded-lg border border-dashed border-border/80 bg-muted/20 p-4 text-center">
           <HelpCircle className="mx-auto mb-1.5 h-5 w-5 text-muted-foreground" />
           <p className="text-xs font-medium text-foreground">No other questions available</p>
-          <p className="text-[11px] text-muted-foreground mt-0.5">
+          <p className="text-xs text-muted-foreground mt-0.5">
             Add at least one other question to establish conditional dependencies.
           </p>
         </div>
@@ -197,26 +197,26 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
                 {/* Rule Header Bar */}
                 <div className="flex items-center justify-between text-xs pb-1 border-b border-border/40">
                   <div className="flex items-center gap-2">
-                    <span className="font-mono text-[11px] font-semibold text-muted-foreground">
+                    <span className="font-mono text-xs font-semibold text-muted-foreground">
                       Rule #{ruleIdx + 1}
                     </span>
                     {rule.action === 'show' && (
-                      <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-[10px] font-medium gap-1">
+                      <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 text-xs font-medium gap-1">
                         <Eye className="w-3 h-3" /> Show Field
                       </Badge>
                     )}
                     {rule.action === 'hide' && (
-                      <Badge className="bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-[10px] font-medium gap-1">
+                      <Badge className="bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30 text-xs font-medium gap-1">
                         <EyeOff className="w-3 h-3" /> Hide Field
                       </Badge>
                     )}
                     {rule.action === 'require' && (
-                      <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-[10px] font-medium gap-1">
+                      <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30 text-xs font-medium gap-1">
                         <Asterisk className="w-3 h-3" /> Require Field
                       </Badge>
                     )}
                     {rule.action === 'jump_to' && (
-                      <Badge className="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 text-[10px] font-medium gap-1">
+                      <Badge className="bg-indigo-500/15 text-indigo-600 dark:text-indigo-400 border border-indigo-500/30 text-xs font-medium gap-1">
                         <GitBranch className="w-3 h-3" /> Jump Navigation
                       </Badge>
                     )}
@@ -238,7 +238,7 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
                 <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 lg:grid-cols-4 items-end">
                   {/* Action Selector */}
                   <div className="space-y-1">
-                    <Label className="text-[11px] font-medium text-muted-foreground">
+                    <Label className="text-xs font-medium text-muted-foreground">
                       Action
                     </Label>
                     <select
@@ -267,7 +267,7 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
 
                   {/* Parent Field Selector */}
                   <div className="space-y-1">
-                    <Label className="text-[11px] font-medium text-muted-foreground">
+                    <Label className="text-xs font-medium text-muted-foreground">
                       Parent Question
                     </Label>
                     <select
@@ -297,7 +297,7 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
 
                   {/* Operator Selector */}
                   <div className="space-y-1">
-                    <Label className="text-[11px] font-medium text-muted-foreground">
+                    <Label className="text-xs font-medium text-muted-foreground">
                       Operator
                     </Label>
                     <select
@@ -341,11 +341,11 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
 
                   {/* Smart Expected Value Selector */}
                   <div className="space-y-1">
-                    <Label className="text-[11px] font-medium text-muted-foreground">
+                    <Label className="text-xs font-medium text-muted-foreground">
                       Expected Value
                     </Label>
                     {isValuelessOp ? (
-                      <div className="h-8 px-2.5 flex items-center rounded-md border border-border bg-muted/40 text-[11px] text-muted-foreground italic">
+                      <div className="h-8 px-2.5 flex items-center rounded-md border border-border bg-muted/40 text-xs text-muted-foreground italic">
                         No value needed
                       </div>
                     ) : isParentTrueFalse ? (
@@ -399,7 +399,7 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
                 {/* Additional Target Question Selector for jump_to Action */}
                 {isJumpAction && (
                   <div className="pt-2 border-t border-border/40 flex items-center gap-2">
-                    <Label className="text-[11px] font-medium text-indigo-400 whitespace-nowrap flex items-center gap-1">
+                    <Label className="text-xs font-medium text-indigo-400 whitespace-nowrap flex items-center gap-1">
                       <ArrowRight className="w-3 h-3" /> Jump Target:
                     </Label>
                     <select
@@ -424,7 +424,7 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
                 )}
 
                 {/* Human-Readable Natural Language Rule Summary */}
-                <div className="rounded-lg bg-muted/40 px-2.5 py-1.5 text-[11px] font-mono text-muted-foreground flex items-center gap-1.5 border border-border/40">
+                <div className="rounded-lg bg-muted/40 px-2.5 py-1.5 text-xs font-mono text-muted-foreground flex items-center gap-1.5 border border-border/40">
                   <Sparkles className="w-3 h-3 text-primary shrink-0" />
                   <span className="truncate">
                     {formatRuleDescription(rule, effectiveAllFields)}
@@ -456,11 +456,11 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
               <GitBranch className="w-3.5 h-3.5 text-indigo-500" />
               <span>Direct Option Branching (Choice Navigation)</span>
             </Label>
-            <Badge variant="outline" className="text-[10px]">
+            <Badge variant="outline" className="text-xs">
               Optional Jumps
             </Badge>
           </div>
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Configure target questions when a candidate selects a specific option.
           </p>
 
@@ -479,7 +479,7 @@ export const BranchingRuleEditor: React.FC<BranchingRuleEditorProps> = ({
                     </div>
 
                     <div className="flex items-center gap-1.5 w-full sm:w-auto">
-                      <span className="text-[11px] text-muted-foreground whitespace-nowrap">
+                      <span className="text-xs text-muted-foreground whitespace-nowrap">
                         ➔ Route to:
                       </span>
                       <select

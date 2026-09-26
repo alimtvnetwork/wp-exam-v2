@@ -249,7 +249,7 @@ export const AiSectionAssistant: React.FC<AiSectionAssistantProps> = ({ section,
                 AI Studio • {config.sectionName}
               </DialogTitle>
             </div>
-            <Badge variant="secondary" className="text-[11px] font-mono">
+            <Badge variant="secondary" className="text-xs font-mono">
               {config.badge}
             </Badge>
           </div>

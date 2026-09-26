@@ -150,7 +150,7 @@ export const Index: React.FC = () => {
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Test Credentials:</span>
               </div>
-              <p className="text-[11px] text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 User: <code className="text-foreground font-mono bg-muted px-1 rounded">admin</code> |
                 Password: <code className="text-foreground font-mono bg-muted px-1 rounded">admin</code>
               </p>
@@ -197,7 +197,7 @@ export const Index: React.FC = () => {
             <span className="font-bold text-sm tracking-tight text-foreground hidden sm:inline">
               WP Exam Console
             </span>
-            <Badge variant="outline" className="text-[9px] font-mono py-0 border-border text-muted-foreground">
+            <Badge variant="outline" className="text-xs font-mono py-0 border-border text-muted-foreground">
               v2.5
             </Badge>
           </div>

@@ -331,7 +331,7 @@ export const JsonModal: React.FC<JsonModalProps> = ({ isOpen, onClose }) => {
               </div>
 
               {selectedRole === 'subscriber' && (
-                <div className="p-2 rounded bg-amber-500/10 border border-amber-500/20 text-[11px] text-amber-700 dark:text-amber-400">
+                <div className="p-2 rounded bg-amber-500/10 border border-amber-500/20 text-xs text-amber-700 dark:text-amber-400">
                   🔒 Anti-Cheat Active: Correct answers have been stripped from the exported package.
                 </div>
               )}

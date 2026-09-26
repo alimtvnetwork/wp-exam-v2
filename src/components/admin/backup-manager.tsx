@@ -177,7 +177,7 @@ export const BackupManager: React.FC = () => {
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs text-slate-300">
-            <thead className="bg-slate-950 text-slate-400 uppercase tracking-wider text-[11px] border-b border-slate-800">
+            <thead className="bg-slate-950 text-slate-400 uppercase tracking-wider text-xs border-b border-slate-800">
               <tr>
                 <th className="py-3 px-4">Archive Filename</th>
                 <th className="py-3 px-4">Size</th>
@@ -242,7 +242,7 @@ export const BackupManager: React.FC = () => {
               Push packaged plugin releases directly to your remote hosting environment using the REST uploader mechanism.
             </p>
           </div>
-          <Badge variant="outline" className="text-[11px] border-emerald-500/30 text-emerald-400 bg-emerald-500/10">
+          <Badge variant="outline" className="text-xs border-emerald-500/30 text-emerald-400 bg-emerald-500/10">
             REST Uploader Active
           </Badge>
         </div>
@@ -302,7 +302,7 @@ export const BackupManager: React.FC = () => {
         </div>
 
         {deployLog.length > 0 && (
-          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1 text-[11px] font-mono text-emerald-400">
+          <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1 text-xs font-mono text-emerald-400">
             <div className="text-xs font-bold text-slate-300 flex items-center gap-1.5 pb-1 border-b border-slate-800">
               <Terminal className="w-3.5 h-3.5" /> Deployment Telemetry Log:
             </div>

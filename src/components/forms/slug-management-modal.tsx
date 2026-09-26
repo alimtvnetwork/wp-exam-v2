@@ -146,7 +146,7 @@ export const SlugManagementModal: React.FC<SlugManagementModalProps> = ({
                 <div>
                   <DialogTitle className="text-base font-bold text-foreground flex items-center gap-2">
                     <span>Slug & Canonical URL Management</span>
-                    <Badge variant="outline" className="text-[10px] font-mono border-primary/30 text-primary bg-primary/10">
+                    <Badge variant="outline" className="text-xs font-mono border-primary/30 text-primary bg-primary/10">
                       Live Routing
                     </Badge>
                   </DialogTitle>
@@ -169,12 +169,12 @@ export const SlugManagementModal: React.FC<SlugManagementModalProps> = ({
                 <span>How Your Slug Is Built</span>
               </span>
               {isValidSlug ? (
-                <Badge variant="outline" className="text-[10px] border-emerald-500/30 text-emerald-400 bg-emerald-500/10 font-mono flex items-center gap-1">
+                <Badge variant="outline" className="text-xs border-emerald-500/30 text-emerald-400 bg-emerald-500/10 font-mono flex items-center gap-1">
                   <Check className="w-3 h-3" />
                   <span>Valid URL Slug</span>
                 </Badge>
               ) : (
-                <Badge variant="outline" className="text-[10px] border-amber-500/30 text-amber-400 bg-amber-500/10 font-mono flex items-center gap-1">
+                <Badge variant="outline" className="text-xs border-amber-500/30 text-amber-400 bg-amber-500/10 font-mono flex items-center gap-1">
                   <AlertCircle className="w-3 h-3" />
                   <span>Invalid Formatting</span>
                 </Badge>
@@ -191,7 +191,7 @@ export const SlugManagementModal: React.FC<SlugManagementModalProps> = ({
             </div>
 
             {!isValidSlug && (
-              <p className="text-[11px] text-amber-400 flex items-center gap-1.5 pt-1">
+              <p className="text-xs text-amber-400 flex items-center gap-1.5 pt-1">
                 <AlertCircle className="w-3.5 h-3.5 shrink-0" />
                 <span>
                   Slugs should contain lowercase letters, numbers, and hyphens only (e.g. <code>{cleanCurrentSlug}</code>).
@@ -240,7 +240,7 @@ export const SlugManagementModal: React.FC<SlugManagementModalProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={handleAutoGenerate}
-                className="h-6 text-[11px] px-2 text-primary border-primary/30 hover:bg-primary/10 gap-1 font-medium"
+                className="h-6 text-xs px-2 text-primary border-primary/30 hover:bg-primary/10 gap-1 font-medium"
               >
                 <Wand2 className="w-3 h-3" />
                 <span>Auto-Generate from Title</span>
@@ -260,7 +260,7 @@ export const SlugManagementModal: React.FC<SlugManagementModalProps> = ({
                 variant="ghost"
                 size="sm"
                 onClick={() => setEditedSlug(cleanCurrentSlug)}
-                className="absolute right-1 top-1 h-7 text-[10px] text-muted-foreground hover:text-foreground"
+                className="absolute right-1 top-1 h-7 text-xs text-muted-foreground hover:text-foreground"
               >
                 Sanitize
               </Button>
@@ -279,11 +279,11 @@ export const SlugManagementModal: React.FC<SlugManagementModalProps> = ({
                 <div className="min-w-0 pr-2">
                   <div className="font-semibold text-foreground flex items-center gap-1.5">
                     <span>Public Candidate Form</span>
-                    <Badge variant="outline" className="text-[9px] px-1 py-0 border-emerald-500/30 text-emerald-400 bg-emerald-500/10">
+                    <Badge variant="outline" className="text-xs px-1 py-0 border-emerald-500/30 text-emerald-400 bg-emerald-500/10">
                       Live
                     </Badge>
                   </div>
-                  <div className="font-mono text-[11px] text-muted-foreground truncate">{publicUrl}</div>
+                  <div className="font-mono text-xs text-muted-foreground truncate">{publicUrl}</div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <Button
@@ -314,11 +314,11 @@ export const SlugManagementModal: React.FC<SlugManagementModalProps> = ({
                 <div className="min-w-0 pr-2">
                   <div className="font-semibold text-foreground flex items-center gap-1.5">
                     <span>Interactive Test Preview</span>
-                    <Badge variant="outline" className="text-[9px] px-1 py-0 border-primary/30 text-primary bg-primary/10">
+                    <Badge variant="outline" className="text-xs px-1 py-0 border-primary/30 text-primary bg-primary/10">
                       Dev
                     </Badge>
                   </div>
-                  <div className="font-mono text-[11px] text-muted-foreground truncate">{previewUrl}</div>
+                  <div className="font-mono text-xs text-muted-foreground truncate">{previewUrl}</div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <Button
@@ -348,7 +348,7 @@ export const SlugManagementModal: React.FC<SlugManagementModalProps> = ({
               <div className="flex items-center justify-between p-2.5 rounded-lg bg-muted/20 border border-border/70 text-xs">
                 <div className="min-w-0 pr-2">
                   <div className="font-semibold text-foreground">Admin Builder Studio</div>
-                  <div className="font-mono text-[11px] text-muted-foreground truncate">{adminUrl}</div>
+                  <div className="font-mono text-xs text-muted-foreground truncate">{adminUrl}</div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <Button
@@ -371,7 +371,7 @@ export const SlugManagementModal: React.FC<SlugManagementModalProps> = ({
                     <Code2 className="w-3.5 h-3.5 text-indigo-400" />
                     <span>Embed Iframe Snippet</span>
                   </div>
-                  <div className="font-mono text-[10px] text-muted-foreground truncate">{embedCode}</div>
+                  <div className="font-mono text-xs text-muted-foreground truncate">{embedCode}</div>
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
                   <Button

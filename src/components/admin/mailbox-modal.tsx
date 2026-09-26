@@ -227,7 +227,7 @@ export const MailboxModal: React.FC<MailboxModalProps> = ({
               />
               <Key className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
             </div>
-            <p className="text-[11px] text-slate-400 leading-relaxed pt-0.5">
+            <p className="text-xs text-slate-400 leading-relaxed pt-0.5">
               Stored in isolated split database <code className="text-slate-300 font-mono">email_passwords.db</code> with salted SSH RSA identity and machine-bound encryption.
             </p>
           </div>
@@ -385,7 +385,7 @@ export const MailboxModal: React.FC<MailboxModalProps> = ({
             >
               <span>{verifyResult.message}</span>
               {verifyResult.latencyMs !== undefined && (
-                <span className="font-mono text-[11px] bg-slate-900/60 px-2 py-0.5 rounded">
+                <span className="font-mono text-xs bg-slate-900/60 px-2 py-0.5 rounded">
                   {verifyResult.latencyMs}ms
                 </span>
               )}

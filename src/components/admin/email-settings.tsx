@@ -485,7 +485,7 @@ export const EmailSettings: React.FC = () => {
                     }`}
                   >
                     <span className="block truncate">{provider.name}</span>
-                    <span className="block text-[10px] text-muted-foreground font-mono mt-0.5">
+                    <span className="block text-xs text-muted-foreground font-mono mt-0.5">
                       Port {provider.smtpPort} • {provider.smtpSecure.toUpperCase()}
                     </span>
                   </button>
@@ -552,7 +552,7 @@ export const EmailSettings: React.FC = () => {
                     />
                     <Key className="w-4 h-4 text-muted-foreground absolute right-2.5 top-3 pointer-events-none" />
                   </div>
-                  <p className="text-[11px] text-muted-foreground pt-0.5">
+                  <p className="text-xs text-muted-foreground pt-0.5">
                     Stored in isolated split database <code className="font-mono text-foreground">email_passwords.db</code> with salted SSH RSA identity and machine-bound encryption.
                   </p>
                 </div>
@@ -712,7 +712,7 @@ export const EmailSettings: React.FC = () => {
                   >
                     <span>{verifyResult.message}</span>
                     {verifyResult.latencyMs !== undefined && (
-                      <span className="font-mono text-[11px] bg-slate-900/60 px-2 py-0.5 rounded">
+                      <span className="font-mono text-xs bg-slate-900/60 px-2 py-0.5 rounded">
                         {verifyResult.latencyMs}ms
                       </span>
                     )}
@@ -766,7 +766,7 @@ export const EmailSettings: React.FC = () => {
                   }`}
                 >
                   <span className="text-xs block">⚡ Immediate / Per Section</span>
-                  <span className="text-[11px] text-muted-foreground block mt-1">
+                  <span className="text-xs text-muted-foreground block mt-1">
                     Dispatched immediately when each section checkpoint is reached.
                   </span>
                 </button>
@@ -781,7 +781,7 @@ export const EmailSettings: React.FC = () => {
                   }`}
                 >
                   <span className="text-xs block">📅 End of Day Digest</span>
-                  <span className="text-[11px] text-muted-foreground block mt-1">
+                  <span className="text-xs text-muted-foreground block mt-1">
                     Batches daily candidate completions into a single evening report.
                   </span>
                 </button>
@@ -796,7 +796,7 @@ export const EmailSettings: React.FC = () => {
                   }`}
                 >
                   <span className="text-xs block">📊 Weekly Performance Summary</span>
-                  <span className="text-[11px] text-muted-foreground block mt-1">
+                  <span className="text-xs text-muted-foreground block mt-1">
                     Aggregates candidate analytics and cohort rankings weekly.
                   </span>
                 </button>
@@ -807,7 +807,7 @@ export const EmailSettings: React.FC = () => {
               <div className="flex items-center justify-between p-3 rounded-xl border bg-muted/20">
                 <div>
                   <span className="text-xs font-semibold block">Email Candidate Certificate</span>
-                  <span className="text-[11px] text-muted-foreground block">
+                  <span className="text-xs text-muted-foreground block">
                     Deliver score percentage and feedback receipt upon section submission.
                   </span>
                 </div>
@@ -817,7 +817,7 @@ export const EmailSettings: React.FC = () => {
               <div className="flex items-center justify-between p-3 rounded-xl border bg-muted/20">
                 <div>
                   <span className="text-xs font-semibold block">Alert Evaluator / Project Owner</span>
-                  <span className="text-[11px] text-muted-foreground block">
+                  <span className="text-xs text-muted-foreground block">
                     Notify instructor immediately when a candidate requires manual review.
                   </span>
                 </div>
@@ -878,7 +878,7 @@ export const EmailSettings: React.FC = () => {
 
             {/* Clickable Variable Inserter Pills */}
             <div className="space-y-1.5">
-              <Label className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide block">
+              <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide block">
                 Click to Insert Dynamic Variable:
               </Label>
               <div className="flex flex-wrap gap-1.5">
@@ -902,7 +902,7 @@ export const EmailSettings: React.FC = () => {
               <div className="space-y-1.5">
                 <div className="flex justify-between items-center">
                   <Label className="text-xs font-semibold">Email Template Markup (HTML / Ubuntu Mono)</Label>
-                  <span className="text-[11px] text-muted-foreground font-mono">UTF-8 Encoded</span>
+                  <span className="text-xs text-muted-foreground font-mono">UTF-8 Encoded</span>
                 </div>
                 <Textarea
                   value={inviteBody}

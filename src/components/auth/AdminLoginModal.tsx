@@ -127,7 +127,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
               <CheckCircle2 className="w-3.5 h-3.5" />
               <span>Default Test Credentials:</span>
             </div>
-            <p className="text-[11px] text-muted-foreground">
+            <p className="text-xs text-muted-foreground">
               Username: <code className="bg-muted px-1.5 py-0.5 rounded font-mono text-foreground">admin</code> |
               Password: <code className="bg-muted px-1.5 py-0.5 rounded font-mono text-foreground">admin</code>
             </p>

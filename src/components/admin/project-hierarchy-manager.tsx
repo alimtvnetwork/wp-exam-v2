@@ -552,7 +552,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                         <FolderTree className="w-4 h-4" style={{ color: config.primaryColor }} />
                         <span>{cat.title}</span>
                       </div>
-                      <Badge variant="secondary" className="text-[10px]">
+                      <Badge variant="secondary" className="text-xs">
                         {cat.projects.length} {cat.projects.length === 1 ? 'project' : 'projects'}
                       </Badge>
                     </button>
@@ -561,7 +561,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                     {isCatSelected && (
                       <div className="pl-6 space-y-1 border-l-2 ml-4 py-1" style={{ borderColor: `${config.primaryColor}30` }}>
                         {cat.projects.length === 0 ? (
-                          <div className="text-[11px] text-muted-foreground italic py-1 pl-1">
+                          <div className="text-xs text-muted-foreground italic py-1 pl-1">
                             No projects yet. Click '+ Add Project' above.
                           </div>
                         ) : (
@@ -600,7 +600,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                                         <button
                                           key={subProj.id}
                                           onClick={() => setSelectedProject(subProj)}
-                                          className={`w-full text-left px-2.5 py-1.5 rounded-md text-[11px] font-medium flex items-center justify-between transition ${
+                                          className={`w-full text-left px-2.5 py-1.5 rounded-md text-xs font-medium flex items-center justify-between transition ${
                                             isSubSelected
                                               ? 'font-bold border shadow-sm'
                                               : 'text-muted-foreground hover:text-foreground hover:bg-muted/30'
@@ -641,7 +641,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                   <div className="flex items-center gap-2 mb-2 flex-wrap">
-                    <Badge className={`${config.badgeClass} font-mono text-[11px]`}>
+                    <Badge className={`${config.badgeClass} font-mono text-xs`}>
                       Split DB: {selectedProject.id}.sqlite
                     </Badge>
                     {selectedProject.parent_project_id && (
@@ -683,13 +683,13 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-muted-foreground font-medium">Execution Pipeline:</span>
-                    <span className="text-[10px] text-muted-foreground">Order: Step A → Step C → Step D</span>
+                    <span className="text-xs text-muted-foreground">Order: Step A → Step C → Step D</span>
                   </div>
                   <div className="space-y-1.5">
                     {selectedProject.pipeline_order.map((stepId, idx) => (
                       <div
                         key={stepId}
-                        className="flex items-center justify-between px-2.5 py-1 rounded bg-background border font-mono text-[11px]"
+                        className="flex items-center justify-between px-2.5 py-1 rounded bg-background border font-mono text-xs"
                       >
                         <span>{idx + 1}. {stepId}</span>
                         <div className="flex items-center gap-1">
@@ -717,7 +717,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                   <span className="text-muted-foreground font-medium block mb-2">Allowed Roles:</span>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {selectedProject.permissions.map((perm) => (
-                      <Badge key={perm} variant="outline" className="text-[10px]">
+                      <Badge key={perm} variant="outline" className="text-xs">
                         <Shield className="w-2.5 h-2.5 mr-1 text-emerald-400" />
                         {perm}
                       </Badge>
@@ -767,14 +767,14 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                         <GitBranch className="w-3.5 h-3.5 text-indigo-400" />
                         <div>
                           <span className="font-semibold text-foreground">{subProj.title}</span>
-                          <span className="text-[10px] text-muted-foreground block">{subProj.sections.length} sections</span>
+                          <span className="text-xs text-muted-foreground block">{subProj.sections.length} sections</span>
                         </div>
                       </div>
                       <Button
                         size="sm"
                         variant="outline"
                         onClick={() => setSelectedProject(subProj)}
-                        className="text-[11px] h-7"
+                        className="text-xs h-7"
                       >
                         Inspect Sub-Project
                       </Button>
@@ -826,7 +826,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                         </div>
                         <div>
                           <div className="font-semibold text-sm text-foreground">{sec.title}</div>
-                          <div className="text-[11px] text-muted-foreground flex items-center gap-2 mt-0.5">
+                          <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
                             <span className="capitalize">{sec.content_type}</span>
                             {sec.video_url && <span className="flex items-center gap-0.5"><Video className="w-3 h-3 text-rose-400" /> Video</span>}
                             {sec.reading_content && <span className="flex items-center gap-0.5"><FileText className="w-3 h-3 text-sky-400" /> Documentation</span>}
@@ -835,7 +835,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                         </div>
                       </div>
 
-                      <Badge variant="outline" className="text-[10px]">
+                      <Badge variant="outline" className="text-xs">
                         {sec.content_type}
                       </Badge>
                     </div>
@@ -916,7 +916,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                 >
                   <div>
                     <div className="font-semibold text-foreground">{hist.summary}</div>
-                    <div className="text-[11px] text-muted-foreground font-mono mt-0.5">
+                    <div className="text-xs text-muted-foreground font-mono mt-0.5">
                       {hist.revision_id} • {hist.created_at}
                     </div>
                   </div>

@@ -94,11 +94,11 @@ export const HistoryManager: React.FC = () => {
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className="font-bold text-foreground text-sm">{sub.respondent_name}</span>
                       <span className="text-xs text-muted-foreground">&lt;{sub.respondent_email}&gt;</span>
-                      <Badge variant="outline" className="text-[10px] capitalize">
+                      <Badge variant="outline" className="text-xs capitalize">
                         {sub.form_type.replace('_', ' ')}
                       </Badge>
                       <Badge
-                        className={`text-[10px] uppercase font-bold ${
+                        className={`text-xs uppercase font-bold ${
                           sub.is_passed ? 'score-badge-passed' : 'score-badge-failed'
                         }`}
                       >
@@ -157,7 +157,7 @@ export const HistoryManager: React.FC = () => {
                     </div>
                   )}
                   <div className="pt-1 flex justify-end">
-                    <Badge variant={ans.isCorrect ? 'default' : 'destructive'} className="text-[9px]">
+                    <Badge variant={ans.isCorrect ? 'default' : 'destructive'} className="text-xs">
                       {ans.isCorrect ? 'Correct' : 'Incorrect'}
                     </Badge>
                   </div>

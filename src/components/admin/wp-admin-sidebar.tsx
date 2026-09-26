@@ -194,11 +194,11 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
                 <span className="font-bold text-xs tracking-tight text-foreground group-hover:text-primary transition-colors">
                   WP Exam
                 </span>
-                <span className="text-[10px] px-1 rounded bg-muted text-primary font-mono border border-border">
+                <span className="text-xs px-1 rounded bg-muted text-primary font-mono border border-border">
                   v2.5
                 </span>
               </div>
-              <p className="text-[10px] text-muted-foreground font-mono truncate">
+              <p className="text-xs text-muted-foreground font-mono truncate">
                 Admin Console
               </p>
             </div>
@@ -223,7 +223,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
           <div key={sectionIdx} className="space-y-1">
             {!isCollapsed && (
               <div className="px-2.5 pb-1">
-                <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground font-mono">
+                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
                   {section.title}
                 </span>
               </div>
@@ -269,7 +269,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
 
                         {item.badge && (
                           <span
-                            className={`text-[9px] px-1.5 py-0.2 rounded font-mono font-medium shrink-0 ml-1.5 ${
+                            className={`text-xs px-1.5 py-0.2 rounded font-mono font-medium shrink-0 ml-1.5 ${
                               item.badgeVariant === 'amber'
                                 ? 'bg-primary/20 text-primary border border-primary/30'
                                 : item.badgeVariant === 'secondary'
@@ -302,12 +302,12 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
             <ChevronRight className="w-4 h-4" />
           </button>
         ) : (
-          <div className="flex items-center justify-between px-2 py-1 text-[11px] text-muted-foreground">
-            <span className="font-mono text-[10px]">WP Admin UI v2.5</span>
+          <div className="flex items-center justify-between px-2 py-1 text-xs text-muted-foreground">
+            <span className="font-mono text-xs">WP Admin UI v2.5</span>
             <button
               type="button"
               onClick={onToggleCollapse}
-              className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 font-mono text-[10px]"
+              className="text-muted-foreground hover:text-foreground transition-colors flex items-center gap-1 font-mono text-xs"
             >
               <span>Collapse</span>
               <ChevronLeft className="w-3.5 h-3.5" />

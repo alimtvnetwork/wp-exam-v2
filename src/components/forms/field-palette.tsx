@@ -229,14 +229,14 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
             key={cat.id}
             type="button"
             onClick={() => setSelectedCategory(cat.id)}
-            className={`flex-1 text-[10px] py-1 px-1 rounded-md transition-all font-medium text-center flex items-center justify-center gap-1 ${
+            className={`flex-1 text-xs py-1 px-1 rounded-md transition-all font-medium text-center flex items-center justify-center gap-1 ${
               selectedCategory === cat.id
                 ? 'bg-background text-foreground font-semibold shadow-2xs'
                 : 'text-muted-foreground hover:text-foreground'
             }`}
           >
             <span>{cat.label}</span>
-            <span className="text-[9px] opacity-60 font-mono">({cat.count})</span>
+            <span className="text-xs opacity-60 font-mono">({cat.count})</span>
           </button>
         ))}
       </div>
@@ -252,7 +252,7 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
               setSearchQuery('');
               setSelectedCategory('all');
             }}
-            className="text-[11px] text-primary hover:underline"
+            className="text-xs text-primary hover:underline"
           >
             Reset filters
           </button>
@@ -288,11 +288,11 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
                       <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors truncate">
                         {opt.label}
                       </span>
-                      <span className="text-[9px] uppercase tracking-wider text-muted-foreground font-mono opacity-60 shrink-0">
+                      <span className="text-xs uppercase tracking-wider text-muted-foreground font-mono opacity-60 shrink-0">
                         {opt.category}
                       </span>
                     </div>
-                    <p className="text-[10px] text-muted-foreground truncate leading-tight mt-0.5">
+                    <p className="text-xs text-muted-foreground truncate leading-tight mt-0.5">
                       {opt.description}
                     </p>
                   </div>
@@ -323,7 +323,7 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
           <Layers className="w-3.5 h-3.5 text-primary" />
           <span className="text-xs font-bold text-foreground">Field Palette</span>
         </div>
-        <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0 h-4">
+        <Badge variant="secondary" className="text-xs font-mono px-1.5 py-0 h-4">
           {filteredOptions.length} items
         </Badge>
       </div>

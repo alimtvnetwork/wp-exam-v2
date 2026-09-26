@@ -272,7 +272,7 @@ export const ThemeSwitcher: React.FC<{ className?: string }> = ({ className }) =
           borderColor: config.borderColor,
         }}
       >
-        <div className="px-2 py-1.5 text-[11px] font-bold uppercase tracking-wider text-muted-foreground border-b border-border/50 mb-1">
+        <div className="px-2 py-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border/50 mb-1">
           Select Presentation Theme
         </div>
         {(Object.keys(THEME_CONFIGS) as AppThemeType[]).map((themeKey) => {
@@ -292,7 +292,7 @@ export const ThemeSwitcher: React.FC<{ className?: string }> = ({ className }) =
                 />
                 <div>
                   <div className="font-semibold text-foreground">{item.name}</div>
-                  <div className="text-[10px] text-muted-foreground">{item.tagline}</div>
+                  <div className="text-xs text-muted-foreground">{item.tagline}</div>
                 </div>
               </div>
               {isSelected && <Check className="w-4 h-4 text-emerald-400 shrink-0" />}

@@ -107,7 +107,7 @@ export const DesignValidationPanel: React.FC<DesignValidationPanelProps> = ({
               <span className="text-xs font-mono font-bold text-foreground">
                 Score: {report.score}/100
               </span>
-              <span className="block text-[10px] text-muted-foreground capitalize">
+              <span className="block text-xs text-muted-foreground capitalize">
                 Grade {report.grade} Quality
               </span>
             </div>
@@ -118,19 +118,19 @@ export const DesignValidationPanel: React.FC<DesignValidationPanelProps> = ({
         <div className="grid grid-cols-4 gap-2 py-1 text-center text-xs">
           <div className="p-2 rounded-lg bg-muted/30 border border-border/60">
             <span className="block font-bold text-foreground text-sm">{report.score}%</span>
-            <span className="text-[10px] text-muted-foreground">Health Score</span>
+            <span className="text-xs text-muted-foreground">Health Score</span>
           </div>
           <div className="p-2 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500">
             <span className="block font-bold text-sm">{report.errorCount}</span>
-            <span className="text-[10px]">Errors</span>
+            <span className="text-xs">Errors</span>
           </div>
           <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/20 text-amber-500">
             <span className="block font-bold text-sm">{report.warningCount}</span>
-            <span className="text-[10px]">Warnings</span>
+            <span className="text-xs">Warnings</span>
           </div>
           <div className="p-2 rounded-lg bg-sky-500/10 border border-sky-500/20 text-sky-400">
             <span className="block font-bold text-sm">{report.infoCount}</span>
-            <span className="text-[10px]">Suggestions</span>
+            <span className="text-xs">Suggestions</span>
           </div>
         </div>
 
@@ -211,7 +211,7 @@ export const DesignValidationPanel: React.FC<DesignValidationPanelProps> = ({
                       <span className="font-semibold text-foreground block">
                         {issue.title}
                       </span>
-                      <p className="text-muted-foreground text-[11px] mt-0.5 leading-relaxed">
+                      <p className="text-muted-foreground text-xs mt-0.5 leading-relaxed">
                         {issue.description}
                       </p>
                     </div>
@@ -219,7 +219,7 @@ export const DesignValidationPanel: React.FC<DesignValidationPanelProps> = ({
 
                   <Badge
                     variant="outline"
-                    className={`uppercase text-[9px] font-mono shrink-0 ${
+                    className={`uppercase text-xs font-mono shrink-0 ${
                       issue.severity === 'error'
                         ? 'border-rose-500/30 text-rose-500 bg-rose-500/10'
                         : issue.severity === 'warning'
@@ -232,7 +232,7 @@ export const DesignValidationPanel: React.FC<DesignValidationPanelProps> = ({
                 </div>
 
                 {/* Recommendation Ribbon */}
-                <div className="flex items-center justify-between pt-2 border-t border-border/60 text-[11px]">
+                <div className="flex items-center justify-between pt-2 border-t border-border/60 text-xs">
                   <span className="text-muted-foreground italic flex-1 pr-2 truncate">
                     💡 {issue.recommendation}
                   </span>
@@ -247,7 +247,7 @@ export const DesignValidationPanel: React.FC<DesignValidationPanelProps> = ({
                           onJumpToField(issue.fieldId!);
                           onClose();
                         }}
-                        className="h-6 text-[10px] px-2 text-primary hover:bg-primary/10 gap-1"
+                        className="h-6 text-xs px-2 text-primary hover:bg-primary/10 gap-1"
                       >
                         <span>Jump</span>
                         <ArrowRight className="w-3 h-3" />
@@ -259,7 +259,7 @@ export const DesignValidationPanel: React.FC<DesignValidationPanelProps> = ({
                         type="button"
                         size="sm"
                         onClick={() => handleFixIssue(issue)}
-                        className="h-6 text-[10px] px-2 bg-primary/15 text-primary hover:bg-primary/25 border border-primary/30 gap-1 font-medium"
+                        className="h-6 text-xs px-2 bg-primary/15 text-primary hover:bg-primary/25 border border-primary/30 gap-1 font-medium"
                       >
                         <Wand2 className="w-3 h-3" />
                         <span>1-Click Fix</span>
@@ -370,7 +370,7 @@ export const DesignValidationSidebarView: React.FC<DesignValidationSidebarViewPr
                 <ShieldCheck className="w-3.5 h-3.5 text-primary" />
                 <span>Health Score: {report.score}%</span>
               </div>
-              <span className="text-[10px] text-muted-foreground block">
+              <span className="text-xs text-muted-foreground block">
                 Grade {report.grade} Compliance
               </span>
             </div>
@@ -382,7 +382,7 @@ export const DesignValidationSidebarView: React.FC<DesignValidationSidebarViewPr
               variant="ghost"
               size="sm"
               onClick={onOpenFullDialog}
-              className="h-6 text-[10px] px-2 text-primary hover:bg-primary/10 gap-1 font-medium"
+              className="h-6 text-xs px-2 text-primary hover:bg-primary/10 gap-1 font-medium"
               title="Open full expanded health inspector modal"
             >
               <span>Expand</span>
@@ -392,7 +392,7 @@ export const DesignValidationSidebarView: React.FC<DesignValidationSidebarViewPr
         </div>
 
         {/* Severity Metrics Chips */}
-        <div className="grid grid-cols-3 gap-1.5 text-center text-[10px]">
+        <div className="grid grid-cols-3 gap-1.5 text-center text-xs">
           <div className="py-1 px-1.5 rounded-lg bg-rose-500/10 border border-rose-500/20 text-rose-500 font-medium">
             <span className="font-bold">{report.errorCount}</span> Errors
           </div>
@@ -409,7 +409,7 @@ export const DesignValidationSidebarView: React.FC<DesignValidationSidebarViewPr
           <button
             type="button"
             onClick={() => setShowCategoryDetails(!showCategoryDetails)}
-            className="w-full text-[10px] text-muted-foreground hover:text-foreground text-center py-0.5 hover:underline flex items-center justify-center gap-1"
+            className="w-full text-xs text-muted-foreground hover:text-foreground text-center py-0.5 hover:underline flex items-center justify-center gap-1"
           >
             <span>{showCategoryDetails ? 'Hide Category Scores ▲' : 'View Category Breakdown ▼'}</span>
           </button>
@@ -418,7 +418,7 @@ export const DesignValidationSidebarView: React.FC<DesignValidationSidebarViewPr
             <div className="mt-2 pt-2 border-t border-border/60 space-y-1.5">
               {Object.entries(report.categoryScores).map(([cat, score]) => (
                 <div key={cat} className="space-y-0.5">
-                  <div className="flex items-center justify-between text-[10px]">
+                  <div className="flex items-center justify-between text-xs">
                     <span className="capitalize text-muted-foreground">{cat}</span>
                     <span className="font-mono text-foreground font-semibold">{score}%</span>
                   </div>
@@ -438,7 +438,7 @@ export const DesignValidationSidebarView: React.FC<DesignValidationSidebarViewPr
       </div>
 
       {/* Category Filter Chips */}
-      <div className="flex items-center gap-1 p-0.5 bg-muted/40 rounded-lg border border-border/60 text-[10px]">
+      <div className="flex items-center gap-1 p-0.5 bg-muted/40 rounded-lg border border-border/60 text-xs">
         <button
           type="button"
           onClick={() => setSelectedCategory('all')}
@@ -491,7 +491,7 @@ export const DesignValidationSidebarView: React.FC<DesignValidationSidebarViewPr
           <div className="p-6 text-center bg-emerald-500/5 border border-emerald-500/20 rounded-xl space-y-1.5">
             <CheckCircle2 className="w-6 h-6 text-emerald-400 mx-auto" />
             <h4 className="text-xs font-bold text-foreground">Zero Violations</h4>
-            <p className="text-[10px] text-muted-foreground max-w-xs mx-auto">
+            <p className="text-xs text-muted-foreground max-w-xs mx-auto">
               Your form passes all visual hierarchy, scoring, and branching checks.
             </p>
           </div>
@@ -511,10 +511,10 @@ export const DesignValidationSidebarView: React.FC<DesignValidationSidebarViewPr
                     <Info className="w-3.5 h-3.5 text-sky-400 shrink-0 mt-0.5" />
                   )}
                   <div className="min-w-0">
-                    <span className="font-semibold text-foreground block text-[11px] leading-tight">
+                    <span className="font-semibold text-foreground block text-xs leading-tight">
                       {issue.title}
                     </span>
-                    <p className="text-muted-foreground text-[10px] mt-0.5 line-clamp-2 leading-tight">
+                    <p className="text-muted-foreground text-xs mt-0.5 line-clamp-2 leading-tight">
                       {issue.description}
                     </p>
                   </div>
@@ -535,7 +535,7 @@ export const DesignValidationSidebarView: React.FC<DesignValidationSidebarViewPr
               </div>
 
               {/* Action buttons */}
-              <div className="flex items-center justify-between pt-1 border-t border-border/50 text-[10px]">
+              <div className="flex items-center justify-between pt-1 border-t border-border/50 text-xs">
                 <span className="text-muted-foreground italic truncate max-w-[130px]" title={issue.recommendation}>
                   💡 {issue.recommendation}
                 </span>
@@ -547,7 +547,7 @@ export const DesignValidationSidebarView: React.FC<DesignValidationSidebarViewPr
                       variant="ghost"
                       size="sm"
                       onClick={() => onJumpToField(issue.fieldId!)}
-                      className="h-5 text-[9px] px-1.5 text-primary hover:bg-primary/10 gap-0.5"
+                      className="h-5 text-xs px-1.5 text-primary hover:bg-primary/10 gap-0.5"
                     >
                       <span>Jump</span>
                       <ArrowRight className="w-2.5 h-2.5" />
@@ -559,7 +559,7 @@ export const DesignValidationSidebarView: React.FC<DesignValidationSidebarViewPr
                       type="button"
                       size="sm"
                       onClick={() => handleFixIssue(issue)}
-                      className="h-5 text-[9px] px-1.5 bg-primary/15 text-primary hover:bg-primary/25 border border-primary/30 gap-0.5 font-medium"
+                      className="h-5 text-xs px-1.5 bg-primary/15 text-primary hover:bg-primary/25 border border-primary/30 gap-0.5 font-medium"
                     >
                       <Wand2 className="w-2.5 h-2.5" />
                       <span>Fix</span>

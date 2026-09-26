@@ -199,10 +199,10 @@ export const VisualNodeCanvas: React.FC = () => {
                 className="bg-card border-2 border-border hover:border-primary/60 rounded-lg p-4 shadow-sm space-y-3 transition-all"
               >
                 <div className="flex justify-between items-start">
-                  <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 bg-primary/10 text-primary rounded">
+                  <span className="text-xs uppercase font-bold tracking-wider px-2 py-0.5 bg-primary/10 text-primary rounded">
                     {node.stage}
                   </span>
-                  <span className="text-[10px] text-muted-foreground font-mono">
+                  <span className="text-xs text-muted-foreground font-mono">
                     {node.id}
                   </span>
                 </div>
@@ -212,7 +212,7 @@ export const VisualNodeCanvas: React.FC = () => {
                   <p className="text-xs text-muted-foreground mt-0.5">{node.description}</p>
                 </div>
 
-                <div className="pt-2 border-t border-border/60 text-[11px] space-y-1 text-muted-foreground">
+                <div className="pt-2 border-t border-border/60 text-xs space-y-1 text-muted-foreground">
                   <div><strong>Pre-requisites:</strong> {incoming.length > 0 ? incoming.map(e => e.from).join(', ') : 'None (Root Node)'}</div>
                   <div><strong>Unlocks:</strong> {outgoing.length > 0 ? outgoing.map(e => e.to).join(', ') : 'Terminal Stage'}</div>
                 </div>

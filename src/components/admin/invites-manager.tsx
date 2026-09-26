@@ -134,13 +134,13 @@ export const InvitesManager: React.FC<InvitesManagerProps> = ({ onNavigateToRunn
                       <span className="font-semibold text-foreground">{inv.email}</span>
                       <Badge
                         variant={inv.status === 'completed' ? 'default' : 'secondary'}
-                        className={`text-[10px] uppercase font-semibold ${
+                        className={`text-xs uppercase font-semibold ${
                           inv.status === 'completed' ? 'bg-emerald-600' : ''
                         }`}
                       >
                         {inv.status}
                       </Badge>
-                      <Badge variant="outline" className="text-[10px] uppercase font-mono">
+                      <Badge variant="outline" className="text-xs uppercase font-mono">
                         {inv.role}
                       </Badge>
                     </div>

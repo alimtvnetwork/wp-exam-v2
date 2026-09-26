@@ -381,7 +381,7 @@ export const FormBuilder: React.FC = () => {
 
           {/* Integrated Live URL & Customizable Slug Ribbon */}
           <div className="flex items-center gap-2 flex-wrap text-sm pt-0.5">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/40 border border-border/60 font-mono text-[11px] text-muted-foreground focus-within:border-primary focus-within:ring-1 focus-within:ring-primary shadow-2xs">
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/40 border border-border/60 font-mono text-xs text-muted-foreground focus-within:border-primary focus-within:ring-1 focus-within:ring-primary shadow-2xs">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
               <button
                 type="button"
@@ -396,7 +396,7 @@ export const FormBuilder: React.FC = () => {
                 value={slug || ''}
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="form-slug"
-                className="bg-transparent border-0 font-mono text-[11px] text-primary font-semibold focus:outline-none focus:ring-0 w-28 sm:w-36"
+                className="bg-transparent border-0 font-mono text-xs text-primary font-semibold focus:outline-none focus:ring-0 w-28 sm:w-36"
                 title="Edit customizable URL slug for this form"
               />
               <button
@@ -488,7 +488,7 @@ export const FormBuilder: React.FC = () => {
             <span>Health: {designReport.score}%</span>
             <Badge
               variant="secondary"
-              className={`text-[9px] px-1 py-0 h-4 font-bold ${
+              className={`text-xs px-1 py-0 h-4 font-bold ${
                 designReport.score >= 90
                   ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                   : designReport.score >= 75
@@ -635,7 +635,7 @@ export const FormBuilder: React.FC = () => {
                 <div className="flex flex-wrap items-center gap-3">
                   {/* Form Type Select */}
                   <div className="flex items-center gap-1.5">
-                    <span className="text-muted-foreground text-[11px] font-medium">Type:</span>
+                    <span className="text-muted-foreground text-xs font-medium">Type:</span>
                     <Select
                       value={formType}
                       onValueChange={(val) => setFormType(val as FormType)}
@@ -654,7 +654,7 @@ export const FormBuilder: React.FC = () => {
 
                   {/* Form Access Select */}
                   <div className="flex items-center gap-1.5">
-                    <span className="text-muted-foreground text-[11px] font-medium">Access:</span>
+                    <span className="text-muted-foreground text-xs font-medium">Access:</span>
                     <Select
                       value={formAccess}
                       onValueChange={(val) => setFormAccess(val as FormAccessType)}
@@ -673,7 +673,7 @@ export const FormBuilder: React.FC = () => {
                 <div className="flex items-center gap-3">
                   {/* Sequential Progression Switch */}
                   <div className="flex items-center gap-2 bg-muted/40 px-2.5 py-1 rounded-md border border-border/60">
-                    <Label htmlFor="sequential-toggle" className="text-[11px] font-medium cursor-pointer text-muted-foreground">
+                    <Label htmlFor="sequential-toggle" className="text-xs font-medium cursor-pointer text-muted-foreground">
                       Sequential
                     </Label>
                     <Switch
@@ -707,7 +707,7 @@ export const FormBuilder: React.FC = () => {
 
             {distinctGroups.length > 0 && (
               <div className="flex items-center gap-2">
-                <span className="text-[11px] text-muted-foreground">Filter Section:</span>
+                <span className="text-xs text-muted-foreground">Filter Section:</span>
                 <Select
                   value={selectedGroupFilter}
                   onValueChange={setSelectedGroupFilter}
@@ -840,14 +840,14 @@ export const FormBuilder: React.FC = () => {
                 <TabsList className="grid grid-cols-4 h-8 p-0.5 bg-muted/60 rounded-lg">
                   <TabsTrigger
                     value="palette"
-                    className="text-[11px] py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
+                    className="text-xs py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
                   >
                     <Layers className="w-3 h-3 text-primary" />
                     <span>Fields</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="outline"
-                    className="text-[11px] py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
+                    className="text-xs py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
                   >
                     <ListOrdered className="w-3 h-3 text-sky-400" />
                     <span>Outline</span>
@@ -857,7 +857,7 @@ export const FormBuilder: React.FC = () => {
                   </TabsTrigger>
                   <TabsTrigger
                     value="audit"
-                    className="text-[11px] py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
+                    className="text-xs py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
                   >
                     <ShieldCheck className="w-3 h-3 text-emerald-500" />
                     <span>Audit</span>
@@ -876,7 +876,7 @@ export const FormBuilder: React.FC = () => {
                   </TabsTrigger>
                   <TabsTrigger
                     value="settings"
-                    className="text-[11px] py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
+                    className="text-xs py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
                   >
                     <Settings className="w-3 h-3 text-amber-400" />
                     <span>Config</span>
@@ -950,10 +950,10 @@ export const FormBuilder: React.FC = () => {
                                 {idx + 1}
                               </span>
                               <div className="min-w-0 flex-1">
-                                <span className="truncate text-foreground group-hover:text-primary transition-colors text-[11px] font-semibold block">
+                                <span className="truncate text-foreground group-hover:text-primary transition-colors text-xs font-semibold block">
                                   {f.label || 'Untitled Question'}
                                 </span>
-                                <span className="text-[9px] text-muted-foreground block truncate capitalize font-mono">
+                                <span className="text-xs text-muted-foreground block truncate capitalize font-mono">
                                   {f.type.replace('_', ' ')}
                                 </span>
                               </div>
@@ -961,12 +961,12 @@ export const FormBuilder: React.FC = () => {
 
                             <div className="flex items-center gap-1.5 shrink-0">
                               {f.isRequired && (
-                                <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 border-rose-500/30 text-rose-500 bg-rose-500/10 font-bold" title="Required">
+                                <Badge variant="outline" className="text-xs px-1 py-0 h-4 border-rose-500/30 text-rose-500 bg-rose-500/10 font-bold" title="Required">
                                   Req
                                 </Badge>
                               )}
                               {f.points && f.points > 0 ? (
-                                <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 font-mono bg-primary/5 text-primary border-primary/20">
+                                <Badge variant="outline" className="text-xs px-1 py-0 h-4 font-mono bg-primary/5 text-primary border-primary/20">
                                   {f.points}pt
                                 </Badge>
                               ) : null}
@@ -1042,7 +1042,7 @@ export const FormBuilder: React.FC = () => {
                     <span>Access & Security</span>
                   </div>
                   <div className="space-y-1">
-                    <Label className="text-[11px] text-muted-foreground">Form Access Policy</Label>
+                    <Label className="text-xs text-muted-foreground">Form Access Policy</Label>
                     <Select
                       value={formAccess}
                       onValueChange={(val) => setFormAccess(val as FormAccessType)}
@@ -1073,7 +1073,7 @@ export const FormBuilder: React.FC = () => {
                   </div>
 
                   <div className="space-y-1">
-                    <Label className="text-[11px] text-muted-foreground">Evaluation Mode</Label>
+                    <Label className="text-xs text-muted-foreground">Evaluation Mode</Label>
                     <Select
                       value={formType}
                       onValueChange={(val) => setFormType(val as FormType)}
@@ -1099,7 +1099,7 @@ export const FormBuilder: React.FC = () => {
                   {formType === 'quiz' && (
                     <div className="space-y-2 pt-2 border-t border-border/60">
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground text-[11px]">Pass Threshold:</span>
+                        <span className="text-muted-foreground text-xs">Pass Threshold:</span>
                         <div className="flex items-center gap-1 font-mono">
                           <Input
                             type="number"
@@ -1114,7 +1114,7 @@ export const FormBuilder: React.FC = () => {
                       </div>
 
                       <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground text-[11px] flex items-center gap-1">
+                        <span className="text-muted-foreground text-xs flex items-center gap-1">
                           <Clock className="w-3 h-3 text-amber-500" />
                           <span>Time Limit:</span>
                         </span>
@@ -1150,7 +1150,7 @@ export const FormBuilder: React.FC = () => {
                 </div>
 
                 {/* Auto-Save Notice */}
-                <div className="p-2.5 rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-[11px] text-muted-foreground flex items-center gap-2">
+                <div className="p-2.5 rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-xs text-muted-foreground flex items-center gap-2">
                   <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                   <span>Changes apply immediately and persist automatically.</span>
                 </div>

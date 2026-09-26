@@ -316,7 +316,7 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
                 placeholder="https://docs.google.com/forms/d/e/1FAIpQLSc.../viewform"
                 className="text-xs h-9 bg-background font-mono"
               />
-              <p className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <p className="text-xs text-muted-foreground flex items-center gap-1">
                 <HelpCircle className="w-3.5 h-3.5" />
                 Paste any published Google Form link. The parser extracts questions and choice items automatically.
               </p>
@@ -370,7 +370,7 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
             </div>
 
             <div className="flex items-center justify-between text-xs text-muted-foreground pt-1">
-              <p className="text-[11px]">
+              <p className="text-xs">
                 Connects to official Google Forms API v1 (<code>https://forms.googleapis.com/v1/forms/&#123;formId&#125;</code>).
               </p>
               <Button
@@ -381,7 +381,7 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
                   setApiFormId('sample-engineering-101');
                   setAccessToken('demo_oauth_token');
                 }}
-                className="text-[10px] h-6 px-2 shrink-0 border-primary/30 text-primary hover:bg-primary/10"
+                className="text-xs h-6 px-2 shrink-0 border-primary/30 text-primary hover:bg-primary/10"
               >
                 Use Demo Token
               </Button>
@@ -418,7 +418,7 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
                 variant="outline"
                 size="sm"
                 onClick={handleLoadSample}
-                className="text-[11px] h-6 px-2 gap-1 border-primary/30 text-primary hover:bg-primary/10"
+                className="text-xs h-6 px-2 gap-1 border-primary/30 text-primary hover:bg-primary/10"
               >
                 <Sparkles className="w-3 h-3" />
                 <span>Load Sample Google Form</span>
@@ -476,12 +476,12 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
                   className="flex items-center justify-between p-2 rounded-lg bg-background/80 border border-border text-xs"
                 >
                   <div className="flex items-center gap-2 truncate">
-                    <span className="font-mono text-[10px] text-muted-foreground w-4">
+                    <span className="font-mono text-xs text-muted-foreground w-4">
                       #{idx + 1}
                     </span>
                     <span className="truncate font-medium">{f.label}</span>
                   </div>
-                  <Badge variant="outline" className="text-[9px] uppercase font-mono shrink-0">
+                  <Badge variant="outline" className="text-xs uppercase font-mono shrink-0">
                     {f.type.replace('_', ' ')}
                   </Badge>
                 </div>
@@ -498,7 +498,7 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
                 <div className="flex items-center gap-2">
                   <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
                   <span>Customize Form Logic & Rules</span>
-                  <Badge variant="outline" className="text-[9px] h-4 px-1 border-primary/30 text-primary font-mono">
+                  <Badge variant="outline" className="text-xs h-4 px-1 border-primary/30 text-primary font-mono">
                     Points, Validation, Branching
                   </Badge>
                 </div>
@@ -515,7 +515,7 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="font-medium text-foreground block">Default Quiz Points</span>
-                      <span className="text-[10px] text-muted-foreground">Applied to all imported questions</span>
+                      <span className="text-xs text-muted-foreground">Applied to all imported questions</span>
                     </div>
                     <div className="flex items-center gap-1">
                       {[5, 10, 20].map((pts) => (
@@ -523,7 +523,7 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
                           key={pts}
                           type="button"
                           onClick={() => setDefaultPoints(pts)}
-                          className={`text-[11px] px-2 py-0.5 rounded border transition-all ${
+                          className={`text-xs px-2 py-0.5 rounded border transition-all ${
                             defaultPoints === pts
                               ? 'bg-primary text-primary-foreground font-semibold border-primary'
                               : 'bg-muted/50 border-border hover:bg-muted text-foreground'
@@ -539,7 +539,7 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="font-medium text-foreground block">Smart Contact Validation</span>
-                      <span className="text-[10px] text-muted-foreground">Auto-inject Email & WhatsApp verification rules</span>
+                      <span className="text-xs text-muted-foreground">Auto-inject Email & WhatsApp verification rules</span>
                     </div>
                     <Switch
                       checked={autoDetectContactRules}
@@ -552,7 +552,7 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
                   <div className="flex items-center justify-between">
                     <div>
                       <span className="font-medium text-foreground block">Conditional Skip / Branching</span>
-                      <span className="text-[10px] text-muted-foreground">Auto-link multiple choice options to subsequent questions</span>
+                      <span className="text-xs text-muted-foreground">Auto-link multiple choice options to subsequent questions</span>
                     </div>
                     <Switch
                       checked={generateSequentialBranching}
@@ -591,7 +591,7 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
                 </Label>
               </div>
 
-              <span className="text-[10px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {isReplaceMode ? 'Overwrites existing fields' : 'Preserves current questions'}
               </span>
             </div>

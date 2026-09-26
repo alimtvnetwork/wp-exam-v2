@@ -39,19 +39,19 @@ export const SqliteStatus: React.FC = () => {
             <div className="p-4 rounded-xl border bg-muted/20 space-y-1">
               <span className="text-xs text-muted-foreground font-semibold">Total Stored Forms</span>
               <div className="text-2xl font-black text-foreground">12</div>
-              <span className="text-[11px] text-muted-foreground">Quizzes, Sign-ups, Surveys</span>
+              <span className="text-xs text-muted-foreground">Quizzes, Sign-ups, Surveys</span>
             </div>
 
             <div className="p-4 rounded-xl border bg-muted/20 space-y-1">
               <span className="text-xs text-muted-foreground font-semibold">Submissions Recorded</span>
               <div className="text-2xl font-black text-foreground">148</div>
-              <span className="text-[11px] text-muted-foreground">Scored & Evaluated Answers</span>
+              <span className="text-xs text-muted-foreground">Scored & Evaluated Answers</span>
             </div>
 
             <div className="p-4 rounded-xl border bg-muted/20 space-y-1">
               <span className="text-xs text-muted-foreground font-semibold">User Invitations</span>
               <div className="text-2xl font-black text-foreground">34</div>
-              <span className="text-[11px] text-muted-foreground">Pending & Accepted Tokens</span>
+              <span className="text-xs text-muted-foreground">Pending & Accepted Tokens</span>
             </div>
           </div>
 

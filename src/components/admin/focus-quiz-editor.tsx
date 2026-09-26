@@ -324,19 +324,19 @@ export const FocusQuizEditor: React.FC<FocusQuizEditorProps> = ({ onLaunchRunner
       {/* Overview Stat Badges */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <div className="p-3 bg-card border border-border rounded-xl">
-          <span className="text-[11px] text-muted-foreground block">Active Theme</span>
+          <span className="text-xs text-muted-foreground block">Active Theme</span>
           <span className="text-sm font-bold capitalize text-primary">{config.themeId || 'purple'}</span>
         </div>
         <div className="p-3 bg-card border border-border rounded-xl">
-          <span className="text-[11px] text-muted-foreground block">Passing Threshold</span>
+          <span className="text-xs text-muted-foreground block">Passing Threshold</span>
           <span className="text-sm font-bold text-foreground">{config.passingScore || 70}%</span>
         </div>
         <div className="p-3 bg-card border border-border rounded-xl">
-          <span className="text-[11px] text-muted-foreground block">Questions</span>
+          <span className="text-xs text-muted-foreground block">Questions</span>
           <span className="text-sm font-bold text-foreground">{config.questions.length} items</span>
         </div>
         <div className="p-3 bg-card border border-border rounded-xl">
-          <span className="text-[11px] text-muted-foreground block">Max Possible Score</span>
+          <span className="text-xs text-muted-foreground block">Max Possible Score</span>
           <span className="text-sm font-bold text-foreground">{totalPoints} pts</span>
         </div>
       </div>
@@ -486,7 +486,7 @@ export const FocusQuizEditor: React.FC<FocusQuizEditorProps> = ({ onLaunchRunner
                 <Label htmlFor="has-intro-toggle" className="text-xs font-semibold cursor-pointer">
                   Enable Welcome Intro Screen
                 </Label>
-                <p className="text-[11px] text-muted-foreground">Presents a hero card with motivational text before questions.</p>
+                <p className="text-xs text-muted-foreground">Presents a hero card with motivational text before questions.</p>
               </div>
               <Switch
                 id="has-intro-toggle"
@@ -728,7 +728,7 @@ export const FocusQuizEditor: React.FC<FocusQuizEditorProps> = ({ onLaunchRunner
                   />
 
                   <div className="flex items-center gap-1.5">
-                    <Label className="text-[10px] text-muted-foreground whitespace-nowrap">Mandatory</Label>
+                    <Label className="text-xs text-muted-foreground whitespace-nowrap">Mandatory</Label>
                     <Switch
                       checked={item.isMandatory ?? true}
                       onCheckedChange={(val) => {
@@ -769,7 +769,7 @@ export const FocusQuizEditor: React.FC<FocusQuizEditorProps> = ({ onLaunchRunner
           <div className="flex items-center justify-between p-3 bg-card border border-border rounded-xl">
             <div className="flex items-center gap-2">
               <span className="text-xs font-bold text-foreground">Scored Questions ({config.questions.length})</span>
-              <Badge variant="outline" className="text-[10px]">{totalPoints} total points</Badge>
+              <Badge variant="outline" className="text-xs">{totalPoints} total points</Badge>
             </div>
 
             <div className="flex items-center gap-1.5 flex-wrap">
@@ -821,13 +821,13 @@ export const FocusQuizEditor: React.FC<FocusQuizEditorProps> = ({ onLaunchRunner
               <Card key={q.id} className="border-border bg-card shadow-xs">
                 <CardHeader className="py-2.5 px-4 border-b border-border bg-muted/15 flex flex-row items-center justify-between">
                   <div className="flex items-center gap-2">
-                    <Badge variant="secondary" className="text-[10px] font-mono">Q{idx + 1}</Badge>
-                    <Badge variant="outline" className="text-[10px] uppercase font-mono">{q.type.replace('_', ' ')}</Badge>
+                    <Badge variant="secondary" className="text-xs font-mono">Q{idx + 1}</Badge>
+                    <Badge variant="outline" className="text-xs uppercase font-mono">{q.type.replace('_', ' ')}</Badge>
                   </div>
 
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-1">
-                      <span className="text-[10px] text-muted-foreground font-mono">Points:</span>
+                      <span className="text-xs text-muted-foreground font-mono">Points:</span>
                       <Input
                         type="number"
                         min={0}
@@ -899,7 +899,7 @@ export const FocusQuizEditor: React.FC<FocusQuizEditorProps> = ({ onLaunchRunner
                                     handleUpdateQuestion(q.id, { correctAnswer: next });
                                   }
                                 }}
-                                className="text-[10px] h-7 w-24 px-2 shrink-0 justify-center whitespace-nowrap"
+                                className="text-xs h-7 w-24 px-2 shrink-0 justify-center whitespace-nowrap"
                                 title="Mark as correct answer"
                               >
                                 {isCorrect ? 'Correct ✓' : 'Mark Correct'}

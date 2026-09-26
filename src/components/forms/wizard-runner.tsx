@@ -322,7 +322,7 @@ export const WizardRunner: React.FC = () => {
                       <SelectItem key={j.id} value={j.id} className="text-xs cursor-pointer focus:bg-accent/40">
                         <div className="flex items-center justify-between w-full gap-4">
                           <span className="font-semibold">{j.title}</span>
-                          <span className="text-[10px] text-muted-foreground font-mono">
+                          <span className="text-xs text-muted-foreground font-mono">
                             {j.department} • {j.type}
                           </span>
                         </div>
@@ -571,7 +571,7 @@ export const WizardRunner: React.FC = () => {
                       Target Role: <span className="text-primary">{selectedJob.title}</span>
                     </span>
                   </div>
-                  <span className="text-[11px] font-mono text-muted-foreground">
+                  <span className="text-xs font-mono text-muted-foreground">
                     {selectedJob.department} • {selectedJob.type}
                   </span>
                 </div>
