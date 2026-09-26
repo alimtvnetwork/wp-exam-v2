@@ -33,8 +33,8 @@ import { toast } from 'sonner';
 export const Index: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
-  const { slug: routeSlug } = useParams<{ slug?: string }>();
-  const tabFromUrl = searchParams.get('tab') as AdminTab;
+  const { slug: routeSlug, tab: routeTab } = useParams<{ slug?: string; tab?: string }>();
+  const tabFromUrl = (routeTab || searchParams.get('tab')) as AdminTab;
   const [activeTab, setActiveTabState] = useState<AdminTab>(tabFromUrl || 'builder');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [selectedFocusProject, setSelectedFocusProject] = useState<FocusQuizConfig | undefined>(undefined);
@@ -62,19 +62,20 @@ export const Index: React.FC = () => {
 
   const handleSelectTab = (newTab: AdminTab) => {
     setActiveTabState(newTab);
-    setSearchParams((prev) => {
-      const next = new URLSearchParams(prev);
-      next.set('tab', newTab);
-      return next;
-    });
+    
+    if (newTab === 'builder' && store.slug) {
+      navigate(`/admin/form/${store.slug}`);
+    } else {
+      navigate(`/admin/${newTab}`);
+    }
   };
 
   useEffect(() => {
-    const currentTabInUrl = searchParams.get('tab') as AdminTab;
+    const currentTabInUrl = (routeTab || searchParams.get('tab')) as AdminTab;
     if (currentTabInUrl && currentTabInUrl !== activeTab) {
       setActiveTabState(currentTabInUrl);
     }
-  }, [searchParams, activeTab]);
+  }, [routeTab, searchParams, activeTab]);
 
   // Login form states for unauthenticated users
   const [loginUser, setLoginUser] = useState('admin');

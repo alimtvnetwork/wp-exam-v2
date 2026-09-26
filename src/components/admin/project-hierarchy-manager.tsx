@@ -100,7 +100,7 @@ const INITIAL_CATEGORIES: CategoryItem[] = [
         sub_projects: [
           {
             id: 'proj_sec_sub_hsm',
-            title: 'Sub-Module: Hardware Security Keys & YubiKey',
+            title: 'Sub-Section: Hardware Security Keys & YubiKey',
             description: 'Advanced physical key configuration and recovery code backup.',
             category_id: 'cat_onboarding',
             parent_project_id: 'proj_sec_101',

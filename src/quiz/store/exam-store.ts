@@ -123,7 +123,7 @@ const seedSubmissions: SubmissionHistoryRecord[] = [
     is_passed: false,
     submitted_at: '2026-09-16 09:12',
     answers: [
-      { question: 'What does HTML stand for?', answer: 'Hyperlink Text Module', correct: 'HyperText Markup Language', isCorrect: false },
+      { question: 'What does HTML stand for?', answer: 'Hyperlink Text Section', correct: 'HyperText Markup Language', isCorrect: false },
     ],
   },
 ];

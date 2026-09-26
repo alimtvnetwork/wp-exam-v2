@@ -108,7 +108,7 @@ All colors MUST be HSL.
     transition: background-color 300ms ease, color 200ms ease;
   }
 
-  h1, h2, h3, h4, h5, h6, .font-heading {
+  h1, h2, h3, h4, h5, h6, .font-heading, .text-xl, .text-2xl, .text-3xl, .font-bold {
     font-family: 'Ubuntu', sans-serif;
     letter-spacing: -0.015em;
   }

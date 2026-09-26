@@ -67,7 +67,7 @@ const defaultFields: FormField[] = [
     label: 'What does HTML stand for?',
     placeholder: '',
     isRequired: true,
-    options: ['HyperText Markup Language', 'High Tech Modern Language', 'Hyperlink Text Module'],
+    options: ['HyperText Markup Language', 'High Tech Modern Language', 'Hyperlink Text Section'],
     correctAnswer: 'HyperText Markup Language',
     points: 10,
   },

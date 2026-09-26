@@ -930,12 +930,14 @@ const RunnerFileUpload: React.FC<{
   const [isDragging, setIsDragging] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const fileValue = (value as {
-    name?: string;
-    size?: number;
-    type?: string;
-    uploadedAt?: string;
-  }) || null;
+  const fileValue = (typeof value === 'object' && value !== null) 
+    ? (value as {
+        name?: string;
+        size?: number;
+        type?: string;
+        uploadedAt?: string;
+      })
+    : null;
 
   const handleProcessFile = (file?: File | null) => {
     if (!file) {
@@ -1045,6 +1047,7 @@ const RunnerFileUpload: React.FC<{
             onChange={(e) => {
               const selected = e.target.files?.[0];
               handleProcessFile(selected);
+              e.target.value = '';
             }}
           />
           <UploadCloud className="w-8 h-8 text-primary/70 mb-2" />
@@ -1078,7 +1081,7 @@ const RunnerFileUpload: React.FC<{
   );
 };
 
-const RunnerVideoPlayer: React.FC<{
+export const RunnerVideoPlayer: React.FC<{
   videoUrl?: string;
   videoCaption?: string;
   title?: string;

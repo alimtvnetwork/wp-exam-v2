@@ -49,7 +49,7 @@ const INITIAL_FOCUS_CONFIG: FocusQuizConfig = {
   passingScore: 70,
   emailCadence: 'per_section',
   readingSection: {
-    title: 'Module 1: Architectural Guidelines & Coding Standards',
+    title: 'Section 1: Architectural Guidelines & Coding Standards',
     videoUrl: 'https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ',
     pages: [
       {
@@ -458,6 +458,16 @@ export const FocusQuizEditor: React.FC<FocusQuizEditorProps> = ({ onLaunchRunner
                   className="text-xs h-9 bg-background"
                 />
               </div>
+
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold">Job Selection Title</Label>
+                <Input
+                  value={config.jobSelectionTitle || ''}
+                  onChange={(e) => setConfig((p) => ({ ...p, jobSelectionTitle: e.target.value }))}
+                  placeholder="e.g. Senior Frontend Engineer"
+                  className="text-xs h-9 bg-background"
+                />
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -553,7 +563,7 @@ export const FocusQuizEditor: React.FC<FocusQuizEditorProps> = ({ onLaunchRunner
                       },
                     }))
                   }
-                  placeholder="Module 1: Architecture Guidelines"
+                  placeholder="Section 1: Architecture Guidelines"
                   className="text-xs h-9 bg-background"
                 />
               </div>

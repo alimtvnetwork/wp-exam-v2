@@ -28,6 +28,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<LandingPage />} />
             <Route path="/admin" element={<Index />} />
+            <Route path="/admin/:tab" element={<Index />} />
             <Route path="/admin/form/:slug" element={<Index />} />
             <Route
               path="/apply"

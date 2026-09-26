@@ -93,6 +93,7 @@ export interface FocusQuizConfig {
   introTitle?: string;
   introSubtitle?: string;
   introImage?: string;
+  jobSelectionTitle?: string;
   readingSection?: ReadingSection;
   checklistSection?: ChecklistSection;
   isRandomized?: boolean;

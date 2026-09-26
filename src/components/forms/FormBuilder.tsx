@@ -65,6 +65,7 @@ import {
   Clock,
   CheckCircle2,
   Globe,
+  ArrowLeft,
 } from 'lucide-react';
 import {
   DndContext,
@@ -357,8 +358,20 @@ export const FormBuilder: React.FC = () => {
     <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
       {/* Top Action Bar with Integrated Live URL & Customizable Slug Ribbon */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-card rounded-xl border border-border/80 shadow-xs">
-        <div className="space-y-1.5 min-w-0">
-          <div className="flex items-center gap-2">
+        <div className="space-y-1.5 min-w-0 flex-1">
+          <div className="flex items-center gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => window.history.back()}
+              className="text-xs h-8 gap-1.5 font-medium shrink-0"
+              title="Back to Admin Dashboard"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Back to Admin</span>
+            </Button>
+            <div className="h-4 w-px bg-border hidden sm:block" />
             <h1 className="text-xl font-bold tracking-tight text-foreground truncate">
               Form & Assessment Builder
             </h1>
@@ -419,7 +432,7 @@ export const FormBuilder: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setIsSlugModalOpen(true)}
-              className="h-6 text-[11px] px-2 text-primary border-primary/30 hover:bg-primary/10 gap-1 font-medium transition-all"
+              className="text-primary border-primary/30 hover:bg-primary/10 gap-1 font-medium transition-all"
               title="Open Visual Slug & Canonical URL Inspector"
             >
               <Globe className="w-3 h-3" />
@@ -431,7 +444,7 @@ export const FormBuilder: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={() => window.open(`/f/${activeSlug}`, '_blank')}
-              className="h-6 text-[11px] px-2 text-primary hover:bg-primary/10 gap-1 font-medium"
+              className="text-primary hover:bg-primary/10 gap-1 font-medium"
               title="Open Public Candidate URL in New Tab"
             >
               <span>Public</span>
@@ -443,7 +456,7 @@ export const FormBuilder: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={() => window.open(`/preview/${activeSlug}`, '_blank')}
-              className="h-6 text-[11px] px-2 text-muted-foreground hover:text-foreground hover:bg-muted gap-1 font-medium"
+              className="text-muted-foreground hover:text-foreground hover:bg-muted gap-1 font-medium"
               title="Open Dedicated Full-Screen Live Preview in New Tab"
             >
               <span>Preview</span>
@@ -609,7 +622,7 @@ export const FormBuilder: React.FC = () => {
                 <textarea
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Form description, instructions for candidates, or evaluation criteria..."
+                  placeholder="Form description..."
                   rows={2}
                   className="w-full text-sm text-muted-foreground bg-transparent border-0 border-b border-border/30 hover:border-border focus:border-primary focus:outline-none transition-colors px-1 py-1 resize-none placeholder:text-muted-foreground/40"
                 />
@@ -738,7 +751,7 @@ export const FormBuilder: React.FC = () => {
                               type="button"
                               variant="ghost"
                               size="sm"
-                              className="h-6 text-[10px] px-2 text-primary hover:bg-primary/10 gap-1 font-mono font-medium"
+                              className="text-primary hover:bg-primary/10 gap-1 font-mono font-medium"
                               onClick={() => {
                                 const sectionFields = fields.filter((f) => f.group === field.group);
                                 const jsonStr = JSON.stringify(sectionFields, null, 2);
