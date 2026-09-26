@@ -79,10 +79,11 @@ Master directory of architectural and execution plans.
 
 Compact registry of the last 20 tasks and milestone plans:
 
-1. **Task 60:** [Live Browser Address Bar URL Sync, File Upload Validation Engine & Theming Fluidity](completed/60-slug-routing-file-upload-validation-and-theming.md) — Live address bar sync (/admin/form/:slug), dedicated file upload validation configurator, 1-click section mover, and smooth CSS theme transitions.
-2. **Task 59:** [Slug Routing, File Upload Preview, AI Studio & Theming](completed/59-slug-routing-file-upload-preview-and-ai-studio.md) — Dynamic slug routing (/f/:slug, /preview/:slug), interactive dropzone, Section terminology, Question AI Studio, and HSL theming.
-2. **Task 58:** [AGM Mailbox & Isolated Temp E2E](completed/58-agm-mailbox-and-temp-e2e.md) — AGM mailbox auto-configuration, organic navigation redesign, and isolated temporary E2E test suite.
-3. **Task 57:** [Universal Form Engine & Laravel Application Architecture](completed/57-forms-spec-and-laravel-architecture.md) — 4-step DAG wizard, debounced validation, WhatsApp testing, Split SQLite DB.
+1. **Task 68:** [Quiz Preview Redesign Validation, Sidebar Grouping & Cross-Theme Completeness](completed/68-preview-quiz-redesign-validation-and-enhancement.md) — 2-column layout, left-hand sequence sidebar with section grouping, Hero model, session persistence, Poppins typography, and complete cross-theme HSL tokens.
+2. **Task 67:** [Quiz Preview Redesign: Hero Model, Sequence Sidebar & Session Persistence](completed/67-preview-quiz-redesign-hero-sidebar-session.md) — Hero model integration, responsive sequence navigator, session save and dual resume, anti-collision header, and dark purple theme synchronization.
+3. **Task 66:** [Question Card Redesign, Floating Placeholders & Exam Intelligence](completed/66-question-card-redesign.md) — Per-question save with dirty state, rating scales, vertical context inputs, and title opacity.
+4. **Task 64:** [WP Exam UI/UX Comprehensive Redesign & Interactive Enhancement](completed/64-wpexam-ui-ux-enhancements.md) — Emerald Eco-Luxury theme, typography standards, and dropdown fixes.
+5. **Task 60:** [Live Browser Address Bar URL Sync, File Upload Validation Engine & Theming Fluidity](completed/60-slug-routing-file-upload-validation-and-theming.md) — Live address bar sync (/admin/form/:slug), dedicated file upload validation configurator, 1-click section mover, and smooth CSS theme transitions.
 4. **Task 56:** [E2E Testing, Security & Media Orchestration](completed/56-e2e-python-testing-security-and-media-orchestration.md) — 43-suite Python E2E integration test runner.
 5. **Task 55:** [Exam Countdown & Certificate Issuance](completed/55-e2e-python-testing-security-and-media-orchestration.md) — Real-time countdown timer and cryptographic certificates.
 6. **Task 54:** [Offline Storage & Scoring Engine](completed/54-e2e-python-testing-security-and-media-orchestration.md) — Monotonic sync engine and weighted section thresholds.
