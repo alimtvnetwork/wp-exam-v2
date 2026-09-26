@@ -120,10 +120,60 @@ Every question card is organized into three distinct, non-overlapping zones:
 
 ---
 
-## 7. Verification Gates
+## 8. Total Ban on Blue-with-Green Color Clashing & Semantic Palette Harmony
+
+### 8.1 The Invariant: No Blue with Close Green
+- Under NO circumstances should primary blue/indigo elements (`text-primary`, `#2563EB`, `#4F46E5`, `#5C45FD`) be placed directly adjacent to or combined with bright emerald, teal, or cyan shades (`bg-emerald-500`, `text-teal-400`, `text-cyan-400`).
+- **Pulsing Indicator Dots:** Status pulse dots in the URL slug ribbon (`/f/ slug` and `/preview/ slug`) MUST use the theme's primary color (`bg-primary animate-pulse`), never an arbitrary green dot clashing with blue text.
+- **Component Palette Colors:** The Field Palette (`src/components/forms/field-palette.tsx`) MUST organize types into harmonious semantic color groups without chaotic mixtures of cyan, teal, emerald, and sky blue.
+  - Choice types: High-contrast indigo/primary (`text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20`)
+  - Text types: High-contrast blue and violet (`text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20`)
+  - Verification & Rules: High-contrast amber (`text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20`)
+  - Media & Files: High-contrast purple and rose (`text-purple-600 dark:text-purple-400`, `text-rose-600 dark:text-rose-400`)
+
+---
+
+## 9. Universal Icon Hover Architecture Across All Themes
+
+### 9.1 Theme-Adaptive Hover Transitions
+- **Field Palette Icons:** When hovering any palette item card, the icon container smoothly transitions to the theme's primary color:
+  `group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary group-hover:scale-105 transition-all duration-150`
+- **Sidebar Navigation Icons:** In `src/components/admin/wp-admin-sidebar.tsx`, icons transition in lockstep with text:
+  `className={isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'}`
+- **Builder Action Bar Icons:** All top action buttons (Preview, Tools, Save Form) feature high-contrast inverted icon styling:
+  `group-hover:text-primary-foreground` on primary hover buttons, guaranteeing visibility against dark and light card surfaces.
+
+---
+
+## 10. Interactive Preview Mode & Dynamic Theme HSL Injection
+
+### 10.1 Complete HSL Variable Injection
+- `getThemeCssVariables` in `src/lib/themes.ts` MUST spread all theme `hslValues`:
+  ```ts
+  export function getThemeCssVariables(theme: ThemeDefinition): Record<string, string> {
+    return {
+      '--wp-exam-bg': theme.colors.background,
+      '--wp-exam-card': theme.colors.cardBg,
+      ...
+      ...(theme.hslValues || {}),
+    };
+  }
+  ```
+- All dark themes (`dracula`, `vscode-dark`, `purple`, `riseup-asia`) MUST define complete `--accent`, `--accent-foreground`, `--secondary`, and `--secondary-foreground` variables so Radix and Tailwind components never fall back to light gray/white on hover.
+
+### 10.2 Preview Action Controls Without Inline Style Clashes
+- In `src/components/runner/FormRunner.tsx`, action controls (Share Direct URL, Auto Fill, Back, Verify) MUST use semantic Tailwind classes (`bg-card border-border text-foreground hover:bg-primary hover:text-primary-foreground`) without hardcoded inline background/color styles that break hover states.
+- The wizard assessment question card dynamically inherits `--card`, `--card-foreground`, and `--border`, ensuring zero white-on-dark contrast bugs.
+
+---
+
+## 11. Verification Gates
 
 - **G-01 (Zero Micro-Typography):** `git grep -n "text-\[10px\]" src/` returns 0 results.
 - **G-02 (Button Contrast):** AI Studio uses solid `bg-indigo-600` with white text; Tools button uses `hover:bg-primary hover:text-primary-foreground`.
-- **G-03 (Section Combobox):** Hovering over section container displays all quiz sections with count badges; `<datalist>` autocompletes text.
-- **G-04 (Multi-Correct MCQ):** Author can toggle multiple options as correct; runner verifies multi-answer grading.
-- **G-05 (Build & Unit Tests):** `npm run build` and `npm test` exit with code 0.
+- **G-03 (No Blue with Close Green):** All slug pulse dots and status badges harmonize with `--primary`; zero clashing green dots on blue text.
+- **G-04 (Universal Icon Hover):** Palette, sidebar, and builder icons transition smoothly to `text-primary` or `bg-primary` on hover in all 5 theme presets.
+- **G-05 (Complete HSL Theming):** `getThemeCssVariables` spreads `hslValues`; dark themes render dark cards with theme-colored progress bars.
+- **G-06 (Section Combobox):** Hovering over section container displays all quiz sections with count badges; `<datalist>` autocompletes text.
+- **G-07 (Multi-Correct MCQ):** Author can toggle multiple options as correct; runner verifies multi-answer grading.
+- **G-08 (Build & Unit Tests):** `npm run build` and `npm test` exit with code 0.

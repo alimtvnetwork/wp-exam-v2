@@ -753,23 +753,19 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
           {/* Active Canonical Slug Indicator */}
           <div 
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-mono shadow-2xs"
-            style={{
-              backgroundColor: currentTheme.colors.background,
-              borderColor: currentTheme.colors.cardBorder,
-            }}
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-mono shadow-2xs"
           >
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-            <span style={{ color: currentTheme.colors.textSecondary }}>{isPreviewRoute ? '/preview/' : '/f/'}</span>
-            <span className="font-bold" style={{ color: currentTheme.colors.primary }}>
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0" />
+            <span className="text-muted-foreground">{isPreviewRoute ? '/preview/' : '/f/'}</span>
+            <span className="font-bold text-primary">
               {selectedProjectId === 'custom-active' ? (quizStore.slug || 'custom-form') : selectedProjectId}
             </span>
           </div>
 
           {/* Theme Selector */}
           <div className="flex items-center gap-1.5">
-            <Label className="text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap" style={{ color: currentTheme.colors.textSecondary }}>
-              <Palette className="w-3.5 h-3.5" style={{ color: currentTheme.colors.primary }} />
+            <Label className="text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap text-muted-foreground">
+              <Palette className="w-3.5 h-3.5 text-primary" />
               <span>Theme:</span>
             </Label>
             <Select
@@ -781,25 +777,15 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               }}
             >
               <SelectTrigger 
-                className="text-xs font-medium h-8 w-[160px] rounded-md border"
-                style={{
-                  backgroundColor: currentTheme.colors.background,
-                  borderColor: currentTheme.colors.cardBorder,
-                  color: currentTheme.colors.textPrimary,
-                }}
+                className="text-xs font-semibold h-9 w-[170px] rounded-lg border border-border bg-background text-foreground hover:border-primary/50"
               >
                 <SelectValue placeholder="Select Theme" />
               </SelectTrigger>
               <SelectContent 
-                className="border shadow-xl backdrop-blur-md rounded-xl"
-                style={{
-                  backgroundColor: currentTheme.colors.cardBg,
-                  borderColor: currentTheme.colors.cardBorder,
-                  color: currentTheme.colors.textPrimary,
-                }}
+                className="border border-border shadow-xl backdrop-blur-md rounded-xl bg-popover text-popover-foreground"
               >
                 {Object.values(THEME_PRESETS).map((t) => (
-                  <SelectItem key={t.id} value={t.id} className="text-xs">
+                  <SelectItem key={t.id} value={t.id} className="text-xs font-medium">
                     {t.name.split(' (')[0]}
                   </SelectItem>
                 ))}
@@ -814,14 +800,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             variant="outline"
             size="sm"
             onClick={handleCopyProjectLink}
-            className="text-xs h-8 gap-1 border"
-            style={{
-              backgroundColor: currentTheme.colors.background,
-              borderColor: currentTheme.colors.cardBorder,
-              color: currentTheme.colors.textPrimary,
-            }}
+            className="text-xs h-9 px-3 gap-1.5 font-semibold border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all cursor-pointer"
           >
-            <Share2 className="w-3 h-3" />
+            <Share2 className="w-3.5 h-3.5" />
             <span>Share Direct URL</span>
           </Button>
           <Button
@@ -829,19 +810,19 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             variant="outline"
             size="sm"
             onClick={handleAutoFill}
-            className="text-xs h-8 gap-1 border"
-            style={{
-              backgroundColor: currentTheme.colors.background,
-              borderColor: currentTheme.colors.cardBorder,
-              color: currentTheme.colors.textPrimary,
-            }}
+            className="text-xs h-9 px-3 gap-1.5 font-semibold border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all cursor-pointer"
           >
-            <Zap className="w-3 h-3" />
+            <Zap className="w-3.5 h-3.5 text-amber-500" />
             <span>Auto Fill</span>
           </Button>
 
           {onClose && (
-            <Button variant="ghost" size="sm" onClick={onClose} className="text-xs h-8">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={onClose}
+              className="text-xs h-9 px-3 border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent cursor-pointer"
+            >
               Back
             </Button>
           )}
@@ -850,25 +831,23 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
       {/* Candidate Role & Access Bar */}
       <div 
-        className="p-3 border rounded-xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 transition-colors"
-        style={{
-          backgroundColor: currentTheme.colors.cardBg,
-          borderColor: currentTheme.colors.cardBorder,
-        }}
+        className="p-3.5 border border-border bg-card text-card-foreground rounded-2xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 transition-colors"
       >
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2.5 flex-wrap">
           {session.isAuthenticated ? (
             <>
-              <Badge className="bg-emerald-600 hover:bg-emerald-700 text-xs">
+              <Badge className="bg-primary text-primary-foreground text-xs font-semibold px-2.5 py-0.5">
                 ✓ Verified Respondent
               </Badge>
-              <span className="text-xs font-semibold" style={{ color: currentTheme.colors.textPrimary }}>{session.respondentEmail}</span>
-              <Badge variant="outline" className="text-xs uppercase font-mono" style={{ borderColor: currentTheme.colors.primary, color: currentTheme.colors.primary }}>{session.role}</Badge>
+              <span className="text-xs font-semibold text-foreground">{session.respondentEmail}</span>
+              <Badge variant="outline" className="text-xs uppercase font-mono border-primary text-primary">{session.role}</Badge>
             </>
           ) : (
             <>
-              <Badge variant="secondary" className="text-xs" style={{ backgroundColor: currentTheme.colors.primary, color: currentTheme.colors.buttonText }}>Candidate Guest</Badge>
-              <span className="text-xs" style={{ color: currentTheme.colors.textSecondary }}>Unauthenticated Respondent</span>
+              <Badge variant="secondary" className="text-xs font-semibold bg-muted text-foreground px-2.5 py-0.5">
+                Candidate Guest
+              </Badge>
+              <span className="text-xs text-muted-foreground">Unauthenticated Respondent</span>
             </>
           )}
         </div>
@@ -878,23 +857,13 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             placeholder="Invite Access Token..."
             value={tokenInput}
             onChange={(e) => setTokenInput(e.target.value)}
-            className="h-8 text-xs w-36 font-mono"
-            style={{
-              backgroundColor: currentTheme.colors.background,
-              borderColor: currentTheme.colors.cardBorder,
-              color: currentTheme.colors.textPrimary,
-            }}
+            className="h-9 text-xs w-44 font-mono bg-background border border-border text-foreground rounded-lg"
           />
           <Button 
             size="sm" 
             variant="outline" 
-            className="h-8 text-xs hover:opacity-80" 
+            className="h-9 px-3.5 text-xs font-bold border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer rounded-lg shadow-xs" 
             onClick={handleVerifyToken}
-            style={{
-              backgroundColor: currentTheme.colors.cardBg,
-              borderColor: currentTheme.colors.primary,
-              color: currentTheme.colors.primary,
-            }}
           >
             Verify
           </Button>
@@ -902,9 +871,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 text-xs hover:opacity-80"
+              className="h-9 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg"
               onClick={examStore.clearSession}
-              style={{ color: currentTheme.colors.textSecondary }}
             >
               Sign Out
             </Button>
@@ -920,24 +888,24 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
       {/* Sequential Wizard Runner */}
       {isSequential && currentField ? (
-        <Card className={`w-full ${activeThemeId === 'clean-wide' ? 'max-w-3xl' : 'max-w-xl'} mx-auto border-border shadow-lg bg-card animate-in fade-in duration-150`}>
-          <CardHeader className="py-4 border-b border-border bg-muted/10">
+        <Card className={`w-full ${activeThemeId === 'clean-wide' ? 'max-w-4xl' : 'max-w-3xl'} mx-auto border border-border shadow-xl bg-card text-card-foreground rounded-2xl overflow-hidden animate-in fade-in duration-150`}>
+          <CardHeader className="py-4 px-6 border-b border-border bg-muted/20">
             <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-              <span className="font-semibold text-primary">
+              <span className="font-bold text-sm text-primary">
                 Step {stepHistory.length + 1} of ~{visibleFields.length} (Question #{currentStep + 1})
               </span>
-              <Badge variant="outline" className="font-mono text-xs">{activeForm.formType.replace('_', ' ')}</Badge>
+              <Badge variant="outline" className="font-mono text-xs border-border text-muted-foreground">{activeForm.formType.replace('_', ' ')}</Badge>
             </div>
             <Progress
               value={Math.min(
                 100,
                 Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, stepHistory.length + 1)) * 100)
               )}
-              className="h-1.5 mb-2"
+              className="h-2 mb-2 bg-secondary"
             />
-            <CardTitle className="text-xl font-bold tracking-tight text-foreground leading-snug">{currentField.label}</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl font-bold tracking-tight text-foreground leading-snug">{currentField.label}</CardTitle>
             {isCurrentFieldRequired && (
-              <Badge variant="outline" className="text-xs font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1 w-fit mt-1.5">
+              <Badge variant="outline" className="text-xs font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1.5 w-fit mt-2 font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                 <span>Mandatory Response</span>
               </Badge>
@@ -976,17 +944,17 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 size="sm"
                 disabled={currentStep === 0}
                 onClick={handlePreviousStep}
-                className="text-xs"
+                className="text-sm h-9 px-4 font-medium border-border hover:bg-accent cursor-pointer"
               >
                 Previous
               </Button>
 
               {isLastVisibleStep ? (
-                <Button size="sm" onClick={handleNextStep} className="text-xs bg-emerald-600 hover:bg-emerald-700">
-                  Submit Assessment
+                <Button size="sm" onClick={handleNextStep} className="text-sm h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer">
+                  Submit Assessment &check;
                 </Button>
               ) : (
-                <Button size="sm" onClick={handleNextStep} className="text-xs bg-primary">
+                <Button size="sm" onClick={handleNextStep} className="text-sm h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer">
                   Next Question &rarr;
                 </Button>
               )}

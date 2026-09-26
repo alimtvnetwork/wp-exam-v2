@@ -259,7 +259,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
                       className={`w-4 h-4 shrink-0 transition-colors ${
                         isActive
                           ? 'text-primary'
-                          : 'text-muted-foreground group-hover:text-foreground'
+                          : 'text-muted-foreground group-hover:text-primary'
                       }`}
                     />
 

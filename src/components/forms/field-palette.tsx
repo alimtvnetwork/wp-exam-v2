@@ -41,7 +41,7 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     description: 'Multi-select checkboxes with scoring',
     icon: CheckSquare,
     category: 'choice',
-    colorClass: 'text-indigo-400 bg-indigo-500/10 border-indigo-500/25',
+    colorClass: 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
   },
   {
     type: 'single_choice',
@@ -50,7 +50,7 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     description: 'Radio buttons for single correct answer',
     icon: CircleDot,
     category: 'choice',
-    colorClass: 'text-sky-400 bg-sky-500/10 border-sky-500/25',
+    colorClass: 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
   },
   {
     type: 'true_false',
@@ -59,7 +59,7 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     description: 'Binary claim verification',
     icon: ToggleLeft,
     category: 'choice',
-    colorClass: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25',
+    colorClass: 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
   },
   {
     type: 'dropdown',
@@ -68,7 +68,7 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     description: 'Compact select menu options',
     icon: ListFilter,
     category: 'choice',
-    colorClass: 'text-cyan-400 bg-cyan-500/10 border-cyan-500/25',
+    colorClass: 'text-indigo-600 dark:text-indigo-400 bg-indigo-500/10 border-indigo-500/20',
   },
   {
     type: 'rating',
@@ -77,7 +77,7 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     description: 'Candidate confidence rating',
     icon: Star,
     category: 'choice',
-    colorClass: 'text-amber-400 bg-amber-500/10 border-amber-500/25',
+    colorClass: 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20',
   },
 
   // Text & Input Category
@@ -88,7 +88,7 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     description: 'Single-line input for names or terms',
     icon: Type,
     category: 'text',
-    colorClass: 'text-blue-400 bg-blue-500/10 border-blue-500/25',
+    colorClass: 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20',
   },
   {
     type: 'paragraph',
@@ -97,7 +97,7 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     description: 'Multi-line commentary and essays',
     icon: AlignLeft,
     category: 'text',
-    colorClass: 'text-violet-400 bg-violet-500/10 border-violet-500/25',
+    colorClass: 'text-violet-600 dark:text-violet-400 bg-violet-500/10 border-violet-500/20',
   },
   {
     type: 'email',
@@ -106,7 +106,7 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     description: 'Validated candidate email address',
     icon: Mail,
     category: 'text',
-    colorClass: 'text-teal-400 bg-teal-500/10 border-teal-500/25',
+    colorClass: 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20',
   },
   {
     type: 'phone',
@@ -115,7 +115,7 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     description: 'Direct mobile or WhatsApp number',
     icon: Phone,
     category: 'text',
-    colorClass: 'text-emerald-400 bg-emerald-500/10 border-emerald-500/25',
+    colorClass: 'text-blue-600 dark:text-blue-400 bg-blue-500/10 border-blue-500/20',
   },
 
   // Media & Verification Category
@@ -126,7 +126,7 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     description: 'Pattern-enforced IDs, codes, or rolls',
     icon: ShieldCheck,
     category: 'media',
-    colorClass: 'text-amber-400 bg-amber-500/10 border-amber-500/25',
+    colorClass: 'text-amber-600 dark:text-amber-400 bg-amber-500/10 border-amber-500/20',
   },
   {
     type: 'link',
@@ -135,7 +135,7 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     description: 'External link or document assignment',
     icon: Link,
     category: 'media',
-    colorClass: 'text-purple-400 bg-purple-500/10 border-purple-500/25',
+    colorClass: 'text-purple-600 dark:text-purple-400 bg-purple-500/10 border-purple-500/20',
   },
   {
     type: 'file_upload',
@@ -144,7 +144,7 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     description: 'CV, portfolio, or work sample uploads',
     icon: Upload,
     category: 'media',
-    colorClass: 'text-rose-400 bg-rose-500/10 border-rose-500/25',
+    colorClass: 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20',
   },
   {
     type: 'video',
@@ -153,7 +153,7 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     description: 'YouTube, Vimeo, Loom, or direct MP4 video',
     icon: Video,
     category: 'media',
-    colorClass: 'text-rose-500 bg-rose-500/10 border-rose-500/25',
+    colorClass: 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20',
   },
 ];
 
@@ -274,13 +274,13 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
                 type="button"
                 onClick={() => onAddField(opt.type)}
                 title={`${opt.label}: ${opt.description}`}
-                className="flex items-center justify-between p-2 rounded-xl border border-border/70 bg-card/60 hover:bg-muted/40 hover:border-primary/40 transition-all text-left group active:scale-[0.99] shadow-2xs hover:shadow-xs"
+                className="flex items-center justify-between p-2 rounded-xl border border-border bg-card hover:bg-accent/60 hover:border-primary/50 transition-all text-left group active:scale-[0.99] shadow-2xs hover:shadow-xs cursor-pointer"
               >
                 <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
                   <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${opt.colorClass} group-hover:scale-105 transition-transform`}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${opt.colorClass} group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary group-hover:scale-105 transition-all duration-150`}
                   >
-                    <IconComp className="w-4 h-4" />
+                    <IconComp className="w-4 h-4 transition-colors" />
                   </div>
 
                   <div className="overflow-hidden min-w-0 flex-1">
@@ -299,7 +299,7 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
                 </div>
 
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                  <div className="w-6 h-6 rounded-md bg-primary/10 text-primary flex items-center justify-center text-xs">
+                  <div className="w-6 h-6 rounded-md bg-primary text-primary-foreground flex items-center justify-center text-xs shadow-2xs">
                     <Plus className="w-3.5 h-3.5" />
                   </div>
                 </div>

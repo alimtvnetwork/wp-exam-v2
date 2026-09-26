@@ -354,7 +354,7 @@ export const FormBuilder: React.FC = () => {
   const requiredCount = fields.filter((f) => f.isRequired).length;
 
   return (
-    <div className="max-w-7xl mx-auto px-3 py-2 space-y-3">
+    <div className="w-full max-w-[1600px] mx-auto px-2 sm:px-4 pt-1 pb-4 space-y-3">
       {/* Top Action Bar with Integrated Live URL & Customizable Slug Ribbon */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-3 sm:px-4 sm:py-2.5 bg-card rounded-xl border border-border/80 shadow-xs">
         <div className="space-y-1.5 min-w-0 flex-1">
@@ -382,7 +382,7 @@ export const FormBuilder: React.FC = () => {
           {/* Integrated Live URL & Customizable Slug Ribbon */}
           <div className="flex items-center gap-2 flex-wrap text-sm pt-0.5">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/80 font-mono text-sm text-muted-foreground focus-within:border-primary focus-within:ring-1 focus-within:ring-primary shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+              <span className="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0" />
               <button
                 type="button"
                 onClick={() => setIsSlugModalOpen(true)}
@@ -447,18 +447,6 @@ export const FormBuilder: React.FC = () => {
               title="Open Public Candidate URL in New Tab"
             >
               <span>Public</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </Button>
-
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => window.open(`/preview/${activeSlug}`, '_blank')}
-              className="h-9 px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent gap-1.5 font-medium cursor-pointer"
-              title="Open Dedicated Full-Screen Live Preview in New Tab"
-            >
-              <span>Preview</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </Button>
           </div>
@@ -569,16 +557,16 @@ export const FormBuilder: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Interactive Modal Preview Button */}
+          {/* Dedicated Live Preview Button */}
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={() => window.open('/preview/' + activeSlug, '_blank')}
-            className="text-sm h-8 gap-1.5 bg-background border border-border text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary shadow-xs transition-all font-medium"
+            className="text-sm h-9 px-3.5 gap-2 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all duration-150 font-semibold cursor-pointer"
             title="Preview interactive form in a new tab"
           >
-            <Eye className="w-3.5 h-3.5" />
+            <Eye className="w-4 h-4" />
             <span>Preview</span>
           </Button>
 
@@ -587,9 +575,9 @@ export const FormBuilder: React.FC = () => {
             onClick={handleSave}
             disabled={isSaving}
             size="sm"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm h-8 gap-1.5 font-semibold shadow-xs transition-all"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm h-9 px-4 gap-2 font-bold shadow-xs hover:shadow-md transition-all duration-150 cursor-pointer"
           >
-            <Save className="w-3.5 h-3.5" />
+            <Save className="w-4 h-4" />
             <span>{isSaving ? 'Saving...' : 'Save Form'}</span>
           </Button>
         </div>

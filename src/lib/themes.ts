@@ -312,5 +312,6 @@ export function getThemeCssVariables(theme: ThemeDefinition): Record<string, str
     '--wp-exam-text-secondary': theme.colors.textSecondary,
     '--wp-exam-progress-bar': theme.colors.progressBar,
     '--wp-exam-badge-bg': theme.colors.badgeBg,
+    ...(theme.hslValues || {}),
   };
 }

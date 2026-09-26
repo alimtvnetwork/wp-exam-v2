@@ -298,20 +298,20 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
       case 'single_choice':
       case 'true_false':
       case 'dropdown':
+        return 'bg-primary/10 text-primary border-primary/25';
       case 'rating':
-        return 'bg-indigo-500/15 text-indigo-400 border-indigo-500/30';
+      case 'regex_text':
+        return 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/25';
       case 'short_answer':
       case 'paragraph':
       case 'email':
       case 'phone':
-        return 'bg-sky-500/15 text-sky-400 border-sky-500/30';
-      case 'regex_text':
-        return 'bg-amber-500/15 text-amber-400 border-amber-500/30';
+        return 'bg-muted text-foreground border-border';
       case 'link':
       case 'file_upload':
-        return 'bg-purple-500/15 text-purple-400 border-purple-500/30';
+        return 'bg-purple-500/10 text-purple-600 dark:text-purple-400 border-purple-500/25';
       case 'video':
-        return 'bg-rose-500/15 text-rose-400 border-rose-500/30';
+        return 'bg-rose-500/10 text-rose-600 dark:text-rose-400 border-rose-500/25';
       default:
         return 'bg-muted text-muted-foreground border-border';
     }
@@ -2123,7 +2123,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     Selectable Options & Answers
                   </Label>
                   {isQuiz && (field.correctAnswers?.length || 0) > 0 && (
-                    <Badge variant="outline" className="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-semibold px-2 py-0.5">
+                    <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30 font-semibold px-2.5 py-0.5">
                       {field.correctAnswers?.length} Correct Answer{(field.correctAnswers?.length || 0) > 1 ? 's' : ''} Configured
                     </Badge>
                   )}
@@ -2146,7 +2146,11 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
                   return (
                     <div key={optIndex} className="flex gap-2.5 items-center">
-                      <span className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center font-mono text-sm text-foreground font-bold shrink-0">
+                      <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono text-sm font-bold shrink-0 transition-colors ${
+                        isCorrect
+                          ? 'bg-primary text-primary-foreground border-primary'
+                          : 'bg-muted border-border text-foreground'
+                      }`}>
                         {String.fromCharCode(65 + optIndex)}
                       </span>
 
@@ -2168,8 +2172,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                           size="sm"
                           className={`h-11 px-4 shrink-0 text-sm font-semibold transition-all duration-150 rounded-lg flex items-center gap-2 cursor-pointer ${
                             isCorrect
-                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-xs'
-                              : 'bg-background hover:bg-emerald-500/10 hover:border-emerald-500 hover:text-emerald-600 text-muted-foreground border-border/80'
+                              ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90 shadow-xs'
+                              : 'bg-background hover:bg-primary/10 hover:border-primary/50 hover:text-primary text-muted-foreground border-border/80'
                           }`}
                           onClick={() => {
                             const nextAnswers = isCorrect
@@ -2184,7 +2188,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                         >
                           {isCorrect ? (
                             <>
-                              <CheckCircle2 className="w-4 h-4 text-white" />
+                              <CheckCircle2 className="w-4 h-4 text-primary-foreground" />
                               <span>Correct Answer</span>
                             </>
                           ) : (
@@ -2200,7 +2204,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="h-11 w-11 shrink-0 p-0 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg"
+                        className="h-11 w-11 shrink-0 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer rounded-lg transition-colors"
                         onClick={() => {
                           const newOpts = field.options?.filter((_, i) => i !== optIndex);
                           onUpdate(id, { options: newOpts });
