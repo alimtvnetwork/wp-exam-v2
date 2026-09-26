@@ -6,6 +6,9 @@ import {
   FormSubmissionResult,
   evaluateFileUploadValidation,
   parseVideoEmbedUrl,
+  QuestionCitation,
+  CitationPosition,
+  BooleanDisplayPreset,
 } from '@/lib/types/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -37,6 +40,11 @@ import {
   ArrowLeft,
   ChevronDown,
   Heading,
+  Clock,
+  Maximize2,
+  ShieldAlert,
+  ListOrdered,
+  BookOpen,
 } from 'lucide-react';
 import { PhoneWithCountrySelect } from '@/components/ui/phone-input';
 import { toast } from 'sonner';
@@ -291,8 +299,19 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       let mockVal: unknown = 'Sample Response';
       if (currentField.type === 'multiple_choice') {
         mockVal = currentField.correctAnswer ? [currentField.correctAnswer] : currentField.options?.slice(0, 1) || ['A'];
-      } else if (currentField.type === 'single_choice' || currentField.type === 'true_false') {
-        mockVal = currentField.correctAnswer || currentField.options?.[0] || 'True';
+      } else if (currentField.type === 'single_choice' || currentField.type === 'true_false' || currentField.type === 'boolean') {
+        const defaultChoice = currentField.booleanDisplay === 'yes_no'
+          ? 'Yes'
+          : currentField.booleanDisplay === 'enable_disable'
+          ? 'Enable'
+          : currentField.booleanDisplay === 'agree_disagree'
+          ? 'Agree'
+          : 'True';
+        mockVal = currentField.correctAnswer || currentField.options?.[0] || defaultChoice;
+      } else if (currentField.type === 'list_items') {
+        mockVal = (currentField.suggestionsPool && currentField.suggestionsPool.length > 0)
+          ? currentField.suggestionsPool.slice(0, 2)
+          : ['Primary Item', 'Secondary Item'];
       } else if (currentField.type === 'rating') {
         mockVal = 5;
       } else if (currentField.type === 'dropdown') {
@@ -319,8 +338,19 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       if (!newAnswers[f.id]) {
         if (f.type === 'multiple_choice') {
           newAnswers[f.id] = f.correctAnswer ? [f.correctAnswer] : f.options?.slice(0, 1) || ['A'];
-        } else if (f.type === 'single_choice' || f.type === 'true_false') {
-          newAnswers[f.id] = f.correctAnswer || f.options?.[0] || 'True';
+        } else if (f.type === 'single_choice' || f.type === 'true_false' || f.type === 'boolean') {
+          const defaultChoice = f.booleanDisplay === 'yes_no'
+            ? 'Yes'
+            : f.booleanDisplay === 'enable_disable'
+            ? 'Enable'
+            : f.booleanDisplay === 'agree_disagree'
+            ? 'Agree'
+            : 'True';
+          newAnswers[f.id] = f.correctAnswer || f.options?.[0] || defaultChoice;
+        } else if (f.type === 'list_items') {
+          newAnswers[f.id] = (f.suggestionsPool && f.suggestionsPool.length > 0)
+            ? f.suggestionsPool.slice(0, 2)
+            : ['Primary Item', 'Secondary Item'];
         } else if (f.type === 'rating') {
           newAnswers[f.id] = 5;
         } else if (f.type === 'dropdown') {
@@ -377,6 +407,103 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const nextVisibleIndex = getNextStepIndex(fields, currentStep, answers);
   const isLastVisibleStep = nextVisibleIndex >= fields.length;
 
+  const [completedChecks, setCompletedChecks] = useState<Record<string, boolean>>({});
+  const [timeLeftSeconds, setTimeLeftSeconds] = useState<number | null>(null);
+  const [tabBlurCount, setTabBlurCount] = useState<number>(0);
+  const [showBlackoutWarning, setShowBlackoutWarning] = useState<boolean>(false);
+  const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+
+  const handleToggleFullscreen = () => {
+    if (!document.fullscreenElement) {
+      document.documentElement.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+    } else {
+      document.exitFullscreen().then(() => setIsFullscreen(false)).catch(() => {});
+    }
+  };
+
+  const formatTimerDisplay = (seconds: number): string => {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  // Timer Initialization & Reset Effect
+  useEffect(() => {
+    if (isSubmitted) return;
+    const settings = activeForm.settings;
+    if (!settings) return;
+
+    const mode = settings.timerMode || 'global';
+    let initialSeconds: number | null = null;
+
+    if (mode === 'global' && settings.timeLimitSeconds) {
+      if (timeLeftSeconds === null) {
+        initialSeconds = settings.timeLimitSeconds;
+      }
+    } else if (mode === 'per_question') {
+      initialSeconds = settings.perQuestionSeconds || 60;
+    } else if (mode === 'per_tier' && currentField) {
+      const diff = currentField.difficulty || 'medium';
+      const tierTimers = settings.difficultyTimers || { easy: 45, medium: 90, hard: 180 };
+      initialSeconds = tierTimers[diff] || 90;
+    }
+
+    if (initialSeconds !== null) {
+      setTimeLeftSeconds(initialSeconds);
+    }
+  }, [activeForm, currentStep, isSubmitted]);
+
+  // Interval Countdown Effect
+  useEffect(() => {
+    if (timeLeftSeconds === null || timeLeftSeconds <= 0 || isSubmitted) return;
+
+    const interval = setInterval(() => {
+      setTimeLeftSeconds((prev) => {
+        if (prev === null || prev <= 1) {
+          clearInterval(interval);
+          if (activeForm.settings?.timerMode === 'per_question') {
+            toast.warning('Time expired for this question! Advancing...');
+            handleNextStep();
+          } else {
+            toast.error('Time limit reached! Submitting examination...');
+            handleSubmit();
+          }
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [timeLeftSeconds, isSubmitted, activeForm]);
+
+  // Fullscreen Anti-Cheat Integrity Monitor
+  useEffect(() => {
+    const isLockEnabled = Boolean(activeForm.settings?.enableFullscreenLock);
+    if (!isLockEnabled || isSubmitted) return;
+
+    const handleBlur = () => {
+      setTabBlurCount((prev) => {
+        const next = prev + 1;
+        setShowBlackoutWarning(true);
+        return next;
+      });
+    };
+
+    window.addEventListener('blur', handleBlur);
+    const handleVisChange = () => {
+      if (document.hidden) {
+        handleBlur();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisChange);
+
+    return () => {
+      window.removeEventListener('blur', handleBlur);
+      document.removeEventListener('visibilitychange', handleVisChange);
+    };
+  }, [activeForm.settings?.enableFullscreenLock, isSubmitted]);
+
   useEffect(() => {
     if (isSequential) {
       if (currentField) {
@@ -393,6 +520,83 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       }
     }
   }, [answers, currentStep, fields, isSequential, currentField]);
+
+  const renderCitations = (citationsList?: QuestionCitation[], pos: CitationPosition = 'prefix') => {
+    if (!citationsList || citationsList.length === 0) return null;
+    const matching = citationsList.filter((c) => c.position === pos);
+    if (matching.length === 0) return null;
+
+    return (
+      <div className="space-y-2 my-2.5">
+        {matching.map((cit) => {
+          const isDone = Boolean(completedChecks[cit.id]);
+
+          return (
+            <div
+              key={cit.id}
+              className={`p-3 rounded-xl border text-xs sm:text-sm flex items-start gap-2.5 transition-all ${
+                cit.isRequiredCheck
+                  ? isDone
+                    ? 'border-emerald-500/40 bg-emerald-500/5 text-foreground'
+                    : 'border-amber-500/40 bg-amber-500/5 text-foreground'
+                  : 'border-border bg-muted/30 text-muted-foreground'
+              }`}
+            >
+              {cit.isRequiredCheck ? (
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={isDone}
+                    onChange={(e) =>
+                      setCompletedChecks((prev) => ({ ...prev, [cit.id]: e.target.checked }))
+                    }
+                    className="rounded border-border text-primary focus:ring-primary h-4 w-4"
+                  />
+                  <span className="font-semibold text-foreground">{cit.title}</span>
+                </label>
+              ) : (
+                <BookOpen className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+              )}
+
+              <div className="flex-1">
+                {!cit.isRequiredCheck && (
+                  <div className="font-semibold text-foreground flex items-center gap-1.5">
+                    <span>{cit.title}</span>
+                    {cit.url && (
+                      <a
+                        href={cit.url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline font-mono text-xs inline-flex items-center gap-0.5"
+                      >
+                        [External Link &nearr;]
+                      </a>
+                    )}
+                  </div>
+                )}
+                {cit.description && (
+                  <p className="text-xs text-muted-foreground mt-0.5">{cit.description}</p>
+                )}
+              </div>
+
+              {cit.isRequiredCheck && (
+                <Badge
+                  variant="outline"
+                  className={`text-[10px] font-mono shrink-0 ${
+                    isDone
+                      ? 'border-emerald-500 text-emerald-600 bg-emerald-500/10'
+                      : 'border-amber-500 text-amber-600 bg-amber-500/10 animate-pulse'
+                  }`}
+                >
+                  {isDone ? 'Completed ✓' : 'Mandatory Task *'}
+                </Badge>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    );
+  };
 
   const handleAnswerChange = (fieldId: string, value: unknown) => {
     setAnswers((prev) => ({ ...prev, [fieldId]: value }));
@@ -455,8 +659,19 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           : (f.options && f.options.length > 0)
           ? [f.options[0]]
           : ['Sample Answer'];
-      } else if (f.type === 'single_choice' || f.type === 'dropdown' || f.type === 'true_false') {
-        newAnswers[f.id] = f.correctAnswer || (f.options && f.options.length > 0 ? f.options[0] : 'Sample Answer');
+      } else if (f.type === 'single_choice' || f.type === 'dropdown' || f.type === 'true_false' || f.type === 'boolean') {
+        const defaultChoice = f.booleanDisplay === 'yes_no'
+          ? 'Yes'
+          : f.booleanDisplay === 'enable_disable'
+          ? 'Enable'
+          : f.booleanDisplay === 'agree_disagree'
+          ? 'Agree'
+          : 'True';
+        newAnswers[f.id] = f.correctAnswer || (f.options && f.options.length > 0 ? f.options[0] : defaultChoice);
+      } else if (f.type === 'list_items') {
+        newAnswers[f.id] = (f.suggestionsPool && f.suggestionsPool.length > 0)
+          ? f.suggestionsPool.slice(0, 2)
+          : ['Primary Item', 'Secondary Item'];
       } else if (f.type === 'short_answer' || f.type === 'paragraph') {
         newAnswers[f.id] = f.correctAnswer || 'Sample answer text for testing purposes.';
       } else if (f.type === 'email') {
@@ -505,6 +720,25 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       }
     }
 
+    // Verify mandatory checklist to-dos for current field
+    if (currentField.citations && currentField.citations.length > 0) {
+      const incompleteCheck = currentField.citations.find((c) => {
+        if (!c.isRequiredCheck) {
+          return false;
+        }
+
+        const isDone = Boolean(completedChecks[c.id]);
+
+        return !isDone;
+      });
+
+      if (incompleteCheck) {
+        toast.error(`Please complete mandatory requirement: "${incompleteCheck.title}" before proceeding.`);
+
+        return;
+      }
+    }
+
     const nextIndex = getNextStepIndex(fields, currentStep, answers);
     const isEndReached = nextIndex >= fields.length;
 
@@ -539,6 +773,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
     const currentVisibleFields = fields.filter((f) => evaluateFieldVisibility(f, answers, fields));
 
+    // Verify mandatory question responses
     const missingRequiredField = currentVisibleFields.find((f) => {
       const isRequired = evaluateFieldRequired(f, answers, fields);
       const answer = answers[f.id];
@@ -559,6 +794,27 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       return;
     }
 
+    // Verify mandatory checklist to-dos across all visible fields
+    for (const f of currentVisibleFields) {
+      if (f.citations && f.citations.length > 0) {
+        const incompleteCheck = f.citations.find((c) => {
+          if (!c.isRequiredCheck) {
+            return false;
+          }
+
+          const isDone = Boolean(completedChecks[c.id]);
+
+          return !isDone;
+        });
+
+        if (incompleteCheck) {
+          toast.error(`Please complete mandatory task: "${incompleteCheck.title}" (Question: ${f.label})`);
+
+          return;
+        }
+      }
+    }
+
     let earned = 0;
     let total = 0;
     let isPassed: boolean | null = null;
@@ -576,7 +832,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
     if (isQuiz) {
       currentVisibleFields.forEach((f) => {
-        const pts = f.points || 1;
+        const defaultPts = f.difficulty === 'easy' ? 5 : f.difficulty === 'hard' ? 20 : 10;
+        const pts = f.points ?? defaultPts;
         total += pts;
         const userRaw = answers[f.id];
         const correctAnswers = (f as FormField & { correctAnswers?: string[] }).correctAnswers;
@@ -597,9 +854,21 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               isCorrect = true;
             }
           }
+        } else if (f.type === 'list_items') {
+          const userItems = Array.isArray(userRaw)
+            ? userRaw.map((s) => String(s).trim().toLowerCase())
+            : String(userRaw || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+          const expectedItems = (correctAnswers && correctAnswers.length > 0 ? correctAnswers : [singleCorrect])
+            .map((s) => s.trim().toLowerCase())
+            .filter(Boolean);
+          if (expectedItems.length > 0) {
+            isCorrect = expectedItems.every((exp) => userItems.includes(exp));
+          } else {
+            isCorrect = userItems.length > 0;
+          }
         } else {
           const userStr = normalizeAnswer(userRaw);
-          const expectedStr = normalizeAnswer(singleCorrect);
+          const expectedStr = normalizeAnswer(singleCorrect || (correctAnswers && correctAnswers[0]) || '');
           const hasUserAns = Boolean(userStr);
           const hasExpected = Boolean(expectedStr);
 
@@ -670,9 +939,21 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               isCorrect = true;
             }
           }
+        } else if (f.type === 'list_items') {
+          const userItems = Array.isArray(userRaw)
+            ? userRaw.map((s) => String(s).trim().toLowerCase())
+            : String(userRaw || '').split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
+          const expectedItems = (correctAnswers && correctAnswers.length > 0 ? correctAnswers : [singleCorrect])
+            .map((s) => s.trim().toLowerCase())
+            .filter(Boolean);
+          if (expectedItems.length > 0) {
+            isCorrect = expectedItems.every((exp) => userItems.includes(exp));
+          } else {
+            isCorrect = userItems.length > 0;
+          }
         } else {
           const userStr = normalizeAnswer(userRaw);
-          const expectedStr = normalizeAnswer(singleCorrect);
+          const expectedStr = normalizeAnswer(singleCorrect || (correctAnswers && correctAnswers[0]) || '');
           const hasUserAns = Boolean(userStr);
           const hasExpected = Boolean(expectedStr);
 
@@ -1059,7 +1340,38 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               <span className="font-bold text-sm text-primary">
                 Step {stepHistory.length + 1} of ~{visibleFields.length} (Question #{currentStep + 1})
               </span>
-              <Badge variant="outline" className="font-mono text-xs border-border text-muted-foreground">{activeForm.formType.replace('_', ' ')}</Badge>
+              <div className="flex items-center gap-2">
+                {timeLeftSeconds !== null && (
+                  <Badge variant="outline" className={`font-mono text-xs gap-1 font-semibold ${
+                    timeLeftSeconds < 60 ? 'border-destructive text-destructive bg-destructive/10 animate-pulse' : 'border-amber-500/40 text-amber-600 bg-amber-500/10'
+                  }`}>
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>{formatTimerDisplay(timeLeftSeconds)}</span>
+                  </Badge>
+                )}
+                {currentField.difficulty && (
+                  <Badge variant="outline" className={`text-xs font-semibold uppercase ${
+                    currentField.difficulty === 'hard'
+                      ? 'border-rose-500/40 text-rose-600 bg-rose-500/10'
+                      : currentField.difficulty === 'medium'
+                      ? 'border-amber-500/40 text-amber-600 bg-amber-500/10'
+                      : 'border-emerald-500/40 text-emerald-600 bg-emerald-500/10'
+                  }`}>
+                    {currentField.difficulty} ({currentField.customPointsOverride ?? (currentField.difficulty === 'hard' ? 20 : currentField.difficulty === 'medium' ? 10 : 5)} pt)
+                  </Badge>
+                )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleToggleFullscreen}
+                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                  title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen Exam'}
+                >
+                  <Maximize2 className="w-3.5 h-3.5" />
+                </Button>
+                <Badge variant="outline" className="font-mono text-xs border-border text-muted-foreground">{activeForm.formType.replace('_', ' ')}</Badge>
+              </div>
             </div>
             <Progress
               value={Math.min(
@@ -1106,7 +1418,14 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 title={currentField.label}
               />
             )}
+
+            {/* Prefix Citations */}
+            {renderCitations(currentField.citations, 'prefix')}
+
             {renderFieldInput(currentField, answers[currentField.id], (val) => handleAnswerChange(currentField.id, val))}
+
+            {/* Suffix Citations */}
+            {renderCitations(currentField.citations, 'suffix')}
 
             <div className="flex justify-between items-center pt-4 border-t border-border">
               <div className="flex items-center gap-2">
@@ -1148,8 +1467,30 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
         <Card className={`w-full ${activeThemeId === 'clean-wide' ? 'max-w-4xl' : 'max-w-2xl'} mx-auto border-border shadow-lg bg-card animate-in fade-in duration-150`}>
           <CardHeader className="py-4 border-b border-border bg-muted/10">
             <div className="flex items-center justify-between">
-              <Badge variant="outline" className="text-xs">{activeForm.formType.replace('_', ' ')}</Badge>
-              <Badge variant="secondary" className="text-xs">{activeForm.formAccess}</Badge>
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-xs">{activeForm.formType.replace('_', ' ')}</Badge>
+                <Badge variant="secondary" className="text-xs">{activeForm.formAccess}</Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                {timeLeftSeconds !== null && (
+                  <Badge variant="outline" className={`font-mono text-xs gap-1 font-semibold ${
+                    timeLeftSeconds < 60 ? 'border-destructive text-destructive bg-destructive/10 animate-pulse' : 'border-amber-500/40 text-amber-600 bg-amber-500/10'
+                  }`}>
+                    <Clock className="w-3.5 h-3.5" />
+                    <span>{formatTimerDisplay(timeLeftSeconds)}</span>
+                  </Badge>
+                )}
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={handleToggleFullscreen}
+                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                  title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen Exam'}
+                >
+                  <Maximize2 className="w-3.5 h-3.5" />
+                </Button>
+              </div>
             </div>
             <CardTitle className="text-xl font-bold">{activeForm.title}</CardTitle>
             {activeForm.description && (
@@ -1192,14 +1533,27 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                           <span className="text-destructive text-red-500 font-bold ml-1.5" title="Mandatory Response">*</span>
                         )}
                       </span>
-                      {isFieldRequired ? (
-                        <Badge variant="outline" className="text-xs font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1 shrink-0 font-semibold">
-                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                          <span>Required</span>
-                        </Badge>
-                      ) : (
-                        <span className="text-xs text-muted-foreground font-mono shrink-0">Optional</span>
-                      )}
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {f.difficulty && (
+                          <Badge variant="outline" className={`text-xs font-semibold uppercase ${
+                            f.difficulty === 'hard'
+                              ? 'border-rose-500/40 text-rose-600 bg-rose-500/10'
+                              : f.difficulty === 'medium'
+                              ? 'border-amber-500/40 text-amber-600 bg-amber-500/10'
+                              : 'border-emerald-500/40 text-emerald-600 bg-emerald-500/10'
+                          }`}>
+                            {f.difficulty} ({f.customPointsOverride ?? (f.difficulty === 'hard' ? 20 : f.difficulty === 'medium' ? 10 : 5)} pt)
+                          </Badge>
+                        )}
+                        {isFieldRequired ? (
+                          <Badge variant="outline" className="text-xs font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1 font-semibold">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                            <span>Required</span>
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground font-mono">Optional</span>
+                        )}
+                      </div>
                     </label>
 
                     {/* Question Illustration / Image */}
@@ -1225,7 +1579,14 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                         title={f.label}
                       />
                     )}
+
+                    {/* Prefix Citations */}
+                    {renderCitations(f.citations, 'prefix')}
+
                     {renderFieldInput(f, answers[f.id], (val) => handleAnswerChange(f.id, val))}
+
+                    {/* Suffix Citations */}
+                    {renderCitations(f.citations, 'suffix')}
                   </div>
                 );
               })}
@@ -1238,6 +1599,40 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Anti-Cheat Fullscreen Blackout Overlay */}
+      {showBlackoutWarning && (
+        <div className="fixed inset-0 z-50 bg-black/90 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-200">
+          <div className="max-w-md w-full bg-card text-card-foreground border-2 border-destructive rounded-2xl p-6 shadow-2xl text-center space-y-4">
+            <div className="w-14 h-14 rounded-full bg-destructive/10 text-destructive flex items-center justify-center mx-auto">
+              <ShieldAlert className="w-8 h-8 animate-bounce" />
+            </div>
+            <h3 className="text-xl font-bold text-foreground">Anti-Cheat Alert: Focus Lost</h3>
+            <p className="text-sm text-muted-foreground">
+              Tab switching, window minimize, or background blur detected. This incident has been logged.
+              <span className="block mt-1 font-mono text-destructive font-semibold">
+                Violation Incident #{tabBlurCount}
+              </span>
+            </p>
+            <div className="pt-2">
+              <Button
+                type="button"
+                onClick={() => {
+                  setShowBlackoutWarning(false);
+                  if (activeForm.settings?.enableFullscreenLock) {
+                    if (!document.fullscreenElement) {
+                      document.documentElement.requestFullscreen().catch(() => {});
+                    }
+                  }
+                }}
+                className="w-full bg-destructive hover:bg-destructive/90 text-white font-bold h-10 rounded-xl cursor-pointer"
+              >
+                Resume Examination Immediately
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -1451,6 +1846,128 @@ export const RunnerVideoPlayer: React.FC<{
           <span>ℹ️</span>
           <span>{videoCaption}</span>
         </p>
+      )}
+    </div>
+  );
+};
+
+export const RunnerListItemsInput: React.FC<{
+  value: unknown;
+  onChange: (val: string[]) => void;
+  suggestionsPool?: string[];
+  placeholder?: string;
+}> = ({ value, onChange, suggestionsPool, placeholder }) => {
+  const [inputText, setInputText] = useState('');
+
+  const items: string[] = useMemo(() => {
+    if (Array.isArray(value)) {
+      return value.map(String).filter(Boolean);
+    }
+
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+
+      if (trimmed) {
+        return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
+      }
+    }
+
+    return [];
+  }, [value]);
+
+  const handleAddItem = (itemStr: string) => {
+    const trimmed = itemStr.trim();
+
+    if (!trimmed) {
+      return;
+    }
+
+    const hasItem = items.includes(trimmed);
+
+    if (hasItem) {
+      toast.info(`"${trimmed}" is already added.`);
+
+      return;
+    }
+
+    onChange([...items, trimmed]);
+    setInputText('');
+  };
+
+  const handleRemoveItem = (indexToRemove: number) => {
+    onChange(items.filter((_, idx) => idx !== indexToRemove));
+  };
+
+  return (
+    <div className="space-y-3">
+      {items.length > 0 && (
+        <div className="flex flex-wrap gap-2 p-2.5 rounded-xl border border-border bg-muted/20">
+          {items.map((item, idx) => (
+            <span
+              key={`${item}-${idx}`}
+              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/30 animate-in fade-in duration-100"
+            >
+              <span className="font-mono text-[10px] opacity-70">#{idx + 1}</span>
+              <span>{item}</span>
+              <button
+                type="button"
+                onClick={() => handleRemoveItem(idx)}
+                className="hover:text-destructive transition-colors ml-0.5 cursor-pointer font-bold"
+                title={`Remove ${item}`}
+              >
+                &times;
+              </button>
+            </span>
+          ))}
+        </div>
+      )}
+
+      <div className="flex gap-2">
+        <Input
+          value={inputText}
+          onChange={(e) => setInputText(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              handleAddItem(inputText);
+            }
+          }}
+          placeholder={placeholder || 'Type item and press Enter...'}
+          className="h-10 text-sm bg-background flex-1 rounded-xl"
+        />
+        <Button
+          type="button"
+          onClick={() => handleAddItem(inputText)}
+          className="h-10 px-4 text-xs font-bold rounded-xl"
+        >
+          Add Item +
+        </Button>
+      </div>
+
+      {suggestionsPool && suggestionsPool.length > 0 && (
+        <div className="flex flex-wrap items-center gap-1.5 pt-1">
+          <span className="text-xs text-muted-foreground font-medium">Suggestions:</span>
+          {suggestionsPool.map((sug) => {
+            const isAdded = items.includes(sug);
+
+            return (
+              <button
+                key={sug}
+                type="button"
+                onClick={() => handleAddItem(sug)}
+                disabled={isAdded}
+                className={`text-xs px-3 py-1 rounded-full border transition-all font-medium cursor-pointer shadow-2xs ${
+                  isAdded
+                    ? 'border-border/40 bg-muted/40 text-muted-foreground line-through opacity-60 cursor-not-allowed'
+                    : 'border-border/80 bg-background text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary'
+                }`}
+                title={isAdded ? 'Already added' : `Add "${sug}"`}
+              >
+                + {sug}
+              </button>
+            );
+          })}
+        </div>
       )}
     </div>
   );
@@ -1705,6 +2222,78 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
         </div>
       );
     }
+
+    case 'boolean': {
+      const getPresetOptions = (preset?: BooleanDisplayPreset): string[] => {
+        switch (preset) {
+          case 'yes_no':
+            return ['Yes', 'No'];
+          case 'enable_disable':
+            return ['Enable', 'Disable'];
+          case 'agree_disagree':
+            return ['Agree', 'Disagree'];
+          case 'true_false':
+          default:
+            return ['True', 'False'];
+        }
+      };
+
+      const options = (field.options && field.options.length > 0)
+        ? field.options
+        : getPresetOptions(field.booleanDisplay);
+
+      const alignClass = field.alignment === 'center'
+        ? 'justify-center text-center'
+        : field.alignment === 'right'
+        ? 'justify-end text-right'
+        : 'justify-start text-left';
+
+      return (
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          {options.map((opt, optIndex) => {
+            const isSelected = strValue.toLowerCase() === opt.toLowerCase();
+
+            return (
+              <label
+                key={opt}
+                className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 ${alignClass} ${
+                  isSelected
+                    ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
+                    : 'border-border bg-card text-foreground'
+                }`}
+              >
+                <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono text-sm font-bold shrink-0 transition-colors ${
+                  isSelected
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-muted/60 border-border text-muted-foreground'
+                }`}>
+                  {String.fromCharCode(65 + optIndex)}
+                </span>
+                <input
+                  type="radio"
+                  name={`field-${field.id}`}
+                  value={opt}
+                  checked={isSelected}
+                  onChange={() => onChange(opt)}
+                  className="text-primary focus:ring-primary h-4 w-4"
+                />
+                <span className="font-semibold">{opt}</span>
+              </label>
+            );
+          })}
+        </div>
+      );
+    }
+
+    case 'list_items':
+      return (
+        <RunnerListItemsInput
+          value={value}
+          onChange={onChange}
+          suggestionsPool={field.suggestionsPool}
+          placeholder={field.placeholder}
+        />
+      );
 
     case 'single_choice':
     case 'true_false': {

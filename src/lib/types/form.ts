@@ -5,6 +5,7 @@ export type FieldType =
   | 'multiple_choice'
   | 'single_choice'
   | 'true_false'
+  | 'boolean'
   | 'short_answer'
   | 'paragraph'
   | 'email'
@@ -16,8 +17,22 @@ export type FieldType =
   | 'link'
   | 'regex_text'
   | 'video'
+  | 'list_items'
   | 'section_header'
   | 'faq';
+
+export type BooleanDisplayPreset = 'true_false' | 'yes_no' | 'enable_disable' | 'agree_disagree';
+export type QuestionDifficulty = 'easy' | 'medium' | 'hard';
+export type CitationPosition = 'prefix' | 'suffix';
+
+export interface QuestionCitation {
+  id: string;
+  title: string;
+  url?: string;
+  description?: string;
+  position: CitationPosition;
+  isRequiredCheck?: boolean;
+}
 
 export type StringMatchRuleType =
   | 'starts_with'
@@ -111,12 +126,24 @@ export interface FormField {
   suggestedOtherOptions?: string[];
   description?: string;
   choiceAlignment?: 'left' | 'center' | 'right';
+  alignment?: 'left' | 'center' | 'right';
   subtitle?: string;
   faqItems?: Array<{ question: string; answer: string }>;
+  difficulty?: QuestionDifficulty;
+  customPointsOverride?: boolean;
+  booleanDisplay?: BooleanDisplayPreset;
+  citations?: QuestionCitation[];
+  suggestionsPool?: string[];
 }
 
 export interface FormSettings {
   timeLimitSeconds?: number;
+  timerMode?: 'global' | 'per_question' | 'per_difficulty';
+  perQuestionSeconds?: number;
+  difficultyTimers?: { easy: number; medium: number; hard: number };
+  difficultyPoints?: { easy: number; medium: number; hard: number };
+  enableFullscreenLock?: boolean;
+  defaultQuestionsRequired?: boolean;
   passingScore?: number;
   notificationEmail?: string;
   successMessage?: string;

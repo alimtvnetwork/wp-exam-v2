@@ -2,11 +2,15 @@ import urllib.request
 import re
 import os
 
+import sys
+
 headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'}
-urls = [
-    ('https://prnt.sc/f7I-xzJkQNoi', 'assets/screenshots/65-wpexam-header-layout-01.png'),
-    ('https://prnt.sc/UJ9amr0eirFr', 'assets/screenshots/65-wpexam-header-layout-02.png')
-]
+if len(sys.argv) >= 3:
+    urls = [(sys.argv[1], sys.argv[2])]
+else:
+    urls = [
+        ('https://prnt.sc/H4MgqjNyxVSH', 'assets/screenshots/66-question-card-redesign-01.png')
+    ]
 
 os.makedirs('assets/screenshots', exist_ok=True)
 

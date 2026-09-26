@@ -12,6 +12,10 @@ import {
   FileValidationRule,
   FieldActionTrigger,
   parseVideoEmbedUrl,
+  BooleanDisplayPreset,
+  QuestionDifficulty,
+  QuestionCitation,
+  CitationPosition,
 } from '@/lib/types/form';
 
 import { Button } from '@/components/ui/button';
@@ -86,6 +90,8 @@ import {
   Film,
   Image as ImageIcon,
   Heading,
+  BookOpen,
+  ListOrdered,
 } from 'lucide-react';
 import { DesignValidationIssue } from '@/lib/design-validation-engine';
 
@@ -100,6 +106,7 @@ interface SortableFieldCardProps {
   onUpdate: (id: string, updates: Partial<FormField>) => void;
   onRemove: (id: string) => void;
   onDuplicate: (id: string) => void;
+  onReorderToIndex?: (fromIndex: number, toIndex: number) => void;
 }
 
 export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
@@ -113,6 +120,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   onUpdate,
   onRemove,
   onDuplicate,
+  onReorderToIndex,
 }) => {
   const {
     attributes,
@@ -135,6 +143,11 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   const [showTriggers, setShowTriggers] = useState(false);
   const [testInputValue, setTestInputValue] = useState('');
   const [isSectionMenuOpen, setIsSectionMenuOpen] = useState(false);
+  const [isEditingIndex, setIsEditingIndex] = useState(false);
+  const [isTitleFocused, setIsTitleFocused] = useState(false);
+  const [showSectionInline, setShowSectionInline] = useState(false);
+  const [showPointsOverride, setShowPointsOverride] = useState(false);
+  const [showCitationsModal, setShowCitationsModal] = useState(false);
   const sectionMenuTimerRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const handleSectionMouseEnter = () => {
@@ -206,6 +219,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
     field.type === 'multiple_choice' ||
     field.type === 'single_choice' ||
     field.type === 'dropdown';
+  const isBooleanField = field.type === 'boolean' || field.type === 'true_false';
+  const isListItemsField = field.type === 'list_items';
   const isLinkField = field.type === 'link';
   const isVideoField = field.type === 'video';
   const hasAttachedVideo = Boolean(field.videoUrl && field.videoUrl.trim().length > 0);
@@ -411,12 +426,53 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               <GripVertical className="w-4 h-4" />
             </div>
 
-            {/* Question Index & Section Chip */}
+            {/* Interactive Question Index (Click or Double-Click to Directly Type Order Index) */}
             <div className="flex items-center gap-2.5">
-              <span className="font-mono text-sm px-3 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 font-bold shrink-0 flex items-center gap-1">
-                <span>#{index + 1}</span>
-                {field.isRequired && <span className="text-destructive font-bold ml-0.5">*</span>}
-              </span>
+              {isEditingIndex ? (
+                <div className="flex items-center gap-1">
+                  <span className="text-xs font-mono font-bold text-primary">#</span>
+                  <input
+                    type="number"
+                    defaultValue={index + 1}
+                    autoFocus
+                    min={1}
+                    max={allFields ? allFields.length : otherFields.length + 1}
+                    onBlur={(e) => {
+                      setIsEditingIndex(false);
+                      const targetNum = Number(e.target.value);
+                      const isValidTarget = targetNum && targetNum >= 1 && onReorderToIndex;
+                      if (isValidTarget) {
+                        onReorderToIndex(index, targetNum - 1);
+                      }
+                    }}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        setIsEditingIndex(false);
+                        const targetNum = Number((e.target as HTMLInputElement).value);
+                        const isValidTarget = targetNum && targetNum >= 1 && onReorderToIndex;
+                        if (isValidTarget) {
+                          onReorderToIndex(index, targetNum - 1);
+                        }
+                      } else if (e.key === 'Escape') {
+                        setIsEditingIndex(false);
+                      }
+                    }}
+                    className="w-14 h-8 text-xs font-mono font-bold bg-background text-foreground text-center border-2 border-primary rounded-lg focus:outline-none shadow-xs"
+                    title="Press Enter to jump to position"
+                  />
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setIsEditingIndex(true)}
+                  onDoubleClick={() => setIsEditingIndex(true)}
+                  className="font-mono text-sm px-3 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 font-bold shrink-0 flex items-center gap-1 hover:bg-primary/20 hover:border-primary/40 cursor-pointer transition-all shadow-2xs group"
+                  title="Click or double-click to type new order index"
+                >
+                  <span>#{index + 1}</span>
+                  {field.isRequired && <span className="text-destructive font-bold ml-0.5">*</span>}
+                </button>
+              )}
 
               {field.group && (
                 <span className="text-xs px-2.5 py-1 rounded-md bg-muted text-foreground border border-border/80 font-medium flex items-center gap-1.5 shrink-0">
@@ -442,19 +498,36 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
           {/* Action Toolbar: Field Type Selector on Right + Preview & Actions */}
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap justify-end">
-            {/* Field Type Selector (~190px, text-sm font-semibold) */}
+            {/* Field Type Selector (~195px, text-sm font-semibold) */}
             <Select
-              value={field.type}
-              onValueChange={(val) => onUpdate(id, { type: val as FieldType })}
+              value={field.type === 'true_false' ? 'boolean' : field.type}
+              onValueChange={(val) => {
+                if (val === 'boolean') {
+                  onUpdate(id, {
+                    type: 'boolean',
+                    options: ['True', 'False'],
+                    correctAnswer: field.correctAnswer || 'True',
+                    booleanDisplay: field.booleanDisplay || 'true_false',
+                  });
+                } else if (val === 'list_items') {
+                  onUpdate(id, {
+                    type: 'list_items',
+                    suggestionsPool: field.suggestionsPool || ['Item 1', 'Item 2'],
+                  });
+                } else {
+                  onUpdate(id, { type: val as FieldType });
+                }
+              }}
             >
-              <SelectTrigger className="h-10 text-sm bg-background text-foreground border border-input rounded-lg font-semibold w-[190px] shadow-2xs cursor-pointer">
+              <SelectTrigger className="h-10 text-sm bg-background text-foreground border border-input rounded-lg font-semibold w-[205px] shadow-2xs cursor-pointer">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border max-h-72">
                 <SelectItem value="multiple_choice" className="text-sm py-2 cursor-pointer font-medium">Multiple Choice</SelectItem>
                 <SelectItem value="single_choice" className="text-sm py-2 cursor-pointer font-medium">Single Choice</SelectItem>
-                <SelectItem value="true_false" className="text-sm py-2 cursor-pointer font-medium">True / False</SelectItem>
+                <SelectItem value="boolean" className="text-sm py-2 cursor-pointer font-medium">Boolean (True/False, Yes/No)</SelectItem>
                 <SelectItem value="dropdown" className="text-sm py-2 cursor-pointer font-medium">Dropdown Select</SelectItem>
+                <SelectItem value="list_items" className="text-sm py-2 cursor-pointer font-medium">List of Items / Links</SelectItem>
                 <SelectItem value="rating" className="text-sm py-2 cursor-pointer font-medium">Rating Scale (1-5)</SelectItem>
                 <SelectItem value="short_answer" className="text-sm py-2 cursor-pointer font-medium">Short Answer</SelectItem>
                 <SelectItem value="paragraph" className="text-sm py-2 cursor-pointer font-medium">Paragraph Text</SelectItem>
@@ -717,87 +790,257 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             </div>
           )}
 
-          {/* Google Forms CardBody: Full-width Question Title + Image & Section Selector */}
+          {/* Google Forms CardBody: Full-width Question Title with Floating Animated Placeholder */}
           <div className="space-y-3">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <Label className="text-base font-bold text-foreground flex items-center">
-                  <span>Question Title</span>
-                  {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
-                </Label>
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant={showDescription || hasAttachedDescription ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setShowDescription(!showDescription)}
-                    className={`h-8 px-3 text-xs gap-1.5 transition-all duration-150 font-semibold rounded-lg cursor-pointer group shadow-2xs ${
-                      hasAttachedDescription
-                        ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                        : 'border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary'
-                    }`}
-                    title="Toggle question description / hint instructions"
-                  >
-                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showDescription ? 'rotate-180' : ''}`} />
-                    <span>{hasAttachedDescription ? 'Description' : 'Add Description'}</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant={showImageConfig || hasAttachedImage ? 'default' : 'outline'}
-                    size="sm"
-                    onClick={() => setShowImageConfig(!showImageConfig)}
-                    className={`h-8 px-3 text-xs gap-1.5 transition-all duration-150 font-semibold rounded-lg cursor-pointer group shadow-2xs ${
-                      hasAttachedImage
-                        ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                        : 'border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary'
-                    }`}
-                    title="Attach an illustration or question image"
-                  >
-                    <ImageIcon className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
-                    <span>{hasAttachedImage ? 'Image Attached' : 'Add Image'}</span>
-                  </Button>
-                </div>
-              </div>
+            {/* Relative container for Title Input + Floating Animated Label */}
+            <div className="relative">
               <Input
+                id={`field-title-${id}`}
                 value={field.label}
                 onChange={(e) => onUpdate(id, { label: e.target.value })}
-                placeholder="Untitled Question"
-                className="text-lg font-bold h-12 px-3.5 w-full bg-background text-foreground shadow-2xs focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
+                onFocus={() => setIsTitleFocused(true)}
+                onBlur={() => setIsTitleFocused(false)}
+                placeholder={isTitleFocused ? '' : 'Untitled Question'}
+                className="text-lg font-bold h-12 pt-3 pb-1 px-3.5 w-full bg-background text-foreground shadow-2xs focus-visible:ring-2 focus-visible:ring-primary rounded-lg transition-all"
               />
+              {/* Floating animated title indicator */}
+              <label
+                htmlFor={`field-title-${id}`}
+                className={`absolute pointer-events-none transition-all duration-200 select-none flex items-center gap-1 ${
+                  isTitleFocused || field.label
+                    ? 'top-1.5 right-3 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider'
+                    : 'top-3.5 left-3.5 text-sm font-normal text-muted-foreground/60'
+                }`}
+              >
+                <span>{isTitleFocused || field.label ? 'Question Title' : ''}</span>
+                {field.isRequired && <span className="text-destructive font-bold ml-0.5">*</span>}
+              </label>
+            </div>
 
-              {/* Expandable Question Description / Hint Accordion */}
-              {showDescription && (
-                <div className="mt-3 p-3 bg-muted/20 rounded-xl border border-border/80 space-y-2 animate-in fade-in-50 duration-150">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
-                      <HelpCircle className="w-3.5 h-3.5" />
-                      <span>Question Description / Candidate Instructions</span>
-                    </div>
-                    {hasAttachedDescription && (
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => {
-                          onUpdate(id, { description: undefined });
-                          setShowDescription(false);
-                        }}
-                        className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+            {/* Sub-bar: Inline Section Disclosure Arrow (Under Title) + Unified [+] Add Menu */}
+            <div className="flex items-center justify-between gap-2 flex-wrap text-xs">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setShowSectionInline(!showSectionInline)}
+                  className={`flex items-center gap-1.5 px-2.5 py-1 rounded-md border text-xs font-medium transition-colors cursor-pointer ${
+                    field.group || showSectionInline
+                      ? 'bg-primary/10 border-primary/30 text-primary font-semibold'
+                      : 'bg-background hover:bg-muted border-border/80 text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Toggle section / group assignment"
+                >
+                  <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showSectionInline ? 'rotate-180' : ''}`} />
+                  <Layers className="w-3.5 h-3.5" />
+                  <span>{field.group ? `Section: ${field.group}` : 'Assign Section / Group'}</span>
+                </button>
+
+                {field.description && (
+                  <Badge variant="outline" className="text-xs gap-1 border-primary/30 text-primary bg-primary/5">
+                    <HelpCircle className="w-3 h-3" /> Has Description
+                  </Badge>
+                )}
+                {field.imageUrl && (
+                  <Badge variant="outline" className="text-xs gap-1 border-primary/30 text-primary bg-primary/5">
+                    <ImageIcon className="w-3 h-3" /> Image
+                  </Badge>
+                )}
+                {(field.citations?.length || 0) > 0 && (
+                  <Badge variant="outline" className="text-xs gap-1 border-primary/30 text-primary bg-primary/5">
+                    <BookOpen className="w-3 h-3" /> {field.citations?.length} Citation{(field.citations?.length || 0) > 1 ? 's' : ''}
+                  </Badge>
+                )}
+              </div>
+
+              {/* Unified [+] Add Menu combining Description, Image, Citations/To-Dos */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 px-2.5 text-xs gap-1.5 border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary font-semibold rounded-lg cursor-pointer transition-all duration-150 shadow-2xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Add Context</span>
+                    <ChevronDown className="w-3 h-3 opacity-60" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-52 bg-popover border border-border shadow-lg p-1 text-xs">
+                  <DropdownMenuItem
+                    onClick={() => setShowDescription(!showDescription)}
+                    className="gap-2 cursor-pointer py-1.5 text-xs"
+                  >
+                    <HelpCircle className="w-3.5 h-3.5 text-primary" />
+                    <span>{showDescription ? 'Hide Description' : 'Add / Edit Description'}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setShowImageConfig(!showImageConfig)}
+                    className="gap-2 cursor-pointer py-1.5 text-xs"
+                  >
+                    <ImageIcon className="w-3.5 h-3.5 text-primary" />
+                    <span>{showImageConfig ? 'Hide Image Config' : 'Add Question Image'}</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => setShowCitationsModal(true)}
+                    className="gap-2 cursor-pointer py-1.5 text-xs"
+                  >
+                    <BookOpen className="w-3.5 h-3.5 text-primary" />
+                    <span>Manage Citations & To-Dos</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+
+            {/* Inline Full-Width Section Assignment Box when expanded (No max-w-md empty space!) */}
+            {showSectionInline && (
+              <div
+                className="p-3 bg-muted/20 rounded-xl border border-border/80 space-y-2.5 animate-in fade-in-50 duration-150"
+                onMouseEnter={handleSectionMouseEnter}
+                onMouseLeave={handleSectionMouseLeave}
+              >
+                <div className="flex items-center gap-2">
+                  <Layers className="w-4 h-4 text-primary shrink-0" />
+                  <div className="relative flex-1 flex items-center gap-1.5">
+                    <Input
+                      list={`section-datalist-${id}`}
+                      value={field.group || ''}
+                      onChange={(e) => onUpdate(id, { group: e.target.value })}
+                      onFocus={() => setIsSectionMenuOpen(true)}
+                      placeholder="Type new section or choose from dropdown..."
+                      className="text-sm h-9 bg-background text-foreground shadow-2xs flex-1 rounded-lg font-medium"
+                    />
+                    <datalist id={`section-datalist-${id}`}>
+                      {availableSections.map((sec) => (
+                        <option key={sec} value={sec} />
+                      ))}
+                    </datalist>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsSectionMenuOpen(!isSectionMenuOpen)}
+                      className="h-9 px-2.5 gap-1 text-xs border-border bg-card text-foreground shrink-0 hover:bg-primary hover:text-primary-foreground hover:border-primary cursor-pointer rounded-lg shadow-2xs"
+                    >
+                      <ChevronDown className="w-3.5 h-3.5" />
+                    </Button>
+
+                    {/* Section menu dropdown */}
+                    {isSectionMenuOpen && availableSections.length > 0 && (
+                      <div
+                        className="absolute left-0 top-full mt-1.5 w-full bg-popover text-popover-foreground border border-border rounded-xl shadow-2xl p-1.5 z-50 animate-in fade-in duration-150"
+                        onMouseEnter={handleSectionMouseEnter}
+                        onMouseLeave={handleSectionMouseLeave}
                       >
-                        <X className="w-3 h-3 mr-1" /> Clear
-                      </Button>
+                        <div className="px-2.5 py-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center justify-between border-b border-border/60 mb-1">
+                          <span>Quiz Sections</span>
+                          <span className="text-xs font-normal lowercase">{availableSections.length} available</span>
+                        </div>
+                        <div className="max-h-52 overflow-y-auto space-y-0.5">
+                          {availableSections.map((sec) => {
+                            const count = sectionCounts[sec] || 0;
+                            const isSelected = field.group === sec;
+                            return (
+                              <button
+                                key={sec}
+                                type="button"
+                                onClick={() => {
+                                  onUpdate(id, { group: sec });
+                                  setIsSectionMenuOpen(false);
+                                  toast.success(`Assigned to section: "${sec}"`);
+                                }}
+                                className={`w-full text-left px-2.5 py-2 rounded-lg text-sm flex items-center justify-between transition-colors cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                                    : 'hover:bg-accent text-foreground'
+                                }`}
+                              >
+                                <span className="truncate flex-1 pr-2">{sec}</span>
+                                <div className="flex items-center gap-1.5 shrink-0">
+                                  <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${
+                                    isSelected ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-muted-foreground'
+                                  }`}>
+                                    {count} q{count !== 1 ? 's' : ''}
+                                  </span>
+                                  {isSelected && <Check className="w-4 h-4" />}
+                                </div>
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
                     )}
                   </div>
-                  <Textarea
-                    value={field.description || ''}
-                    onChange={(e) => onUpdate(id, { description: e.target.value })}
-                    placeholder="Enter optional description, instructions, or candidate guidance..."
-                    rows={2}
-                    className="text-sm bg-background text-foreground rounded-lg shadow-2xs resize-y"
-                  />
+
+                  {field.group && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onUpdate(id, { group: undefined })}
+                      className="h-9 px-2 text-xs text-muted-foreground hover:text-foreground cursor-pointer rounded-lg"
+                    >
+                      Clear
+                    </Button>
+                  )}
                 </div>
-              )}
-            </div>
+
+                {/* Quick section pills */}
+                {availableSections.length > 0 && (
+                  <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                    <span className="text-xs font-semibold text-muted-foreground mr-1">Existing:</span>
+                    {availableSections.map((sec) => (
+                      <button
+                        key={sec}
+                        type="button"
+                        onClick={() => onUpdate(id, { group: sec })}
+                        className={`text-xs px-2.5 py-0.5 rounded-full border transition-all cursor-pointer ${
+                          field.group === sec
+                            ? 'bg-primary text-primary-foreground border-primary font-semibold shadow-xs'
+                            : 'bg-background hover:bg-primary/10 hover:border-primary/50 text-foreground border-border/80 font-medium'
+                        }`}
+                      >
+                        {sec}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Expandable Question Description / Hint Accordion */}
+            {showDescription && (
+              <div className="p-3 bg-muted/20 rounded-xl border border-border/80 space-y-2 animate-in fade-in-50 duration-150">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                    <HelpCircle className="w-3.5 h-3.5" />
+                    <span>Question Description / Candidate Instructions</span>
+                  </div>
+                  {hasAttachedDescription && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        onUpdate(id, { description: undefined });
+                        setShowDescription(false);
+                      }}
+                      className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="w-3 h-3 mr-1" /> Clear
+                    </Button>
+                  )}
+                </div>
+                <Textarea
+                  value={field.description || ''}
+                  onChange={(e) => onUpdate(id, { description: e.target.value })}
+                  placeholder="Enter optional description, instructions, or candidate guidance..."
+                  rows={2}
+                  className="text-sm bg-background text-foreground rounded-lg shadow-2xs resize-y"
+                />
+              </div>
+            )}
 
             {/* Question Image Configuration Drawer */}
             {(showImageConfig || hasAttachedImage) && (
@@ -853,132 +1096,6 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 )}
               </div>
             )}
-
-            {/* Interactive Section Combobox with Dropdown & Suggestion Pills */}
-            <div
-              className="relative p-3 rounded-xl bg-muted/20 border border-border/80 space-y-2.5"
-              onMouseEnter={handleSectionMouseEnter}
-              onMouseLeave={handleSectionMouseLeave}
-            >
-              <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex items-center gap-2 text-sm font-semibold text-foreground shrink-0">
-                  <Layers className="w-4 h-4 text-primary" />
-                  <span>Section / Group:</span>
-                </div>
-                <div className="relative flex-1 min-w-[220px] max-w-md flex items-center gap-1.5">
-                  <Input
-                    list={`section-datalist-${id}`}
-                    value={field.group || ''}
-                    onChange={(e) => onUpdate(id, { group: e.target.value })}
-                    onFocus={() => setIsSectionMenuOpen(true)}
-                    placeholder="Type new section or pick from dropdown..."
-                    className="text-sm h-10 bg-background text-foreground shadow-2xs flex-1 rounded-lg font-medium"
-                  />
-                  <datalist id={`section-datalist-${id}`}>
-                    {availableSections.map((sec) => (
-                      <option key={sec} value={sec} />
-                    ))}
-                  </datalist>
-
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsSectionMenuOpen(!isSectionMenuOpen)}
-                    className="h-10 px-3 gap-1 text-sm border-border bg-card text-foreground shrink-0 hover:bg-primary hover:text-primary-foreground hover:border-primary cursor-pointer rounded-lg transition-all duration-150 group shadow-2xs"
-                    title="Toggle quiz sections dropdown"
-                  >
-                    <ChevronDown className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
-                  </Button>
-
-                  {/* Dropdown Menu Activated on Hover, Focus, or Click */}
-                  {isSectionMenuOpen && availableSections.length > 0 && (
-                    <div
-                      className="absolute left-0 top-full mt-1.5 w-full bg-popover text-popover-foreground border border-border rounded-xl shadow-2xl p-1.5 z-50 animate-in fade-in duration-150"
-                      onMouseEnter={handleSectionMouseEnter}
-                      onMouseLeave={handleSectionMouseLeave}
-                    >
-                      <div className="px-2.5 py-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center justify-between border-b border-border/60 mb-1">
-                        <span>Quiz Sections</span>
-                        <span className="text-xs font-normal lowercase">{availableSections.length} available</span>
-                      </div>
-                      <div className="max-h-52 overflow-y-auto space-y-0.5">
-                        {availableSections.map((sec) => {
-                          const count = sectionCounts[sec] || 0;
-                          const isSelected = field.group === sec;
-                          return (
-                            <button
-                              key={sec}
-                              type="button"
-                              onClick={() => {
-                                onUpdate(id, { group: sec });
-                                setIsSectionMenuOpen(false);
-                                toast.success(`Assigned to section: "${sec}"`);
-                              }}
-                              className={`w-full text-left px-2.5 py-2 rounded-lg text-sm flex items-center justify-between transition-colors cursor-pointer ${
-                                isSelected
-                                  ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                                  : 'hover:bg-accent text-foreground'
-                              }`}
-                            >
-                              <span className="truncate flex-1 pr-2">{sec}</span>
-                              <div className="flex items-center gap-1.5 shrink-0">
-                                <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${
-                                  isSelected ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-muted-foreground'
-                                }`}>
-                                  {count} q{count !== 1 ? 's' : ''}
-                                </span>
-                                {isSelected && <Check className="w-4 h-4" />}
-                              </div>
-                            </button>
-                          );
-                        })}
-                      </div>
-                      {field.group && !availableSections.includes(field.group) && (
-                        <div className="pt-1 mt-1 border-t border-border/60">
-                          <div className="px-2.5 py-1.5 text-xs text-primary font-semibold flex items-center gap-1.5">
-                            <Plus className="w-3.5 h-3.5" />
-                            <span>New Section: "{field.group}"</span>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-                {field.group && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => onUpdate(id, { group: undefined })}
-                    className="h-10 px-3 text-sm text-muted-foreground hover:text-foreground cursor-pointer rounded-lg"
-                  >
-                    Clear
-                  </Button>
-                )}
-              </div>
-
-              {/* Quick clickable section suggestion pills */}
-              {availableSections.length > 0 && (
-                <div className="flex items-center gap-2 flex-wrap pt-0.5">
-                  <span className="text-xs font-semibold text-muted-foreground mr-1">Existing:</span>
-                  {availableSections.map((sec) => (
-                    <button
-                      key={sec}
-                      type="button"
-                      onClick={() => onUpdate(id, { group: sec })}
-                      className={`text-xs px-3 py-1 rounded-full border transition-all cursor-pointer ${
-                        field.group === sec
-                          ? 'bg-primary text-primary-foreground border-primary font-semibold shadow-xs'
-                          : 'bg-background hover:bg-primary/10 hover:border-primary/50 text-foreground border-border/80 font-medium'
-                      }`}
-                    >
-                      {sec}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
           </div>
 
           {/* Reference Link Field Configuration */}
@@ -1184,32 +1301,13 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               <div className="flex items-center justify-between border-b border-border/60 pb-2">
                 <div className="flex items-center gap-2 flex-wrap">
                   <span className="text-xs font-bold text-primary flex items-center gap-1.5">
-                    <Eye className="w-4 h-4" /> Preview
+                    <Eye className="w-4 h-4" /> Live Preview
                   </span>
                   <span className="text-sm font-semibold text-foreground flex items-center">
                     <span>{field.label || 'Untitled Question'}</span>
                     {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
                   </span>
                 </div>
-                {(field.type === 'true_false' || field.type === 'single_choice' || field.type === 'multiple_choice') && (
-                  <div className="flex items-center gap-1 bg-background border border-border rounded-lg p-0.5 text-xs">
-                    {(['left', 'center', 'right'] as const).map((align) => (
-                      <button
-                        key={align}
-                        type="button"
-                        onClick={() => onUpdate(id, { choiceAlignment: align })}
-                        className={`px-2 py-0.5 rounded capitalize text-[11px] font-medium transition-colors ${
-                          (field.choiceAlignment || 'left') === align
-                            ? 'bg-primary text-primary-foreground font-semibold'
-                            : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                        title={`Align choices ${align}`}
-                      >
-                        {align}
-                      </button>
-                    ))}
-                  </div>
-                )}
               </div>
 
               {/* Display Question Description / Instructions if present */}
@@ -1337,8 +1435,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 </div>
               )}
 
-              {/* True / False Interactive Preview */}
-              {field.type === 'true_false' && (
+              {/* Universal Boolean Interactive Preview (True/False, Yes/No, Enable/Disable, Agree/Disagree) */}
+              {isBooleanField && (
                 <div className="space-y-3 bg-background/60 p-3.5 rounded-xl border border-border">
                   {previewSelectedChoice && (
                     <div className="flex justify-end">
@@ -1352,51 +1450,119 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     </div>
                   )}
 
-                  <div className={`grid grid-cols-2 gap-3 max-w-sm ${
-                    field.choiceAlignment === 'center'
-                      ? 'mx-auto'
-                      : field.choiceAlignment === 'right'
-                      ? 'ml-auto'
-                      : ''
-                  }`}>
-                    {['True', 'False'].map((val) => {
-                      const isSelected = previewSelectedChoice === val;
-                      return (
-                        <button
-                          key={val}
-                          type="button"
-                          onClick={() => setPreviewSelectedChoice(val)}
-                          className={`p-3 rounded-xl border text-center text-xs font-bold transition-all flex items-center justify-center gap-2 ${
-                            isSelected
-                              ? val === 'True'
-                                ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400 shadow-xs'
-                                : 'border-rose-500 bg-rose-500/20 text-rose-400 shadow-xs'
-                              : 'border-border bg-card text-muted-foreground hover:bg-accent/40 hover:text-foreground'
-                          }`}
-                        >
-                          {val === 'True' ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
-                          <span>{val}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
+                  {(() => {
+                    const preset = field.booleanDisplay || 'true_false';
+                    const labels = preset === 'yes_no'
+                      ? ['Yes', 'No']
+                      : preset === 'enable_disable'
+                      ? ['Enable', 'Disable']
+                      : preset === 'agree_disagree'
+                      ? ['Agree', 'Disagree']
+                      : ['True', 'False'];
+
+                    return (
+                      <div className={`grid grid-cols-2 gap-3 max-w-sm ${
+                        field.choiceAlignment === 'center'
+                          ? 'mx-auto'
+                          : field.choiceAlignment === 'right'
+                          ? 'ml-auto'
+                          : ''
+                      }`}>
+                        {labels.map((val, idx) => {
+                          const isSelected = previewSelectedChoice === val;
+                          return (
+                            <button
+                              key={val}
+                              type="button"
+                              onClick={() => setPreviewSelectedChoice(val)}
+                              className={`p-3 rounded-xl border text-center text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                                isSelected
+                                  ? idx === 0
+                                    ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400 shadow-xs'
+                                    : 'border-rose-500 bg-rose-500/20 text-rose-400 shadow-xs'
+                                  : 'border-border bg-card text-muted-foreground hover:bg-accent/40 hover:text-foreground'
+                              }`}
+                            >
+                              {idx === 0 ? <CheckCircle2 className="w-4 h-4" /> : <AlertCircle className="w-4 h-4" />}
+                              <span>{val}</span>
+                            </button>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
 
                   {previewSelectedChoice && (
                     <div className="p-2.5 rounded-lg bg-muted/30 border border-border/60 text-xs flex items-center justify-between flex-wrap gap-2">
                       <span className="text-muted-foreground">
                         Selected: <strong className="text-foreground">{previewSelectedChoice}</strong>
                       </span>
-                      {isQuiz && field.correctAnswer && (
+                      {isQuiz && (field.correctAnswer || (field.correctAnswers && field.correctAnswers.length > 0)) && (
                         <span
                           className={`text-xs font-semibold flex items-center gap-1 ${
-                            field.correctAnswer === previewSelectedChoice ? 'text-emerald-400' : 'text-rose-400'
+                            (field.correctAnswer === previewSelectedChoice || field.correctAnswers?.includes(previewSelectedChoice))
+                              ? 'text-emerald-400'
+                              : 'text-rose-400'
                           }`}
                         >
-                          {field.correctAnswer === previewSelectedChoice
+                          {(field.correctAnswer === previewSelectedChoice || field.correctAnswers?.includes(previewSelectedChoice))
                             ? '✓ Matches Correct Answer (+points)'
                             : '✗ Incorrect Answer (0 points)'}
                         </span>
                       )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* List of Items Interactive Preview */}
+              {isListItemsField && (
+                <div className="space-y-3 bg-background/60 p-3.5 rounded-xl border border-border">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
+                      <ListOrdered className="w-4 h-4 text-primary" />
+                      <span>List Candidate Input</span>
+                    </Label>
+                    <span className="text-xs text-muted-foreground">Enter items or click suggestions</span>
+                  </div>
+
+                  {(field.suggestionsPool || []).length > 0 && (
+                    <div className="space-y-1">
+                      <span className="text-[11px] font-semibold text-muted-foreground">Suggestions (Click to add):</span>
+                      <div className="flex items-center gap-1.5 flex-wrap">
+                        {field.suggestionsPool?.map((tag) => (
+                          <button
+                            key={tag}
+                            type="button"
+                            onClick={() => {
+                              const current = testInputValue ? testInputValue.split(',').map((s) => s.trim()).filter(Boolean) : [];
+                              if (!current.includes(tag)) {
+                                setTestInputValue([...current, tag].join(', '));
+                              }
+                            }}
+                            className="text-xs px-2.5 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer font-medium"
+                          >
+                            +{tag}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  <Input
+                    value={testInputValue}
+                    onChange={(e) => setTestInputValue(e.target.value)}
+                    placeholder="e.g. Item 1, Item 2, Item 3..."
+                    className="text-sm h-10 bg-background"
+                  />
+                  {testInputValue && (
+                    <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                      <span className="text-xs text-muted-foreground">Items entered ({testInputValue.split(',').map((s) => s.trim()).filter(Boolean).length}):</span>
+                      {testInputValue.split(',').map((s) => s.trim()).filter(Boolean).map((item, idx) => (
+                        <Badge key={idx} variant="secondary" className="text-xs">
+                          {idx + 1}. {item}
+                        </Badge>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -2535,13 +2701,44 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             </div>
           )}
 
-          {/* True / False Configuration & Choice Alignment */}
-          {field.type === 'true_false' && (
-            <div className="p-3.5 bg-muted/20 rounded-xl border border-border space-y-3">
+          {/* Universal Boolean Field Configuration (True/False, Yes/No, Enable/Disable, Agree/Disagree) */}
+          {isBooleanField && (
+            <div className="p-4 bg-muted/20 rounded-xl border border-border/80 space-y-3.5">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <Label className="text-base font-bold text-foreground">
-                  True / False Options
-                </Label>
+                <div className="flex items-center gap-2">
+                  <Label className="text-base font-bold text-foreground">
+                    Boolean Display Preset
+                  </Label>
+                  <Select
+                    value={field.booleanDisplay || 'true_false'}
+                    onValueChange={(val: BooleanDisplayPreset) => {
+                      const labels = val === 'yes_no'
+                        ? ['Yes', 'No']
+                        : val === 'enable_disable'
+                        ? ['Enable', 'Disable']
+                        : val === 'agree_disagree'
+                        ? ['Agree', 'Disagree']
+                        : ['True', 'False'];
+                      onUpdate(id, {
+                        booleanDisplay: val,
+                        options: labels,
+                        correctAnswer: labels[0],
+                        correctAnswers: [labels[0]],
+                      });
+                    }}
+                  >
+                    <SelectTrigger className="h-8 text-xs w-44 bg-background border-border">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-popover border-border">
+                      <SelectItem value="true_false" className="text-xs">True / False</SelectItem>
+                      <SelectItem value="yes_no" className="text-xs">Yes / No</SelectItem>
+                      <SelectItem value="enable_disable" className="text-xs">Enable / Disable</SelectItem>
+                      <SelectItem value="agree_disagree" className="text-xs">Agree / Disagree</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-semibold text-muted-foreground">Alignment:</span>
                   <div className="flex items-center rounded-lg border border-border bg-background p-0.5 shadow-2xs">
@@ -2570,37 +2767,89 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 <div className="flex items-center gap-3 pt-1">
                   <Label className="text-sm font-semibold text-foreground">Correct Answer:</Label>
                   <div className="flex gap-2">
-                    {['True', 'False'].map((val) => {
-                      const isSelected = field.correctAnswer === val;
-
-                      return (
-                        <Button
-                          key={val}
-                          type="button"
-                          variant={isSelected ? 'default' : 'outline'}
-                          size="sm"
-                          className={`h-8 w-24 justify-center text-sm font-semibold transition-all ${
-                            isSelected
-                              ? val === 'True'
-                                ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                                : 'bg-rose-600 text-white hover:bg-rose-700'
-                              : 'text-muted-foreground'
-                          }`}
-                          onClick={() =>
-                            onUpdate(id, {
-                              correctAnswer: val,
-                              correctAnswers: [val],
-                              options: ['True', 'False'],
-                            })
-                          }
-                        >
-                          {val}
-                        </Button>
-                      );
-                    })}
+                    {(() => {
+                      const preset = field.booleanDisplay || 'true_false';
+                      const labels = preset === 'yes_no'
+                        ? ['Yes', 'No']
+                        : preset === 'enable_disable'
+                        ? ['Enable', 'Disable']
+                        : preset === 'agree_disagree'
+                        ? ['Agree', 'Disagree']
+                        : ['True', 'False'];
+                      return labels.map((val, idx) => {
+                        const isSelected = field.correctAnswer === val || field.correctAnswers?.includes(val);
+                        return (
+                          <Button
+                            key={val}
+                            type="button"
+                            variant={isSelected ? 'default' : 'outline'}
+                            size="sm"
+                            className={`h-9 min-w-24 px-4 justify-center text-sm font-semibold transition-all rounded-lg cursor-pointer ${
+                              isSelected
+                                ? idx === 0
+                                  ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs'
+                                  : 'bg-rose-600 text-white hover:bg-rose-700 shadow-xs'
+                                : 'text-foreground bg-background hover:bg-muted'
+                            }`}
+                            onClick={() =>
+                              onUpdate(id, {
+                                correctAnswer: val,
+                                correctAnswers: [val],
+                                options: labels,
+                              })
+                            }
+                          >
+                            {isSelected && <Check className="w-3.5 h-3.5 mr-1" />}
+                            {val}
+                          </Button>
+                        );
+                      });
+                    })()}
                   </div>
                 </div>
               )}
+            </div>
+          )}
+
+          {/* List of Items Question Configuration */}
+          {isListItemsField && (
+            <div className="p-4 bg-muted/20 rounded-xl border border-border/80 space-y-3.5">
+              <div className="flex items-center justify-between">
+                <Label className="text-base font-bold text-foreground flex items-center gap-1.5">
+                  <ListOrdered className="w-4 h-4 text-primary" />
+                  <span>List of Items Autocomplete Suggestions</span>
+                </Label>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Candidates can input multiple items or select from intelligent suggestion pills.
+              </p>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold text-muted-foreground">
+                  Suggestion Pool (comma-separated tags):
+                </Label>
+                <Input
+                  value={(field.suggestionsPool || []).join(', ')}
+                  onChange={(e) => {
+                    const pool = e.target.value
+                      .split(',')
+                      .map((s) => s.trim())
+                      .filter((s) => s.length > 0);
+                    onUpdate(id, { suggestionsPool: pool });
+                  }}
+                  placeholder="e.g. React, Vue, Svelte, Angular, Next.js"
+                  className="text-sm bg-background text-foreground"
+                />
+                {(field.suggestionsPool?.length || 0) > 0 && (
+                  <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                    <span className="text-xs font-semibold text-muted-foreground">Preview Pills:</span>
+                    {field.suggestionsPool?.map((tag) => (
+                      <Badge key={tag} variant="secondary" className="text-xs px-2 py-0.5">
+                        +{tag}
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
             </div>
           )}
 
@@ -2642,48 +2891,69 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               />
             </div>
 
-            {/* Points / Grading input (text-sm) */}
+            {/* Difficulty Tiers & Points Allocation (Easy 5pt, Medium 10pt, Hard 20pt, Custom) */}
             {isQuiz && (
-              <div className="flex items-center gap-2 border-l border-border/50 pl-4">
-                <Label htmlFor={`footer-pts-${id}`} className="text-sm font-semibold">
-                  Points
+              <div className="flex items-center gap-2.5 border-l border-border/50 pl-4 flex-wrap">
+                <Label className="text-sm font-semibold text-foreground">
+                  Tier:
                 </Label>
-                <Input
-                  id={`footer-pts-${id}`}
-                  type="number"
-                  value={field.points ?? 1}
-                  onChange={(e) => onUpdate(id, { points: Math.max(1, Number(e.target.value) || 1) })}
-                  className="w-20 h-9 text-sm font-semibold font-mono bg-background text-center rounded-lg shadow-2xs"
-                  min={1}
-                />
-              </div>
-            )}
+                <div className="flex items-center gap-1 bg-background border border-border rounded-lg p-0.5 shadow-2xs">
+                  {(['easy', 'medium', 'hard'] as const).map((diff) => {
+                    const currentDiff = field.difficulty || 'medium';
+                    const isSelected = currentDiff === diff;
+                    const defaultPts = diff === 'easy' ? 5 : diff === 'medium' ? 10 : 20;
 
-            {/* Choice / True-False Alignment Selector (text-sm) */}
-            {(isChoiceField || field.type === 'true_false') && (
-              <div className="flex items-center gap-2 border-l border-border/50 pl-4">
-                <Label className="text-sm font-semibold text-muted-foreground">
-                  Align:
-                </Label>
-                <div className="flex items-center rounded-lg border border-border bg-background p-0.5 shadow-2xs">
-                  {(['left', 'center', 'right'] as const).map((align) => {
-                    const isSelected = (field.choiceAlignment || 'left') === align;
                     return (
                       <button
-                        key={align}
+                        key={diff}
                         type="button"
-                        onClick={() => onUpdate(id, { choiceAlignment: align })}
-                        className={`px-2 py-0.5 text-xs font-medium rounded capitalize transition-colors ${
+                        onClick={() => {
+                          const updates: Partial<FormField> = { difficulty: diff };
+                          if (!showPointsOverride && !field.customPointsOverride) {
+                            updates.points = defaultPts;
+                          }
+                          onUpdate(id, updates);
+                        }}
+                        className={`px-2.5 py-1 text-xs font-semibold rounded-md capitalize transition-colors ${
                           isSelected
-                            ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                            ? 'bg-primary text-primary-foreground shadow-xs'
                             : 'text-muted-foreground hover:text-foreground'
                         }`}
                       >
-                        {align}
+                        {diff} ({defaultPts}pt)
                       </button>
                     );
                   })}
                 </div>
+
+                {/* Custom Points Toggle & Numeric Input */}
+                <button
+                  type="button"
+                  onClick={() => {
+                    const nextVal = !showPointsOverride;
+                    setShowPointsOverride(nextVal);
+                    onUpdate(id, { customPointsOverride: nextVal });
+                  }}
+                  className={`px-2 py-1 text-xs rounded-md border transition-colors cursor-pointer ${
+                    showPointsOverride || field.customPointsOverride
+                      ? 'border-primary bg-primary/10 text-primary font-semibold'
+                      : 'border-border text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Toggle custom points override"
+                >
+                  Custom
+                </button>
+
+                {(showPointsOverride || field.customPointsOverride) && (
+                  <Input
+                    id={`footer-pts-${id}`}
+                    type="number"
+                    value={field.points ?? 10}
+                    onChange={(e) => onUpdate(id, { points: Math.max(1, Number(e.target.value) || 1) })}
+                    className="w-16 h-8 text-xs font-semibold font-mono bg-background text-center rounded-lg shadow-2xs"
+                    min={1}
+                  />
+                )}
               </div>
             )}
 
@@ -2715,29 +2985,27 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             )}
           </div>
 
-          {/* Action buttons: Duplicate and Delete */}
-          <div className="flex items-center gap-2 ml-auto">
+          {/* Action buttons: Compact Icon-Only Duplicate and Delete with Tooltips */}
+          <div className="flex items-center gap-1.5 ml-auto">
             <Button
               type="button"
               variant="outline"
-              size="sm"
+              size="icon"
               onClick={() => onDuplicate(id)}
-              className="text-sm h-9 px-3.5 gap-2 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary font-medium rounded-lg cursor-pointer transition-all duration-150 shadow-2xs group"
+              className="h-9 w-9 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary rounded-lg cursor-pointer transition-all shadow-2xs group"
               title="Duplicate Question"
             >
               <Copy className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
-              <span>Duplicate</span>
             </Button>
             <Button
               type="button"
               variant="outline"
-              size="sm"
+              size="icon"
               onClick={() => onRemove(id)}
-              className="text-sm h-9 px-3.5 gap-2 text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30 hover:border-destructive font-medium rounded-lg cursor-pointer transition-all duration-150 shadow-2xs group"
+              className="h-9 w-9 text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30 hover:border-destructive rounded-lg cursor-pointer transition-all shadow-2xs group"
               title="Delete Question"
             >
               <Trash2 className="w-4 h-4 text-destructive group-hover:text-destructive-foreground transition-colors" />
-              <span>Delete</span>
             </Button>
           </div>
         </CardFooter>
@@ -2795,6 +3063,136 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             >
               <Check className="w-3.5 h-3.5" />
               Apply JSON
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Citations, Reference Links & Actionable To-Dos Modal */}
+      <Dialog open={showCitationsModal} onOpenChange={setShowCitationsModal}>
+        <DialogContent className="sm:max-w-[620px] bg-card border border-border shadow-xl">
+          <DialogHeader>
+            <DialogTitle className="text-base font-bold flex items-center gap-2 text-foreground">
+              <BookOpen className="w-4 h-4 text-primary" />
+              <span>Citations, Reference Links & To-Dos</span>
+            </DialogTitle>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Attach technical references, guideline links, or mandatory checklist to-dos for Question #{index + 1}.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3 py-2 max-h-[60vh] overflow-y-auto">
+            {(!field.citations || field.citations.length === 0) ? (
+              <div className="p-4 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
+                No citations or to-dos added yet. Click &quot;Add Item&quot; below.
+              </div>
+            ) : (
+              field.citations.map((cite, citeIdx) => (
+                <div key={cite.id} className="p-3 bg-muted/20 rounded-xl border border-border/80 space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold font-mono text-primary">Item #{citeIdx + 1}</span>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const updated = field.citations?.filter((c) => c.id !== cite.id);
+                        onUpdate(id, { citations: updated });
+                      }}
+                      className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <div>
+                      <Label className="text-xs text-muted-foreground block mb-1">Title / Action Item</Label>
+                      <Input
+                        value={cite.title}
+                        onChange={(e) => {
+                          const updated = [...(field.citations || [])];
+                          updated[citeIdx] = { ...cite, title: e.target.value };
+                          onUpdate(id, { citations: updated });
+                        }}
+                        placeholder="e.g. Read RFC 7519 or Clone repository"
+                        className="text-xs h-8 bg-background"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs text-muted-foreground block mb-1">Reference URL (Optional)</Label>
+                      <Input
+                        value={cite.url || ''}
+                        onChange={(e) => {
+                          const updated = [...(field.citations || [])];
+                          updated[citeIdx] = { ...cite, url: e.target.value };
+                          onUpdate(id, { citations: updated });
+                        }}
+                        placeholder="https://example.com/spec"
+                        className="text-xs h-8 font-mono bg-background"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-between flex-wrap gap-2 pt-1 text-xs">
+                    <div className="flex items-center gap-2">
+                      <span className="text-muted-foreground">Position:</span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const updated = [...(field.citations || [])];
+                          updated[citeIdx] = { ...cite, position: cite.position === 'prefix' ? 'suffix' : 'prefix' };
+                          onUpdate(id, { citations: updated });
+                        }}
+                        className="px-2 py-0.5 rounded border border-border bg-background capitalize font-medium text-foreground hover:bg-muted"
+                      >
+                        {cite.position} Question
+                      </button>
+                    </div>
+                    <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(cite.isRequiredCheck)}
+                        onChange={(e) => {
+                          const updated = [...(field.citations || [])];
+                          updated[citeIdx] = { ...cite, isRequiredCheck: e.target.checked };
+                          onUpdate(id, { citations: updated });
+                        }}
+                        className="rounded border-border"
+                      />
+                      <span>Mandatory checklist to-do (&quot;I have done it&quot;)</span>
+                    </label>
+                  </div>
+                </div>
+              ))
+            )}
+
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const newItem: QuestionCitation = {
+                  id: `cite-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                  title: '',
+                  position: 'prefix',
+                  isRequiredCheck: false,
+                };
+                onUpdate(id, { citations: [...(field.citations || []), newItem] });
+              }}
+              className="w-full text-xs h-8 border-dashed border-primary/40 text-primary hover:bg-primary/10 gap-1.5"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Citation or To-Do
+            </Button>
+          </div>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={() => setShowCitationsModal(false)}
+              className="text-xs"
+            >
+              Done
             </Button>
           </DialogFooter>
         </DialogContent>

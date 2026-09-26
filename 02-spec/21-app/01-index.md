@@ -57,6 +57,7 @@ App-specific specification content for the WP Exam plugin. This engine provides 
 | 10 | [10-sweet-digs-luxury-theme.md](./10-sweet-digs-luxury-theme.md) | Sweet Digs Eco-Luxury Editorial Theme & Motion Architecture | Complete |
 | 11 | [11-wpexam-ui-ux-enhancements.md](./11-wpexam-ui-ux-enhancements.md) | WP Exam UI/UX Comprehensive Redesign & Interactive Enhancement | Complete |
 | 12 | [12-formbuilder-header-streamlining.md](./12-formbuilder-header-streamlining.md) | FormBuilder & Runner Single-Line Header Streamlining & Hover-Card Health Score | Complete |
+| 13 | [13-question-card-and-exam-intelligence.md](./13-question-card-and-exam-intelligence.md) | Question Card Redesign, Floating Placeholders, Boolean Presets, Difficulty Tiers, Citations & Timers | Complete |
 
 ---
 

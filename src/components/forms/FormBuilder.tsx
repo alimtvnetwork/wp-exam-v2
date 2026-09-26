@@ -193,6 +193,22 @@ export const FormBuilder: React.FC = () => {
     setFields(newFields);
   };
 
+  const handleReorderToIndex = (fromIndex: number, toIndex: number) => {
+    const isOutOfBounds = toIndex < 0 || toIndex >= fields.length;
+    if (isOutOfBounds) {
+      return;
+    }
+    const isSameIndex = fromIndex === toIndex;
+    if (isSameIndex) {
+      return;
+    }
+    const newFields = [...fields];
+    const [moved] = newFields.splice(fromIndex, 1);
+    newFields.splice(toIndex, 0, moved);
+    setFields(newFields);
+    toast.success(`Question moved to #${toIndex + 1}`);
+  };
+
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
@@ -836,6 +852,7 @@ export const FormBuilder: React.FC = () => {
                           onUpdate={(fieldId, updates) => updateField(fieldId, updates)}
                           onRemove={(fieldId) => removeField(fieldId)}
                           onDuplicate={handleDuplicateField}
+                          onReorderToIndex={handleReorderToIndex}
                         />
                       </div>
                     </React.Fragment>
