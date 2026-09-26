@@ -640,7 +640,7 @@ export const WizardRunner: React.FC = () => {
         </form>
       ) : (
         /* Submission Success Confirmation */
-        <div className="p-8 text-center space-y-4 animate-in zoom-in-95 duration-300">
+        <div className="p-8 text-center space-y-4 animate-in fade-in duration-150">
           <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-950 text-emerald-600 rounded-full flex items-center justify-center mx-auto shadow-inner">
             <CheckCircle2 className="w-8 h-8" />
           </div>

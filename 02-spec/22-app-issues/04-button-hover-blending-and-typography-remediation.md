@@ -64,7 +64,16 @@ During authoring and candidate testing workflows, multiple visual, spatial, and 
    - Replaced `max-w-[1600px] mx-auto` with fluid `w-full px-3 sm:px-6 pt-1 pb-6`, eliminating the left gutter void on wide monitors.
 
 5. **Purge of Bouncy `zoom-in-95` Animations:**
-   - Purged `zoom-in-95` and `zoom-out-95` across `menubar.tsx`, `navigation-menu.tsx`, `tooltip.tsx`, `dialog.tsx`, `dropdown-menu.tsx`, and `popover.tsx`. Standardized on snappy `duration-150` fade-in.
+   - Purged `zoom-in-95` and `zoom-out-95` across `menubar.tsx`, `navigation-menu.tsx`, `tooltip.tsx`, `dialog.tsx`, `dropdown-menu.tsx`, `popover.tsx`, `mailbox-modal.tsx`, `wizard-runner.tsx`, and `FocusQuizRunner.tsx`. Standardized on snappy `duration-150` fade-in.
+
+6. **Global Purge of Hover Zoom & Scale Transformations:**
+   - **Root Cause:** In `src/index.css`, lines 122-132 globally applied `transform: translateY(-1px) scale(1.015)` and `scale(0.985)` to all `button` and `[role="button"]` elements. In addition, isolated components had `hover:scale-[1.02]`, `active:scale-[0.98]`, `group-hover:scale-105`, and `hover:translate-x-1`.
+   - **Fix:** Deleted global button hover/active scale transformations from `src/index.css`. Removed all `(hover|active|group-hover):scale` and `hover:translate-x-1` classes repository-wide. Standardized on flat, elegant color transitions (`transition-colors duration-150`).
+   - **Dropdown Icon Harmonization:** In `dropdown-menu.tsx` and `sortable-field-card.tsx`, removed hardcoded `text-emerald-400` icons that clashed with blue primary hover backgrounds. Added `[&_svg]:text-muted-foreground group-hover:[&_svg]:text-primary` so menu icons gracefully adapt to any theme.
+
+7. **Dropdown Label Truncation Remediation (`media_1790387792337.png`):**
+   - **Root Cause:** In `FormBuilder.tsx`, the Form Type `<SelectTrigger>` had `min-w-[210px]` without `shrink-0` inside a flex container. The 23-character string "Knowledge Quiz (Scored)" exceeded 210px with padding and chevron, triggering Radix `line-clamp-1` ellipsis clipping to "z.. v".
+   - **Fix:** Upgraded Form Type `<SelectTrigger>` to `w-auto min-w-[235px] shrink-0` and Access `<SelectTrigger>` to `w-auto min-w-[180px] shrink-0`. Added `shrink-0` to label wrappers.
 
 ---
 
@@ -72,8 +81,11 @@ During authoring and candidate testing workflows, multiple visual, spatial, and 
 
 | Quality Gate | Verification Command | Result |
 |---|---|---|
-| **Vite Production Build** | `npm run build` | Built in 2.70s with 0 errors |
+| **Vite Production Build** | `npm run build` | Built cleanly with 0 errors |
 | **Unit & Integration Tests** | `npm test` | 10 passed test suites, 85 passed tests |
 | **Zero Micro-Typography** | `Select-String "text-\[([89]\|10)px\]"` | 0 occurrences across entire repository |
-| **Zero Zoom-in Animations** | `Select-String "zoom-in" src/**/*.tsx` | 0 occurrences across all TSX files |
+| **Zero Zoom-in Animations** | `Select-String "zoom-in" src/` | 0 occurrences across all files |
+| **Zero Hover Scale / Translate** | `Select-String "(hover\|active\|group-hover):scale\|hover:translate" src/` | 0 occurrences across entire repository |
+| **Zero Button Transform in CSS** | `Select-String "scale" src/index.css` | 0 occurrences |
+| **Dropdown Anti-Truncation** | Visual and layout verification | Form Type & Access triggers fit complete labels |
 | **Anti-Blend Button Contrast** | Visual inspection across light & dark themes | Contrast >= 4.5:1 in resting & hover states |

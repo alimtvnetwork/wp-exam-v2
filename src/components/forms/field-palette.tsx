@@ -274,11 +274,11 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
                 type="button"
                 onClick={() => onAddField(opt.type)}
                 title={`${opt.label}: ${opt.description}`}
-                className="flex items-center justify-between p-2 rounded-xl border border-border bg-card hover:bg-accent/60 hover:border-primary/50 transition-all text-left group active:scale-[0.99] shadow-2xs hover:shadow-xs cursor-pointer"
+                className="flex items-center justify-between p-2 rounded-xl border border-border bg-card hover:bg-accent/60 hover:border-primary/50 transition-colors text-left group shadow-2xs hover:shadow-xs cursor-pointer"
               >
                 <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
                   <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${opt.colorClass} group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary group-hover:scale-105 transition-all duration-150`}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${opt.colorClass} group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors duration-150`}
                   >
                     <IconComp className="w-4 h-4 transition-colors" />
                   </div>

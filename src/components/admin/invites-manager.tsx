@@ -113,7 +113,7 @@ export const InvitesManager: React.FC<InvitesManagerProps> = ({ onNavigateToRunn
             </div>
 
             <div className="sm:col-span-3">
-              <Button type="submit" className="w-full h-10 bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs shadow-md rounded-lg transition-transform active:scale-[0.98]">
+              <Button type="submit" className="w-full h-10 bg-primary text-primary-foreground hover:bg-primary/90 font-bold text-xs shadow-md rounded-lg transition-colors duration-150">
                 Send Invitation
               </Button>
             </div>

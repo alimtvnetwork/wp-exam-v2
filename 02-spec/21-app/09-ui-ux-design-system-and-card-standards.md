@@ -41,7 +41,7 @@ Every interactive button MUST maintain a minimum contrast ratio of 4.5:1 against
 ### 3.2 AI Studio Button Specification
 - **Component:** `src/components/forms/ai-section-assistant.tsx` and `src/components/admin/ai-section-assistant.tsx`
 - **Resting State:** Solid indigo background (`bg-indigo-600 dark:bg-indigo-600`), pure white text (`text-white`), vibrant amber sparkle icon (`text-amber-300 animate-pulse`), `h-9 px-3.5 text-sm font-semibold rounded-lg shadow-xs`.
-- **Hover State:** `hover:bg-indigo-700 dark:hover:bg-indigo-500 hover:shadow-md hover:scale-[1.02] active:scale-[0.98]`.
+- **Hover State:** `hover:bg-indigo-700 dark:hover:bg-indigo-500 hover:shadow-sm transition-all duration-150`. Flat color transition without any hover zoom or scale effects.
 - **Contrast Guarantee:** Solid indigo never blends with white, slate, or dark surfaces.
 
 ### 3.3 Tools Dropdown Button Specification
@@ -137,7 +137,7 @@ Every question card is organized into three distinct, non-overlapping zones:
 
 ### 9.1 Theme-Adaptive Hover Transitions
 - **Field Palette Icons:** When hovering any palette item card, the icon container smoothly transitions to the theme's primary color:
-  `group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary group-hover:scale-105 transition-all duration-150`
+  `group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors duration-150`
 - **Sidebar Navigation Icons:** In `src/components/admin/wp-admin-sidebar.tsx`, icons transition in lockstep with text:
   `className={isActive ? 'text-primary' : 'text-muted-foreground group-hover:text-primary'}`
 - **Builder Action Bar Icons:** All top action buttons (Preview, Tools, Save Form) feature high-contrast inverted icon styling:
@@ -167,7 +167,21 @@ Every question card is organized into three distinct, non-overlapping zones:
 
 ---
 
-## 11. Verification Gates
+## 11. Zero Hover Scale & Flat Interaction Mandate
+
+### 11.1 Total Ban on Hover Zoom, Scale & Shifting
+- **Zero Hover/Active Scaling:** Under NO circumstances may any button, card, icon, or interactive element apply scale transforms on hover or active states (`hover:scale-*`, `active:scale-*`, `group-hover:scale-*`, `scale-110`).
+- **Zero Horizontal/Vertical Shifting:** Interactive list items, MCQ option rows, and buttons MUST NOT translate or nudge on hover (`hover:translate-x-*`, `hover:translate-y-*`).
+- **Snappy Flat Transitions:** All interactive feedback MUST rely exclusively on flat color, border, and background transitions:
+  `transition-colors duration-150 hover:border-primary/50 hover:bg-primary/5`
+- **Global CSS Enforcement:** In `src/index.css`, global `button:hover` and `button:active` rules MUST NOT specify `transform: translateY(...) scale(...)`. Transitions are restricted to `color, background-color, border-color, box-shadow`.
+
+### 11.2 Anti-Truncation Dropdown Sizing
+- `<SelectTrigger>` elements in builder header rows and forms MUST specify flexible widths (`w-auto min-w-[235px] shrink-0`) to prevent option labels like "Knowledge Quiz (Scored)" from truncating or clipping to "...z..".
+
+---
+
+## 12. Verification Gates
 
 - **G-01 (Zero Micro-Typography):** `git grep -n "text-\[10px\]" src/` returns 0 results.
 - **G-02 (Button Contrast):** AI Studio uses solid `bg-indigo-600` with white text; Tools button uses `hover:bg-primary hover:text-primary-foreground`.
@@ -176,4 +190,6 @@ Every question card is organized into three distinct, non-overlapping zones:
 - **G-05 (Complete HSL Theming):** `getThemeCssVariables` spreads `hslValues`; dark themes render dark cards with theme-colored progress bars.
 - **G-06 (Section Combobox):** Hovering over section container displays all quiz sections with count badges; `<datalist>` autocompletes text.
 - **G-07 (Multi-Correct MCQ):** Author can toggle multiple options as correct; runner verifies multi-answer grading.
-- **G-08 (Build & Unit Tests):** `npm run build` and `npm test` exit with code 0.
+- **G-08 (Zero Hover Scale / Translate):** `Select-String "(hover|group-hover|active):scale|hover:translate" src/` returns 0 results.
+- **G-09 (Zero Select Trigger Truncation):** Header select triggers use `min-w-[235px] shrink-0` preventing ellipsis clipping.
+- **G-10 (Build & Unit Tests):** `npm run build` and `npm test` exit with code 0.

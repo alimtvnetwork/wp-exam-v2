@@ -744,7 +744,6 @@ export const FocusQuizEditor: React.FC<FocusQuizEditorProps> = ({ onLaunchRunner
                           },
                         }));
                       }}
-                      className="scale-75"
                     />
                   </div>
 

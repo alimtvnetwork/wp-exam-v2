@@ -184,7 +184,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
           className="flex items-center gap-2.5 cursor-pointer group"
           title="WP Exam Console"
         >
-          <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground font-black text-sm flex items-center justify-center shadow-md shadow-primary/20 group-hover:scale-105 transition-transform shrink-0 font-serif">
+          <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground font-black text-sm flex items-center justify-center shadow-md shadow-primary/20 transition-colors shrink-0 font-serif">
             WP
           </div>
 

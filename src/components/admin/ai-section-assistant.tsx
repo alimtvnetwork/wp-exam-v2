@@ -233,7 +233,7 @@ export const AiSectionAssistant: React.FC<AiSectionAssistantProps> = ({ section,
         <Button
           type="button"
           size="sm"
-          className="text-sm h-9 px-3.5 gap-2 bg-indigo-600 dark:bg-indigo-600 text-white hover:bg-indigo-700 dark:hover:bg-indigo-500 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] shadow-xs transition-all duration-150 font-semibold border-0 cursor-pointer"
+          className="text-sm h-9 px-3.5 gap-2 bg-indigo-600 dark:bg-indigo-600 text-white hover:bg-indigo-700 dark:hover:bg-indigo-500 hover:shadow-sm shadow-xs transition-all duration-150 font-semibold border-0 cursor-pointer"
           title="Open AI Studio Prompt & JSON Assistant"
         >
           <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />

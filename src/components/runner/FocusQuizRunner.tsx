@@ -1407,7 +1407,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
 
         {/* Stage 4: Completion Screen with Anti-Cheat Grading & Email Dispatch */}
         {currentStage === 'completed' && (
-          <div className="text-center space-y-6 animate-in zoom-in-95 duration-300">
+          <div className="text-center space-y-6 animate-in fade-in duration-150">
             <div className="w-20 h-20 mx-auto rounded-full flex items-center justify-center text-3xl shadow-xl bg-indigo-500/20 text-indigo-400">
               {calculatedScore?.isPassed ? '🏆' : '📚'}
             </div>
@@ -1538,7 +1538,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
           <div className="max-w-md mx-auto space-y-2">
             <button
               onClick={handleContinue}
-              className="w-full py-4 rounded-2xl font-bold text-base shadow-xl transition active:scale-[0.98] hover:opacity-95"
+              className="w-full py-4 rounded-2xl font-bold text-base shadow-xl transition-opacity hover:opacity-95"
               style={{
                 backgroundColor: theme.colors.primary,
                 color: theme.colors.primaryText,
@@ -1688,7 +1688,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
       {showShareModal && (
         <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
           <div
-            className="w-full max-w-md rounded-3xl border p-6 space-y-4 shadow-2xl animate-in zoom-in-95 duration-150"
+            className="w-full max-w-md rounded-3xl border p-6 space-y-4 shadow-2xl animate-in fade-in duration-150"
             style={{
               backgroundColor: theme.colors.cardBg,
               borderColor: theme.colors.cardBorder,

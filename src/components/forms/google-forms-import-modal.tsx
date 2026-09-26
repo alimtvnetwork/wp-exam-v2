@@ -544,7 +544,6 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
                     <Switch
                       checked={autoDetectContactRules}
                       onCheckedChange={setAutoDetectContactRules}
-                      className="scale-75"
                     />
                   </div>
 
@@ -557,7 +556,6 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
                     <Switch
                       checked={generateSequentialBranching}
                       onCheckedChange={setGenerateSequentialBranching}
-                      className="scale-75"
                     />
                   </div>
 
@@ -570,7 +568,6 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
                     <Switch
                       checked={openBranchingEditorOnImport}
                       onCheckedChange={setOpenBranchingEditorOnImport}
-                      className="scale-75"
                     />
                   </div>
                 </div>
@@ -584,7 +581,6 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
                   id="replace-mode-toggle"
                   checked={isReplaceMode}
                   onCheckedChange={setIsReplaceMode}
-                  className="scale-75"
                 />
                 <Label htmlFor="replace-mode-toggle" className="text-xs cursor-pointer font-medium">
                   {isReplaceMode ? 'Replace current canvas' : 'Append to existing questions'}
@@ -608,7 +604,7 @@ export const GoogleFormsImportModal: React.FC<GoogleFormsImportModalProps> = ({
             disabled={!stagedResult || stagedResult.fields.length === 0}
             onClick={handleConfirmImport}
             size="sm"
-            className="text-xs gap-1.5 font-semibold bg-emerald-600 hover:bg-emerald-500 text-white"
+            className="text-xs gap-1.5 font-semibold"
           >
             <Download className="w-3.5 h-3.5" />
             <span>Apply to Form Builder</span>

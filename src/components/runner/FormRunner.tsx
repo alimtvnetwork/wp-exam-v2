@@ -1178,7 +1178,7 @@ const RunnerFileUpload: React.FC<{
           }}
           className={`relative border-2 border-dashed rounded-xl p-6 text-center transition-all cursor-pointer flex flex-col items-center justify-center ${
             isDragging
-              ? 'border-primary bg-primary/10 scale-[1.01]'
+              ? 'border-primary bg-primary/10'
               : 'border-border/80 hover:border-primary/50 hover:bg-muted/30 bg-background/50'
           }`}
         >
@@ -1374,7 +1374,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
           {options.map((opt, optIndex) => (
             <label
               key={opt}
-              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 hover:translate-x-1 ${
+              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-colors duration-150 hover:border-primary/50 hover:bg-primary/5 ${
                 selectedOpts.includes(opt)
                   ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
                   : 'border-border bg-card text-foreground'
@@ -1401,7 +1401,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 hover:translate-x-1 ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-colors duration-150 hover:border-primary/50 hover:bg-primary/5 ${
                   hasOther
                     ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
                     : 'border-border bg-card text-foreground'
@@ -1491,7 +1491,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
           {options.map((opt, optIndex) => (
             <label
               key={opt}
-              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 hover:translate-x-1 ${
+              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-colors duration-150 hover:border-primary/50 hover:bg-primary/5 ${
                 strValue === opt
                   ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
                   : 'border-border bg-card text-foreground'
@@ -1518,7 +1518,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 hover:translate-x-1 ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-colors duration-150 hover:border-primary/50 hover:bg-primary/5 ${
                   hasOther
                     ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
                     : 'border-border bg-card text-foreground'

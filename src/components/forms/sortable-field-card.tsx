@@ -390,7 +390,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
       <Card
         className={`transition-all duration-200 border bg-card ${
           isDragging
-            ? 'shadow-2xl ring-2 ring-primary border-primary/80 scale-[1.01] bg-card/95'
+            ? 'shadow-2xl ring-2 ring-primary border-primary/80 bg-card/95'
             : 'border-border/80 hover:border-primary/40 shadow-xs hover:shadow-md'
         }`}
       >
@@ -506,10 +506,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   className="text-sm flex items-center justify-between cursor-pointer py-1.5"
                 >
                   <div className="flex items-center gap-2">
-                    <Sparkles className="w-4 h-4 text-indigo-400" />
+                    <Sparkles className="w-4 h-4" />
                     <span>AI Studio & Schema</span>
                   </div>
-                  <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-indigo-500/10 text-indigo-400 border-indigo-500/30 font-mono">
+                  <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-muted/80 text-muted-foreground border-border group-hover:border-primary/40 group-hover:text-primary transition-colors font-mono">
                     JSON
                   </Badge>
                 </DropdownMenuItem>
@@ -519,10 +519,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   className="text-sm flex items-center justify-between cursor-pointer py-1.5"
                 >
                   <div className="flex items-center gap-2">
-                    <FileJson className="w-4 h-4 text-cyan-400" />
+                    <FileJson className="w-4 h-4" />
                     <span>Export Question JSON</span>
                   </div>
-                  <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-cyan-500/10 text-cyan-400 border-cyan-500/30 font-mono">
+                  <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-muted/80 text-muted-foreground border-border group-hover:border-primary/40 group-hover:text-primary transition-colors font-mono">
                     Copy
                   </Badge>
                 </DropdownMenuItem>
@@ -535,10 +535,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   className="text-sm flex items-center justify-between cursor-pointer py-1.5"
                 >
                   <div className="flex items-center gap-2">
-                    <Upload className="w-4 h-4 text-emerald-400" />
+                    <Upload className="w-4 h-4" />
                     <span>Import / Replace JSON</span>
                   </div>
-                  <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-emerald-500/10 text-emerald-400 border-emerald-500/30 font-mono">
+                  <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-muted/80 text-muted-foreground border-border group-hover:border-primary/40 group-hover:text-primary transition-colors font-mono">
                     Paste
                   </Badge>
                 </DropdownMenuItem>
@@ -550,15 +550,15 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   className="text-sm flex items-center justify-between cursor-pointer py-1.5"
                 >
                   <div className="flex items-center gap-2">
-                    <SlidersHorizontal className="w-4 h-4 text-amber-500" />
+                    <SlidersHorizontal className="w-4 h-4" />
                     <span>{isFileUploadField ? 'File Size & Formats' : 'Validation Rules'}</span>
                   </div>
                   {isFileUploadField ? (
-                    <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-purple-500/10 text-purple-400 border-purple-500/30 font-mono">
+                    <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-muted/80 text-muted-foreground border-border group-hover:border-primary/40 group-hover:text-primary transition-colors font-mono">
                       {field.fileValidation?.maxSizeMb || 10}MB
                     </Badge>
                   ) : activeRules.length > 0 ? (
-                    <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-amber-500/10 text-amber-500 border-amber-500/30 font-mono">
+                    <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-muted/80 text-muted-foreground border-border group-hover:border-primary/40 group-hover:text-primary transition-colors font-mono">
                       {activeRules.length}
                     </Badge>
                   ) : null}
@@ -569,11 +569,11 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   className="text-sm flex items-center justify-between cursor-pointer py-1.5"
                 >
                   <div className="flex items-center gap-2">
-                    <BellRing className="w-4 h-4 text-purple-400" />
+                    <BellRing className="w-4 h-4" />
                     <span>Notification Triggers</span>
                   </div>
                   {activeTriggers.length > 0 && (
-                    <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-purple-500/10 text-purple-400 border-purple-500/30 font-mono">
+                    <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-muted/80 text-muted-foreground border-border group-hover:border-primary/40 group-hover:text-primary transition-colors font-mono">
                       {activeTriggers.length}
                     </Badge>
                   )}
@@ -584,11 +584,11 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   className="text-sm flex items-center justify-between cursor-pointer py-1.5"
                 >
                   <div className="flex items-center gap-2">
-                    <GitBranch className="w-4 h-4 text-primary" />
+                    <GitBranch className="w-4 h-4" />
                     <span>Branching & Logic</span>
                   </div>
                   {field.conditions && field.conditions.length > 0 && (
-                    <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-primary/10 text-primary border-primary/30 font-mono">
+                    <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-muted/80 text-muted-foreground border-border group-hover:border-primary/40 group-hover:text-primary transition-colors font-mono">
                       {field.conditions.length}
                     </Badge>
                   )}
@@ -599,11 +599,11 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   className="text-sm flex items-center justify-between cursor-pointer py-1.5"
                 >
                   <div className="flex items-center gap-2">
-                    <Video className="w-4 h-4 text-rose-400" />
+                    <Video className="w-4 h-4" />
                     <span>Attach Video / Briefing</span>
                   </div>
                   {field.videoUrl ? (
-                    <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-rose-500/10 text-rose-400 border-rose-500/30 font-mono">
+                    <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-muted/80 text-muted-foreground border-border group-hover:border-primary/40 group-hover:text-primary transition-colors font-mono">
                       Active
                     </Badge>
                   ) : null}
@@ -613,7 +613,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className="text-sm flex items-center gap-2 cursor-pointer py-1.5">
-                    <Layers className="w-4 h-4 text-primary" />
+                    <Layers className="w-4 h-4" />
                     <span>Move to Section</span>
                   </DropdownMenuSubTrigger>
                   <DropdownMenuSubContent className="w-48 p-1 bg-popover border border-border shadow-lg">
@@ -1092,9 +1092,9 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                         }`}
                       >
                         <Star
-                          className={`w-4 h-4 transition-transform ${
+                          className={`w-4 h-4 transition-colors ${
                             previewRating >= star
-                              ? 'text-amber-500 fill-amber-500 scale-110'
+                              ? 'text-amber-500 fill-amber-500'
                               : 'text-muted-foreground/60'
                           }`}
                         />
@@ -2378,7 +2378,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
         <DialogContent className="sm:max-w-[540px] bg-card border border-border shadow-xl">
           <DialogHeader>
             <DialogTitle className="text-base font-bold flex items-center gap-2 text-foreground">
-              <Upload className="w-4 h-4 text-emerald-400" />
+              <Upload className="w-4 h-4 text-primary" />
               <span>Import / Replace Question JSON</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
@@ -2412,7 +2412,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               variant="default"
               size="sm"
               onClick={handleApplyPastedJson}
-              className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white gap-1.5"
+              className="text-xs gap-1.5"
             >
               <Check className="w-3.5 h-3.5" />
               Apply JSON

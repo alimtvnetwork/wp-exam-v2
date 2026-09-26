@@ -610,13 +610,13 @@ export const FormBuilder: React.FC = () => {
               <div className="pt-2 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 text-sm">
                 <div className="flex flex-wrap items-center gap-3">
                   {/* Form Type Select */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-foreground text-sm font-semibold">Type:</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-foreground text-sm font-semibold shrink-0">Type:</span>
                     <Select
                       value={formType}
                       onValueChange={(val) => setFormType(val as FormType)}
                     >
-                      <SelectTrigger className="h-9 min-w-[210px] text-sm font-semibold bg-background border border-border shadow-2xs cursor-pointer">
+                      <SelectTrigger className="h-9 w-auto min-w-[235px] shrink-0 text-sm font-semibold bg-background border border-border shadow-2xs cursor-pointer">
                         <SelectValue placeholder="Form Type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -629,13 +629,13 @@ export const FormBuilder: React.FC = () => {
                   </div>
 
                   {/* Form Access Select */}
-                  <div className="flex items-center gap-2">
-                    <span className="text-foreground text-sm font-semibold">Access:</span>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className="text-foreground text-sm font-semibold shrink-0">Access:</span>
                     <Select
                       value={formAccess}
                       onValueChange={(val) => setFormAccess(val as FormAccessType)}
                     >
-                      <SelectTrigger className="h-9 min-w-[170px] text-sm font-semibold bg-background border border-border shadow-2xs cursor-pointer">
+                      <SelectTrigger className="h-9 w-auto min-w-[180px] shrink-0 text-sm font-semibold bg-background border border-border shadow-2xs cursor-pointer">
                         <SelectValue placeholder="Access" />
                       </SelectTrigger>
                       <SelectContent>
@@ -688,7 +688,7 @@ export const FormBuilder: React.FC = () => {
                   value={selectedGroupFilter}
                   onValueChange={setSelectedGroupFilter}
                 >
-                  <SelectTrigger className="h-7 w-[140px] text-sm bg-background">
+                  <SelectTrigger className="h-8 min-w-[150px] w-auto max-w-[220px] text-sm bg-background">
                     <SelectValue placeholder="All Sections" />
                   </SelectTrigger>
                   <SelectContent>
@@ -1114,7 +1114,6 @@ export const FormBuilder: React.FC = () => {
                     <Switch
                       checked={isSequential}
                       onCheckedChange={setIsSequential}
-                      className="scale-75"
                     />
                   </div>
                 </div>
