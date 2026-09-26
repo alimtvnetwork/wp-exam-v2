@@ -102,6 +102,7 @@ export interface FormField {
   conditionMatch?: 'all' | 'any';
   optionBranching?: Record<string, string>;
   branchTarget?: string;
+  allowOtherOption?: boolean;
 }
 
 export interface FormSettings {

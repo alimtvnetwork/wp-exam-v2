@@ -247,7 +247,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
                     className={`relative w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-all group ${
                       isActive
                         ? 'bg-primary/15 text-primary font-semibold shadow-xs'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/70'
+                        : 'text-muted-foreground hover:text-primary hover:bg-primary/10'
                     }`}
                   >
                     {/* Active Accent Bar */}

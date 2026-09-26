@@ -354,7 +354,7 @@ export const FormBuilder: React.FC = () => {
   const requiredCount = fields.filter((f) => f.isRequired).length;
 
   return (
-    <div className="max-w-7xl mx-auto p-2 sm:p-4 space-y-4">
+    <div className="max-w-7xl mx-auto p-0 space-y-4">
       {/* Top Action Bar with Integrated Live URL & Customizable Slug Ribbon */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-card rounded-xl border border-border/80 shadow-xs">
         <div className="space-y-1.5 min-w-0 flex-1">
@@ -364,7 +364,7 @@ export const FormBuilder: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => window.history.back()}
-              className="text-xs h-8 gap-1.5 font-medium shrink-0"
+              className="text-sm h-8 gap-1.5 font-medium shrink-0"
               title="Back to Admin Dashboard"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
@@ -374,13 +374,13 @@ export const FormBuilder: React.FC = () => {
             <h1 className="text-xl font-bold tracking-tight text-foreground truncate">
               Form & Assessment Builder
             </h1>
-            <Badge variant="secondary" className="text-[10px] font-mono shrink-0">
+            <Badge variant="secondary" className="text-sm font-mono shrink-0">
               Studio
             </Badge>
           </div>
 
           {/* Integrated Live URL & Customizable Slug Ribbon */}
-          <div className="flex items-center gap-2 flex-wrap text-xs pt-0.5">
+          <div className="flex items-center gap-2 flex-wrap text-sm pt-0.5">
             <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/40 border border-border/60 font-mono text-[11px] text-muted-foreground focus-within:border-primary focus-within:ring-1 focus-within:ring-primary shadow-2xs">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
               <button
@@ -411,7 +411,7 @@ export const FormBuilder: React.FC = () => {
                   setSlug(auto);
                   toast.success(`Slug auto-generated: "${auto}"`);
                 }}
-                className="p-0.5 hover:text-primary text-muted-foreground transition-colors rounded hover:bg-muted"
+                className="p-0.5 hover:text-primary text-muted-foreground transition-colors rounded hover:bg-accent"
                 title="Auto-generate slug from title"
               >
                 <Wand2 className="w-3 h-3" />
@@ -419,7 +419,7 @@ export const FormBuilder: React.FC = () => {
               <button
                 type="button"
                 onClick={handleCopyLiveUrl}
-                className="p-0.5 hover:text-foreground text-muted-foreground transition-colors ml-0.5 rounded hover:bg-muted"
+                className="p-0.5 hover:text-foreground text-muted-foreground transition-colors ml-0.5 rounded hover:bg-accent"
                 title="Copy Public Form URL to clipboard"
               >
                 <Copy className="w-3 h-3" />
@@ -455,7 +455,7 @@ export const FormBuilder: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={() => window.open(`/preview/${activeSlug}`, '_blank')}
-              className="text-muted-foreground hover:text-foreground hover:bg-muted gap-1 font-medium"
+              className="text-muted-foreground hover:text-foreground hover:bg-accent gap-1 font-medium"
               title="Open Dedicated Full-Screen Live Preview in New Tab"
             >
               <span>Preview</span>
@@ -475,7 +475,7 @@ export const FormBuilder: React.FC = () => {
               setInspectorTab('audit');
               setIsDesignPanelOpen(true);
             }}
-            className={`text-xs h-8 gap-1.5 font-medium transition-colors ${
+            className={`text-sm h-8 gap-1.5 font-medium transition-colors ${
               designReport.score >= 90
                 ? 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10'
                 : designReport.score >= 75
@@ -506,7 +506,7 @@ export const FormBuilder: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs h-8 gap-1.5 border-border"
+                className="text-sm h-8 gap-1.5 border-border"
                 title="Open secondary builder tools and integrations"
               >
                 <Wand2 className="w-3.5 h-3.5 text-primary" />
@@ -514,47 +514,47 @@ export const FormBuilder: React.FC = () => {
                 <ChevronDown className="w-3 h-3 text-muted-foreground" />
               </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 bg-popover border border-border shadow-xl p-1 text-xs">
-              <DropdownMenuLabel className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1">
+            <DropdownMenuContent align="end" className="w-64 bg-popover border border-border shadow-xl p-1 text-sm">
+              <DropdownMenuLabel className="text-sm font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1">
                 Integrations & Tools
               </DropdownMenuLabel>
 
               <DropdownMenuItem
                 onClick={() => setIsGoogleModalOpen(true)}
-                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-muted focus:bg-muted"
+                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-accent focus:bg-muted"
               >
                 <div className="w-7 h-7 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center shrink-0">
                   <FileSpreadsheet className="w-3.5 h-3.5" />
                 </div>
                 <div>
                   <div className="font-semibold text-foreground">Import Google Form</div>
-                  <div className="text-[10px] text-muted-foreground">Import fields, auth & customize logic</div>
+                  <div className="text-sm text-muted-foreground">Import fields, auth & customize logic</div>
                 </div>
               </DropdownMenuItem>
 
               <DropdownMenuItem
                 onClick={() => setIsFlowModalOpen(true)}
-                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-muted focus:bg-muted"
+                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-accent focus:bg-muted"
               >
                 <div className="w-7 h-7 rounded-md bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
                   <GitBranch className="w-3.5 h-3.5" />
                 </div>
                 <div>
                   <div className="font-semibold text-foreground">Branching Flow & DAG</div>
-                  <div className="text-[10px] text-muted-foreground">Visual graph & path simulation</div>
+                  <div className="text-sm text-muted-foreground">Visual graph & path simulation</div>
                 </div>
               </DropdownMenuItem>
 
               <DropdownMenuItem
                 onClick={() => setIsJsonModalOpen(true)}
-                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-muted focus:bg-muted"
+                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-accent focus:bg-muted"
               >
                 <div className="w-7 h-7 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center shrink-0">
                   <FileJson className="w-3.5 h-3.5" />
                 </div>
                 <div>
                   <div className="font-semibold text-foreground">JSON Schema Studio</div>
-                  <div className="text-[10px] text-muted-foreground">Export, backup or edit raw JSON</div>
+                  <div className="text-sm text-muted-foreground">Export, backup or edit raw JSON</div>
                 </div>
               </DropdownMenuItem>
 
@@ -572,7 +572,7 @@ export const FormBuilder: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => window.open('/preview/' + activeSlug, '_blank')}
-            className="text-xs h-8 gap-1.5 border-border"
+            className="text-sm h-8 gap-1.5 border-border"
             title="Preview interactive form in a new tab"
           >
             <Eye className="w-3.5 h-3.5 text-sky-400" />
@@ -584,7 +584,7 @@ export const FormBuilder: React.FC = () => {
             onClick={handleSave}
             disabled={isSaving}
             size="sm"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground text-xs h-8 gap-1.5 font-semibold shadow-xs"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm h-8 gap-1.5 font-semibold shadow-xs"
           >
             <Save className="w-3.5 h-3.5" />
             <span>{isSaving ? 'Saving...' : 'Save Form'}</span>
@@ -593,7 +593,7 @@ export const FormBuilder: React.FC = () => {
       </div>
 
       {saveStatus && (
-        <div className="p-3 bg-primary/10 border border-primary/20 text-primary rounded-lg text-xs text-center font-medium">
+        <div className="p-3 bg-primary/10 border border-primary/20 text-primary rounded-lg text-sm text-center font-medium">
           {saveStatus}
         </div>
       )}
@@ -628,7 +628,7 @@ export const FormBuilder: React.FC = () => {
               </div>
 
               {/* Status and Configuration Pill Row */}
-              <div className="pt-2 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="pt-2 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 text-sm">
                 <div className="flex flex-wrap items-center gap-3">
                   {/* Form Type Select */}
                   <div className="flex items-center gap-1.5">
@@ -637,7 +637,7 @@ export const FormBuilder: React.FC = () => {
                       value={formType}
                       onValueChange={(val) => setFormType(val as FormType)}
                     >
-                      <SelectTrigger className="h-7 w-[160px] text-xs bg-background">
+                      <SelectTrigger className="h-7 w-[160px] text-sm bg-background">
                         <SelectValue placeholder="Form Type" />
                       </SelectTrigger>
                       <SelectContent>
@@ -656,7 +656,7 @@ export const FormBuilder: React.FC = () => {
                       value={formAccess}
                       onValueChange={(val) => setFormAccess(val as FormAccessType)}
                     >
-                      <SelectTrigger className="h-7 w-[140px] text-xs bg-background">
+                      <SelectTrigger className="h-7 w-[140px] text-sm bg-background">
                         <SelectValue placeholder="Access" />
                       </SelectTrigger>
                       <SelectContent>
@@ -683,10 +683,10 @@ export const FormBuilder: React.FC = () => {
 
                   {/* Questions & Points Badges */}
                   <div className="flex items-center gap-1.5 font-mono">
-                    <Badge variant="outline" className="text-[10px] bg-background">
+                    <Badge variant="outline" className="text-sm bg-background">
                       {fields.length} Qs
                     </Badge>
-                    <Badge variant="secondary" className="text-[10px] bg-primary/10 text-primary border-primary/20">
+                    <Badge variant="secondary" className="text-sm bg-primary/10 text-primary border-primary/20">
                       {totalPoints} Pts
                     </Badge>
                   </div>
@@ -699,7 +699,7 @@ export const FormBuilder: React.FC = () => {
           <div className="flex items-center justify-between gap-3 px-1">
             <div className="flex items-center gap-2">
               <h2 className="text-sm font-semibold text-foreground tracking-tight">Questions & Fields</h2>
-              <span className="text-xs text-muted-foreground">({displayedFields.length} of {fields.length})</span>
+              <span className="text-sm text-muted-foreground">({displayedFields.length} of {fields.length})</span>
             </div>
 
             {distinctGroups.length > 0 && (
@@ -709,7 +709,7 @@ export const FormBuilder: React.FC = () => {
                   value={selectedGroupFilter}
                   onValueChange={setSelectedGroupFilter}
                 >
-                  <SelectTrigger className="h-7 w-[140px] text-xs bg-background">
+                  <SelectTrigger className="h-7 w-[140px] text-sm bg-background">
                     <SelectValue placeholder="All Sections" />
                   </SelectTrigger>
                   <SelectContent>
@@ -741,7 +741,7 @@ export const FormBuilder: React.FC = () => {
                         <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20 shadow-xs">
                           <div className="flex items-center gap-2">
                             <Layers className="w-4 h-4 text-primary" />
-                            <span className="text-xs font-bold uppercase tracking-wider text-primary">
+                            <span className="text-sm font-bold uppercase tracking-wider text-primary">
                               Section: {field.group}
                             </span>
                           </div>
@@ -762,7 +762,7 @@ export const FormBuilder: React.FC = () => {
                               <FileJson className="w-3 h-3" />
                               <span>Export Section JSON</span>
                             </Button>
-                            <Badge variant="outline" className="text-[10px] bg-background">
+                            <Badge variant="outline" className="text-sm bg-background">
                               Section
                             </Badge>
                           </div>
@@ -796,7 +796,7 @@ export const FormBuilder: React.FC = () => {
               <Sparkles className="w-8 h-8 text-primary mx-auto opacity-60" />
               <div className="space-y-1">
                 <p className="font-semibold text-sm text-foreground">No questions added yet</p>
-                <p className="text-xs max-w-sm mx-auto">
+                <p className="text-sm max-w-sm mx-auto">
                   Click any question type from the palette on the right to start building your form.
                 </p>
               </div>
@@ -804,7 +804,7 @@ export const FormBuilder: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => handleQuickAdd('multiple_choice')}
-                className="text-xs gap-1.5 border-border"
+                className="text-sm gap-1.5 border-border"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
                 <span>Add Multiple Choice</span>
@@ -814,12 +814,12 @@ export const FormBuilder: React.FC = () => {
 
           {/* Bottom Canvas Quick Add Prompt */}
           {displayedFields.length > 0 && (
-            <div className="flex items-center justify-center p-3 border border-dashed border-border/80 rounded-xl bg-muted/10 hover:bg-muted/20 transition-colors">
+            <div className="flex items-center justify-center p-3 border border-dashed border-border/80 rounded-xl bg-muted/10 hover:bg-accent/20 transition-colors">
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => handleQuickAdd('multiple_choice')}
-                className="text-xs text-muted-foreground hover:text-foreground gap-2"
+                className="text-sm text-muted-foreground hover:text-foreground gap-2"
               >
                 <PlusCircle className="w-4 h-4 text-primary" />
                 <span>Add Multiple Choice Question</span>
@@ -900,14 +900,14 @@ export const FormBuilder: React.FC = () => {
                       value={outlineFilter}
                       onChange={(e) => setOutlineFilter(e.target.value)}
                       placeholder="Filter questions outline..."
-                      className="h-8 text-xs pl-7 pr-7 bg-muted/30 border-border/80 rounded-lg placeholder:text-muted-foreground/70"
+                      className="h-8 text-sm pl-7 pr-7 bg-muted/30 border-border/80 rounded-lg placeholder:text-muted-foreground/70"
                     />
                     <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
                     {outlineFilter && (
                       <button
                         type="button"
                         onClick={() => setOutlineFilter('')}
-                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-xs p-0.5"
+                        className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground text-sm p-0.5"
                       >
                         ✕
                       </button>
@@ -916,7 +916,7 @@ export const FormBuilder: React.FC = () => {
 
                   {/* Scrollable Questions List */}
                   {fields.length === 0 ? (
-                    <div className="py-8 text-center text-xs text-muted-foreground">
+                    <div className="py-8 text-center text-sm text-muted-foreground">
                       No questions in this form yet. Use the Fields tab to add questions.
                     </div>
                   ) : (
@@ -935,7 +935,7 @@ export const FormBuilder: React.FC = () => {
                         .map(({ field: f, index: idx }) => (
                           <div
                             key={f.id}
-                            className="flex items-center justify-between p-2 rounded-xl border border-border/70 bg-card/60 hover:bg-muted/40 transition-colors group text-xs shadow-2xs"
+                            className="flex items-center justify-between p-2 rounded-xl border border-border/70 bg-card/60 hover:bg-accent/40 transition-colors group text-sm shadow-2xs"
                           >
                             <button
                               type="button"
@@ -943,7 +943,7 @@ export const FormBuilder: React.FC = () => {
                               className="flex items-center gap-2 min-w-0 flex-1 text-left truncate mr-2"
                               title="Click to jump to this question on canvas"
                             >
-                              <span className="font-mono text-[10px] text-muted-foreground w-5 h-5 rounded-md bg-muted/60 flex items-center justify-center shrink-0 border border-border/60">
+                              <span className="font-mono text-sm text-muted-foreground w-5 h-5 rounded-md bg-muted/60 flex items-center justify-center shrink-0 border border-border/60">
                                 {idx + 1}
                               </span>
                               <div className="min-w-0 flex-1">
@@ -974,7 +974,7 @@ export const FormBuilder: React.FC = () => {
                                   type="button"
                                   disabled={idx === 0}
                                   onClick={() => handleMoveField(idx, 'up')}
-                                  className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors"
+                                  className="p-1 hover:bg-accent rounded text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors"
                                   title="Move question up"
                                 >
                                   <ArrowUp className="w-3 h-3" />
@@ -983,7 +983,7 @@ export const FormBuilder: React.FC = () => {
                                   type="button"
                                   disabled={idx === fields.length - 1}
                                   onClick={() => handleMoveField(idx, 'down')}
-                                  className="p-1 hover:bg-muted rounded text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors"
+                                  className="p-1 hover:bg-accent rounded text-muted-foreground hover:text-foreground disabled:opacity-20 transition-colors"
                                   title="Move question down"
                                 >
                                   <ArrowDown className="w-3 h-3" />
@@ -996,21 +996,21 @@ export const FormBuilder: React.FC = () => {
                   )}
 
                   {/* Summary Stats Row */}
-                  <div className="pt-2 border-t border-border/60 grid grid-cols-4 gap-1.5 text-center text-[10px] text-muted-foreground">
+                  <div className="pt-2 border-t border-border/60 grid grid-cols-4 gap-1.5 text-center text-sm text-muted-foreground">
                     <div className="p-1.5 bg-muted/30 rounded-lg border border-border/40">
-                      <span className="block font-bold text-foreground text-xs">{fields.length}</span>
+                      <span className="block font-bold text-foreground text-sm">{fields.length}</span>
                       <span>Questions</span>
                     </div>
                     <div className="p-1.5 bg-muted/30 rounded-lg border border-border/40">
-                      <span className="block font-bold text-foreground text-xs">{requiredCount}</span>
+                      <span className="block font-bold text-foreground text-sm">{requiredCount}</span>
                       <span>Required</span>
                     </div>
                     <div className="p-1.5 bg-muted/30 rounded-lg border border-border/40">
-                      <span className="block font-bold text-foreground text-xs">{totalPoints}</span>
+                      <span className="block font-bold text-foreground text-sm">{totalPoints}</span>
                       <span>Points</span>
                     </div>
                     <div className="p-1.5 bg-muted/30 rounded-lg border border-border/40">
-                      <span className="block font-bold text-foreground text-xs">
+                      <span className="block font-bold text-foreground text-sm">
                         ~{Math.max(1, Math.round(fields.length * 1.5))}m
                       </span>
                       <span>Est. Time</span>
@@ -1031,7 +1031,7 @@ export const FormBuilder: React.FC = () => {
               </TabsContent>
 
               {/* Tab 4: Form Settings / Config */}
-              <TabsContent value="settings" className="p-3 m-0 space-y-3 focus-visible:outline-none text-xs">
+              <TabsContent value="settings" className="p-3 m-0 space-y-3 focus-visible:outline-none text-sm">
                 {/* 1. Access & Candidate Permissions */}
                 <div className="p-3 rounded-xl border border-border/70 bg-card/60 space-y-2">
                   <div className="flex items-center gap-1.5 text-foreground font-semibold">
@@ -1044,17 +1044,17 @@ export const FormBuilder: React.FC = () => {
                       value={formAccess}
                       onValueChange={(val) => setFormAccess(val as FormAccessType)}
                     >
-                      <SelectTrigger className="w-full h-8 text-xs bg-background">
+                      <SelectTrigger className="w-full h-8 text-sm bg-background">
                         <SelectValue placeholder="Select Access Policy" />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border">
-                        <SelectItem value="public" className="text-xs">
+                        <SelectItem value="public" className="text-sm">
                           🌍 Public (Anyone with link)
                         </SelectItem>
-                        <SelectItem value="token" className="text-xs">
+                        <SelectItem value="token" className="text-sm">
                           🔑 Secret Token Required
                         </SelectItem>
-                        <SelectItem value="invite_only" className="text-xs">
+                        <SelectItem value="invite_only" className="text-sm">
                           ✉️ Invite Only (White-listed candidates)
                         </SelectItem>
                       </SelectContent>
@@ -1075,17 +1075,17 @@ export const FormBuilder: React.FC = () => {
                       value={formType}
                       onValueChange={(val) => setFormType(val as FormType)}
                     >
-                      <SelectTrigger className="w-full h-8 text-xs bg-background">
+                      <SelectTrigger className="w-full h-8 text-sm bg-background">
                         <SelectValue placeholder="Select Form Type" />
                       </SelectTrigger>
                       <SelectContent className="bg-popover border-border">
-                        <SelectItem value="quiz" className="text-xs">
+                        <SelectItem value="quiz" className="text-sm">
                           🏆 Graded Knowledge Quiz (Points & Pass/Fail)
                         </SelectItem>
-                        <SelectItem value="survey" className="text-xs">
+                        <SelectItem value="survey" className="text-sm">
                           📝 Survey / Application Form (No grading)
                         </SelectItem>
-                        <SelectItem value="poll" className="text-xs">
+                        <SelectItem value="poll" className="text-sm">
                           📊 Live Instant Poll
                         </SelectItem>
                       </SelectContent>
@@ -1104,7 +1104,7 @@ export const FormBuilder: React.FC = () => {
                             onChange={(e) =>
                               updateSettings({ passingScore: Number(e.target.value) || 0 })
                             }
-                            className="h-7 w-16 text-xs text-right bg-background"
+                            className="h-7 w-16 text-sm text-right bg-background"
                           />
                           <span>%</span>
                         </div>
@@ -1122,7 +1122,7 @@ export const FormBuilder: React.FC = () => {
                             onChange={(e) =>
                               updateSettings({ timeLimitSeconds: Number(e.target.value) || 0 })
                             }
-                            className="h-7 w-20 text-xs text-right bg-background"
+                            className="h-7 w-20 text-sm text-right bg-background"
                           />
                           <span>sec</span>
                         </div>
@@ -1135,8 +1135,8 @@ export const FormBuilder: React.FC = () => {
                 <div className="p-3 rounded-xl border border-border/70 bg-card/60 space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="font-semibold text-foreground block text-xs">Focus Step-by-Step</span>
-                      <span className="text-[10px] text-muted-foreground">Present 1 question per screen</span>
+                      <span className="font-semibold text-foreground block text-sm">Focus Step-by-Step</span>
+                      <span className="text-sm text-muted-foreground">Present 1 question per screen</span>
                     </div>
                     <Switch
                       checked={isSequential}

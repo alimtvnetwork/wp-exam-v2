@@ -1258,10 +1258,96 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
       );
     }
 
-    case 'multiple_choice':
+    case 'multiple_choice': {
+      const options = field.options || [];
+      const selectedOpts = Array.isArray(value) ? value : (typeof value === 'string' && value ? [value] : []);
+      const otherPrefix = '__other__:';
+      const hasOther = selectedOpts.some(opt => typeof opt === 'string' && opt.startsWith(otherPrefix));
+      const otherValue = hasOther ? selectedOpts.find(opt => typeof opt === 'string' && opt.startsWith(otherPrefix))?.substring(otherPrefix.length) || '' : '';
+
+      const handleChange = (opt: string, checked: boolean) => {
+        if (checked) {
+          onChange([...selectedOpts, opt]);
+        } else {
+          onChange(selectedOpts.filter(o => o !== opt));
+        }
+      };
+
+      const handleOtherChange = (text: string) => {
+        const filtered = selectedOpts.filter(o => typeof o === 'string' && !o.startsWith(otherPrefix));
+        if (text) {
+           onChange([...filtered, otherPrefix + text]);
+        } else {
+           onChange([...filtered, otherPrefix + ' ']);
+        }
+      };
+
+      return (
+        <div className="space-y-1.5">
+          {options.map((opt) => (
+            <label
+              key={opt}
+              className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition ${
+                selectedOpts.includes(opt)
+                  ? 'border-primary bg-primary/10 text-primary font-bold'
+                  : 'border-border bg-card hover:bg-muted/40 text-foreground'
+              }`}
+            >
+              <input
+                type="checkbox"
+                name={`field-${field.id}`}
+                value={opt}
+                checked={selectedOpts.includes(opt)}
+                onChange={(e) => handleChange(opt, e.target.checked)}
+                className="text-primary focus:ring-primary h-3.5 w-3.5"
+              />
+              <span>{opt}</span>
+            </label>
+          ))}
+          {field.allowOtherOption && (
+            <label
+              className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition ${
+                hasOther
+                  ? 'border-primary bg-primary/10 text-primary font-bold'
+                  : 'border-border bg-card hover:bg-muted/40 text-foreground'
+              }`}
+            >
+              <input
+                type="checkbox"
+                name={`field-${field.id}-other`}
+                checked={hasOther}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    handleOtherChange(' ');
+                  } else {
+                    const filtered = selectedOpts.filter(o => typeof o === 'string' && !o.startsWith(otherPrefix));
+                    onChange(filtered);
+                  }
+                }}
+                className="text-primary focus:ring-primary h-3.5 w-3.5"
+              />
+              <span>Other:</span>
+              {hasOther && (
+                <Input
+                  value={otherValue.trim()}
+                  onChange={(e) => handleOtherChange(e.target.value)}
+                  className="h-6 text-xs flex-1 max-w-sm"
+                  onClick={(e) => e.preventDefault()}
+                />
+              )}
+            </label>
+          )}
+        </div>
+      );
+    }
+
     case 'single_choice':
     case 'true_false': {
       const options = field.options || ['Yes', 'No'];
+      const otherPrefix = '__other__:';
+      const hasOther = strValue.startsWith(otherPrefix);
+      const otherValue = hasOther ? strValue.substring(otherPrefix.length) : '';
+
       return (
         <div className="space-y-1.5">
           {options.map((opt) => (
@@ -1284,6 +1370,33 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
               <span>{opt}</span>
             </label>
           ))}
+          {field.allowOtherOption && (
+            <label
+              className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition ${
+                hasOther
+                  ? 'border-primary bg-primary/10 text-primary font-bold'
+                  : 'border-border bg-card hover:bg-muted/40 text-foreground'
+              }`}
+            >
+              <input
+                type="radio"
+                name={`field-${field.id}`}
+                value="__other__"
+                checked={hasOther}
+                onChange={() => onChange(otherPrefix + ' ')}
+                className="text-primary focus:ring-primary h-3.5 w-3.5"
+              />
+              <span>Other:</span>
+              {hasOther && (
+                <Input
+                  value={otherValue.trim()}
+                  onChange={(e) => onChange(otherPrefix + e.target.value)}
+                  className="h-6 text-xs flex-1 max-w-sm"
+                  onClick={(e) => e.preventDefault()}
+                />
+              )}
+            </label>
+          )}
         </div>
       );
     }

@@ -104,48 +104,48 @@ export const Index: React.FC = () => {
               <Shield className="w-6 h-6" />
             </div>
             <h1 className="text-2xl font-black tracking-tight text-foreground">WP Exam Console</h1>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               Restricted administrative portal for curriculum authoring and candidate scoring.
             </p>
           </div>
 
           <form onSubmit={handleInlineLogin} className="space-y-4">
             {loginError && (
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-center gap-2">
+              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 shrink-0" />
                 <span>{loginError}</span>
               </div>
             )}
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-foreground">Username</Label>
+              <Label className="text-sm font-semibold text-foreground">Username</Label>
               <div className="relative">
                 <User className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
                 <Input
                   type="text"
                   value={loginUser}
                   onChange={(e) => setLoginUser(e.target.value)}
-                  className="pl-9 bg-background border-border text-xs h-9 text-foreground font-mono"
+                  className="pl-9 bg-background border-border text-sm h-9 text-foreground font-mono"
                   required
                 />
               </div>
             </div>
 
             <div className="space-y-1.5">
-              <Label className="text-xs font-semibold text-foreground">Password</Label>
+              <Label className="text-sm font-semibold text-foreground">Password</Label>
               <div className="relative">
                 <KeyRound className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
                 <Input
                   type="password"
                   value={loginPass}
                   onChange={(e) => setLoginPass(e.target.value)}
-                  className="pl-9 bg-background border-border text-xs h-9 text-foreground font-mono"
+                  className="pl-9 bg-background border-border text-sm h-9 text-foreground font-mono"
                   required
                 />
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-muted/40 border border-border text-xs space-y-1">
+            <div className="p-3 rounded-xl bg-muted/40 border border-border text-sm space-y-1">
               <div className="flex items-center gap-1.5 text-primary font-semibold">
                 <CheckCircle2 className="w-3.5 h-3.5" />
                 <span>Test Credentials:</span>
@@ -156,7 +156,7 @@ export const Index: React.FC = () => {
               </p>
             </div>
 
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-xs h-10 shadow-xs">
+            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm h-10 shadow-xs">
               Sign In to Administration &rarr;
             </Button>
 
@@ -164,7 +164,7 @@ export const Index: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/')}
-                className="text-xs text-muted-foreground hover:text-primary transition"
+                className="text-sm text-muted-foreground hover:text-primary transition"
               >
                 &larr; Return to Public Website
               </button>
@@ -191,10 +191,10 @@ export const Index: React.FC = () => {
         {/* Left Side: Brand, Portal Link */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-primary text-primary-foreground font-black text-xs flex items-center justify-center font-serif shadow-xs">
+            <div className="w-6 h-6 rounded bg-primary text-primary-foreground font-black text-sm flex items-center justify-center font-serif shadow-xs">
               W
             </div>
-            <span className="font-bold text-xs tracking-tight text-foreground hidden sm:inline">
+            <span className="font-bold text-sm tracking-tight text-foreground hidden sm:inline">
               WP Exam Console
             </span>
             <Badge variant="outline" className="text-[9px] font-mono py-0 border-border text-muted-foreground">
@@ -209,11 +209,11 @@ export const Index: React.FC = () => {
             variant="ghost"
             size="sm"
             onClick={() => navigate('/')}
-            className="text-xs h-7 px-2 gap-1.5 text-muted-foreground hover:text-primary hover:bg-muted"
+            className="text-sm h-7 px-2 gap-1.5 text-muted-foreground hover:text-primary hover:bg-muted"
             title="Visit Public Candidate Portal"
           >
             <ExternalLink className="w-3.5 h-3.5" />
-            <span className="text-xs">Visit Portal</span>
+            <span className="text-sm">Visit Portal</span>
           </Button>
         </div>
 
@@ -224,7 +224,7 @@ export const Index: React.FC = () => {
           <div className="h-4 w-px bg-border" />
 
           {/* User Profile */}
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <span className="hidden md:inline">Howdy,</span>
             <span className="font-semibold text-foreground">admin</span>
             <div className="w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center text-primary">
@@ -236,7 +236,7 @@ export const Index: React.FC = () => {
             variant="ghost"
             size="sm"
             onClick={logout}
-            className="text-xs h-7 px-2 gap-1 text-muted-foreground hover:text-destructive hover:bg-muted"
+            className="text-sm h-7 px-2 gap-1 text-muted-foreground hover:text-destructive hover:bg-muted"
             title="Log Out"
           >
             <LogOut className="w-3.5 h-3.5" />
@@ -258,7 +258,7 @@ export const Index: React.FC = () => {
 
         {/* Fluid Right Content Canvas */}
         <main className="flex-1 min-w-0 bg-background/50 overflow-y-auto">
-          <div className="p-2 sm:p-4">
+          <div className="p-0">
             {activeTab === 'builder' && <QuizEditor />}
 
             {activeTab === 'focus-editor' && (
