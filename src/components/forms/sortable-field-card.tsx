@@ -3055,28 +3055,30 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             )}
           </div>
 
-          {/* Action buttons: Compact Icon-Only Duplicate and Delete with Tooltips */}
-          <div className="flex items-center gap-1.5 ml-auto">
-            <Button
+          {/* Combined Duplicate & Delete Segmented Control */}
+          <div className="inline-flex items-center rounded-lg border border-border bg-card shadow-2xs overflow-hidden h-9 ml-auto shrink-0">
+            {/* Duplicate Button Segment */}
+            <button
               type="button"
-              variant="outline"
-              size="icon"
               onClick={() => onDuplicate(id)}
-              className="h-9 w-9 bg-card border border-border text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/40 rounded-lg cursor-pointer transition-all shadow-2xs group"
+              className="inline-flex items-center justify-center h-full px-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer group"
               title="Duplicate Question"
             >
               <Copy className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-            </Button>
-            <Button
+            </button>
+
+            {/* Subtle Divider */}
+            <div className="w-px h-5 bg-border shrink-0" />
+
+            {/* Delete Button Segment */}
+            <button
               type="button"
-              variant="outline"
-              size="icon"
               onClick={() => onRemove(id)}
-              className="h-9 w-9 text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30 hover:border-destructive/60 rounded-lg cursor-pointer transition-all shadow-2xs group"
+              className="inline-flex items-center justify-center h-full px-2.5 text-destructive hover:bg-destructive/10 transition-colors cursor-pointer group"
               title="Delete Question"
             >
               <Trash2 className="w-4 h-4 text-destructive group-hover:scale-110 transition-transform" />
-            </Button>
+            </button>
           </div>
         </CardFooter>
       </Card>
