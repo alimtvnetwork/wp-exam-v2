@@ -883,11 +883,11 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="h-7 px-2.5 text-xs gap-1.5 border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary font-semibold rounded-lg cursor-pointer transition-all duration-150 shadow-2xs"
+                    className="h-7 px-2.5 text-xs gap-1.5 border-border bg-card text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/40 font-semibold rounded-lg cursor-pointer transition-all duration-150 shadow-2xs group"
                   >
-                    <Plus className="w-3.5 h-3.5" />
+                    <Plus className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform" />
                     <span>Add Context</span>
-                    <ChevronDown className="w-3 h-3 opacity-60" />
+                    <ChevronDown className="w-3 h-3 opacity-60 group-hover:text-primary transition-colors" />
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-52 bg-popover border border-border shadow-lg p-1 text-xs">
@@ -945,7 +945,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => setIsSectionMenuOpen(!isSectionMenuOpen)}
-                      className="h-9 px-2.5 gap-1 text-xs border-border bg-card text-foreground shrink-0 hover:bg-primary hover:text-primary-foreground hover:border-primary cursor-pointer rounded-lg shadow-2xs"
+                      className="h-9 px-2.5 gap-1 text-xs border-border bg-card text-foreground shrink-0 hover:bg-primary/10 hover:text-primary hover:border-primary/40 cursor-pointer rounded-lg shadow-2xs transition-colors"
                     >
                       <ChevronDown className="w-3.5 h-3.5" />
                     </Button>
@@ -3062,20 +3062,20 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               variant="outline"
               size="icon"
               onClick={() => onDuplicate(id)}
-              className="h-9 w-9 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary rounded-lg cursor-pointer transition-all shadow-2xs group"
+              className="h-9 w-9 bg-card border border-border text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/40 rounded-lg cursor-pointer transition-all shadow-2xs group"
               title="Duplicate Question"
             >
-              <Copy className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
+              <Copy className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
             </Button>
             <Button
               type="button"
               variant="outline"
               size="icon"
               onClick={() => onRemove(id)}
-              className="h-9 w-9 text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30 hover:border-destructive rounded-lg cursor-pointer transition-all shadow-2xs group"
+              className="h-9 w-9 text-destructive hover:bg-destructive/10 hover:text-destructive border-destructive/30 hover:border-destructive/60 rounded-lg cursor-pointer transition-all shadow-2xs group"
               title="Delete Question"
             >
-              <Trash2 className="w-4 h-4 text-destructive group-hover:text-destructive-foreground transition-colors" />
+              <Trash2 className="w-4 h-4 text-destructive group-hover:scale-110 transition-transform" />
             </Button>
           </div>
         </CardFooter>

@@ -1163,10 +1163,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             variant="outline"
             size="icon"
             onClick={handleCopyProjectLink}
-            className="h-8 w-8 rounded-lg border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs transition-all cursor-pointer group"
+            className="h-8 w-8 rounded-lg border border-border bg-card text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/40 shadow-xs transition-all cursor-pointer group"
             title="Copy Direct Canonical URL to Clipboard"
           >
-            <Share2 className="w-3.5 h-3.5 text-primary group-hover:text-primary-foreground transition-colors" />
+            <Share2 className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform" />
           </Button>
 
           <Button
@@ -1174,10 +1174,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             variant="outline"
             size="sm"
             onClick={handleAutoFill}
-            className="text-xs h-8 px-2.5 gap-1.5 font-semibold border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs transition-all cursor-pointer group rounded-lg"
+            className="text-xs h-8 px-2.5 gap-1.5 font-semibold border border-border bg-card text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/40 shadow-xs transition-all cursor-pointer group rounded-lg"
             title="Auto-fill form fields with sample test data"
           >
-            <Zap className="w-3.5 h-3.5 text-amber-500 group-hover:text-primary-foreground transition-colors" />
+            <Zap className="w-3.5 h-3.5 text-amber-500 group-hover:scale-110 transition-transform" />
             <span className="hidden md:inline">Auto Fill</span>
           </Button>
 
@@ -1207,7 +1207,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 navigate('/');
               }
             }}
-            className="text-xs h-8 px-2.5 border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary cursor-pointer font-medium transition-all group rounded-lg gap-1"
+            className="text-xs h-8 px-2.5 border border-border bg-card text-foreground hover:bg-accent hover:text-foreground cursor-pointer font-medium transition-all group rounded-lg gap-1"
             title="Exit form runner and return to portal"
           >
             <ArrowLeft className="w-3.5 h-3.5" />

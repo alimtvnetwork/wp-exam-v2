@@ -229,6 +229,49 @@
   color: var(--wp-exam-text-primary);
 }
 
+/* ───── Clean Light Preset ───── */
+.theme-clean,
+[data-theme="clean"],
+.theme-light,
+[data-theme="light"] {
+  --primary: 221.2 83.2% 53.3%;
+  --primary-foreground: 210 40% 98%;
+  --background: 0 0% 100%;
+  --foreground: 222.2 84% 4.9%;
+  --card: 0 0% 100%;
+  --card-foreground: 222.2 84% 4.9%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222.2 84% 4.9%;
+  --border: 214.3 31.8% 91.4%;
+  --input: 214.3 31.8% 91.4%;
+  --ring: 221.2 83.2% 53.3%;
+  --accent: 210 40% 96.1%;
+  --accent-foreground: 222.2 47.4% 11.2%;
+  --secondary: 210 40% 96.1%;
+  --secondary-foreground: 222.2 47.4% 11.2%;
+  --muted: 210 40% 96.1%;
+  --muted-foreground: 215.4 16.3% 46.9%;
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 210 40% 98%;
+  --radius: 0.75rem;
+
+  --wp-exam-bg: #F8FAFC;
+  --wp-exam-card: #FFFFFF;
+  --wp-exam-card-border: #E2E8F0;
+  --wp-exam-card-hover: #F1F5F9;
+  --wp-exam-card-active-border: #2563EB;
+  --wp-exam-card-active-bg: #EFF6FF;
+  --wp-exam-primary: #2563EB;
+  --wp-exam-primary-text: #FFFFFF;
+  --wp-exam-highlight: #2563EB;
+  --wp-exam-text-primary: #0F172A;
+  --wp-exam-text-secondary: #64748B;
+  --wp-exam-progress-bar: #2563EB;
+  --wp-exam-badge-bg: #EFF6FF;
+  background-color: var(--wp-exam-bg);
+  color: var(--wp-exam-text-primary);
+}
+
 /* ───── Clean Wide White ───── */
 .theme-clean-wide,
 [data-theme="clean-wide"] {

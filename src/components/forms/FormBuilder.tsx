@@ -585,10 +585,10 @@ export const FormBuilder: React.FC = () => {
             variant="outline"
             size="icon"
             onClick={handleCopyLiveUrl}
-            className="h-9 w-9 bg-card border border-border text-foreground hover:bg-accent shadow-xs rounded-xl cursor-pointer shrink-0"
+            className="h-9 w-9 bg-card border border-border text-foreground hover:bg-accent hover:text-primary hover:border-primary/40 shadow-xs rounded-xl cursor-pointer shrink-0 transition-all group"
             title="Share & Copy Candidate URL"
           >
-            <Share2 className="w-4 h-4 text-foreground" />
+            <Share2 className="w-4 h-4 text-foreground group-hover:text-primary transition-colors" />
           </Button>
 
           {/* Unified Tools ▾ Dropdown Menu */}
@@ -597,12 +597,12 @@ export const FormBuilder: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs h-9 px-2.5 gap-1.5 bg-card border border-border text-foreground hover:bg-accent shadow-xs transition-all duration-150 rounded-xl font-semibold cursor-pointer shrink-0 group"
+                className="text-xs h-9 px-2.5 gap-1.5 bg-card border border-border text-foreground hover:bg-accent hover:text-primary hover:border-primary/40 shadow-xs transition-all duration-150 rounded-xl font-semibold cursor-pointer shrink-0 group"
                 title="Open secondary builder tools and integrations"
               >
-                <Wand2 className="w-3.5 h-3.5 text-primary group-hover:text-primary-foreground transition-colors" />
+                <Wand2 className="w-3.5 h-3.5 text-primary group-hover:text-primary transition-colors" />
                 <span>Tools</span>
-                <ChevronDown className="w-3 h-3 opacity-70 group-hover:opacity-100" />
+                <ChevronDown className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 bg-popover border border-border shadow-xl p-1 text-sm">
