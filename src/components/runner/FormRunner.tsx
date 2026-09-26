@@ -61,6 +61,7 @@ import { PhoneWithCountrySelect } from '@/components/ui/phone-input';
 import { MultilineListItemsInput } from '@/components/forms/multiline-list-items-input';
 import { toast } from 'sonner';
 import { getTheme, getThemeCssVariables, THEME_PRESETS } from '@/lib/themes';
+import { useTheme, AppThemeType, THEME_CONFIGS } from '@/lib/theme-context';
 import {
   Select,
   SelectContent,
@@ -403,32 +404,59 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   };
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>(getInitialProjectId());
+  const { setTheme: setGlobalTheme } = useTheme();
+
   const [activeThemeId, setActiveThemeId] = useState<string>(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlTheme = params.get('theme');
-      if (urlTheme && (THEME_PRESETS[urlTheme] || urlTheme === 'green-choice' || urlTheme === 'sweet-digs' || urlTheme === 'clean-wide')) {
+      if (urlTheme && (THEME_PRESETS[urlTheme] || urlTheme === 'purple' || urlTheme === 'green-choice' || urlTheme === 'sweet-digs' || urlTheme === 'clean-wide')) {
         return urlTheme;
       }
+      const savedTheme = localStorage.getItem('wpexam_active_theme');
+      if (savedTheme && (THEME_PRESETS[savedTheme] || savedTheme === 'purple' || savedTheme === 'green-choice' || savedTheme === 'sweet-digs' || savedTheme === 'clean-wide')) {
+        return savedTheme;
+      }
     }
-    return 'green-choice';
+    return 'purple';
   });
   const currentTheme = getTheme(activeThemeId);
   const themeVars = getThemeCssVariables(currentTheme);
 
-  // Synchronize active theme attribute and background to root document and body
+  // Synchronize active theme attribute, HSL variables, and background to root document and body
   useEffect(() => {
     const nextT = getTheme(activeThemeId);
-    document.documentElement.setAttribute('data-theme', nextT.id);
+    const root = document.documentElement;
+    root.setAttribute('data-theme', nextT.id);
     document.body.setAttribute('data-theme', nextT.id);
-    document.documentElement.style.backgroundColor = nextT.colors.background;
+    root.style.backgroundColor = nextT.colors.background;
     document.body.style.backgroundColor = nextT.colors.background;
 
+    // Propagate all CSS variables to documentElement so Radix UI portals, popovers, and dialogs inherit them
+    const vars = getThemeCssVariables(nextT);
+    Object.entries(vars).forEach(([k, v]) => {
+      root.style.setProperty(k, v);
+    });
+
+    if (nextT.appearance === 'dark') {
+      root.classList.remove('light');
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+      root.classList.add('light');
+    }
+
+    if (THEME_CONFIGS[nextT.id as AppThemeType]) {
+      setGlobalTheme(nextT.id as AppThemeType);
+    }
+
+    localStorage.setItem('wpexam_active_theme', nextT.id);
+
     return () => {
-      document.documentElement.style.backgroundColor = '';
+      root.style.backgroundColor = '';
       document.body.style.backgroundColor = '';
     };
-  }, [activeThemeId]);
+  }, [activeThemeId, setGlobalTheme]);
 
   const [isDebugMode, setIsDebugMode] = useState<boolean>(false);
 
@@ -1297,18 +1325,19 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
   return (
     <div 
-      className={`space-y-5 font-sans ${
+      className={`min-h-screen w-full transition-colors duration-300 font-sans theme-${activeThemeId} ${
         isFullscreen 
-          ? 'fixed inset-0 z-50 bg-background overflow-y-auto p-4 sm:p-8 min-h-screen'
-          : `${activeThemeId === 'clean-wide' ? 'max-w-7xl' : 'max-w-6xl'} mx-auto p-3 sm:p-6 rounded-2xl`
-      } transition-all duration-300 theme-${activeThemeId}`}
+          ? 'fixed inset-0 z-50 overflow-y-auto p-4 sm:p-8'
+          : 'p-3 sm:p-6 lg:p-8'
+      }`}
       style={{
         ...themeVars,
         backgroundColor: currentTheme.colors.background,
         color: currentTheme.colors.textPrimary,
       }}
     >
-      {/* Streamlined Single-Line Project Selector, Slug & Actions Bar */}
+      <div className={`space-y-5 mx-auto ${activeThemeId === 'clean-wide' ? 'max-w-7xl' : 'max-w-6xl'}`}>
+        {/* Streamlined Single-Line Project Selector, Slug & Actions Bar */}
       <div 
         className="p-2.5 sm:px-4 border border-border bg-card text-card-foreground rounded-xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors"
       >
@@ -2035,6 +2064,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 };

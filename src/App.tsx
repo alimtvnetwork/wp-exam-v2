@@ -48,46 +48,11 @@ const App = () => (
             />
             <Route path="/forms/canvas" element={<VisualNodeCanvas />} />
             <Route path="/forms/nodes" element={<VisualNodeCanvas />} />
-            <Route
-              path="/f/:slug"
-              element={
-                <div className="min-h-screen bg-background text-foreground transition-colors duration-300 p-4 sm:p-6">
-                  <FormRunner />
-                </div>
-              }
-            />
-            <Route
-              path="/f/:category/:slug"
-              element={
-                <div className="min-h-screen bg-background text-foreground transition-colors duration-300 p-4 sm:p-6">
-                  <FormRunner />
-                </div>
-              }
-            />
-            <Route
-              path="/preview/:slug"
-              element={
-                <div className="min-h-screen bg-background text-foreground transition-colors duration-300 p-2 sm:p-4">
-                  <FormRunner isPreviewRoute={true} />
-                </div>
-              }
-            />
-            <Route
-              path="/preview"
-              element={
-                <div className="min-h-screen bg-background text-foreground transition-colors duration-300 p-2 sm:p-4">
-                  <FormRunner isPreviewRoute={true} />
-                </div>
-              }
-            />
-            <Route
-              path="/runner"
-              element={
-                <div className="min-h-screen bg-background text-foreground transition-colors duration-300 p-4 sm:p-6">
-                  <FormRunner />
-                </div>
-              }
-            />
+            <Route path="/f/:slug" element={<FormRunner />} />
+            <Route path="/f/:category/:slug" element={<FormRunner />} />
+            <Route path="/preview/:slug" element={<FormRunner isPreviewRoute={true} />} />
+            <Route path="/preview" element={<FormRunner isPreviewRoute={true} />} />
+            <Route path="/runner" element={<FormRunner />} />
             <Route path="/wp-exam-runner" element={<LegacyRunnerRedirect />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
