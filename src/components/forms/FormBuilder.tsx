@@ -108,7 +108,6 @@ export const FormBuilder: React.FC = () => {
     saveForm,
   } = useQuizStore();
 
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
@@ -355,7 +354,7 @@ export const FormBuilder: React.FC = () => {
   const requiredCount = fields.filter((f) => f.isRequired).length;
 
   return (
-    <div className="max-w-7xl mx-auto p-4 sm:p-6 space-y-6">
+    <div className="max-w-7xl mx-auto p-2 sm:p-4 space-y-4">
       {/* Top Action Bar with Integrated Live URL & Customizable Slug Ribbon */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-card rounded-xl border border-border/80 shadow-xs">
         <div className="space-y-1.5 min-w-0 flex-1">
@@ -572,9 +571,9 @@ export const FormBuilder: React.FC = () => {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => setIsPreviewOpen(true)}
+            onClick={() => window.open('/preview/' + activeSlug, '_blank')}
             className="text-xs h-8 gap-1.5 border-border hover:bg-muted"
-            title="Preview interactive form in modal runner"
+            title="Preview interactive form in a new tab"
           >
             <Eye className="w-3.5 h-3.5 text-sky-400" />
             <span>Preview</span>
@@ -1193,33 +1192,6 @@ export const FormBuilder: React.FC = () => {
         onUpdateFields={setFields}
         onJumpToField={scrollToField}
       />
-
-      {/* Live Preview Modal */}
-      {isPreviewOpen && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="w-full max-w-3xl bg-card rounded-2xl border shadow-2xl p-6 max-h-[90vh] overflow-y-auto">
-            <div className="flex justify-between items-center pb-4 mb-4 border-b">
-              <h3 className="text-lg font-bold">Interactive Preview</h3>
-              <Button variant="outline" size="sm" onClick={() => setIsPreviewOpen(false)}>
-                Close Preview
-              </Button>
-            </div>
-            <FormRunner
-              form={{
-                title,
-                description,
-                formType,
-                formAccess,
-                isSequential,
-                isPublished: true,
-                settings,
-                fields,
-              }}
-              onClose={() => setIsPreviewOpen(false)}
-            />
-          </div>
-        </div>
-      )}
     </div>
   );
 };

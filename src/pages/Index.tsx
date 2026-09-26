@@ -258,7 +258,7 @@ export const Index: React.FC = () => {
 
         {/* Fluid Right Content Canvas */}
         <main className="flex-1 min-w-0 bg-background/50 overflow-y-auto">
-          <div className="p-4 sm:p-6 lg:p-8">
+          <div className="p-2 sm:p-4">
             {activeTab === 'builder' && <QuizEditor />}
 
             {activeTab === 'focus-editor' && (

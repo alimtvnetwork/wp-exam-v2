@@ -30,6 +30,7 @@ import {
   X,
   Video,
   Film,
+  Zap,
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { getTheme, getThemeCssVariables, THEME_PRESETS } from '@/themes/theme-definitions';
@@ -368,6 +369,29 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       setAuthMessage('❌ Invalid or expired invitation token.');
       setTimeout(() => setAuthMessage(null), 3500);
     }
+  };
+
+  const handleAutoFill = () => {
+    const newAnswers = { ...answers };
+    fields.forEach((f) => {
+      if (f.type === 'multiple_choice' || f.type === 'dropdown' || f.type === 'true_false') {
+        newAnswers[f.id] = f.correctAnswer || (f.options && f.options.length > 0 ? f.options[0] : 'Answer');
+      } else if (f.type === 'short_answer' || f.type === 'paragraph') {
+        newAnswers[f.id] = 'Sample answer text for testing purposes.';
+      } else if (f.type === 'email') {
+        newAnswers[f.id] = 'test@example.com';
+      } else if (f.type === 'phone' || f.type === 'whatsapp') {
+        newAnswers[f.id] = '+1234567890';
+      } else if (f.type === 'regex_text') {
+        newAnswers[f.id] = 'STU-2026-9901'; // Default matching the sample regex if any
+      } else if (f.type === 'rating') {
+        newAnswers[f.id] = 5;
+      } else {
+        newAnswers[f.id] = 'Auto-filled data';
+      }
+    });
+    setAnswers(newAnswers);
+    toast.success('Form fields auto-filled!');
   };
 
   const handleNextStep = () => {
@@ -719,7 +743,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             variant="outline"
             size="sm"
             onClick={handleCopyProjectLink}
-            className="text-xs h-8 gap-1 border"
+            className="text-xs h-8 gap-1 border bg-card hover:bg-muted"
             style={{
               borderColor: currentTheme.colors.cardBorder,
               color: currentTheme.colors.textPrimary,
@@ -727,6 +751,20 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           >
             <Share2 className="w-3 h-3" />
             <span>Share Direct URL</span>
+          </Button>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleAutoFill}
+            className="text-xs h-8 gap-1 border bg-card hover:bg-muted"
+            style={{
+              borderColor: currentTheme.colors.cardBorder,
+              color: currentTheme.colors.textPrimary,
+            }}
+          >
+            <Zap className="w-3 h-3" />
+            <span>Auto Fill</span>
           </Button>
 
           {onClose && (
@@ -738,20 +776,26 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       </div>
 
       {/* Candidate Role & Access Bar */}
-      <div className="p-3 bg-card border border-border rounded-xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3">
+      <div 
+        className="p-3 border rounded-xl shadow-sm flex flex-col sm:flex-row items-center justify-between gap-3 transition-colors"
+        style={{
+          backgroundColor: currentTheme.colors.cardBg,
+          borderColor: currentTheme.colors.cardBorder,
+        }}
+      >
         <div className="flex items-center gap-2">
           {session.isAuthenticated ? (
             <>
               <Badge className="bg-emerald-600 hover:bg-emerald-700 text-xs">
                 ✓ Verified Respondent
               </Badge>
-              <span className="text-xs font-semibold text-foreground">{session.respondentEmail}</span>
-              <Badge variant="outline" className="text-[10px] uppercase font-mono">{session.role}</Badge>
+              <span className="text-xs font-semibold" style={{ color: currentTheme.colors.textPrimary }}>{session.respondentEmail}</span>
+              <Badge variant="outline" className="text-[10px] uppercase font-mono" style={{ borderColor: currentTheme.colors.primary, color: currentTheme.colors.primary }}>{session.role}</Badge>
             </>
           ) : (
             <>
-              <Badge variant="secondary" className="text-xs">Candidate Guest</Badge>
-              <span className="text-xs text-muted-foreground">Unauthenticated Respondent</span>
+              <Badge variant="secondary" className="text-xs" style={{ backgroundColor: currentTheme.colors.primary, color: currentTheme.colors.buttonText }}>Candidate Guest</Badge>
+              <span className="text-xs" style={{ color: currentTheme.colors.textSecondary }}>Unauthenticated Respondent</span>
             </>
           )}
         </div>
@@ -761,17 +805,33 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             placeholder="Invite Access Token..."
             value={tokenInput}
             onChange={(e) => setTokenInput(e.target.value)}
-            className="h-8 text-xs w-36 bg-background font-mono"
+            className="h-8 text-xs w-36 font-mono"
+            style={{
+              backgroundColor: currentTheme.colors.background,
+              borderColor: currentTheme.colors.cardBorder,
+              color: currentTheme.colors.textPrimary,
+            }}
           />
-          <Button size="sm" variant="outline" className="h-8 text-xs" onClick={handleVerifyToken}>
+          <Button 
+            size="sm" 
+            variant="outline" 
+            className="h-8 text-xs hover:opacity-80" 
+            onClick={handleVerifyToken}
+            style={{
+              backgroundColor: currentTheme.colors.cardBg,
+              borderColor: currentTheme.colors.primary,
+              color: currentTheme.colors.primary,
+            }}
+          >
             Verify
           </Button>
           {session.isAuthenticated && (
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 text-xs text-muted-foreground hover:text-foreground"
+              className="h-8 text-xs hover:opacity-80"
               onClick={examStore.clearSession}
+              style={{ color: currentTheme.colors.textSecondary }}
             >
               Sign Out
             </Button>
