@@ -20,15 +20,7 @@ import {
   ChevronDown, 
   ChevronUp, 
   Video, 
-  FileText,
-  Star,
-  Calendar,
-  Layers,
-  Link as LinkIcon,
-  CheckSquare,
-  Code,
-  Globe,
-  Building2,
+  FileText 
 } from 'lucide-react';
 import { useTheme, AppThemeType } from '@/lib/theme-context';
 import { PhoneWithCountrySelect } from '@/components/ui/phone-input';
@@ -46,8 +38,6 @@ import {
 } from '@/components/ui/popover';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 
@@ -108,56 +98,20 @@ export const WizardRunner: React.FC = () => {
   const [jobSearchQuery, setJobSearchQuery] = useState('');
   const [isJobPopoverOpen, setIsJobPopoverOpen] = useState(false);
 
-  // Form State across 9 Steps
-  // Step 1: Position & Domain
-  const [seniorityLevel, setSeniorityLevel] = useState<string>('Senior');
-  const [workCommitment, setWorkCommitment] = useState<string>('Full-Time (40 hrs/wk)');
-
-  // Step 2: Personal & Contact Information
+  // Form State
   const [fullName, setFullName] = useState<string>('');
   const [email, setEmail] = useState<string>('');
   const [phone, setPhone] = useState<string>('+880 ');
-  const [locationCity, setLocationCity] = useState<string>('Dhaka, Bangladesh');
-
-  // Step 3: Availability & Notice Period
   const [isOpenToWork, setIsOpenToWork] = useState<string>('yes');
   const [noticePeriod, setNoticePeriod] = useState<string>('1 Month');
-  const [earliestStartDate, setEarliestStartDate] = useState<string>('Immediately');
-  const [workPreference, setWorkPreference] = useState<string>('remote');
-
-  // Step 4: Professional Experience
-  const [yearsOfExperience, setYearsOfExperience] = useState<string>('3');
-  const [currentCompany, setCurrentCompany] = useState<string>('');
-  const [currentRoleTitle, setCurrentRoleTitle] = useState<string>('');
-  const [responsibilitiesSummary, setResponsibilitiesSummary] = useState<string>('');
-
-  // Step 5: Portfolios & Engineering Profiles
+  const [yearsOfExperience, setYearsOfExperience] = useState<string>('2');
   const [portfolioUrl, setPortfolioUrl] = useState<string>('');
-  const [linkedInUrl, setLinkedInUrl] = useState<string>('');
-  const [personalWebsiteUrl, setPersonalWebsiteUrl] = useState<string>('');
-
-  // Step 6: Core Technical Stack Self-Assessment
-  const [frontendRating, setFrontendRating] = useState<number>(4);
-  const [backendRating, setBackendRating] = useState<number>(5);
-  const [databaseRating, setDatabaseRating] = useState<number>(4);
-  const [devopsRating, setDevopsRating] = useState<number>(3);
-
-  // Step 7: Technical Screening Briefing
-  const [hasWatchedVideo, setHasWatchedVideo] = useState<boolean>(false);
-  const [isBriefingNotesExpanded, setIsBriefingNotesExpanded] = useState<boolean>(false);
-  const [isQuestionHintExpanded, setIsQuestionHintExpanded] = useState<boolean>(false);
-
-  // Step 8: Technical System Design Assessment
   const [selectedMcq, setSelectedMcq] = useState<string>('split-sqlite');
-  const [selectedStandards, setSelectedStandards] = useState<string[]>([
-    'positive-boolean',
-    'result-wrapper',
-    'vertical-lines',
-  ]);
-  const [architectureExplanation, setArchitectureExplanation] = useState<string>('');
+  const [hasConfirmedFaq, setHasConfirmedFaq] = useState<boolean>(false);
 
-  // Step 9: Final Review, Declaration & Terms
-  const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
+  // Expandable Description / FAQ States
+  const [isBriefingNotesExpanded, setIsBriefingNotesExpanded] = useState(false);
+  const [isQuestionHintExpanded, setIsQuestionHintExpanded] = useState(false);
 
   // Debug Mode State
   const [isDebugMode, setIsDebugMode] = useState<boolean>(false);
@@ -192,12 +146,6 @@ export const WizardRunner: React.FC = () => {
     const errors: Record<string, string> = {};
 
     if (currentStep === 1) {
-      if (!selectedJob) {
-        errors.selectedJob = 'Please select a target job position.';
-      }
-    }
-
-    if (currentStep === 2) {
       if (!fullName.trim()) {
         errors.fullName = 'Full legal name is required.';
       }
@@ -211,55 +159,31 @@ export const WizardRunner: React.FC = () => {
       if (cleanDigits.length < 7) {
         errors.phone = 'Valid phone number with country code is required.';
       }
-      if (!locationCity.trim()) {
-        errors.locationCity = 'Current city and country of residence is required.';
-      }
     }
 
-    if (currentStep === 3) {
+    if (currentStep === 2) {
       if (isOpenToWork === 'no' && !noticePeriod) {
         errors.noticePeriod = 'Please specify your required notice period.';
       }
-    }
-
-    if (currentStep === 4) {
       if (!yearsOfExperience || Number(yearsOfExperience) < 0) {
         errors.yearsOfExperience = 'Years of relevant experience is required.';
       }
-    }
-
-    if (currentStep === 5) {
       if (!portfolioUrl.trim()) {
         errors.portfolioUrl = 'GitHub profile URL is mandatory.';
       } else {
         const urlRegex = /^https?:\/\/.+/i;
         if (!urlRegex.test(portfolioUrl.trim())) {
-          errors.portfolioUrl = 'GitHub profile URL must begin with http:// or https://';
+          errors.portfolioUrl = 'Portfolio / GitHub URL must begin with http:// or https://';
         }
       }
     }
 
-    if (currentStep === 6) {
-      if (frontendRating <= 0 || backendRating <= 0 || databaseRating <= 0) {
-        errors.ratings = 'Please rate all required skill domains.';
-      }
-    }
-
-    if (currentStep === 7) {
-      if (!hasWatchedVideo) {
-        errors.hasWatchedVideo = 'Please confirm you have watched the technical briefing.';
-      }
-    }
-
-    if (currentStep === 8) {
+    if (currentStep === 3) {
       if (!selectedMcq) {
-        errors.selectedMcq = 'Please select an architectural pattern.';
+        errors.selectedMcq = 'Please select a technical assessment answer.';
       }
-    }
-
-    if (currentStep === 9) {
-      if (!termsAccepted) {
-        errors.termsAccepted = 'You must confirm the legal accuracy declaration to submit.';
+      if (!hasConfirmedFaq) {
+        errors.hasConfirmedFaq = 'You must confirm terms to advance to review.';
       }
     }
 
@@ -269,7 +193,7 @@ export const WizardRunner: React.FC = () => {
 
   const handleNext = () => {
     if (validateCurrentStep()) {
-      if (currentStep < 9) {
+      if (currentStep < 4) {
         setCurrentStep(currentStep + 1);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
@@ -285,94 +209,40 @@ export const WizardRunner: React.FC = () => {
     }
   };
 
-  // ⚡ Test Fill & Next Step QA Automation Engine (All 9 Steps)
+  // ⚡ Test Fill & Next Step QA Automation Engine
   const handleTestFillAndNext = () => {
     if (currentStep === 1) {
-      setSeniorityLevel('Senior Fullstack');
-      setWorkCommitment('Full-Time (40 hrs/wk)');
+      if (!fullName) setFullName('Alexandra Chen');
+      if (!email) setEmail('alexandra.chen@tech-org.io');
+      if (!phone || phone === '+880 ') setPhone('+880 1712345678');
       setFormErrors({});
       setCurrentStep(2);
-      toast.success('Step 1 auto-filled! Proceeding to Step 2 Contact Details...');
+      toast.success('Step 1 auto-filled! Proceeding to Step 2...');
       return;
     }
 
     if (currentStep === 2) {
-      if (!fullName) setFullName('Alexandra Chen');
-      if (!email) setEmail('alexandra.chen@tech-org.io');
-      if (!phone || phone === '+880 ') setPhone('+880 1712345678');
-      if (!locationCity) setLocationCity('Dhaka, Bangladesh');
+      setIsOpenToWork('yes');
+      setYearsOfExperience('3');
+      setPortfolioUrl('https://github.com/alexandra-chen-dev');
       setFormErrors({});
       setCurrentStep(3);
-      toast.success('Step 2 auto-filled! Proceeding to Step 3 Availability...');
+      toast.success('Step 2 auto-filled! Proceeding to Step 3...');
       return;
     }
 
     if (currentStep === 3) {
-      setIsOpenToWork('yes');
-      setNoticePeriod('Immediate');
-      setEarliestStartDate('Immediately');
-      setWorkPreference('remote');
+      setSelectedMcq('split-sqlite');
+      setHasConfirmedFaq(true);
       setFormErrors({});
       setCurrentStep(4);
-      toast.success('Step 3 auto-filled! Proceeding to Step 4 Experience...');
+      toast.success('Step 3 auto-filled! Proceeding to Step 4 Review...');
       return;
     }
 
     if (currentStep === 4) {
-      setYearsOfExperience('4');
-      setCurrentCompany('Global Systems Engineering Lab');
-      setCurrentRoleTitle('Senior Software Engineer');
-      setResponsibilitiesSummary('Architected split-sqlite multi-tenant microservices, React dashboards, and zero-defect QA pipelines.');
-      setFormErrors({});
-      setCurrentStep(5);
-      toast.success('Step 4 auto-filled! Proceeding to Step 5 Code Portfolios...');
-      return;
-    }
-
-    if (currentStep === 5) {
-      setPortfolioUrl('https://github.com/alexandra-chen-dev');
-      setLinkedInUrl('https://linkedin.com/in/alexandra-chen-engineer');
-      setPersonalWebsiteUrl('https://alexandra-chen.dev');
-      setFormErrors({});
-      setCurrentStep(6);
-      toast.success('Step 5 auto-filled! Proceeding to Step 6 Technical Self-Rating...');
-      return;
-    }
-
-    if (currentStep === 6) {
-      setFrontendRating(5);
-      setBackendRating(5);
-      setDatabaseRating(4);
-      setDevopsRating(4);
-      setFormErrors({});
-      setCurrentStep(7);
-      toast.success('Step 6 auto-filled! Proceeding to Step 7 Video Briefing...');
-      return;
-    }
-
-    if (currentStep === 7) {
-      setHasWatchedVideo(true);
-      setFormErrors({});
-      setCurrentStep(8);
-      toast.success('Step 7 auto-filled! Proceeding to Step 8 System Design MCQ...');
-      return;
-    }
-
-    if (currentStep === 8) {
-      setSelectedMcq('split-sqlite');
-      setSelectedStandards(['positive-boolean', 'result-wrapper', 'vertical-lines']);
-      setArchitectureExplanation('Split SQLite architecture provides complete tenant data isolation with zero database locking, fast file copies, and deterministic testing.');
-      setFormErrors({});
-      setCurrentStep(9);
-      toast.success('Step 8 auto-filled! Proceeding to Step 9 Final Review...');
-      return;
-    }
-
-    if (currentStep === 9) {
-      setTermsAccepted(true);
       setIsSubmitted(true);
       toast.success('Application submitted via Fast Test mode!');
-      return;
     }
   };
 
@@ -473,7 +343,7 @@ export const WizardRunner: React.FC = () => {
               <Bug className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               Developer Debug Mode & Step Simulator
             </span>
-            <span className="font-mono text-muted-foreground">Step {currentStep} of 9</span>
+            <span className="font-mono text-muted-foreground">Step {currentStep} of 4</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
@@ -483,9 +353,10 @@ export const WizardRunner: React.FC = () => {
                 key={s}
                 type="button"
                 size="sm"
-                variant={currentStep === s ? 'default' : 'outline'}
-                onClick={() => setCurrentStep(s)}
+                variant={currentStep === Math.min(s, 4) ? 'default' : 'outline'}
+                onClick={() => setCurrentStep(Math.min(s, 4))}
                 className="h-7 px-2 text-xs font-mono font-bold"
+                title={s > 4 ? `Simulate Step #${s}` : `Jump to Step #${s}`}
               >
                 #{s}
               </Button>
@@ -500,35 +371,24 @@ export const WizardRunner: React.FC = () => {
               ⚡ Fill & Jump Next
             </Button>
           </div>
+          <div className="text-xs text-muted-foreground font-mono pt-1 border-t border-amber-500/20">
+            Payload: {[fullName, email, phone, yearsOfExperience, portfolioUrl, selectedMcq].filter(Boolean).length} answers recorded
+          </div>
         </div>
       )}
 
       {/* Progress Bar & Steps Indicator */}
       <div className="mb-8">
-        <div className="flex justify-between items-center mb-2.5 overflow-x-auto pb-1 gap-1">
-          {[
-            { num: 1, title: 'Position' },
-            { num: 2, title: 'Contact' },
-            { num: 3, title: 'Availability' },
-            { num: 4, title: 'Experience' },
-            { num: 5, title: 'Portfolio' },
-            { num: 6, title: 'Skills' },
-            { num: 7, title: 'Briefing' },
-            { num: 8, title: 'Assessment' },
-            { num: 9, title: 'Review' },
-          ].map(({ num, title }) => {
-            const isCompleted = num < currentStep;
-            const isCurrent = num === currentStep;
+        <div className="flex justify-between items-center mb-2.5">
+          {['1. Personal Info', '2. Experience', '3. Knowledge & FAQ', '4. Review & Submit'].map((title, idx) => {
+            const stepNum = idx + 1;
+            const isCompleted = stepNum < currentStep;
+            const isCurrent = stepNum === currentStep;
 
             return (
-              <div 
-                key={num} 
-                className="flex items-center space-x-1.5 shrink-0 cursor-pointer"
-                onClick={() => setCurrentStep(num)}
-                title={`Jump to Step ${num}: ${title}`}
-              >
+              <div key={title} className="flex items-center space-x-2">
                 <div 
-                  className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-colors font-heading ${
+                  className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm transition-colors font-heading ${
                     isCurrent 
                       ? 'bg-primary text-primary-foreground shadow-md' 
                       : isCompleted 
@@ -536,9 +396,9 @@ export const WizardRunner: React.FC = () => {
                         : 'bg-muted text-muted-foreground border border-border'
                   }`}
                 >
-                  {isCompleted ? <CheckCircle2 className="w-4 h-4" /> : num}
+                  {isCompleted ? <CheckCircle2 className="w-5 h-5" /> : stepNum}
                 </div>
-                <span className={`text-xs font-semibold hidden lg:inline font-heading ${isCurrent ? 'text-primary' : 'text-muted-foreground'}`}>
+                <span className={`text-xs sm:text-sm font-semibold hidden md:inline font-heading ${isCurrent ? 'text-primary' : 'text-muted-foreground'}`}>
                   {title}
                 </span>
               </div>
@@ -548,7 +408,7 @@ export const WizardRunner: React.FC = () => {
         <div className="w-full bg-muted h-2.5 rounded-full overflow-hidden border border-border/40">
           <div 
             className="bg-primary h-full transition-all duration-300"
-            style={{ width: `${((currentStep - 1) / 8) * 100}%` }}
+            style={{ width: `${((currentStep - 1) / 3) * 100}%` }}
           />
         </div>
       </div>
@@ -573,12 +433,12 @@ export const WizardRunner: React.FC = () => {
       {/* Step Contents */}
       {!isSubmitted ? (
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* STEP 1: Target Position & Role Preferences */}
+          {/* STEP 1: Target Position & Personal Information */}
           {currentStep === 1 && (
             <div className="space-y-5 animate-in fade-in-50 duration-200">
               <h3 className="text-lg font-bold border-b border-border pb-2.5 flex items-center gap-2 text-foreground font-heading">
                 <Briefcase className="w-5 h-5 text-primary" />
-                <span>Step 1: Target Position & Role Specifications</span>
+                <span>Step 1: Target Position & Contact Information</span>
               </h3>
 
               {/* Searchable Job Position Selection */}
@@ -651,74 +511,6 @@ export const WizardRunner: React.FC = () => {
                   </PopoverContent>
                 </Popover>
               </div>
-
-              {/* Seniority Level */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-foreground">
-                  Target Seniority Level <span className="text-red-500 font-bold ml-1">*</span>
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  {['Junior / Associate', 'Mid-Level Specialist', 'Senior Fullstack', 'Staff / Lead Architect'].map((level) => (
-                    <label
-                      key={level}
-                      className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs sm:text-sm font-medium cursor-pointer transition-colors ${
-                        seniorityLevel === level
-                          ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
-                          : 'border-border bg-card text-foreground hover:bg-accent/40'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="seniorityLevel"
-                        value={level}
-                        checked={seniorityLevel === level}
-                        onChange={() => setSeniorityLevel(level)}
-                        className="text-primary h-3.5 w-3.5"
-                      />
-                      <span>{level}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              {/* Work Commitment */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-foreground">
-                  Work Commitment Expected <span className="text-red-500 font-bold ml-1">*</span>
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  {['Full-Time (40 hrs/wk)', 'Part-Time (20 hrs/wk)', 'Contract / Milestone'].map((comm) => (
-                    <label
-                      key={comm}
-                      className={`flex items-center gap-2.5 p-3 rounded-xl border text-xs sm:text-sm font-medium cursor-pointer transition-colors ${
-                        workCommitment === comm
-                          ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
-                          : 'border-border bg-card text-foreground hover:bg-accent/40'
-                      }`}
-                    >
-                      <input
-                        type="radio"
-                        name="workCommitment"
-                        value={comm}
-                        checked={workCommitment === comm}
-                        onChange={() => setWorkCommitment(comm)}
-                        className="text-primary h-3.5 w-3.5"
-                      />
-                      <span>{comm}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 2: Candidate Contact & Location Details */}
-          {currentStep === 2 && (
-            <div className="space-y-5 animate-in fade-in-50 duration-200">
-              <h3 className="text-lg font-bold border-b border-border pb-2.5 flex items-center gap-2 text-foreground font-heading">
-                <User className="w-5 h-5 text-primary" />
-                <span>Step 2: Candidate Contact & Location Details</span>
-              </h3>
 
               {/* Full Legal Name */}
               <div className="space-y-1.5">
@@ -795,41 +587,15 @@ export const WizardRunner: React.FC = () => {
                   </p>
                 )}
               </div>
-
-              {/* City and Country of Residence */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-foreground">
-                  Current City & Country of Residence <span className="text-red-500 font-bold ml-1">*</span>
-                </label>
-                <Input 
-                  type="text" 
-                  value={locationCity} 
-                  onChange={(e) => {
-                    setLocationCity(e.target.value);
-                    if (formErrors.locationCity) setFormErrors((prev) => ({ ...prev, locationCity: '' }));
-                  }}
-                  placeholder="e.g. Dhaka, Bangladesh or Berlin, Germany"
-                  className={`h-11 px-3.5 text-sm bg-background border rounded-xl text-foreground placeholder:text-muted-foreground/60 ${
-                    formErrors.locationCity ? 'border-destructive focus-visible:ring-destructive' : 'border-input'
-                  }`}
-                  required
-                />
-                {formErrors.locationCity && (
-                  <p className="text-xs text-destructive flex items-center gap-1 mt-1">
-                    <AlertCircle className="w-3.5 h-3.5" />
-                    <span>{formErrors.locationCity}</span>
-                  </p>
-                )}
-              </div>
             </div>
           )}
 
-          {/* STEP 3: Availability & Work Model Preferences */}
-          {currentStep === 3 && (
+          {/* STEP 2: Experience & Qualifications */}
+          {currentStep === 2 && (
             <div className="space-y-5 animate-in fade-in-50 duration-200">
               <h3 className="text-lg font-bold border-b border-border pb-2.5 flex items-center gap-2 text-foreground font-heading">
-                <Calendar className="w-5 h-5 text-primary" />
-                <span>Step 3: Availability & Work Model Preferences</span>
+                <Briefcase className="w-5 h-5 text-primary" />
+                <span>Step 2: Experience & Qualifications</span>
               </h3>
 
               {/* Immediate Availability Radio Toggle */}
@@ -863,7 +629,7 @@ export const WizardRunner: React.FC = () => {
                       onChange={() => setIsOpenToWork('no')}
                       className="text-primary h-4 w-4"
                     />
-                    <span>No, currently in a notice period</span>
+                    <span>No, in a notice period</span>
                   </label>
                 </div>
               </div>
@@ -885,76 +651,13 @@ export const WizardRunner: React.FC = () => {
                       <SelectItem value="3 Months">3 Months Notice</SelectItem>
                     </SelectContent>
                   </Select>
-                  {formErrors.noticePeriod && (
-                    <p className="text-xs text-destructive mt-1">{formErrors.noticePeriod}</p>
-                  )}
                 </div>
               )}
 
-              {/* Earliest Start Date */}
+              {/* Experience Input — Always Accessible to Eliminate Buggy Feeling */}
               <div className="space-y-1.5">
                 <label className="block text-sm font-semibold text-foreground">
-                  Earliest Feasible Start Date
-                </label>
-                <Input 
-                  type="text" 
-                  value={earliestStartDate} 
-                  onChange={(e) => setEarliestStartDate(e.target.value)}
-                  placeholder="e.g. Immediately or within 14 days"
-                  className="h-10 px-3.5 text-sm bg-background border rounded-xl text-foreground placeholder:text-muted-foreground/60"
-                />
-              </div>
-
-              {/* Work Model Preference */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-foreground">
-                  Preferred Work Setup <span className="text-red-500 font-bold ml-1">*</span>
-                </label>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
-                  {[
-                    { id: 'remote', label: '100% Fully Remote', desc: 'Work from home or anywhere' },
-                    { id: 'hybrid', label: 'Hybrid Flexible', desc: 'Partial in-office collaboration' },
-                    { id: 'onsite', label: 'On-Site HQ', desc: 'Daily in-office presence' }
-                  ].map((item) => (
-                    <label
-                      key={item.id}
-                      className={`flex flex-col p-3 rounded-xl border text-left cursor-pointer transition-colors ${
-                        workPreference === item.id
-                          ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
-                          : 'border-border bg-card text-foreground hover:bg-accent/40'
-                      }`}
-                    >
-                      <div className="flex items-center gap-2">
-                        <input
-                          type="radio"
-                          name="workPreference"
-                          value={item.id}
-                          checked={workPreference === item.id}
-                          onChange={() => setWorkPreference(item.id)}
-                          className="text-primary h-3.5 w-3.5"
-                        />
-                        <span className="text-xs sm:text-sm font-semibold">{item.label}</span>
-                      </div>
-                      <span className="text-xs text-muted-foreground mt-1 pl-5.5 font-normal">{item.desc}</span>
-                    </label>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* STEP 4: Professional Experience & Background */}
-          {currentStep === 4 && (
-            <div className="space-y-5 animate-in fade-in-50 duration-200">
-              <h3 className="text-lg font-bold border-b border-border pb-2.5 flex items-center gap-2 text-foreground font-heading">
-                <Briefcase className="w-5 h-5 text-primary" />
-                <span>Step 4: Professional Experience & Background</span>
-              </h3>
-
-              {/* Years of Experience */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-foreground">
-                  Years of Relevant Software Experience <span className="text-red-500 font-bold ml-1">*</span>
+                  Years of Relevant Experience <span className="text-red-500 font-bold ml-1">*</span>
                 </label>
                 <Input 
                   type="number" 
@@ -975,84 +678,27 @@ export const WizardRunner: React.FC = () => {
                 )}
               </div>
 
-              {/* Current or Most Recent Company */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-foreground">
-                  Current or Most Recent Organization
-                </label>
-                <div className="relative">
-                  <Input 
-                    type="text" 
-                    value={currentCompany} 
-                    onChange={(e) => setCurrentCompany(e.target.value)}
-                    placeholder="e.g. Acme Tech Labs or Freelance"
-                    className="h-10 px-3.5 text-sm bg-background border rounded-xl text-foreground placeholder:text-muted-foreground/60"
-                  />
-                  <Building2 className="absolute right-3.5 top-3 w-4 h-4 text-muted-foreground pointer-events-none" />
-                </div>
-              </div>
-
-              {/* Current or Most Recent Role Title */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-foreground">
-                  Current or Most Recent Job Title
-                </label>
-                <Input 
-                  type="text" 
-                  value={currentRoleTitle} 
-                  onChange={(e) => setCurrentRoleTitle(e.target.value)}
-                  placeholder="e.g. Senior Frontend Engineer"
-                  className="h-10 px-3.5 text-sm bg-background border rounded-xl text-foreground placeholder:text-muted-foreground/60"
-                />
-              </div>
-
-              {/* Key Responsibilities Summary */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-foreground">
-                  Summary of Core Responsibilities & Achievements
-                </label>
-                <Textarea 
-                  value={responsibilitiesSummary} 
-                  onChange={(e) => setResponsibilitiesSummary(e.target.value)}
-                  placeholder="Briefly describe key systems, architectures, or contributions you have driven..."
-                  className="min-h-[100px] text-sm bg-background border rounded-xl text-foreground placeholder:text-muted-foreground/60 resize-y"
-                />
-              </div>
-            </div>
-          )}
-
-          {/* STEP 5: Code Portfolios & Online Presence */}
-          {currentStep === 5 && (
-            <div className="space-y-5 animate-in fade-in-50 duration-200">
-              <h3 className="text-lg font-bold border-b border-border pb-2.5 flex items-center gap-2 text-foreground font-heading">
-                <Code className="w-5 h-5 text-primary" />
-                <span>Step 5: Code Portfolios & Public Profiles</span>
-              </h3>
-
-              {/* GitHub Profile URL (Mandatory) */}
+              {/* Portfolio or GitHub URL */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="block text-sm font-semibold text-foreground">
-                    GitHub Profile URL <span className="text-red-500 font-bold ml-1">*</span>
+                    Portfolio or GitHub URL <span className="text-red-500 font-bold ml-1">*</span>
                   </label>
-                  <span className="text-xs text-muted-foreground font-mono">Mandatory for code review</span>
+                  <span className="text-xs text-muted-foreground font-mono">e.g. github.com/profile</span>
                 </div>
-                <div className="relative">
-                  <Input 
-                    type="url"
-                    value={portfolioUrl}
-                    onChange={(e) => {
-                      setPortfolioUrl(e.target.value);
-                      if (formErrors.portfolioUrl) setFormErrors((prev) => ({ ...prev, portfolioUrl: '' }));
-                    }}
-                    placeholder="https://github.com/username"
-                    className={`h-11 px-3.5 text-sm bg-background border rounded-xl text-foreground placeholder:text-muted-foreground/60 ${
-                      formErrors.portfolioUrl ? 'border-destructive focus-visible:ring-destructive' : 'border-input'
-                    }`}
-                    required
-                  />
-                  <LinkIcon className="absolute right-3.5 top-3.5 w-4 h-4 text-muted-foreground pointer-events-none" />
-                </div>
+                <Input 
+                  type="url"
+                  value={portfolioUrl}
+                  onChange={(e) => {
+                    setPortfolioUrl(e.target.value);
+                    if (formErrors.portfolioUrl) setFormErrors((prev) => ({ ...prev, portfolioUrl: '' }));
+                  }}
+                  placeholder="https://github.com/my-profile"
+                  className={`h-11 px-3.5 text-sm bg-background border rounded-xl text-foreground placeholder:text-muted-foreground/60 ${
+                    formErrors.portfolioUrl ? 'border-destructive focus-visible:ring-destructive' : 'border-input'
+                  }`}
+                  required
+                />
                 {formErrors.portfolioUrl && (
                   <p className="text-xs text-destructive flex items-center gap-1 mt-1">
                     <AlertCircle className="w-3.5 h-3.5" />
@@ -1060,134 +706,15 @@ export const WizardRunner: React.FC = () => {
                   </p>
                 )}
               </div>
-
-              {/* LinkedIn Profile URL */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-foreground">
-                  LinkedIn Profile URL
-                </label>
-                <div className="relative">
-                  <Input 
-                    type="url"
-                    value={linkedInUrl}
-                    onChange={(e) => setLinkedInUrl(e.target.value)}
-                    placeholder="https://linkedin.com/in/username"
-                    className="h-10 px-3.5 text-sm bg-background border rounded-xl text-foreground placeholder:text-muted-foreground/60"
-                  />
-                  <Globe className="absolute right-3.5 top-3 w-4 h-4 text-muted-foreground pointer-events-none" />
-                </div>
-              </div>
-
-              {/* Personal Portfolio / Blog URL */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-foreground">
-                  Personal Portfolio / Tech Blog URL
-                </label>
-                <Input 
-                  type="url"
-                  value={personalWebsiteUrl}
-                  onChange={(e) => setPersonalWebsiteUrl(e.target.value)}
-                  placeholder="https://yourname.dev"
-                  className="h-10 px-3.5 text-sm bg-background border rounded-xl text-foreground placeholder:text-muted-foreground/60"
-                />
-              </div>
             </div>
           )}
 
-          {/* STEP 6: Technical Competency & Domain Self-Ratings */}
-          {currentStep === 6 && (
+          {/* STEP 3: Technical Screening & Questions */}
+          {currentStep === 3 && (
             <div className="space-y-5 animate-in fade-in-50 duration-200">
               <h3 className="text-lg font-bold border-b border-border pb-2.5 flex items-center gap-2 text-foreground font-heading">
-                <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-                <span>Step 6: Technical Competency & Domain Self-Ratings</span>
-              </h3>
-
-              <p className="text-xs text-muted-foreground">
-                Rate your proficiency across key engineering domains (1 = Beginner, 5 = Expert).
-              </p>
-
-              <div className="space-y-4 pt-1">
-                {[
-                  {
-                    id: 'frontend',
-                    title: 'Frontend Architecture & Modern React / TypeScript',
-                    desc: 'Tailwind CSS, Shadcn UI primitives, responsive design, bundle optimization',
-                    val: frontendRating,
-                    setter: setFrontendRating
-                  },
-                  {
-                    id: 'backend',
-                    title: 'Backend Systems & API Architecture',
-                    desc: 'Node.js, PHP / WordPress core, Go microservices, REST / GraphQL APIs',
-                    val: backendRating,
-                    setter: setBackendRating
-                  },
-                  {
-                    id: 'database',
-                    title: 'Database Architecture & Split-DB Design',
-                    desc: 'SQLite, MySQL, schema migrations, tenant isolation, concurrency',
-                    val: databaseRating,
-                    setter: setDatabaseRating
-                  },
-                  {
-                    id: 'devops',
-                    title: 'DevOps, CI/CD & Test Automation',
-                    desc: 'GitHub Actions, automated QA runners, regression safety, zero-artifact rules',
-                    val: devopsRating,
-                    setter: setDevopsRating
-                  }
-                ].map((skill) => (
-                  <div key={skill.id} className="p-4 rounded-xl border border-border bg-card/60 space-y-2">
-                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
-                      <div>
-                        <div className="text-sm font-semibold text-foreground">
-                          {skill.title} <span className="text-red-500 font-bold ml-1">*</span>
-                        </div>
-                        <div className="text-xs text-muted-foreground">{skill.desc}</div>
-                      </div>
-
-                      <div className="flex items-center gap-1.5 pt-2 sm:pt-0">
-                        {[1, 2, 3, 4, 5].map((star) => (
-                          <button
-                            key={star}
-                            type="button"
-                            onClick={() => skill.setter(star)}
-                            className="p-1 rounded hover:bg-accent cursor-pointer transition-colors"
-                            title={`Rate ${star} / 5`}
-                          >
-                            <Star
-                              className={`w-6 h-6 transition-all ${
-                                star <= skill.val
-                                  ? 'text-amber-500 fill-amber-500'
-                                  : 'text-muted-foreground/30 hover:text-amber-400'
-                              }`}
-                            />
-                          </button>
-                        ))}
-                        <span className="text-xs font-mono font-bold ml-2 w-6 text-foreground">
-                          {skill.val > 0 ? `${skill.val}/5` : '—'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {formErrors.ratings && (
-                <p className="text-xs text-destructive flex items-center gap-1 mt-1">
-                  <AlertCircle className="w-3.5 h-3.5" />
-                  <span>{formErrors.ratings}</span>
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* STEP 7: Technical Architecture Briefing */}
-          {currentStep === 7 && (
-            <div className="space-y-5 animate-in fade-in-50 duration-200">
-              <h3 className="text-lg font-bold border-b border-border pb-2.5 flex items-center gap-2 text-foreground font-heading">
-                <Video className="w-5 h-5 text-primary" />
-                <span>Step 7: Technical Architecture Briefing & Overview</span>
+                <HelpCircle className="w-5 h-5 text-primary" />
+                <span>Step 3: Technical Screening & Questions</span>
               </h3>
 
               {/* Elementor-Style Rich Video Briefing Block */}
@@ -1195,7 +722,7 @@ export const WizardRunner: React.FC = () => {
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2 text-sm font-bold text-foreground font-heading">
                     <Video className="w-4 h-4 text-primary" />
-                    <span>Technical Architecture Walkthrough</span>
+                    <span>Technical Briefing Video</span>
                   </div>
                   <button
                     type="button"
@@ -1208,14 +735,14 @@ export const WizardRunner: React.FC = () => {
                 </div>
 
                 <div className="aspect-video w-full rounded-xl bg-card border border-border/80 flex flex-col items-center justify-center p-6 text-center shadow-xs">
-                  <div className="w-14 h-14 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3 shadow-inner">
-                    <Play className="w-7 h-7 fill-current ml-0.5" />
+                  <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3 shadow-inner">
+                    <Play className="w-6 h-6 fill-current ml-0.5" />
                   </div>
-                  <span className="text-sm sm:text-base font-bold text-foreground font-heading">
+                  <span className="text-sm font-bold text-foreground font-heading">
                     Architecture & System Design Briefing
                   </span>
-                  <p className="text-xs text-muted-foreground mt-1 max-w-md">
-                    Technical briefing outlining the Split SQLite multi-tenant data architecture, WAL journaling concurrency, and prompt architect quality gates.
+                  <p className="text-xs text-muted-foreground mt-1 max-w-sm">
+                    Interactive engineering briefing regarding split-DB SQLite architecture and multi-tenant sharding.
                   </p>
                 </div>
 
@@ -1223,43 +750,10 @@ export const WizardRunner: React.FC = () => {
                   <div className="p-3.5 rounded-xl bg-card border border-border text-xs text-muted-foreground space-y-1.5 animate-in fade-in duration-150">
                     <span className="font-bold text-foreground block">Key Concepts Covered:</span>
                     <p>• Root metadata coordination with isolated project tenant stores (`project_&lt;id&gt;.db`).</p>
-                    <p>• Write-Ahead Logging (WAL) concurrency and zero-lock contention across concurrent candidate exam runs.</p>
-                    <p>• Bounded subtask execution and zero-artifact CI/CD reporting mandates.</p>
+                    <p>• Write-Ahead Logging (WAL) concurrency and zero-lock contention across candidate exam runs.</p>
                   </div>
                 )}
               </div>
-
-              {/* Mandatory Video Watched Confirmation */}
-              <div className="p-4 rounded-xl bg-muted/40 border border-border">
-                <label className="flex items-start gap-3 cursor-pointer text-xs sm:text-sm">
-                  <input 
-                    type="checkbox"
-                    checked={hasWatchedVideo}
-                    onChange={(e) => {
-                      setHasWatchedVideo(e.target.checked);
-                      if (formErrors.hasWatchedVideo) setFormErrors((prev) => ({ ...prev, hasWatchedVideo: '' }));
-                    }}
-                    className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary"
-                    required
-                  />
-                  <span className="text-foreground leading-relaxed">
-                    I have reviewed and understood the technical briefing video and engineering architectural overview. <span className="text-red-500 font-bold ml-1">*</span>
-                  </span>
-                </label>
-                {formErrors.hasWatchedVideo && (
-                  <p className="text-xs text-destructive mt-1 pl-7">{formErrors.hasWatchedVideo}</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* STEP 8: System Design & Engineering Assessment */}
-          {currentStep === 8 && (
-            <div className="space-y-5 animate-in fade-in-50 duration-200">
-              <h3 className="text-lg font-bold border-b border-border pb-2.5 flex items-center gap-2 text-foreground font-heading">
-                <HelpCircle className="w-5 h-5 text-primary" />
-                <span>Step 8: System Design & Engineering Assessment</span>
-              </h3>
 
               {/* Technical Multiple Choice Question */}
               <div className="space-y-2.5">
@@ -1324,71 +818,36 @@ export const WizardRunner: React.FC = () => {
                 )}
               </div>
 
-              {/* Architectural Standards Compliance Checklist */}
-              <div className="space-y-2">
-                <label className="block text-sm font-semibold text-foreground">
-                  Select Architectural Quality Standards You Have Mastered
+              {/* Agreement Checkbox */}
+              <div className="p-4 rounded-xl bg-muted/30 border border-border">
+                <label className="flex items-start gap-3 cursor-pointer text-xs sm:text-sm">
+                  <input 
+                    type="checkbox"
+                    checked={hasConfirmedFaq}
+                    onChange={(e) => {
+                      setHasConfirmedFaq(e.target.checked);
+                      if (formErrors.hasConfirmedFaq) setFormErrors((prev) => ({ ...prev, hasConfirmedFaq: '' }));
+                    }}
+                    className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary"
+                    required
+                  />
+                  <span className="text-foreground leading-relaxed">
+                    I confirm that all information provided is accurate and agree to the candidate scoring terms and conditions. <span className="text-red-500 font-bold ml-1">*</span>
+                  </span>
                 </label>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {[
-                    { id: 'positive-boolean', title: 'Strict Positive Boolean', desc: 'is / has naming, implicit evaluations' },
-                    { id: 'result-wrapper', title: 'Monadic Result Wrapper', desc: 'No bare void returns; structured AppError metadata' },
-                    { id: 'vertical-lines', title: 'Vertical Line Gaps', desc: 'Blank lines before if, after }, and around blocks' },
-                    { id: 'file-micro-batch', title: '5-8 File Micro-Batching', desc: 'Bounded refactors with isolated unit tests' }
-                  ].map((std) => {
-                    const isChecked = selectedStandards.includes(std.id);
-                    return (
-                      <label
-                        key={std.id}
-                        className={`flex items-start gap-2.5 p-3 rounded-xl border text-xs sm:text-sm cursor-pointer transition-colors ${
-                          isChecked
-                            ? 'border-primary bg-primary/10 text-primary font-semibold'
-                            : 'border-border bg-card text-foreground hover:bg-accent/40'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isChecked}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedStandards([...selectedStandards, std.id]);
-                            } else {
-                              setSelectedStandards(selectedStandards.filter((s) => s !== std.id));
-                            }
-                          }}
-                          className="mt-0.5 h-4 w-4 rounded text-primary focus:ring-primary"
-                        />
-                        <div>
-                          <div className="font-semibold">{std.title}</div>
-                          <div className="text-xs text-muted-foreground font-normal">{std.desc}</div>
-                        </div>
-                      </label>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Architectural Justification */}
-              <div className="space-y-1.5">
-                <label className="block text-sm font-semibold text-foreground">
-                  Architecture Justification & Design Decision Rationale
-                </label>
-                <Textarea
-                  value={architectureExplanation}
-                  onChange={(e) => setArchitectureExplanation(e.target.value)}
-                  placeholder="Explain why your chosen database architecture and code standards best safeguard multi-tenant isolation..."
-                  className="min-h-[100px] text-sm bg-background border rounded-xl text-foreground placeholder:text-muted-foreground/60 resize-y"
-                />
+                {formErrors.hasConfirmedFaq && (
+                  <p className="text-xs text-destructive mt-1 pl-7">{formErrors.hasConfirmedFaq}</p>
+                )}
               </div>
             </div>
           )}
 
-          {/* STEP 9: Comprehensive Review & Final Legal Submission */}
-          {currentStep === 9 && (
+          {/* STEP 4: Review & Final Submission */}
+          {currentStep === 4 && (
             <div className="space-y-5 animate-in fade-in-50 duration-200">
               <h3 className="text-lg font-bold border-b border-border pb-2.5 flex items-center gap-2 text-foreground font-heading">
                 <CheckCircle2 className="w-5 h-5 text-primary" />
-                <span>Step 9: Review & Submit Application</span>
+                <span>Step 4: Review & Submit</span>
               </h3>
 
               <div className="p-5 rounded-2xl bg-muted/30 border border-border space-y-4 text-sm">
@@ -1404,90 +863,46 @@ export const WizardRunner: React.FC = () => {
                   </Badge>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                   <div className="p-3 rounded-lg bg-card border border-border">
                     <span className="text-xs text-muted-foreground block">Full Legal Name</span>
                     <span className="font-semibold text-foreground">{fullName || '—'}</span>
                   </div>
                   <div className="p-3 rounded-lg bg-card border border-border">
                     <span className="text-xs text-muted-foreground block">Email Address</span>
-                    <span className="font-semibold text-foreground font-mono truncate block">{email || '—'}</span>
+                    <span className="font-semibold text-foreground font-mono">{email || '—'}</span>
                   </div>
                   <div className="p-3 rounded-lg bg-card border border-border">
                     <span className="text-xs text-muted-foreground block">Phone Contact</span>
                     <span className="font-semibold text-foreground font-mono">{phone || '—'}</span>
                   </div>
                   <div className="p-3 rounded-lg bg-card border border-border">
-                    <span className="text-xs text-muted-foreground block">Location / Residence</span>
-                    <span className="font-semibold text-foreground truncate block">{locationCity || '—'}</span>
-                  </div>
-                  <div className="p-3 rounded-lg bg-card border border-border">
-                    <span className="text-xs text-muted-foreground block">Seniority & Commitment</span>
-                    <span className="font-semibold text-foreground text-xs">{seniorityLevel} • {workCommitment}</span>
-                  </div>
-                  <div className="p-3 rounded-lg bg-card border border-border">
-                    <span className="text-xs text-muted-foreground block">Availability & Setup</span>
-                    <span className="font-semibold text-foreground text-xs">
-                      {isOpenToWork === 'yes' ? 'Ready Immediately' : `Notice: ${noticePeriod}`} • {workPreference}
+                    <span className="text-xs text-muted-foreground block">Immediate Work Status</span>
+                    <span className="font-semibold text-foreground">
+                      {isOpenToWork === 'yes' ? 'Yes, immediately ready' : `Notice period: ${noticePeriod}`}
                     </span>
                   </div>
                   <div className="p-3 rounded-lg bg-card border border-border">
-                    <span className="text-xs text-muted-foreground block">Experience & Company</span>
-                    <span className="font-semibold text-foreground font-mono text-xs">
-                      {yearsOfExperience} yrs • {currentCompany || 'Independent'}
-                    </span>
+                    <span className="text-xs text-muted-foreground block">Experience Level</span>
+                    <span className="font-semibold text-foreground font-mono">{yearsOfExperience} years</span>
                   </div>
-                  <div className="p-3 rounded-lg bg-card border border-border col-span-1 sm:col-span-2">
-                    <span className="text-xs text-muted-foreground block">Mandatory GitHub Profile</span>
-                    <span className="font-semibold text-primary font-mono text-xs truncate block">{portfolioUrl || 'None provided'}</span>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1">
-                  <div className="p-2.5 rounded-lg bg-card border border-border text-center">
-                    <span className="text-xs text-muted-foreground block">Frontend</span>
-                    <span className="font-bold text-amber-500 font-mono text-sm">{frontendRating}/5 ⭐</span>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-card border border-border text-center">
-                    <span className="text-xs text-muted-foreground block">Backend</span>
-                    <span className="font-bold text-amber-500 font-mono text-sm">{backendRating}/5 ⭐</span>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-card border border-border text-center">
-                    <span className="text-xs text-muted-foreground block">Database</span>
-                    <span className="font-bold text-amber-500 font-mono text-sm">{databaseRating}/5 ⭐</span>
-                  </div>
-                  <div className="p-2.5 rounded-lg bg-card border border-border text-center">
-                    <span className="text-xs text-muted-foreground block">DevOps</span>
-                    <span className="font-bold text-amber-500 font-mono text-sm">{devopsRating}/5 ⭐</span>
+                  <div className="p-3 rounded-lg bg-card border border-border">
+                    <span className="text-xs text-muted-foreground block">Portfolio / GitHub</span>
+                    <span className="font-semibold text-foreground font-mono truncate block">{portfolioUrl || 'None provided'}</span>
                   </div>
                 </div>
 
                 <div className="p-3 rounded-lg bg-card border border-border">
-                  <span className="text-xs text-muted-foreground block">System Design Selection</span>
+                  <span className="text-xs text-muted-foreground block">Technical Screening Solution</span>
                   <span className="font-semibold text-primary font-mono text-xs">{selectedMcq}</span>
                 </div>
               </div>
 
-              {/* Legal Declaration Accuracy Checkbox */}
-              <div className="p-4 rounded-xl bg-muted/40 border border-border">
-                <label className="flex items-start gap-3 cursor-pointer text-xs sm:text-sm">
-                  <input 
-                    type="checkbox"
-                    checked={termsAccepted}
-                    onChange={(e) => {
-                      setTermsAccepted(e.target.checked);
-                      if (formErrors.termsAccepted) setFormErrors((prev) => ({ ...prev, termsAccepted: '' }));
-                    }}
-                    className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary"
-                    required
-                  />
-                  <span className="text-foreground leading-relaxed">
-                    I solemnly declare that all provided candidate credentials, portfolio links, and responses are authentic and truthful. <span className="text-red-500 font-bold ml-1">*</span>
-                  </span>
-                </label>
-                {formErrors.termsAccepted && (
-                  <p className="text-xs text-destructive mt-1 pl-7">{formErrors.termsAccepted}</p>
-                )}
+              <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-xs text-muted-foreground flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 text-primary shrink-0" />
+                <span>
+                  Submission records your candidate answers securely into the WordPress and SQLite database.
+                </span>
               </div>
             </div>
           )}
@@ -1533,7 +948,7 @@ export const WizardRunner: React.FC = () => {
                 <span>⚡ Test Fill & Next</span>
               </Button>
 
-              {currentStep < 9 ? (
+              {currentStep < 4 ? (
                 <Button
                   type="button"
                   size="sm"
