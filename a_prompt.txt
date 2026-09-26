@@ -1,8 +1,0 @@
-You are Subagent A. Your task is to implement specific UI, typography, and terminology fixes:
-
-1. **Typography & Text Density**: The user states 'Use Ubuntu as header fonts... why too many text in places'. In \src/index.css\, ensure all header-like elements (e.g., classes like \.text-xl\, \.text-2xl\, \.text-3xl\, or \ont-bold\) use the Ubuntu font (perhaps by extending the \h1, h2...\ selector). Reduce text density in \src/components/forms/FormBuilder.tsx\ (e.g., shorten placeholders and descriptions).
-2. **Terminology**: Search for 'Module' in \src/components/admin/focus-quiz-editor.tsx\, \src/components/admin/project-hierarchy-manager.tsx\, \src/quiz/store/exam-store.ts\, \src/quiz/store/useQuizStore.ts\, and globally replace it with 'Section'.
-3. **Button Sizing**: Audit \src/components/ui/button.tsx\. Ensure standard sizes (\default\, \sm\, \lg\, \icon\) are defined and correctly applied without relying on custom \h-6 text-[10px]\ overrides in \FormBuilder.tsx\ (standardize them).
-4. **Job Selection Title**: In \src/components/admin/focus-quiz-editor.tsx\, add a 'Job Selection Title' input field to the settings or configuration area, as the user requested.
-
-Do not commit files; just edit them.

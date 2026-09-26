@@ -1,8 +1,0 @@
-You are Subagent B. Your task is to implement layout, routing, and feature fixes:
-
-1. **Header Layout**: In \src/components/forms/FormBuilder.tsx\, add a 'Back to Admin' button on the left side of the 'Form & Assessment Builder' header (line 359). Ensure the flex layout is aligned correctly.
-2. **File Upload Preview Bug**: In \src/components/runner/FormRunner.tsx\ (or wherever \ile_upload\ is rendered), fix the bug where selecting a file shows nothing. Render a preview or file name chip when a file is selected.
-3. **Video Question Format**: Implement the 'video' field type rendering in \src/components/runner/FormRunner.tsx\. Make sure it displays the video (e.g. YouTube embed or video tag) and caption. Also ensure it is editable in \src/components/forms/sortable-field-card.tsx\.
-4. **Slug Management**: Update \src/pages/Index.tsx\ so that switching tabs (e.g. builder, projects) updates the URL using React Router (e.g. \/admin/form/:slug\ or \/admin/:tab\). The URL must change when the user navigates!
-
-Do not commit files; just edit them.
