@@ -416,6 +416,20 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const currentTheme = getTheme(activeThemeId);
   const themeVars = getThemeCssVariables(currentTheme);
 
+  // Synchronize active theme attribute and background to root document and body
+  useEffect(() => {
+    const nextT = getTheme(activeThemeId);
+    document.documentElement.setAttribute('data-theme', nextT.id);
+    document.body.setAttribute('data-theme', nextT.id);
+    document.documentElement.style.backgroundColor = nextT.colors.background;
+    document.body.style.backgroundColor = nextT.colors.background;
+
+    return () => {
+      document.documentElement.style.backgroundColor = '';
+      document.body.style.backgroundColor = '';
+    };
+  }, [activeThemeId]);
+
   const [isDebugMode, setIsDebugMode] = useState<boolean>(false);
 
   const activeForm: FormModel = useMemo(() => {
@@ -1310,7 +1324,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               onValueChange={handleProjectSwitch}
             >
               <SelectTrigger 
-                className="text-xs font-medium font-sans h-8 w-[160px] sm:w-[190px] max-w-[220px] rounded-lg border border-border bg-background text-foreground shadow-2xs cursor-pointer truncate"
+                className="text-xs font-medium font-sans h-8 w-[180px] sm:w-[220px] max-w-[260px] rounded-lg border border-border bg-background text-foreground shadow-2xs cursor-pointer truncate"
               >
                 <SelectValue placeholder="Select Project" />
               </SelectTrigger>
@@ -1758,15 +1772,15 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   )}
                   className="h-2 mb-2 bg-secondary"
                 />
-                <CardTitle className="text-xl sm:text-2xl font-bold tracking-tight text-foreground leading-snug">
+                <CardTitle className="font-sans font-medium text-lg sm:text-xl tracking-normal text-foreground leading-relaxed">
                   {currentField.label}
                   {isCurrentFieldRequired && (
                     <span className="text-destructive text-red-500 font-bold ml-1.5" title="Mandatory Response">*</span>
                   )}
                 </CardTitle>
                 {isCurrentFieldRequired && (
-                  <Badge variant="outline" className="text-xs font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1.5 w-fit mt-2 font-semibold">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                  <Badge variant="outline" className="text-xs font-sans font-medium border-amber-500/40 text-amber-400 bg-amber-500/15 flex items-center gap-1.5 w-fit mt-2">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                     <span>Mandatory Response</span>
                   </Badge>
                 )}
@@ -1848,8 +1862,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           <CardHeader className="py-4 border-b border-border bg-muted/10">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs">{activeForm.formType.replace('_', ' ')}</Badge>
-                <Badge variant="secondary" className="text-xs">{activeForm.formAccess}</Badge>
+                <Badge variant="secondary" className="text-xs font-sans font-medium">{activeForm.formAccess}</Badge>
               </div>
               <div className="flex items-center gap-2">
                 {timeLeftSeconds !== null && (
@@ -1926,12 +1939,12 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                           </Badge>
                         )}
                         {isFieldRequired ? (
-                          <Badge variant="outline" className="text-xs font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1 font-semibold">
-                            <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                          <Badge variant="outline" className="text-xs font-sans font-medium border-amber-500/40 text-amber-400 bg-amber-500/15 flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
                             <span>Required</span>
                           </Badge>
                         ) : (
-                          <span className="text-xs text-muted-foreground font-mono">Optional</span>
+                          <span className="text-xs text-muted-foreground font-sans font-medium">Optional</span>
                         )}
                       </div>
                     </label>
@@ -2394,16 +2407,16 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
           {options.map((opt, optIndex) => (
             <label
               key={opt}
-              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-colors duration-150 hover:border-primary/50 hover:bg-primary/5 ${
+              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 ${
                 selectedOpts.includes(opt)
-                  ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
-                  : 'border-border bg-card text-foreground'
+                  ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
+                  : 'border-border/80 bg-card hover:bg-accent/40 hover:border-primary/40 text-foreground'
               }`}
             >
-              <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono text-sm font-bold shrink-0 transition-colors ${
+              <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
                 selectedOpts.includes(opt)
                   ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-muted/60 border-border text-muted-foreground'
+                  : 'bg-muted/70 border-border/80 text-foreground/80'
               }`}>
                 {String.fromCharCode(65 + optIndex)}
               </span>
@@ -2413,24 +2426,24 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                 value={opt}
                 checked={selectedOpts.includes(opt)}
                 onChange={(e) => handleChange(opt, e.target.checked)}
-                className="text-primary focus:ring-primary h-4 w-4 rounded"
+                className="text-primary focus:ring-primary h-4 w-4 rounded accent-primary cursor-pointer"
               />
-              <span className="flex-1">{opt}</span>
+              <span className="flex-1 font-sans">{opt}</span>
             </label>
           ))}
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-colors duration-150 hover:border-primary/50 hover:bg-primary/5 ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 ${
                   hasOther
-                    ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
-                    : 'border-border bg-card text-foreground'
+                    ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
+                    : 'border-border/80 bg-card hover:bg-accent/40 hover:border-primary/40 text-foreground'
                 }`}
               >
-                <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-colors ${
+                <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-sans text-xs font-semibold shrink-0 transition-colors ${
                   hasOther
                     ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted/60 border-border text-muted-foreground'
+                    : 'bg-muted/70 border-border/80 text-foreground/80'
                 }`}>
                   {String.fromCharCode(65 + options.length)}
                 </span>
@@ -2532,16 +2545,16 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-medium font-sans cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 ${alignClass} ${
+                className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 ${alignClass} ${
                   isSelected
-                    ? 'border-primary bg-primary/10 text-primary font-medium font-sans shadow-xs'
-                    : 'border-border bg-card text-foreground font-sans'
+                    ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
+                    : 'border-border/80 bg-card hover:bg-accent/40 hover:border-primary/40 text-foreground'
                 }`}
               >
-                <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono text-sm font-bold shrink-0 transition-colors ${
+                <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
                   isSelected
                     ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted/60 border-border text-muted-foreground'
+                    : 'bg-muted/70 border-border/80 text-foreground/80'
                 }`}>
                   {String.fromCharCode(65 + optIndex)}
                 </span>
@@ -2551,9 +2564,9 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                   value={opt}
                   checked={isSelected}
                   onChange={() => onChange(opt)}
-                  className="text-primary focus:ring-primary h-4 w-4"
+                  className="text-primary focus:ring-primary h-4 w-4 accent-primary cursor-pointer"
                 />
-                <span className="font-semibold">{opt}</span>
+                <span className="font-sans font-medium">{opt}</span>
               </label>
             );
           })}
@@ -2583,16 +2596,16 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
           {options.map((opt, optIndex) => (
             <label
               key={opt}
-              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-colors duration-150 hover:border-primary/50 hover:bg-primary/5 ${
+              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 ${
                 strValue === opt
-                  ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
-                  : 'border-border bg-card text-foreground'
+                  ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
+                  : 'border-border/80 bg-card hover:bg-accent/40 hover:border-primary/40 text-foreground'
               }`}
             >
-              <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono text-sm font-bold shrink-0 transition-colors ${
+              <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
                 strValue === opt
                   ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-muted/60 border-border text-muted-foreground'
+                  : 'bg-muted/70 border-border/80 text-foreground/80'
               }`}>
                 {String.fromCharCode(65 + optIndex)}
               </span>
@@ -2602,24 +2615,24 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                 value={opt}
                 checked={strValue === opt}
                 onChange={() => onChange(opt)}
-                className="text-primary focus:ring-primary h-4 w-4"
+                className="text-primary focus:ring-primary h-4 w-4 accent-primary cursor-pointer"
               />
-              <span className="flex-1">{opt}</span>
+              <span className="flex-1 font-sans">{opt}</span>
             </label>
           ))}
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-colors duration-150 hover:border-primary/50 hover:bg-primary/5 ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 ${
                   hasOther
-                    ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
-                    : 'border-border bg-card text-foreground'
+                    ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
+                    : 'border-border/80 bg-card hover:bg-accent/40 hover:border-primary/40 text-foreground'
                 }`}
               >
-                <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-colors ${
+                <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-sans text-xs font-semibold shrink-0 transition-colors ${
                   hasOther
                     ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted/60 border-border text-muted-foreground'
+                    : 'bg-muted/70 border-border/80 text-foreground/80'
                 }`}>
                   {String.fromCharCode(65 + options.length)}
                 </span>
