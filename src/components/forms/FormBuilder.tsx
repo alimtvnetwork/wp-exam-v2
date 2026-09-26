@@ -354,7 +354,7 @@ export const FormBuilder: React.FC = () => {
   const requiredCount = fields.filter((f) => f.isRequired).length;
 
   return (
-    <div className="max-w-7xl mx-auto p-0 space-y-3">
+    <div className="max-w-7xl mx-auto px-3 py-2 space-y-3">
       {/* Top Action Bar with Integrated Live URL & Customizable Slug Ribbon */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-3 sm:px-4 sm:py-2.5 bg-card rounded-xl border border-border/80 shadow-xs">
         <div className="space-y-1.5 min-w-0 flex-1">

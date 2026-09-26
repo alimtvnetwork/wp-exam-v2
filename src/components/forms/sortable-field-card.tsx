@@ -82,6 +82,7 @@ import {
   CheckSquare,
   Video,
   Film,
+  Image as ImageIcon,
 } from 'lucide-react';
 import { DesignValidationIssue } from '@/lib/design-validation-engine';
 
@@ -190,6 +191,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   const isVideoField = field.type === 'video';
   const hasAttachedVideo = Boolean(field.videoUrl && field.videoUrl.trim().length > 0);
   const [showVideoConfig, setShowVideoConfig] = useState(Boolean(field.videoUrl));
+  const hasAttachedImage = Boolean(field.imageUrl && field.imageUrl.trim().length > 0);
+  const [showImageConfig, setShowImageConfig] = useState(Boolean(field.imageUrl));
   const isRegexField = field.type === 'regex_text';
   const isFileUploadField = field.type === 'file_upload';
   const isTextInputField =
@@ -730,12 +733,29 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             </div>
           )}
 
-          {/* Google Forms CardBody: Full-width Question Title + Section Combobox */}
+          {/* Google Forms CardBody: Full-width Question Title + Image & Section Selector */}
           <div className="space-y-3">
             <div>
-              <Label className="text-sm font-semibold text-foreground block mb-1.5">
-                Question Title
-              </Label>
+              <div className="flex items-center justify-between mb-1.5">
+                <Label className="text-sm font-semibold text-foreground">
+                  Question Title
+                </Label>
+                <Button
+                  type="button"
+                  variant={showImageConfig || hasAttachedImage ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setShowImageConfig(!showImageConfig)}
+                  className={`h-7 px-2.5 text-xs gap-1.5 transition-all ${
+                    hasAttachedImage
+                      ? 'bg-primary text-primary-foreground font-semibold'
+                      : 'border-border text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Attach an illustration or question image"
+                >
+                  <ImageIcon className="w-3.5 h-3.5" />
+                  <span>{hasAttachedImage ? 'Image Attached' : 'Add Image'}</span>
+                </Button>
+              </div>
               <Input
                 value={field.label}
                 onChange={(e) => onUpdate(id, { label: e.target.value })}
@@ -744,36 +764,140 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               />
             </div>
 
-            {/* Section Combobox */}
-            <div className="flex items-center gap-3 p-2.5 rounded-lg bg-muted/20 border border-border/60 flex-wrap">
-              <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground shrink-0">
-                <Layers className="w-4 h-4 text-primary" />
-                <span>Section / Group:</span>
+            {/* Question Image Configuration Drawer */}
+            {(showImageConfig || hasAttachedImage) && (
+              <div className="p-3 bg-muted/20 rounded-xl border border-border/80 space-y-2.5 animate-in fade-in-50 duration-150">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                    <ImageIcon className="w-3.5 h-3.5" />
+                    <span>Question Illustration / Image</span>
+                  </div>
+                  {hasAttachedImage && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onUpdate(id, { imageUrl: undefined, imageCaption: undefined })}
+                      className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+                    >
+                      <X className="w-3 h-3 mr-1" /> Remove Image
+                    </Button>
+                  )}
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                  <div>
+                    <Label className="text-xs text-muted-foreground block mb-1">Image URL</Label>
+                    <Input
+                      value={field.imageUrl || ''}
+                      onChange={(e) => onUpdate(id, { imageUrl: e.target.value })}
+                      placeholder="https://example.com/diagram.png"
+                      className="text-xs h-8 font-mono bg-background text-foreground"
+                    />
+                  </div>
+                  <div>
+                    <Label className="text-xs text-muted-foreground block mb-1">Optional Caption</Label>
+                    <Input
+                      value={field.imageCaption || ''}
+                      onChange={(e) => onUpdate(id, { imageCaption: e.target.value })}
+                      placeholder="e.g. Figure 1: Network Topology Diagram"
+                      className="text-xs h-8 bg-background text-foreground"
+                    />
+                  </div>
+                </div>
+                {hasAttachedImage && (
+                  <div className="pt-1">
+                    <img
+                      src={field.imageUrl}
+                      alt={field.imageCaption || field.label}
+                      className="max-h-48 rounded-lg border border-border object-contain bg-background/50 mx-auto"
+                      onError={(e) => {
+                        (e.target as HTMLElement).style.display = 'none';
+                      }}
+                    />
+                  </div>
+                )}
               </div>
-              <div className="flex-1 min-w-[200px] max-w-sm">
-                <Input
-                  list={`section-list-${id}`}
-                  value={field.group || ''}
-                  onChange={(e) => onUpdate(id, { group: e.target.value })}
-                  placeholder="Choose existing section or type a new one..."
-                  className="text-sm h-8 bg-background text-foreground shadow-2xs"
-                />
-                <datalist id={`section-list-${id}`}>
+            )}
+
+            {/* Interactive Section Combobox with Dropdown & Suggestion Pills */}
+            <div className="p-2.5 rounded-lg bg-muted/20 border border-border/60 space-y-2">
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground shrink-0">
+                  <Layers className="w-4 h-4 text-primary" />
+                  <span>Section / Group:</span>
+                </div>
+                <div className="flex-1 min-w-[200px] max-w-sm flex items-center gap-1.5">
+                  <Input
+                    value={field.group || ''}
+                    onChange={(e) => onUpdate(id, { group: e.target.value })}
+                    placeholder="Type new section or pick from dropdown..."
+                    className="text-sm h-8 bg-background text-foreground shadow-2xs flex-1"
+                  />
+                  {availableSections.length > 0 && (
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 px-2 gap-1 text-xs border-border shrink-0 hover:bg-accent"
+                          title="View all existing sections in this quiz"
+                        >
+                          <ChevronDown className="w-3.5 h-3.5" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end" className="w-56 p-1 bg-popover border border-border shadow-lg">
+                        <div className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase">
+                          Quiz Sections
+                        </div>
+                        {availableSections.map((sec) => (
+                          <DropdownMenuItem
+                            key={sec}
+                            onClick={() => onUpdate(id, { group: sec })}
+                            className={`text-sm flex items-center justify-between cursor-pointer py-1.5 ${
+                              field.group === sec ? 'bg-primary/10 font-bold text-primary' : ''
+                            }`}
+                          >
+                            <span className="truncate">{sec}</span>
+                            {field.group === sec && <Check className="w-4 h-4 text-primary" />}
+                          </DropdownMenuItem>
+                        ))}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  )}
+                </div>
+                {field.group && (
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => onUpdate(id, { group: undefined })}
+                    className="h-8 px-2 text-sm text-muted-foreground hover:text-foreground"
+                  >
+                    Clear
+                  </Button>
+                )}
+              </div>
+
+              {/* Quick clickable section suggestion pills */}
+              {availableSections.length > 0 && (
+                <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                  <span className="text-xs text-muted-foreground mr-1">Existing:</span>
                   {availableSections.map((sec) => (
-                    <option key={sec} value={sec} />
+                    <button
+                      key={sec}
+                      type="button"
+                      onClick={() => onUpdate(id, { group: sec })}
+                      className={`text-xs px-2.5 py-0.5 rounded-full border transition-all ${
+                        field.group === sec
+                          ? 'bg-primary text-primary-foreground border-primary font-semibold shadow-xs'
+                          : 'bg-background hover:bg-primary/10 hover:border-primary/50 text-foreground border-border/80'
+                      }`}
+                    >
+                      {sec}
+                    </button>
                   ))}
-                </datalist>
-              </div>
-              {field.group && (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onUpdate(id, { group: undefined })}
-                  className="h-8 px-2 text-sm text-muted-foreground hover:text-foreground"
-                >
-                  Clear Section
-                </Button>
+                </div>
               )}
             </div>
           </div>

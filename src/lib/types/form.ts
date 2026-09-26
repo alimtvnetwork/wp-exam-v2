@@ -94,6 +94,8 @@ export interface FormField {
   moduleName?: string;
   url?: string;
   linkText?: string;
+  imageUrl?: string;
+  imageCaption?: string;
   videoUrl?: string;
   videoCaption?: string;
   validationRule?: FieldValidationRule;

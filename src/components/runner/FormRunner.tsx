@@ -935,9 +935,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               )}
               className="h-1.5 mb-2"
             />
-            <CardTitle className="text-base font-bold">{currentField.label}</CardTitle>
+            <CardTitle className="text-xl font-bold tracking-tight text-foreground leading-snug">{currentField.label}</CardTitle>
             {isCurrentFieldRequired && (
-              <Badge variant="outline" className="text-[10px] font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1 w-fit mt-1">
+              <Badge variant="outline" className="text-xs font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1 w-fit mt-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                 <span>Mandatory Response</span>
               </Badge>
@@ -945,6 +945,22 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           </CardHeader>
 
           <CardContent className="space-y-4 p-6">
+            {/* Question Illustration / Image */}
+            {currentField.imageUrl && (
+              <div className="w-full my-2 rounded-xl overflow-hidden border border-border/80 shadow-xs bg-muted/20">
+                <img
+                  src={currentField.imageUrl}
+                  alt={currentField.imageCaption || currentField.label}
+                  className="w-full max-h-80 object-contain mx-auto"
+                />
+                {currentField.imageCaption && (
+                  <p className="text-xs text-muted-foreground p-2 text-center italic bg-muted/40 border-t border-border/60">
+                    {currentField.imageCaption}
+                  </p>
+                )}
+              </div>
+            )}
+
             {currentField.type !== 'video' && currentField.videoUrl && (
               <RunnerVideoPlayer
                 videoUrl={currentField.videoUrl}
@@ -1018,18 +1034,35 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 const isFieldRequired = evaluateFieldRequired(f, answers, fields);
 
                 return (
-                  <div key={f.id} className="p-3.5 rounded-lg border border-border bg-card space-y-2">
-                    <label className="font-semibold text-xs flex items-center justify-between">
-                      <span>{idx + 1}. {f.label}</span>
+                  <div key={f.id} className="p-4 sm:p-5 rounded-xl border border-border bg-card space-y-3">
+                    <label className="font-semibold text-sm sm:text-base flex items-center justify-between gap-2">
+                      <span className="text-foreground">{idx + 1}. {f.label}</span>
                       {isFieldRequired ? (
-                        <Badge variant="outline" className="text-[10px] font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1">
-                          <span className="w-1 h-1 rounded-full bg-amber-500" />
+                        <Badge variant="outline" className="text-xs font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1 shrink-0">
+                          <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                           <span>Required</span>
                         </Badge>
                       ) : (
-                        <span className="text-[10px] text-muted-foreground font-mono">Optional</span>
+                        <span className="text-xs text-muted-foreground font-mono shrink-0">Optional</span>
                       )}
                     </label>
+
+                    {/* Question Illustration / Image */}
+                    {f.imageUrl && (
+                      <div className="w-full my-2 rounded-xl overflow-hidden border border-border/80 shadow-xs bg-muted/20">
+                        <img
+                          src={f.imageUrl}
+                          alt={f.imageCaption || f.label}
+                          className="w-full max-h-80 object-contain mx-auto"
+                        />
+                        {f.imageCaption && (
+                          <p className="text-xs text-muted-foreground p-2 text-center italic bg-muted/40 border-t border-border/60">
+                            {f.imageCaption}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
                     {f.type !== 'video' && f.videoUrl && (
                       <RunnerVideoPlayer
                         videoUrl={f.videoUrl}
@@ -1362,36 +1395,50 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
       };
 
       return (
-        <div className="space-y-1.5">
-          {options.map((opt) => (
+        <div className="space-y-2">
+          {options.map((opt, optIndex) => (
             <label
               key={opt}
-              className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition ${
+              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 hover:translate-x-1 ${
                 selectedOpts.includes(opt)
-                  ? 'border-primary bg-primary/10 text-primary font-bold'
-                  : 'border-border bg-card hover:bg-muted/40 text-foreground'
+                  ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
+                  : 'border-border bg-card text-foreground'
               }`}
             >
+              <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-colors ${
+                selectedOpts.includes(opt)
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-muted/60 border-border text-muted-foreground'
+              }`}>
+                {String.fromCharCode(65 + optIndex)}
+              </span>
               <input
                 type="checkbox"
                 name={`field-${field.id}`}
                 value={opt}
                 checked={selectedOpts.includes(opt)}
                 onChange={(e) => handleChange(opt, e.target.checked)}
-                className="text-primary focus:ring-primary h-3.5 w-3.5"
+                className="text-primary focus:ring-primary h-4 w-4 rounded"
               />
-              <span>{opt}</span>
+              <span className="flex-1">{opt}</span>
             </label>
           ))}
           {field.allowOtherOption && (
-            <div className="space-y-1.5 pt-0.5">
+            <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 hover:translate-x-1 ${
                   hasOther
-                    ? 'border-primary bg-primary/10 text-primary font-bold'
-                    : 'border-border bg-card hover:bg-muted/40 text-foreground'
+                    ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
+                    : 'border-border bg-card text-foreground'
                 }`}
               >
+                <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-colors ${
+                  hasOther
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-muted/60 border-border text-muted-foreground'
+                }`}>
+                  {String.fromCharCode(65 + options.length)}
+                </span>
                 <input
                   type="checkbox"
                   name={`field-${field.id}-other`}
@@ -1410,15 +1457,15 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                       onChange(filtered);
                     }
                   }}
-                  className="text-primary focus:ring-primary h-3.5 w-3.5"
+                  className="text-primary focus:ring-primary h-4 w-4 rounded"
                 />
-                <span>Other:</span>
+                <span className="shrink-0">Other:</span>
                 {hasOther && (
                   <Input
                     value={otherValue.trim()}
                     onChange={(e) => handleOtherChange(e.target.value)}
                     placeholder="Type custom answer or click a suggestion below..."
-                    className="h-6 text-xs flex-1 max-w-sm"
+                    className="h-8 text-sm flex-1 max-w-md bg-background"
                     onClick={(e) => e.stopPropagation()}
                   />
                 )}
@@ -1431,8 +1478,8 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                   : ['Bachelor in E-commerce', 'Bachelor in Arts', 'Engineering', 'Self-Taught'];
 
                 return (
-                  <div className="flex flex-wrap items-center gap-1.5 pl-6 pt-0.5 animate-in fade-in duration-150">
-                    <span className="text-[11px] text-muted-foreground font-medium">Suggestions:</span>
+                  <div className="flex flex-wrap items-center gap-1.5 pl-9 pt-0.5 animate-in fade-in duration-150">
+                    <span className="text-xs text-muted-foreground font-medium">Suggestions:</span>
                     {popularSuggestions.map((sug) => (
                       <button
                         key={sug}
@@ -1442,7 +1489,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                           e.stopPropagation();
                           handleOtherChange(sug);
                         }}
-                        className="text-[11px] px-2.5 py-0.5 rounded-full border border-border/80 bg-background text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary transition-all font-medium cursor-pointer shadow-2xs"
+                        className="text-xs px-3 py-1 rounded-full border border-border/80 bg-background text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary transition-all font-medium cursor-pointer shadow-2xs"
                         title={`Fill Other with "${sug}"`}
                       >
                         + {sug}
@@ -1465,51 +1512,65 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
       const otherValue = hasOther ? strValue.substring(otherPrefix.length) : '';
 
       return (
-        <div className="space-y-1.5">
-          {options.map((opt) => (
+        <div className="space-y-2">
+          {options.map((opt, optIndex) => (
             <label
               key={opt}
-              className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition ${
+              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 hover:translate-x-1 ${
                 strValue === opt
-                  ? 'border-primary bg-primary/10 text-primary font-bold'
-                  : 'border-border bg-card hover:bg-muted/40 text-foreground'
+                  ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
+                  : 'border-border bg-card text-foreground'
               }`}
             >
+              <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-colors ${
+                strValue === opt
+                  ? 'bg-primary text-primary-foreground border-primary'
+                  : 'bg-muted/60 border-border text-muted-foreground'
+              }`}>
+                {String.fromCharCode(65 + optIndex)}
+              </span>
               <input
                 type="radio"
                 name={`field-${field.id}`}
                 value={opt}
                 checked={strValue === opt}
                 onChange={() => onChange(opt)}
-                className="text-primary focus:ring-primary h-3.5 w-3.5"
+                className="text-primary focus:ring-primary h-4 w-4"
               />
-              <span>{opt}</span>
+              <span className="flex-1">{opt}</span>
             </label>
           ))}
           {field.allowOtherOption && (
-            <div className="space-y-1.5 pt-0.5">
+            <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 hover:translate-x-1 ${
                   hasOther
-                    ? 'border-primary bg-primary/10 text-primary font-bold'
-                    : 'border-border bg-card hover:bg-muted/40 text-foreground'
+                    ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
+                    : 'border-border bg-card text-foreground'
                 }`}
               >
+                <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-colors ${
+                  hasOther
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-muted/60 border-border text-muted-foreground'
+                }`}>
+                  {String.fromCharCode(65 + options.length)}
+                </span>
                 <input
                   type="radio"
                   name={`field-${field.id}`}
                   value="__other__"
                   checked={hasOther}
                   onChange={() => onChange(otherPrefix + ' ')}
-                  className="text-primary focus:ring-primary h-3.5 w-3.5"
+                  className="text-primary focus:ring-primary h-4 w-4"
                 />
-                <span>Other:</span>
+                <span className="shrink-0">Other:</span>
                 {hasOther && (
                   <Input
                     value={otherValue.trim()}
                     onChange={(e) => onChange(otherPrefix + e.target.value)}
                     placeholder="Type custom answer or click a suggestion below..."
-                    className="h-6 text-xs flex-1 max-w-sm"
+                    className="h-8 text-sm flex-1 max-w-md bg-background"
                     onClick={(e) => e.stopPropagation()}
                   />
                 )}
@@ -1522,8 +1583,8 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                   : ['Bachelor in E-commerce', 'Bachelor in Arts', 'Engineering', 'Self-Taught'];
 
                 return (
-                  <div className="flex flex-wrap items-center gap-1.5 pl-6 pt-0.5 animate-in fade-in duration-150">
-                    <span className="text-[11px] text-muted-foreground font-medium">Suggestions:</span>
+                  <div className="flex flex-wrap items-center gap-1.5 pl-9 pt-0.5 animate-in fade-in duration-150">
+                    <span className="text-xs text-muted-foreground font-medium">Suggestions:</span>
                     {popularSuggestions.map((sug) => (
                       <button
                         key={sug}
@@ -1533,7 +1594,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                           e.stopPropagation();
                           onChange(otherPrefix + sug);
                         }}
-                        className="text-[11px] px-2.5 py-0.5 rounded-full border border-border/80 bg-background text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary transition-all font-medium cursor-pointer shadow-2xs"
+                        className="text-xs px-3 py-1 rounded-full border border-border/80 bg-background text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary transition-all font-medium cursor-pointer shadow-2xs"
                         title={`Fill Other with "${sug}"`}
                       >
                         + {sug}
