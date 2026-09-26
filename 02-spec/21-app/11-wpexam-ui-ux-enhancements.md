@@ -122,27 +122,36 @@ This block provides the exact one-shot instruction prompt for future AI agents t
 ```markdown
 # AI ONE-SHOT VERIFICATION INSTRUCTION: SPEC 11 IMPLEMENTATION GATE
 
-To verify full implementation of 02-spec/21-app/11-wpexam-ui-ux-enhancements.md:
-1. Verify Fonts in `src/index.css`:
-   - `body, button, input, select, textarea` must use `font-family: 'Poppins', sans-serif`.
-   - `h1, h2, h3, h4, h5, h6, .font-heading` must use `font-family: 'Ubuntu', sans-serif`.
-2. Verify Phone Input:
-   - Must support country selector with flags (BD +880, US +1, GB +44, etc.) in `FormRunner.tsx`.
-3. Verify Required Asterisks:
-   - Check that `field.isRequired` outputs `text-destructive` or `text-red-500` asterisk, never black.
+To verify the full, grounded implementation of 02-spec/21-app/11-wpexam-ui-ux-enhancements.md across the codebase:
+1. Verify Google Fonts & Typography:
+   - In `index.html`: Google Fonts link must import Poppins (weights 300, 400, 500, 600, 700) and Ubuntu (weights 300, 400, 500, 700).
+   - In `src/index.css`: `body`, `button`, `input`, `select`, `textarea` must use `font-family: 'Poppins', sans-serif;` with base sizing 14px (16px body); all headings (`h1`–`h6`, `.font-heading`) must use `font-family: 'Ubuntu', sans-serif;`. Micro-fonts (`text-[9px]`, `text-[10px]`) are banned.
+2. Verify Phone Input with Country Flags:
+   - In `src/components/ui/phone-input.tsx`: `PhoneWithCountrySelect` must provide interactive flag popover, search filter, and international dialing codes (+880 Bangladesh, +1 US, +44 UK, +61 Australia, +49 Germany, +91 India, +65 Singapore, etc.).
+   - Must be integrated into both `/apply` (`src/components/forms/wizard-runner.tsx`) and `src/components/runner/FormRunner.tsx`.
+3. Verify Mandatory Red Asterisks:
+   - In `wizard-runner.tsx`, `FormRunner.tsx`, and `sortable-field-card.tsx`: Every required field must render a high-visibility red asterisk (`text-destructive text-red-500 font-bold ml-1`). Black asterisks are banned.
 4. Verify Candidate Position Selector:
-   - Position selector in Step 1 must have a search filter and at least 8 engineering/tech roles.
-5. Verify Test Auto-Fill:
-   - FormRunner must have a functioning "Test Fill & Next" button that populates the active step and advances.
-6. Verify Redundant Select Arrow Bug:
-   - `src/components/ui/select.tsx` must not render duplicate or stacked scroll chevrons.
-7. Verify Theme Name:
-   - Theme is titled "Green Choice" in `THEME_CONFIGS` and `THEME_PRESETS`.
-8. Verify FormBuilder Top Bar:
-   - Back button is an icon-only `<ArrowLeft />` button.
-   - Slug display is clean and compact with 1-click copy action.
-9. Verification Execution:
-   - Run `npm test` and `npm run build` to ensure zero compilation or linter errors.
+   - In `wizard-runner.tsx`: The job position selector must be a searchable combobox featuring at least 15 technical engineering/product roles categorized by domain with live search filtering.
+5. Verify "⚡ Test Fill & Next" Engine:
+   - In both `wizard-runner.tsx` and `FormRunner.tsx`: Every question or step must render a visible "⚡ Test Fill & Next" button that populates valid mock data and immediately advances to the next step.
+6. Verify Step 2 Qualification Flow & Validation:
+   - In `wizard-runner.tsx`: "Immediately Open to Work" switch reveals notice period options without hiding total experience; advancing without a required GitHub URL must be strictly blocked with an inline validation error.
+7. Verify Developer Debug Mode:
+   - In both `wizard-runner.tsx` and `FormRunner.tsx`: A dedicated "Debug Mode" toggle in the header exposes a floating panel with direct step navigation buttons (`#1`, `#2`, `#3`, etc.), field simulator, and live payload answer counter.
+8. Verify Elementor-Style Rich Blocks & Collapsible Descriptions:
+   - In `wizard-runner.tsx`: Step 3 Technical Screening must embed a video briefing player.
+   - In `sortable-field-card.tsx`: Question cards must feature an expandable description/hint accordion via chevron disclosure, and choice questions must support alignment options (`left`, `center`, `right`).
+9. Verify Radix UI Select Scroll Arrow Bug Fix:
+   - In `src/components/ui/select.tsx`: `SelectScrollUpButton` and `SelectScrollDownButton` must only render when `position === "item-aligned"`, preventing duplicate stacked chevron arrows in popper mode.
+10. Verify "Green Choice" Theme Rebrand:
+    - Theme display name is rebranded to "Green Choice" across `src/lib/theme-context.tsx`, `src/lib/themes.ts`, `src/themes/theme-definitions.ts`, `src/styles/theme.css`, and `src/styles/theme.less`.
+    - Backward-compatible aliases (`sweet-digs`, `sweet`) are preserved.
+11. Verify Streamlined FormBuilder Action Bar:
+    - In `src/components/forms/FormBuilder.tsx`: Top header features an icon-only back button (`<ArrowLeft />`), compact hover slug popover with 1-click copy link, and integrated presentation theme picker.
+12. Verify Screenshots & Quality Gates:
+    - All 5 user screenshots exist in `assets/screenshots/` (`64-wpexam-phone-flag-01.png`, `64-wpexam-step2-qualifications-02.png`, `64-wpexam-red-asterisk-03.png`, `64-wpexam-step3-video-screening-04.png`, `64-wpexam-dropdown-arrow-bug-05.png`).
+    - Run `npm test` (all 10 suites pass with 86/86 tests) and `npm run build` (production build succeeds with code 0).
 ```
 
 ---
