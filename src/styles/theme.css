@@ -1,11 +1,11 @@
 @keyframes cardEntrance {
   0% {
     opacity: 0;
-    transform: translateY(12px) scale(0.98);
+    transform: translateY(6px);
   }
   100% {
     opacity: 1;
-    transform: translateY(0) scale(1);
+    transform: translateY(0);
   }
 }
 @keyframes pulseGlow {
@@ -219,6 +219,40 @@
   --wp-exam-text-secondary: #64748B;
   --wp-exam-progress-bar: #2563EB;
   --wp-exam-badge-bg: rgba(37, 99, 235, 0.1);
+  background-color: var(--wp-exam-bg);
+  color: var(--wp-exam-text-primary);
+}
+
+.theme-clean-wide,
+[data-theme="clean-wide"] {
+  --primary: 243 75% 59%;
+  --primary-foreground: 0 0% 100%;
+  --background: 0 0% 100%;
+  --foreground: 222 47% 11%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 47% 11%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 47% 11%;
+  --border: 214 32% 91%;
+  --input: 214 32% 91%;
+  --muted: 210 40% 96%;
+  --muted-foreground: 215 16% 47%;
+  --accent: 243 75% 96%;
+  --accent-foreground: 243 75% 45%;
+  --secondary: 214 32% 95%;
+  --secondary-foreground: 222 47% 11%;
+  --ring: 243 75% 59%;
+  --wp-exam-bg: #FFFFFF;
+  --wp-exam-card: #FFFFFF;
+  --wp-exam-card-border: #E2E8F0;
+  --wp-exam-card-hover: #F8FAFC;
+  --wp-exam-primary: #4F46E5;
+  --wp-exam-primary-text: #FFFFFF;
+  --wp-exam-highlight: #4F46E5;
+  --wp-exam-text-primary: #0F172A;
+  --wp-exam-text-secondary: #64748B;
+  --wp-exam-progress-bar: #4F46E5;
+  --wp-exam-badge-bg: rgba(79, 70, 229, 0.1);
   background-color: var(--wp-exam-bg);
   color: var(--wp-exam-text-primary);
 }

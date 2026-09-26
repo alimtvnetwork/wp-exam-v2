@@ -33,7 +33,7 @@ import {
   Zap,
 } from 'lucide-react';
 import { toast } from 'sonner';
-import { getTheme, getThemeCssVariables, THEME_PRESETS } from '@/themes/theme-definitions';
+import { getTheme, getThemeCssVariables, THEME_PRESETS } from '@/lib/themes';
 import {
   Select,
   SelectContent,
@@ -243,7 +243,16 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   };
 
   const [selectedProjectId, setSelectedProjectId] = useState<string>(getInitialProjectId());
-  const [activeThemeId, setActiveThemeId] = useState<string>('riseup-asia');
+  const [activeThemeId, setActiveThemeId] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const urlTheme = params.get('theme');
+      if (urlTheme && (THEME_PRESETS[urlTheme] || urlTheme === 'clean-wide')) {
+        return urlTheme;
+      }
+    }
+    return 'clean-wide';
+  });
   const currentTheme = getTheme(activeThemeId);
   const themeVars = getThemeCssVariables(currentTheme);
 
@@ -472,23 +481,55 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
     const isQuiz = activeForm.formType === 'quiz';
 
+    const normalizeAnswer = (val: unknown): string => {
+      const text = String(val ?? '').trim();
+      if (text.startsWith('__other__:')) {
+        return text.substring('__other__:'.length).trim().toLowerCase();
+      }
+      return text.toLowerCase();
+    };
+
     if (isQuiz) {
       currentVisibleFields.forEach((f) => {
         const pts = f.points || 1;
         total += pts;
-        const userAns = String(answers[f.id] ?? '');
-        const correctAns = f.correctAnswer || '';
-        const hasUserAns = Boolean(userAns);
-        const hasCorrectAns = Boolean(correctAns);
+        const userRaw = answers[f.id];
+        const correctAnswers = (f as FormField & { correctAnswers?: string[] }).correctAnswers;
+        const singleCorrect = f.correctAnswer || '';
+        let isCorrect = false;
 
-        if (hasUserAns) {
-          if (hasCorrectAns) {
-            const isMatch = userAns.trim().toLowerCase() === correctAns.trim().toLowerCase();
+        const hasMultiCorrect = Boolean(correctAnswers && correctAnswers.length > 0);
+        if (hasMultiCorrect) {
+          const userArr = (Array.isArray(userRaw) ? userRaw : [userRaw])
+            .map(normalizeAnswer)
+            .filter(Boolean);
+          const cleanExpected = (correctAnswers || []).map(normalizeAnswer).filter(Boolean);
 
-            if (isMatch) {
-              earned += pts;
+          const hasEqualCount = userArr.length === cleanExpected.length;
+          if (hasEqualCount) {
+            const allMatched = cleanExpected.every((exp) => userArr.includes(exp));
+            if (allMatched) {
+              isCorrect = true;
             }
           }
+        } else {
+          const userStr = normalizeAnswer(userRaw);
+          const expectedStr = normalizeAnswer(singleCorrect);
+          const hasUserAns = Boolean(userStr);
+          const hasExpected = Boolean(expectedStr);
+
+          if (hasUserAns) {
+            if (hasExpected) {
+              const isMatch = userStr === expectedStr;
+              if (isMatch) {
+                isCorrect = true;
+              }
+            }
+          }
+        }
+
+        if (isCorrect) {
+          earned += pts;
         }
       });
 
@@ -525,22 +566,52 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       score_percentage: pct,
       is_passed: Boolean(isPassed),
       answers: currentVisibleFields.map((f) => {
-        const userAns = String(answers[f.id] ?? '');
-        const correctAns = f.correctAnswer || '';
-        const hasUserAns = Boolean(userAns);
-        const hasCorrectAns = Boolean(correctAns);
+        const userRaw = answers[f.id];
+        const correctAnswers = (f as FormField & { correctAnswers?: string[] }).correctAnswers;
+        const singleCorrect = f.correctAnswer || '';
         let isCorrect = false;
 
-        if (hasUserAns) {
-          if (hasCorrectAns) {
-            isCorrect = userAns.trim().toLowerCase() === correctAns.trim().toLowerCase();
+        const hasMultiCorrect = Boolean(correctAnswers && correctAnswers.length > 0);
+        if (hasMultiCorrect) {
+          const userArr = (Array.isArray(userRaw) ? userRaw : [userRaw])
+            .map(normalizeAnswer)
+            .filter(Boolean);
+          const cleanExpected = (correctAnswers || []).map(normalizeAnswer).filter(Boolean);
+
+          const hasEqualCount = userArr.length === cleanExpected.length;
+          if (hasEqualCount) {
+            const allMatched = cleanExpected.every((exp) => userArr.includes(exp));
+            if (allMatched) {
+              isCorrect = true;
+            }
+          }
+        } else {
+          const userStr = normalizeAnswer(userRaw);
+          const expectedStr = normalizeAnswer(singleCorrect);
+          const hasUserAns = Boolean(userStr);
+          const hasExpected = Boolean(expectedStr);
+
+          if (hasUserAns) {
+            if (hasExpected) {
+              const isMatch = userStr === expectedStr;
+              if (isMatch) {
+                isCorrect = true;
+              }
+            }
           }
         }
 
+        const formatAnswerDisplay = (ans: unknown): string => {
+          if (Array.isArray(ans)) {
+            return ans.map((item) => String(item).replace(/^__other__:/, 'Other: ')).join(', ');
+          }
+          return String(ans ?? '').replace(/^__other__:/, 'Other: ');
+        };
+
         return {
           question: f.label,
-          answer: userAns,
-          correct: correctAns,
+          answer: formatAnswerDisplay(userRaw),
+          correct: hasMultiCorrect ? (correctAnswers || []).join(', ') : singleCorrect,
           isCorrect,
         };
       }),
@@ -557,7 +628,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
   if (isSubmitted) {
     return (
-      <Card className="w-full max-w-xl mx-auto border-emerald-500/40 shadow-xl bg-card">
+      <Card className="w-full max-w-xl mx-auto border-emerald-500/40 shadow-xl bg-card animate-in fade-in duration-150">
         <CardHeader className="text-center pb-2">
           <div className="mx-auto my-2 w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold text-xl">
             ✓
@@ -619,7 +690,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
   return (
     <div 
-      className={`space-y-4 font-sans max-w-4xl mx-auto p-4 sm:p-6 rounded-2xl transition-all duration-300 theme-${activeThemeId}`}
+      className={`space-y-4 font-sans ${activeThemeId === 'clean-wide' ? 'max-w-5xl' : 'max-w-4xl'} mx-auto p-4 sm:p-6 rounded-2xl transition-all duration-300 theme-${activeThemeId}`}
       style={{
         ...themeVars,
         backgroundColor: currentTheme.colors.background,
@@ -849,7 +920,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
       {/* Sequential Wizard Runner */}
       {isSequential && currentField ? (
-        <Card className="w-full max-w-xl mx-auto border-border shadow-lg bg-card">
+        <Card className={`w-full ${activeThemeId === 'clean-wide' ? 'max-w-3xl' : 'max-w-xl'} mx-auto border-border shadow-lg bg-card animate-in fade-in duration-150`}>
           <CardHeader className="py-4 border-b border-border bg-muted/10">
             <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
               <span className="font-semibold text-primary">
@@ -908,7 +979,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
         </Card>
       ) : (
         /* Single-Page Form Mode */
-        <Card className="w-full max-w-2xl mx-auto border-border shadow-lg bg-card">
+        <Card className={`w-full ${activeThemeId === 'clean-wide' ? 'max-w-4xl' : 'max-w-2xl'} mx-auto border-border shadow-lg bg-card animate-in fade-in duration-150`}>
           <CardHeader className="py-4 border-b border-border bg-muted/10">
             <div className="flex items-center justify-between">
               <Badge variant="outline" className="text-xs">{activeForm.formType.replace('_', ' ')}</Badge>
@@ -1276,7 +1347,13 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
       };
 
       const handleOtherChange = (text: string) => {
-        const filtered = selectedOpts.filter(o => typeof o === 'string' && !o.startsWith(otherPrefix));
+        const filtered = selectedOpts.filter((o) => {
+          if (typeof o !== 'string') {
+            return true;
+          }
+          const isOther = o.startsWith(otherPrefix);
+          return !isOther;
+        });
         if (text) {
            onChange([...filtered, otherPrefix + text]);
         } else {
@@ -1307,37 +1384,74 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
             </label>
           ))}
           {field.allowOtherOption && (
-            <label
-              className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition ${
-                hasOther
-                  ? 'border-primary bg-primary/10 text-primary font-bold'
-                  : 'border-border bg-card hover:bg-muted/40 text-foreground'
-              }`}
-            >
-              <input
-                type="checkbox"
-                name={`field-${field.id}-other`}
-                checked={hasOther}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    handleOtherChange(' ');
-                  } else {
-                    const filtered = selectedOpts.filter(o => typeof o === 'string' && !o.startsWith(otherPrefix));
-                    onChange(filtered);
-                  }
-                }}
-                className="text-primary focus:ring-primary h-3.5 w-3.5"
-              />
-              <span>Other:</span>
-              {hasOther && (
-                <Input
-                  value={otherValue.trim()}
-                  onChange={(e) => handleOtherChange(e.target.value)}
-                  className="h-6 text-xs flex-1 max-w-sm"
-                  onClick={(e) => e.preventDefault()}
+            <div className="space-y-1.5 pt-0.5">
+              <label
+                className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition ${
+                  hasOther
+                    ? 'border-primary bg-primary/10 text-primary font-bold'
+                    : 'border-border bg-card hover:bg-muted/40 text-foreground'
+                }`}
+              >
+                <input
+                  type="checkbox"
+                  name={`field-${field.id}-other`}
+                  checked={hasOther}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      handleOtherChange(' ');
+                    } else {
+                      const filtered = selectedOpts.filter((o) => {
+                        if (typeof o !== 'string') {
+                          return true;
+                        }
+                        const isOther = o.startsWith(otherPrefix);
+                        return !isOther;
+                      });
+                      onChange(filtered);
+                    }
+                  }}
+                  className="text-primary focus:ring-primary h-3.5 w-3.5"
                 />
-              )}
-            </label>
+                <span>Other:</span>
+                {hasOther && (
+                  <Input
+                    value={otherValue.trim()}
+                    onChange={(e) => handleOtherChange(e.target.value)}
+                    placeholder="Type custom answer or click a suggestion below..."
+                    className="h-6 text-xs flex-1 max-w-sm"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                )}
+              </label>
+
+              {/* MCQ Others Suggestions Pills */}
+              {(() => {
+                const popularSuggestions = (field as FormField & { suggestedOtherOptions?: string[] }).suggestedOtherOptions?.length
+                  ? (field as FormField & { suggestedOtherOptions?: string[] }).suggestedOtherOptions!
+                  : ['Bachelor in E-commerce', 'Bachelor in Arts', 'Engineering', 'Self-Taught'];
+
+                return (
+                  <div className="flex flex-wrap items-center gap-1.5 pl-6 pt-0.5 animate-in fade-in duration-150">
+                    <span className="text-[11px] text-muted-foreground font-medium">Suggestions:</span>
+                    {popularSuggestions.map((sug) => (
+                      <button
+                        key={sug}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          handleOtherChange(sug);
+                        }}
+                        className="text-[11px] px-2.5 py-0.5 rounded-full border border-border/80 bg-background text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary transition-all font-medium cursor-pointer shadow-2xs"
+                        title={`Fill Other with "${sug}"`}
+                      >
+                        + {sug}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
           )}
         </div>
       );
@@ -1373,31 +1487,62 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
             </label>
           ))}
           {field.allowOtherOption && (
-            <label
-              className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition ${
-                hasOther
-                  ? 'border-primary bg-primary/10 text-primary font-bold'
-                  : 'border-border bg-card hover:bg-muted/40 text-foreground'
-              }`}
-            >
-              <input
-                type="radio"
-                name={`field-${field.id}`}
-                value="__other__"
-                checked={hasOther}
-                onChange={() => onChange(otherPrefix + ' ')}
-                className="text-primary focus:ring-primary h-3.5 w-3.5"
-              />
-              <span>Other:</span>
-              {hasOther && (
-                <Input
-                  value={otherValue.trim()}
-                  onChange={(e) => onChange(otherPrefix + e.target.value)}
-                  className="h-6 text-xs flex-1 max-w-sm"
-                  onClick={(e) => e.preventDefault()}
+            <div className="space-y-1.5 pt-0.5">
+              <label
+                className={`flex items-center gap-2.5 p-2 rounded-lg border text-xs cursor-pointer transition ${
+                  hasOther
+                    ? 'border-primary bg-primary/10 text-primary font-bold'
+                    : 'border-border bg-card hover:bg-muted/40 text-foreground'
+                }`}
+              >
+                <input
+                  type="radio"
+                  name={`field-${field.id}`}
+                  value="__other__"
+                  checked={hasOther}
+                  onChange={() => onChange(otherPrefix + ' ')}
+                  className="text-primary focus:ring-primary h-3.5 w-3.5"
                 />
-              )}
-            </label>
+                <span>Other:</span>
+                {hasOther && (
+                  <Input
+                    value={otherValue.trim()}
+                    onChange={(e) => onChange(otherPrefix + e.target.value)}
+                    placeholder="Type custom answer or click a suggestion below..."
+                    className="h-6 text-xs flex-1 max-w-sm"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                )}
+              </label>
+
+              {/* Single Choice Others Suggestions Pills */}
+              {(() => {
+                const popularSuggestions = (field as FormField & { suggestedOtherOptions?: string[] }).suggestedOtherOptions?.length
+                  ? (field as FormField & { suggestedOtherOptions?: string[] }).suggestedOtherOptions!
+                  : ['Bachelor in E-commerce', 'Bachelor in Arts', 'Engineering', 'Self-Taught'];
+
+                return (
+                  <div className="flex flex-wrap items-center gap-1.5 pl-6 pt-0.5 animate-in fade-in duration-150">
+                    <span className="text-[11px] text-muted-foreground font-medium">Suggestions:</span>
+                    {popularSuggestions.map((sug) => (
+                      <button
+                        key={sug}
+                        type="button"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          e.stopPropagation();
+                          onChange(otherPrefix + sug);
+                        }}
+                        className="text-[11px] px-2.5 py-0.5 rounded-full border border-border/80 bg-background text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary transition-all font-medium cursor-pointer shadow-2xs"
+                        title={`Fill Other with "${sug}"`}
+                      >
+                        + {sug}
+                      </button>
+                    ))}
+                  </div>
+                );
+              })()}
+            </div>
           )}
         </div>
       );

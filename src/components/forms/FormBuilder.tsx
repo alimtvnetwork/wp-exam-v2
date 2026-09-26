@@ -33,7 +33,7 @@ import { JsonModal } from './json-modal';
 import { GoogleFormsImportModal } from './google-forms-import-modal';
 import { DesignValidationPanel, DesignValidationSidebarView } from './design-validation-panel';
 import { auditFormDesign, DesignHealthReport } from '@/lib/design-validation-engine';
-import { AiSectionAssistant } from '@/components/admin/ai-section-assistant';
+import { AiSectionAssistant } from './ai-section-assistant';
 import { BranchingFlowModal } from './branching-flow-modal';
 import { SlugManagementModal } from './slug-management-modal';
 import { SortableFieldCard } from './sortable-field-card';
@@ -354,9 +354,9 @@ export const FormBuilder: React.FC = () => {
   const requiredCount = fields.filter((f) => f.isRequired).length;
 
   return (
-    <div className="max-w-7xl mx-auto p-0 space-y-4">
+    <div className="max-w-7xl mx-auto p-0 space-y-3">
       {/* Top Action Bar with Integrated Live URL & Customizable Slug Ribbon */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4 p-4 bg-card rounded-xl border border-border/80 shadow-xs">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-3 sm:px-4 sm:py-2.5 bg-card rounded-xl border border-border/80 shadow-xs">
         <div className="space-y-1.5 min-w-0 flex-1">
           <div className="flex items-center gap-3">
             <Button
@@ -364,7 +364,7 @@ export const FormBuilder: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => window.history.back()}
-              className="text-sm h-8 gap-1.5 font-medium shrink-0"
+              className="text-sm h-8 gap-1.5 font-medium shrink-0 bg-background border border-border text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary transition-all shadow-xs"
               title="Back to Admin Dashboard"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
@@ -475,12 +475,12 @@ export const FormBuilder: React.FC = () => {
               setInspectorTab('audit');
               setIsDesignPanelOpen(true);
             }}
-            className={`text-sm h-8 gap-1.5 font-medium transition-colors ${
+            className={`text-sm h-8 gap-1.5 font-medium transition-all shadow-xs bg-background border ${
               designReport.score >= 90
-                ? 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10'
+                ? 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500'
                 : designReport.score >= 75
-                ? 'border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10'
-                : 'border-destructive/40 text-destructive hover:bg-destructive/10'
+                ? 'border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 hover:border-amber-500'
+                : 'border-destructive/40 text-destructive hover:bg-destructive/10 hover:border-destructive'
             }`}
             title="Inspect form health, design validation warnings, and 1-click auto-fixes"
           >
@@ -500,16 +500,19 @@ export const FormBuilder: React.FC = () => {
             </Badge>
           </Button>
 
+          {/* Dedicated AI Studio Trigger Button */}
+          <AiSectionAssistant section="builder" title="AI Studio" />
+
           {/* Unified Tools ▾ Dropdown Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="text-sm h-8 gap-1.5 border-border"
+                className="text-sm h-8 gap-1.5 bg-background border border-border text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary shadow-xs transition-all font-medium"
                 title="Open secondary builder tools and integrations"
               >
-                <Wand2 className="w-3.5 h-3.5" />
+                <Wand2 className="w-3.5 h-3.5 text-primary" />
                 <span>Tools</span>
                 <ChevronDown className="w-3 h-3 text-muted-foreground" />
               </Button>
@@ -521,7 +524,7 @@ export const FormBuilder: React.FC = () => {
 
               <DropdownMenuItem
                 onClick={() => setIsGoogleModalOpen(true)}
-                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-accent focus:bg-muted"
+                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary border border-transparent hover:border-primary/20 transition-colors"
               >
                 <div className="w-7 h-7 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center shrink-0">
                   <FileSpreadsheet className="w-3.5 h-3.5" />
@@ -534,7 +537,7 @@ export const FormBuilder: React.FC = () => {
 
               <DropdownMenuItem
                 onClick={() => setIsFlowModalOpen(true)}
-                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-accent focus:bg-muted"
+                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary border border-transparent hover:border-primary/20 transition-colors"
               >
                 <div className="w-7 h-7 rounded-md bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
                   <GitBranch className="w-3.5 h-3.5" />
@@ -547,7 +550,7 @@ export const FormBuilder: React.FC = () => {
 
               <DropdownMenuItem
                 onClick={() => setIsJsonModalOpen(true)}
-                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-accent focus:bg-muted"
+                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary border border-transparent hover:border-primary/20 transition-colors"
               >
                 <div className="w-7 h-7 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center shrink-0">
                   <FileJson className="w-3.5 h-3.5" />
@@ -572,7 +575,7 @@ export const FormBuilder: React.FC = () => {
             variant="outline"
             size="sm"
             onClick={() => window.open('/preview/' + activeSlug, '_blank')}
-            className="text-sm h-8 gap-1.5 border-border"
+            className="text-sm h-8 gap-1.5 bg-background border border-border text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary shadow-xs transition-all font-medium"
             title="Preview interactive form in a new tab"
           >
             <Eye className="w-3.5 h-3.5" />
@@ -584,7 +587,7 @@ export const FormBuilder: React.FC = () => {
             onClick={handleSave}
             disabled={isSaving}
             size="sm"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm h-8 gap-1.5 font-semibold shadow-xs"
+            className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm h-8 gap-1.5 font-semibold shadow-xs transition-all"
           >
             <Save className="w-3.5 h-3.5" />
             <span>{isSaving ? 'Saving...' : 'Save Form'}</span>
@@ -804,7 +807,7 @@ export const FormBuilder: React.FC = () => {
                 variant="outline"
                 size="sm"
                 onClick={() => handleQuickAdd('multiple_choice')}
-                className="text-sm gap-1.5 border-border"
+                className="text-sm gap-1.5 bg-background border border-border text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary transition-all font-medium"
               >
                 <PlusCircle className="w-3.5 h-3.5" />
                 <span>Add Multiple Choice</span>
@@ -819,7 +822,7 @@ export const FormBuilder: React.FC = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => handleQuickAdd('multiple_choice')}
-                className="text-sm text-muted-foreground hover:text-foreground gap-2"
+                className="text-sm text-foreground hover:text-primary hover:bg-primary/10 transition-all gap-2 font-medium"
               >
                 <PlusCircle className="w-4 h-4 text-primary" />
                 <span>Add Multiple Choice Question</span>

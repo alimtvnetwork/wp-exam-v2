@@ -1,0 +1,316 @@
+/**
+ * Multi-Theme Catalog and CSS Variable Engine for WP Exam.
+ * Supports Clean Wide White (Vivid Indigo & Crisp Slate), Clean Light,
+ * Purple (Indigo/Violet), Rise Up Asia (Gold Amber), Antigravity Dracula,
+ * and VS Code Dark (Obsidian & Cyan).
+ */
+
+export interface ThemeColors {
+  background: string;
+  cardBg: string;
+  cardBorder: string;
+  cardHover: string;
+  cardActiveBorder: string;
+  cardActiveBg: string;
+  primary: string;
+  primaryText: string;
+  highlightWord: string;
+  textPrimary: string;
+  textSecondary: string;
+  progressBar: string;
+  badgeBg: string;
+}
+
+export interface ThemeDefinition {
+  id: string;
+  name: string;
+  description: string;
+  appearance: 'dark' | 'light';
+  colors: ThemeColors;
+  hslValues?: Record<string, string>;
+}
+
+export const THEME_PRESETS: Record<string, ThemeDefinition> = {
+  'clean-wide': {
+    id: 'clean-wide',
+    name: 'Clean Wide White (Vivid Indigo & Slate)',
+    description: 'Pure crisp white card background with subtle slate borders, deep slate text, and vivid indigo primary accent.',
+    appearance: 'light',
+    colors: {
+      background: '#FFFFFF',
+      cardBg: '#FFFFFF',
+      cardBorder: '#E2E8F0',
+      cardHover: '#F8FAFC',
+      cardActiveBorder: '#4F46E5',
+      cardActiveBg: '#EEF2FF',
+      primary: '#4F46E5',
+      primaryText: '#FFFFFF',
+      highlightWord: '#4F46E5',
+      textPrimary: '#0F172A',
+      textSecondary: '#64748B',
+      progressBar: '#4F46E5',
+      badgeBg: '#EEF2FF',
+    },
+    hslValues: {
+      '--primary': '243 75% 59%',
+      '--primary-foreground': '0 0% 100%',
+      '--background': '0 0% 100%',
+      '--foreground': '222 47% 11%',
+      '--card': '0 0% 100%',
+      '--card-foreground': '222 47% 11%',
+      '--popover': '0 0% 100%',
+      '--popover-foreground': '222 47% 11%',
+      '--border': '214 32% 91%',
+      '--input': '214 32% 91%',
+      '--ring': '243 75% 59%',
+      '--accent': '243 75% 96%',
+      '--accent-foreground': '243 75% 45%',
+      '--secondary': '214 32% 95%',
+      '--secondary-foreground': '222 47% 11%',
+      '--muted': '210 40% 96%',
+      '--muted-foreground': '215 16% 47%',
+    },
+  },
+
+  'riseup-asia': {
+    id: 'riseup-asia',
+    name: 'Rise Up Asia (Bright Gold & Navy)',
+    description: 'Rise Up Asia signature brand — vivid amber gold on midnight navy with cream typography.',
+    appearance: 'dark',
+    colors: {
+      background: '#0A0A14',
+      cardBg: '#141424',
+      cardBorder: '#2A2A44',
+      cardHover: '#1E1E34',
+      cardActiveBorder: '#FFAD01',
+      cardActiveBg: '#2A230F',
+      primary: '#FFAD01',
+      primaryText: '#0A0A14',
+      highlightWord: '#FFAD01',
+      textPrimary: '#FFF1D6',
+      textSecondary: '#B8A990',
+      progressBar: '#FFAD01',
+      badgeBg: '#33270A',
+    },
+    hslValues: {
+      '--primary': '41 100% 50%',
+      '--primary-foreground': '240 33% 6%',
+      '--background': '240 33% 6%',
+      '--foreground': '40 100% 92%',
+      '--card': '240 28% 11%',
+      '--card-foreground': '40 100% 92%',
+      '--popover': '240 28% 11%',
+      '--popover-foreground': '40 100% 92%',
+      '--border': '240 24% 21%',
+      '--input': '240 24% 21%',
+      '--ring': '41 100% 50%',
+      '--accent': '246 32% 19%',
+      '--accent-foreground': '0 0% 100%',
+      '--secondary': '246 32% 19%',
+      '--secondary-foreground': '0 0% 100%',
+      '--muted': '240 25% 16%',
+      '--muted-foreground': '38 22% 64%',
+    },
+  },
+
+  purple: {
+    id: 'purple',
+    name: 'Purple Theme (Deep Purple & Violet)',
+    description: 'Modern focus UI with vivid electric indigo on deep violet-navy with warm amber accents.',
+    appearance: 'dark',
+    colors: {
+      background: '#0F0E1E',
+      cardBg: '#18162F',
+      cardBorder: '#2C2852',
+      cardHover: '#232043',
+      cardActiveBorder: '#6366F1',
+      cardActiveBg: '#28235A',
+      primary: '#5C45FD',
+      primaryText: '#FFFFFF',
+      highlightWord: '#FBBF24',
+      textPrimary: '#FFFFFF',
+      textSecondary: '#94A3B8',
+      progressBar: '#5C45FD',
+      badgeBg: '#2D285A',
+    },
+    hslValues: {
+      '--primary': '248 98% 63%',
+      '--primary-foreground': '0 0% 100%',
+      '--background': '246 35% 9%',
+      '--foreground': '0 0% 100%',
+      '--card': '245 36% 14%',
+      '--card-foreground': '0 0% 100%',
+      '--popover': '245 36% 14%',
+      '--popover-foreground': '0 0% 100%',
+      '--border': '246 34% 24%',
+      '--input': '246 34% 24%',
+      '--ring': '248 98% 63%',
+      '--accent': '247 100% 74%',
+      '--accent-foreground': '244 36% 9%',
+      '--secondary': '246 32% 19%',
+      '--secondary-foreground': '0 0% 100%',
+      '--muted': '246 32% 19%',
+      '--muted-foreground': '215 16% 65%',
+    },
+  },
+
+  dracula: {
+    id: 'dracula',
+    name: 'Antigravity Dracula (Dark Purple & Neon)',
+    description: 'High-contrast vampire palette — deep purple-black canvas, neon green accents, and glowing purple borders.',
+    appearance: 'dark',
+    colors: {
+      background: '#191A21',
+      cardBg: '#282A36',
+      cardBorder: '#44475A',
+      cardHover: '#343746',
+      cardActiveBorder: '#BD93F9',
+      cardActiveBg: '#383A59',
+      primary: '#BD93F9',
+      primaryText: '#282A36',
+      highlightWord: '#50FA7B',
+      textPrimary: '#F8F8F2',
+      textSecondary: '#6272A4',
+      progressBar: '#BD93F9',
+      badgeBg: '#44475A',
+    },
+    hslValues: {
+      '--primary': '265 89% 78%',
+      '--primary-foreground': '231 15% 18%',
+      '--background': '231 15% 12%',
+      '--foreground': '60 30% 96%',
+      '--card': '231 15% 18%',
+      '--card-foreground': '60 30% 96%',
+      '--popover': '231 15% 18%',
+      '--popover-foreground': '60 30% 96%',
+      '--border': '232 14% 31%',
+      '--input': '232 14% 31%',
+      '--ring': '265 89% 78%',
+      '--accent': '135 94% 65%',
+      '--accent-foreground': '231 15% 11%',
+      '--secondary': '232 14% 24%',
+      '--secondary-foreground': '60 30% 96%',
+      '--muted': '232 14% 24%',
+      '--muted-foreground': '225 27% 51%',
+    },
+  },
+
+  'vscode-dark': {
+    id: 'vscode-dark',
+    name: 'VS Code Dark (Obsidian & Cyan)',
+    description: 'High-contrast charcoal slate with neon cyan accents for code and technical assessment suites.',
+    appearance: 'dark',
+    colors: {
+      background: '#0D1117',
+      cardBg: '#161B22',
+      cardBorder: '#30363D',
+      cardHover: '#21262D',
+      cardActiveBorder: '#38BDF8',
+      cardActiveBg: '#0D2D44',
+      primary: '#38BDF8',
+      primaryText: '#0D1117',
+      highlightWord: '#38BDF8',
+      textPrimary: '#F0F6FC',
+      textSecondary: '#8B949E',
+      progressBar: '#38BDF8',
+      badgeBg: '#21262D',
+    },
+    hslValues: {
+      '--primary': '199 89% 60%',
+      '--primary-foreground': '220 26% 7%',
+      '--background': '220 26% 7%',
+      '--foreground': '210 56% 96%',
+      '--card': '215 21% 11%',
+      '--card-foreground': '210 56% 96%',
+      '--popover': '215 21% 11%',
+      '--popover-foreground': '210 56% 96%',
+      '--border': '215 12% 21%',
+      '--input': '215 12% 21%',
+      '--ring': '199 89% 60%',
+      '--accent': '199 89% 60%',
+      '--accent-foreground': '220 26% 7%',
+      '--secondary': '215 15% 15%',
+      '--secondary-foreground': '210 56% 96%',
+      '--muted': '215 15% 15%',
+      '--muted-foreground': '215 9% 58%',
+    },
+  },
+
+  'microsoft-blue': {
+    id: 'microsoft-blue',
+    name: 'Clean Paper Light (Enterprise Sapphire)',
+    description: 'Ultra-clean white background with crisp slate borders and deep sapphire blue typography.',
+    appearance: 'light',
+    colors: {
+      background: '#F8FAFC',
+      cardBg: '#FFFFFF',
+      cardBorder: '#E2E8F0',
+      cardHover: '#F1F5F9',
+      cardActiveBorder: '#2563EB',
+      cardActiveBg: '#EFF6FF',
+      primary: '#2563EB',
+      primaryText: '#FFFFFF',
+      highlightWord: '#2563EB',
+      textPrimary: '#0F172A',
+      textSecondary: '#64748B',
+      progressBar: '#2563EB',
+      badgeBg: '#DBEAFE',
+    },
+    hslValues: {
+      '--primary': '221 83% 53%',
+      '--primary-foreground': '0 0% 100%',
+      '--background': '210 40% 98%',
+      '--foreground': '222 47% 11%',
+      '--card': '0 0% 100%',
+      '--card-foreground': '222 47% 11%',
+      '--popover': '0 0% 100%',
+      '--popover-foreground': '222 47% 11%',
+      '--border': '214 32% 91%',
+      '--input': '214 32% 91%',
+      '--ring': '221 83% 53%',
+      '--accent': '210 40% 96.1%',
+      '--accent-foreground': '222.2 47.4% 11.2%',
+      '--secondary': '210 40% 96.1%',
+      '--secondary-foreground': '222.2 47.4% 11.2%',
+      '--muted': '210 40% 96%',
+      '--muted-foreground': '215 16% 47%',
+    },
+  },
+};
+
+export const THEME_ALIASES: Record<string, string> = {
+  letterly: 'purple',
+  riseup: 'riseup-asia',
+  'bright-gold': 'riseup-asia',
+  obsidian: 'vscode-dark',
+  dark: 'vscode-dark',
+  clean: 'microsoft-blue',
+  white: 'clean-wide',
+  wide: 'clean-wide',
+  'wide-white': 'clean-wide',
+};
+
+export const DEFAULT_THEME_ID = 'clean-wide';
+
+export function getTheme(id: string): ThemeDefinition {
+  const normalizedId = THEME_ALIASES[id] || id;
+  const hasPreset = Boolean(THEME_PRESETS[normalizedId]);
+
+  return hasPreset ? THEME_PRESETS[normalizedId] : THEME_PRESETS['riseup-asia'];
+}
+
+export function getThemeCssVariables(theme: ThemeDefinition): Record<string, string> {
+  return {
+    '--wp-exam-bg': theme.colors.background,
+    '--wp-exam-card': theme.colors.cardBg,
+    '--wp-exam-card-border': theme.colors.cardBorder,
+    '--wp-exam-card-hover': theme.colors.cardHover,
+    '--wp-exam-primary': theme.colors.primary,
+    '--wp-exam-primary-text': theme.colors.primaryText,
+    '--wp-exam-highlight': theme.colors.highlightWord,
+    '--wp-exam-text-primary': theme.colors.textPrimary,
+    '--wp-exam-text-secondary': theme.colors.textSecondary,
+    '--wp-exam-progress-bar': theme.colors.progressBar,
+    '--wp-exam-badge-bg': theme.colors.badgeBg,
+  };
+}

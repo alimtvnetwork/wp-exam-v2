@@ -88,6 +88,7 @@ export interface FormField {
   isRequired: boolean;
   options?: string[];
   correctAnswer?: string;
+  correctAnswers?: string[];
   points?: number;
   group?: string; // Section identifier
   moduleName?: string;
@@ -103,6 +104,7 @@ export interface FormField {
   optionBranching?: Record<string, string>;
   branchTarget?: string;
   allowOtherOption?: boolean;
+  suggestedOtherOptions?: string[];
 }
 
 export interface FormSettings {
