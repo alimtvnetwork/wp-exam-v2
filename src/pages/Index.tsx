@@ -182,6 +182,7 @@ export const Index: React.FC = () => {
     dracula: 'theme-dracula bg-background text-foreground',
     obsidian: 'theme-obsidian bg-background text-foreground',
     clean: 'theme-clean bg-background text-foreground',
+    'clean-wide': 'theme-clean-wide bg-background text-foreground',
   };
 
   return (

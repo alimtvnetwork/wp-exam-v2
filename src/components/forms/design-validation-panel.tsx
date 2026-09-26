@@ -522,12 +522,12 @@ export const DesignValidationSidebarView: React.FC<DesignValidationSidebarViewPr
 
                 <Badge
                   variant="outline"
-                  className={`uppercase text-[8px] font-mono shrink-0 px-1 py-0 h-3.5 ${
+                  className={`uppercase text-xs font-mono font-bold shrink-0 px-1.5 py-0.5 h-5 ${
                     issue.severity === 'error'
                       ? 'border-rose-500/30 text-rose-500 bg-rose-500/10'
                       : issue.severity === 'warning'
                       ? 'border-amber-500/30 text-amber-500 bg-amber-500/10'
-                      : 'border-sky-500/30 text-sky-400 bg-sky-500/10'
+                      : 'border-primary/30 text-primary bg-primary/10'
                   }`}
                 >
                   {issue.severity}

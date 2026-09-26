@@ -407,65 +407,15 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               <GripVertical className="w-4 h-4" />
             </div>
 
-            {/* Question Index & Status Badges */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="font-mono text-sm px-2.5 py-0.5 rounded bg-muted text-foreground font-bold shrink-0">
+            {/* Question Index & Section Chip */}
+            <div className="flex items-center gap-2.5">
+              <span className="font-mono text-sm px-3 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 font-bold shrink-0">
                 #{index + 1}
               </span>
 
-              {field.isRequired ? (
-                <Badge
-                  variant="outline"
-                  className="text-xs px-2 py-0.5 border-amber-500/30 text-amber-500 bg-amber-500/10 font-mono tracking-wide shrink-0 flex items-center gap-1 font-semibold"
-                >
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  Required
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className="text-xs px-2 py-0.5 border-border/80 text-muted-foreground bg-muted/20 font-mono shrink-0"
-                >
-                  Optional
-                </Badge>
-              )}
-
-              <Badge
-                variant="outline"
-                className={`uppercase text-xs tracking-wide font-mono px-2.5 py-0.5 rounded-md whitespace-nowrap shrink-0 ${getBadgeStyle(
-                  field.type
-                )}`}
-              >
-                {field.type.replace('_', ' ')}
-              </Badge>
-
               {field.group && (
-                <span className="text-xs px-2 py-0.5 rounded-md bg-primary/10 text-primary border border-primary/20 font-medium flex items-center gap-1 shrink-0">
-                  <Layers className="w-3.5 h-3.5" /> {field.group}
-                </span>
-              )}
-
-              {isQuiz && (
-                <span className="text-xs px-2 py-0.5 rounded bg-muted/60 text-muted-foreground font-mono shrink-0">
-                  {field.points ?? 1} pt{(field.points ?? 1) > 1 ? 's' : ''}
-                </span>
-              )}
-
-              {isFileUploadField && (
-                <span className="text-xs px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20 font-mono shrink-0">
-                  Max {field.fileValidation?.maxSizeMb || 10}MB
-                </span>
-              )}
-
-              {activeRules.length > 0 && (
-                <span className="text-xs px-2 py-0.5 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 font-mono shrink-0">
-                  {activeRules.length} Rule{activeRules.length > 1 ? 's' : ''}
-                </span>
-              )}
-
-              {activeTriggers.length > 0 && (
-                <span className="text-xs px-2 py-0.5 rounded-md bg-purple-500/10 text-purple-400 border border-purple-500/20 font-mono flex items-center gap-1 shrink-0">
-                  <BellRing className="w-3.5 h-3.5" /> {activeTriggers.length}
+                <span className="text-xs px-2.5 py-1 rounded-md bg-muted text-foreground border border-border/80 font-medium flex items-center gap-1.5 shrink-0">
+                  <Layers className="w-3.5 h-3.5 text-primary" /> {field.group}
                 </span>
               )}
 
@@ -813,23 +763,23 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     </Button>
                   )}
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <Label className="text-xs text-muted-foreground block mb-1">Image URL</Label>
+                    <Label className="text-sm font-semibold text-foreground block mb-1.5">Image URL</Label>
                     <Input
                       value={field.imageUrl || ''}
                       onChange={(e) => onUpdate(id, { imageUrl: e.target.value })}
                       placeholder="https://example.com/diagram.png"
-                      className="text-xs h-8 font-mono bg-background text-foreground"
+                      className="text-sm h-9 font-mono bg-background text-foreground rounded-lg shadow-2xs"
                     />
                   </div>
                   <div>
-                    <Label className="text-xs text-muted-foreground block mb-1">Optional Caption</Label>
+                    <Label className="text-sm font-semibold text-foreground block mb-1.5">Optional Caption</Label>
                     <Input
                       value={field.imageCaption || ''}
                       onChange={(e) => onUpdate(id, { imageCaption: e.target.value })}
                       placeholder="e.g. Figure 1: Network Topology Diagram"
-                      className="text-xs h-8 bg-background text-foreground"
+                      className="text-sm h-9 bg-background text-foreground rounded-lg shadow-2xs"
                     />
                   </div>
                 </div>
@@ -2371,6 +2321,18 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   className="data-[state=checked]:bg-primary"
                 />
               </div>
+            )}
+
+            {activeRules.length > 0 && (
+              <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-500 border-amber-500/30">
+                {activeRules.length} Rule{activeRules.length > 1 ? 's' : ''}
+              </Badge>
+            )}
+
+            {isFileUploadField && (
+              <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-400 border-purple-500/30">
+                Max {field.fileValidation?.maxSizeMb || 10}MB
+              </Badge>
             )}
           </div>
 

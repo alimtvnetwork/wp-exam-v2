@@ -33,8 +33,9 @@ Any content that analyzes bugs, failures, root causes, or fixes for application-
 
 ---
 
-## Contents
-
+- [04-button-hover-blending-and-typography-remediation.md](04-button-hover-blending-and-typography-remediation.md): Button hover blending remediation, Google Forms card architecture, wide white theme, and typography fixes.
+- [03-blue-green-contrast-and-preview-theming.md](03-blue-green-contrast-and-preview-theming.md): Blue-green contrast clashing resolution, unimported theme stylesheet fix, and preview mode theming.
+- [02-ui-ux-small-text-and-hover-blending.md](02-ui-ux-small-text-and-hover-blending.md): Micro-typography elimination, button hover blending, section autocomplete, and MCQ correctness.
 - [03-runner-file-upload-slug-inspector-ai-schema-theming.md](03-runner-file-upload-slug-inspector-ai-schema-theming.md): Runner file upload rendering, slug management inspector, question AI schema export/import, and theme color synchronization.
 - [02-slug-routing-file-upload-validation-and-theming.md](02-slug-routing-file-upload-validation-and-theming.md): Live browser address bar slug synchronization, dedicated file upload validation configurator, cross-section DnD mover, and fluid theming animations.
 

@@ -383,16 +383,24 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const handleAutoFill = () => {
     const newAnswers = { ...answers };
     fields.forEach((f) => {
-      if (f.type === 'multiple_choice' || f.type === 'dropdown' || f.type === 'true_false') {
-        newAnswers[f.id] = f.correctAnswer || (f.options && f.options.length > 0 ? f.options[0] : 'Answer');
+      if (f.type === 'multiple_choice') {
+        newAnswers[f.id] = (f.correctAnswers && f.correctAnswers.length > 0)
+          ? f.correctAnswers
+          : f.correctAnswer
+          ? [f.correctAnswer]
+          : (f.options && f.options.length > 0)
+          ? [f.options[0]]
+          : ['Sample Answer'];
+      } else if (f.type === 'single_choice' || f.type === 'dropdown' || f.type === 'true_false') {
+        newAnswers[f.id] = f.correctAnswer || (f.options && f.options.length > 0 ? f.options[0] : 'Sample Answer');
       } else if (f.type === 'short_answer' || f.type === 'paragraph') {
-        newAnswers[f.id] = 'Sample answer text for testing purposes.';
+        newAnswers[f.id] = f.correctAnswer || 'Sample answer text for testing purposes.';
       } else if (f.type === 'email') {
-        newAnswers[f.id] = 'test@example.com';
+        newAnswers[f.id] = 'candidate.test@example.com';
       } else if (f.type === 'phone' || f.type === 'whatsapp') {
         newAnswers[f.id] = '+1234567890';
       } else if (f.type === 'regex_text') {
-        newAnswers[f.id] = 'STU-2026-9901'; // Default matching the sample regex if any
+        newAnswers[f.id] = 'STU-2026-9901';
       } else if (f.type === 'rating') {
         newAnswers[f.id] = 5;
       } else {
@@ -400,8 +408,21 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       }
     });
     setAnswers(newAnswers);
-    toast.success('Form fields auto-filled!');
+    toast.success('Form fields auto-filled with test data!');
   };
+
+  // Auto-fill on initial test session launch if requested via URL
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('test') === 'true' || params.get('autofill') === 'true') {
+        const timer = setTimeout(() => {
+          handleAutoFill();
+        }, 150);
+        return () => clearTimeout(timer);
+      }
+    }
+  }, [fields.length]);
 
   const handleNextStep = () => {
     if (!currentField) {
@@ -699,16 +720,12 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     >
       {/* Project Selector & Deep-Link Bar */}
       <div 
-        className="p-3 border rounded-xl shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-colors"
-        style={{
-          backgroundColor: currentTheme.colors.cardBg,
-          borderColor: currentTheme.colors.cardBorder,
-        }}
+        className="p-3 border border-border bg-card text-card-foreground rounded-xl shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-colors"
       >
         <div className="flex items-center gap-3 flex-wrap">
           <div className="flex items-center gap-2">
-            <Label className="text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap" style={{ color: currentTheme.colors.textSecondary }}>
-              <Layers className="w-3.5 h-3.5" style={{ color: currentTheme.colors.primary }} />
+            <Label className="text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap text-foreground">
+              <Layers className="w-4 h-4 text-primary" />
               <span>Project:</span>
             </Label>
             <Select
@@ -716,34 +733,24 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               onValueChange={handleProjectSwitch}
             >
               <SelectTrigger 
-                className="text-xs font-medium h-8 min-w-[210px] rounded-md border"
-                style={{
-                  backgroundColor: currentTheme.colors.background,
-                  borderColor: currentTheme.colors.cardBorder,
-                  color: currentTheme.colors.textPrimary,
-                }}
+                className="text-sm font-semibold h-9 min-w-[210px] rounded-lg border border-border bg-background text-foreground shadow-2xs cursor-pointer"
               >
                 <SelectValue placeholder="Select Assessment Project" />
               </SelectTrigger>
               <SelectContent 
-                className="border shadow-xl backdrop-blur-md rounded-xl"
-                style={{
-                  backgroundColor: currentTheme.colors.cardBg,
-                  borderColor: currentTheme.colors.cardBorder,
-                  color: currentTheme.colors.textPrimary,
-                }}
+                className="border border-border shadow-xl backdrop-blur-md rounded-xl bg-popover text-popover-foreground"
               >
-                <SelectItem value="intern-programmer" className="text-xs">
+                <SelectItem value="intern-programmer" className="text-sm py-2">
                   Intern Programmer Assessment
                 </SelectItem>
-                <SelectItem value="full-stack-architect" className="text-xs">
+                <SelectItem value="full-stack-architect" className="text-sm py-2">
                   Full-Stack Web Architecture
                 </SelectItem>
-                <SelectItem value="cybersecurity-essentials" className="text-xs">
+                <SelectItem value="cybersecurity-essentials" className="text-sm py-2">
                   Cybersecurity Fundamentals
                 </SelectItem>
                 {(initialForm || quizStore.fields.length > 0) && (
-                  <SelectItem value="custom-active" className="text-xs">
+                  <SelectItem value="custom-active" className="text-sm py-2">
                     Custom Form ({activeForm.title || 'Builder Active'})
                   </SelectItem>
                 )}
@@ -753,7 +760,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
           {/* Active Canonical Slug Indicator */}
           <div 
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-card text-xs font-mono shadow-2xs"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background text-sm font-mono shadow-2xs"
           >
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0" />
             <span className="text-muted-foreground">{isPreviewRoute ? '/preview/' : '/f/'}</span>
@@ -763,9 +770,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           </div>
 
           {/* Theme Selector */}
-          <div className="flex items-center gap-1.5">
-            <Label className="text-xs font-semibold flex items-center gap-1.5 whitespace-nowrap text-muted-foreground">
-              <Palette className="w-3.5 h-3.5 text-primary" />
+          <div className="flex items-center gap-2">
+            <Label className="text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap text-foreground">
+              <Palette className="w-4 h-4 text-primary" />
               <span>Theme:</span>
             </Label>
             <Select
@@ -777,7 +784,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               }}
             >
               <SelectTrigger 
-                className="text-xs font-semibold h-9 w-[170px] rounded-lg border border-border bg-background text-foreground hover:border-primary/50"
+                className="text-sm font-semibold h-9 w-[190px] rounded-lg border border-border bg-background text-foreground hover:border-primary/50 shadow-2xs cursor-pointer"
               >
                 <SelectValue placeholder="Select Theme" />
               </SelectTrigger>
@@ -785,7 +792,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 className="border border-border shadow-xl backdrop-blur-md rounded-xl bg-popover text-popover-foreground"
               >
                 {Object.values(THEME_PRESETS).map((t) => (
-                  <SelectItem key={t.id} value={t.id} className="text-xs font-medium">
+                  <SelectItem key={t.id} value={t.id} className="text-sm py-2 font-medium">
                     {t.name.split(' (')[0]}
                   </SelectItem>
                 ))}
@@ -800,9 +807,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             variant="outline"
             size="sm"
             onClick={handleCopyProjectLink}
-            className="text-xs h-9 px-3 gap-1.5 font-semibold border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all cursor-pointer"
+            className="text-sm h-9 px-3.5 gap-2 font-semibold border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all cursor-pointer group"
           >
-            <Share2 className="w-3.5 h-3.5" />
+            <Share2 className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
             <span>Share Direct URL</span>
           </Button>
           <Button
@@ -810,9 +817,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             variant="outline"
             size="sm"
             onClick={handleAutoFill}
-            className="text-xs h-9 px-3 gap-1.5 font-semibold border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all cursor-pointer"
+            className="text-sm h-9 px-3.5 gap-2 font-semibold border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all cursor-pointer group"
           >
-            <Zap className="w-3.5 h-3.5 text-amber-500" />
+            <Zap className="w-4 h-4 text-amber-500 group-hover:text-primary-foreground transition-colors" />
             <span>Auto Fill</span>
           </Button>
 
@@ -821,7 +828,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               variant="outline"
               size="sm"
               onClick={onClose}
-              className="text-xs h-9 px-3 border border-border bg-card text-muted-foreground hover:text-foreground hover:bg-accent cursor-pointer"
+              className="text-sm h-9 px-3.5 border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary cursor-pointer font-medium transition-all group"
             >
               Back
             </Button>
@@ -839,15 +846,15 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               <Badge className="bg-primary text-primary-foreground text-xs font-semibold px-2.5 py-0.5">
                 ✓ Verified Respondent
               </Badge>
-              <span className="text-xs font-semibold text-foreground">{session.respondentEmail}</span>
-              <Badge variant="outline" className="text-xs uppercase font-mono border-primary text-primary">{session.role}</Badge>
+              <span className="text-sm font-semibold text-foreground">{session.respondentEmail}</span>
+              <Badge variant="outline" className="text-xs uppercase font-mono border-primary text-primary font-bold">{session.role}</Badge>
             </>
           ) : (
             <>
-              <Badge variant="secondary" className="text-xs font-semibold bg-muted text-foreground px-2.5 py-0.5">
+              <Badge variant="secondary" className="text-xs font-semibold bg-muted text-foreground px-2.5 py-0.5 font-bold">
                 Candidate Guest
               </Badge>
-              <span className="text-xs text-muted-foreground">Unauthenticated Respondent</span>
+              <span className="text-sm text-muted-foreground font-medium">Unauthenticated Respondent</span>
             </>
           )}
         </div>
@@ -857,12 +864,12 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             placeholder="Invite Access Token..."
             value={tokenInput}
             onChange={(e) => setTokenInput(e.target.value)}
-            className="h-9 text-xs w-44 font-mono bg-background border border-border text-foreground rounded-lg"
+            className="h-9 text-sm w-48 font-mono bg-background border border-border text-foreground rounded-lg"
           />
           <Button 
             size="sm" 
             variant="outline" 
-            className="h-9 px-3.5 text-xs font-bold border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer rounded-lg shadow-xs" 
+            className="h-9 px-4 text-sm font-bold border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer rounded-lg shadow-xs" 
             onClick={handleVerifyToken}
           >
             Verify
@@ -871,7 +878,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             <Button
               size="sm"
               variant="ghost"
-              className="h-9 px-3 text-xs text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg"
+              className="h-9 px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg cursor-pointer"
               onClick={examStore.clearSession}
             >
               Sign Out
@@ -975,24 +982,24 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             )}
           </CardHeader>
           <CardContent className="space-y-4 p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3 rounded-lg bg-muted/30 border border-border">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 p-3.5 rounded-xl bg-muted/30 border border-border">
               <div>
-                <label className="text-xs font-semibold text-muted-foreground block mb-1">Your Full Name</label>
+                <label className="text-sm font-semibold text-foreground block mb-1.5">Your Full Name</label>
                 <Input
                   value={guestName}
                   onChange={(e) => setGuestName(e.target.value)}
                   placeholder="e.g. Elena Vance"
-                  className="bg-background text-xs h-8"
+                  className="bg-background text-sm h-10 font-medium rounded-lg"
                 />
               </div>
               <div>
-                <label className="text-xs font-semibold text-muted-foreground block mb-1">Your Email</label>
+                <label className="text-sm font-semibold text-foreground block mb-1.5">Your Email</label>
                 <Input
                   type="email"
                   value={guestEmail}
                   onChange={(e) => setGuestEmail(e.target.value)}
                   placeholder="e.g. elena@company.org"
-                  className="bg-background text-xs h-8"
+                  className="bg-background text-sm h-10 font-medium rounded-lg"
                 />
               </div>
             </div>
@@ -1003,10 +1010,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
                 return (
                   <div key={f.id} className="p-4 sm:p-5 rounded-xl border border-border bg-card space-y-3">
-                    <label className="font-semibold text-sm sm:text-base flex items-center justify-between gap-2">
+                    <label className="font-semibold text-base sm:text-lg flex items-center justify-between gap-2">
                       <span className="text-foreground">{idx + 1}. {f.label}</span>
                       {isFieldRequired ? (
-                        <Badge variant="outline" className="text-xs font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1 shrink-0">
+                        <Badge variant="outline" className="text-xs font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1 shrink-0 font-semibold">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                           <span>Required</span>
                         </Badge>
@@ -1045,7 +1052,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             </div>
 
             <div className="flex justify-end gap-2 pt-3 border-t border-border">
-              <Button onClick={handleSubmit} size="sm" className="bg-primary text-xs font-semibold">
+              <Button onClick={handleSubmit} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-bold h-10 px-5 rounded-lg shadow-xs cursor-pointer">
                 Submit Response
               </Button>
             </div>
@@ -1320,7 +1327,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
             value={strValue}
             onChange={(e) => onChange(e.target.value)}
             placeholder={field.placeholder || 'Enter value...'}
-            className={`font-mono text-xs bg-background h-8 ${!isValid && strValue ? 'border-destructive focus-visible:ring-destructive' : ''}`}
+            className={`font-mono text-sm bg-background h-10 rounded-lg ${!isValid && strValue ? 'border-destructive focus-visible:ring-destructive' : ''}`}
           />
           {!isValid && strValue && (
             <span className="text-xs text-destructive flex items-center gap-1">

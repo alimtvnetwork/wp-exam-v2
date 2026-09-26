@@ -354,7 +354,7 @@ export const FormBuilder: React.FC = () => {
   const requiredCount = fields.filter((f) => f.isRequired).length;
 
   return (
-    <div className="w-full max-w-[1600px] mx-auto px-2 sm:px-4 pt-1 pb-4 space-y-3">
+    <div className="w-full px-3 sm:px-6 pt-1 pb-6 space-y-3.5">
       {/* Top Action Bar with Integrated Live URL & Customizable Slug Ribbon */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-3 sm:px-4 sm:py-2.5 bg-card rounded-xl border border-border/80 shadow-xs">
         <div className="space-y-1.5 min-w-0 flex-1">
@@ -364,10 +364,10 @@ export const FormBuilder: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => window.history.back()}
-              className="text-sm h-9 px-3 gap-2 font-medium shrink-0 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-xs cursor-pointer"
+              className="text-sm h-9 px-3 gap-2 font-medium shrink-0 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-xs cursor-pointer group"
               title="Back to Admin Dashboard"
             >
-              <ArrowLeft className="w-4 h-4" />
+              <ArrowLeft className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
               <span className="hidden sm:inline">Back to Admin</span>
             </Button>
             <div className="h-5 w-px bg-border hidden sm:block" />
@@ -431,10 +431,10 @@ export const FormBuilder: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setIsSlugModalOpen(true)}
-              className="h-9 px-3 text-sm text-primary border-primary/40 hover:bg-primary hover:text-primary-foreground gap-1.5 font-medium transition-all cursor-pointer"
+              className="h-9 px-3 text-sm text-foreground bg-card border border-border hover:bg-primary hover:text-primary-foreground hover:border-primary gap-1.5 font-medium transition-all cursor-pointer group shadow-2xs"
               title="Open Visual Slug & Canonical URL Inspector"
             >
-              <Globe className="w-3.5 h-3.5" />
+              <Globe className="w-3.5 h-3.5 text-primary group-hover:text-primary-foreground transition-colors" />
               <span>Slug Manager</span>
             </Button>
 
@@ -463,26 +463,14 @@ export const FormBuilder: React.FC = () => {
               setInspectorTab('audit');
               setIsDesignPanelOpen(true);
             }}
-            className={`text-sm h-9 px-3 gap-2 font-semibold transition-all shadow-xs bg-card border cursor-pointer ${
-              designReport.score >= 90
-                ? 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white hover:border-emerald-600'
-                : designReport.score >= 75
-                ? 'border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-600 hover:text-white hover:border-amber-600'
-                : 'border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive'
-            }`}
+            className="text-sm h-9 px-3.5 gap-2 font-semibold transition-all shadow-xs bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary cursor-pointer group"
             title="Inspect form health, design validation warnings, and 1-click auto-fixes"
           >
-            <Shield className="w-4 h-4" />
+            <Shield className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
             <span>Health: {designReport.score}%</span>
             <Badge
               variant="secondary"
-              className={`text-xs px-1.5 py-0.5 h-5 font-bold ${
-                designReport.score >= 90
-                  ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                  : designReport.score >= 75
-                  ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                  : 'bg-destructive/15 text-destructive'
-              }`}
+              className="text-xs px-2 py-0.5 h-5 font-bold bg-primary/10 text-primary group-hover:bg-primary-foreground/20 group-hover:text-primary-foreground transition-colors"
             >
               {designReport.grade}
             </Badge>
@@ -562,11 +550,11 @@ export const FormBuilder: React.FC = () => {
             type="button"
             variant="outline"
             size="sm"
-            onClick={() => window.open('/preview/' + activeSlug, '_blank')}
-            className="text-sm h-9 px-3.5 gap-2 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all duration-150 font-semibold cursor-pointer"
+            onClick={() => window.open('/preview/' + activeSlug + '?test=true', '_blank')}
+            className="text-sm h-9 px-3.5 gap-2 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all duration-150 font-semibold cursor-pointer group"
             title="Preview interactive form in a new tab"
           >
-            <Eye className="w-4 h-4" />
+            <Eye className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
             <span>Preview</span>
           </Button>
 
@@ -622,37 +610,37 @@ export const FormBuilder: React.FC = () => {
               <div className="pt-2 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 text-sm">
                 <div className="flex flex-wrap items-center gap-3">
                   {/* Form Type Select */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-muted-foreground text-xs font-medium">Type:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-foreground text-sm font-semibold">Type:</span>
                     <Select
                       value={formType}
                       onValueChange={(val) => setFormType(val as FormType)}
                     >
-                      <SelectTrigger className="h-7 w-[160px] text-sm bg-background">
+                      <SelectTrigger className="h-9 min-w-[210px] text-sm font-semibold bg-background border border-border shadow-2xs cursor-pointer">
                         <SelectValue placeholder="Form Type" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="quiz">Knowledge Quiz (Scored)</SelectItem>
-                        <SelectItem value="employee_signup">Candidate Application</SelectItem>
-                        <SelectItem value="survey">Public Survey</SelectItem>
-                        <SelectItem value="general_form">General Multi-Step Form</SelectItem>
+                        <SelectItem value="quiz" className="text-sm py-2">Knowledge Quiz (Scored)</SelectItem>
+                        <SelectItem value="employee_signup" className="text-sm py-2">Candidate Application</SelectItem>
+                        <SelectItem value="survey" className="text-sm py-2">Public Survey</SelectItem>
+                        <SelectItem value="general_form" className="text-sm py-2">General Multi-Step Form</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
 
                   {/* Form Access Select */}
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-muted-foreground text-xs font-medium">Access:</span>
+                  <div className="flex items-center gap-2">
+                    <span className="text-foreground text-sm font-semibold">Access:</span>
                     <Select
                       value={formAccess}
                       onValueChange={(val) => setFormAccess(val as FormAccessType)}
                     >
-                      <SelectTrigger className="h-7 w-[140px] text-sm bg-background">
+                      <SelectTrigger className="h-9 min-w-[170px] text-sm font-semibold bg-background border border-border shadow-2xs cursor-pointer">
                         <SelectValue placeholder="Access" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="public">Public Access</SelectItem>
-                        <SelectItem value="authenticated">Token / Invite Only</SelectItem>
+                        <SelectItem value="public" className="text-sm py-2">Public Access</SelectItem>
+                        <SelectItem value="authenticated" className="text-sm py-2">Token / Invite Only</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -660,24 +648,24 @@ export const FormBuilder: React.FC = () => {
 
                 <div className="flex items-center gap-3">
                   {/* Sequential Progression Switch */}
-                  <div className="flex items-center gap-2 bg-muted/40 px-2.5 py-1 rounded-md border border-border/60">
-                    <Label htmlFor="sequential-toggle" className="text-xs font-medium cursor-pointer text-muted-foreground">
+                  <div className="flex items-center gap-2.5 bg-muted/40 px-3 py-1.5 rounded-lg border border-border/60">
+                    <Label htmlFor="sequential-toggle" className="text-sm font-semibold cursor-pointer text-foreground">
                       Sequential
                     </Label>
                     <Switch
                       id="sequential-toggle"
                       checked={isSequential}
                       onCheckedChange={setIsSequential}
-                      className="scale-75"
+                      className="data-[state=checked]:bg-primary"
                     />
                   </div>
 
                   {/* Questions & Points Badges */}
-                  <div className="flex items-center gap-1.5 font-mono">
-                    <Badge variant="outline" className="text-sm bg-background">
+                  <div className="flex items-center gap-2 font-mono">
+                    <Badge variant="outline" className="text-sm font-bold bg-background px-2.5 py-1">
                       {fields.length} Qs
                     </Badge>
-                    <Badge variant="secondary" className="text-sm bg-primary/10 text-primary border-primary/20">
+                    <Badge variant="secondary" className="text-sm font-bold bg-primary/10 text-primary border-primary/20 px-2.5 py-1">
                       {totalPoints} Pts
                     </Badge>
                   </div>
@@ -825,48 +813,42 @@ export const FormBuilder: React.FC = () => {
             <Tabs value={inspectorTab} onValueChange={setInspectorTab} className="w-full">
               {/* Sleek Segmented Dock Tabs Header */}
               <div className="p-2 border-b border-border/80 bg-muted/20">
-                <TabsList className="grid grid-cols-4 h-8 p-0.5 bg-muted/60 rounded-lg">
+                <TabsList className="grid grid-cols-4 h-10 p-1 bg-muted/60 rounded-xl">
                   <TabsTrigger
                     value="palette"
-                    className="text-xs py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
+                    className="text-sm py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer"
                   >
-                    <Layers className="w-3 h-3 text-primary" />
+                    <Layers className="w-4 h-4 text-primary" />
                     <span>Fields</span>
                   </TabsTrigger>
                   <TabsTrigger
                     value="outline"
-                    className="text-xs py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
+                    className="text-sm py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer"
                   >
-                    <ListOrdered className="w-3 h-3 text-sky-400" />
+                    <ListOrdered className="w-4 h-4 text-primary" />
                     <span>Outline</span>
-                    <Badge variant="secondary" className="text-[8px] px-1 py-0 h-3 font-mono">
+                    <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-4.5 font-mono font-bold">
                       {fields.length}
                     </Badge>
                   </TabsTrigger>
                   <TabsTrigger
                     value="audit"
-                    className="text-xs py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
+                    className="text-sm py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer"
                   >
-                    <ShieldCheck className="w-3 h-3 text-emerald-500" />
+                    <ShieldCheck className="w-4 h-4 text-primary" />
                     <span>Audit</span>
                     <Badge
                       variant="secondary"
-                      className={`text-[8px] px-1 py-0 h-3 font-mono font-bold ${
-                        designReport.score >= 90
-                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
-                          : designReport.score >= 70
-                          ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400'
-                          : 'bg-destructive/15 text-destructive'
-                      }`}
+                      className="text-xs px-1.5 py-0.5 h-4.5 font-mono font-bold bg-primary/10 text-primary"
                     >
                       {designReport.grade}
                     </Badge>
                   </TabsTrigger>
                   <TabsTrigger
                     value="settings"
-                    className="text-xs py-1 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1 font-medium transition-all"
+                    className="text-sm py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer"
                   >
-                    <Settings className="w-3 h-3 text-amber-400" />
+                    <Settings className="w-4 h-4 text-primary" />
                     <span>Config</span>
                   </TabsTrigger>
                 </TabsList>
