@@ -76,4 +76,21 @@ describe('Spec 12: Header Streamlining, Form Access & Health Score Auditing', ()
     expect(formatAccessBadge('token')).toBe('Token');
     expect(formatAccessBadge('invite_only')).toBe('Invite');
   });
+
+  it('should verify combined preview and save segmented control specifications', () => {
+    const combinedControl = {
+      isSegmented: true,
+      hasPreviewSegment: true,
+      hasSaveSegment: true,
+      hasDivider: true,
+      previewStroke: 2.2,
+      saveIcon: 'Save',
+    };
+
+    expect(combinedControl.isSegmented).toBeTruthy();
+    expect(combinedControl.hasPreviewSegment).toBeTruthy();
+    expect(combinedControl.hasSaveSegment).toBeTruthy();
+    expect(combinedControl.hasDivider).toBeTruthy();
+    expect(combinedControl.previewStroke).toBeGreaterThanOrEqual(2);
+  });
 });

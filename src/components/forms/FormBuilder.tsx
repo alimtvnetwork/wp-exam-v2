@@ -657,29 +657,32 @@ export const FormBuilder: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Dedicated Icon-Only Live Preview Button */}
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={() => window.open('/preview/' + activeSlug + '?test=true', '_blank')}
-            className="h-9 w-9 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all duration-150 rounded-xl cursor-pointer shrink-0 group"
-            title="Preview interactive form in a new tab"
-          >
-            <Eye className="w-4 h-4 stroke-[2.2] text-foreground group-hover:text-primary-foreground transition-colors" />
-          </Button>
+          {/* Combined Preview & Save Segmented Control */}
+          <div className="inline-flex items-center rounded-xl border border-primary/40 bg-card shadow-xs hover:shadow-md transition-all duration-150 overflow-hidden h-9 shrink-0">
+            {/* Live Preview Segment */}
+            <button
+              type="button"
+              onClick={() => window.open('/preview/' + activeSlug + '?test=true', '_blank')}
+              className="inline-flex items-center justify-center h-full px-3 bg-card text-foreground hover:bg-accent hover:text-primary transition-colors cursor-pointer group"
+              title="Preview interactive form in a new tab"
+            >
+              <Eye className="w-4 h-4 stroke-[2.2] text-foreground group-hover:text-primary transition-colors" />
+            </button>
 
-          {/* Dedicated Icon-Only Save Button */}
-          <Button
-            type="button"
-            onClick={handleSave}
-            disabled={isSaving}
-            size="icon"
-            className="h-9 w-9 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-xs hover:shadow-md transition-all duration-150 rounded-xl cursor-pointer shrink-0"
-            title={isSaving ? 'Saving Form...' : 'Save Form (Ctrl+S)'}
-          >
-            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-          </Button>
+            {/* Subtle Divider */}
+            <div className="w-px h-5 bg-border shrink-0" />
+
+            {/* Save Form Segment */}
+            <button
+              type="button"
+              onClick={handleSave}
+              disabled={isSaving}
+              className="inline-flex items-center justify-center h-full px-3 bg-primary text-primary-foreground hover:bg-primary/90 font-bold transition-colors cursor-pointer disabled:opacity-50"
+              title={isSaving ? 'Saving Form...' : 'Save Form (Ctrl+S)'}
+            >
+              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            </button>
+          </div>
         </div>
       </div>
 
