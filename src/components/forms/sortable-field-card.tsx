@@ -467,15 +467,15 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               type="button"
               variant={showLivePreview ? 'default' : 'outline'}
               size="sm"
-              className={`text-sm h-10 px-3.5 gap-2 transition-all font-semibold rounded-lg cursor-pointer ${
+              className={`text-sm h-10 px-3.5 gap-2 transition-all duration-150 font-semibold rounded-lg cursor-pointer shadow-2xs group ${
                 showLivePreview
                   ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                  : 'border-border text-foreground hover:bg-accent'
+                  : 'bg-card border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary'
               }`}
               onClick={() => setShowLivePreview(!showLivePreview)}
               title="Toggle interactive live input preview test"
             >
-              <Eye className="w-4 h-4" />
+              <Eye className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
               <span className="hidden sm:inline">Preview</span>
             </Button>
 
@@ -486,18 +486,18 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className={`text-sm h-10 px-3.5 gap-2 border transition-all font-semibold rounded-lg cursor-pointer ${
+                  className={`text-sm h-10 px-3.5 gap-2 border transition-all duration-150 font-semibold rounded-lg cursor-pointer shadow-2xs group ${
                     showAdvanced || showTriggers || showConditions
-                      ? 'border-primary/50 bg-primary/10 text-primary hover:bg-primary/15'
-                      : 'border-border text-foreground hover:bg-accent'
+                      ? 'border-primary/50 bg-primary/10 text-primary hover:bg-primary/20'
+                      : 'bg-card border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary'
                   }`}
                 >
-                  <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
+                  <SlidersHorizontal className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
                   <span>Actions</span>
                   {(showAdvanced || showTriggers || showConditions) && (
                     <span className="w-2 h-2 rounded-full bg-primary" />
                   )}
-                  <ChevronDown className="w-3.5 h-3.5 opacity-60" />
+                  <ChevronDown className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100 group-hover:text-primary-foreground transition-all" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 p-1 bg-popover border border-border shadow-lg">
@@ -724,14 +724,14 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   variant={showImageConfig || hasAttachedImage ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setShowImageConfig(!showImageConfig)}
-                  className={`h-8 px-3 text-xs gap-1.5 transition-all font-semibold rounded-lg cursor-pointer ${
+                  className={`h-8 px-3 text-xs gap-1.5 transition-all duration-150 font-semibold rounded-lg cursor-pointer group shadow-2xs ${
                     hasAttachedImage
                       ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                      : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent'
+                      : 'border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary'
                   }`}
                   title="Attach an illustration or question image"
                 >
-                  <ImageIcon className="w-4 h-4" />
+                  <ImageIcon className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
                   <span>{hasAttachedImage ? 'Image Attached' : 'Add Image'}</span>
                 </Button>
               </div>
@@ -829,10 +829,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     variant="outline"
                     size="sm"
                     onClick={() => setIsSectionMenuOpen(!isSectionMenuOpen)}
-                    className="h-10 px-3 gap-1 text-sm border-border shrink-0 hover:bg-accent cursor-pointer rounded-lg"
+                    className="h-10 px-3 gap-1 text-sm border-border bg-card text-foreground shrink-0 hover:bg-primary hover:text-primary-foreground hover:border-primary cursor-pointer rounded-lg transition-all duration-150 group shadow-2xs"
                     title="Toggle quiz sections dropdown"
                   >
-                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                    <ChevronDown className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
                   </Button>
 
                   {/* Dropdown Menu Activated on Hover, Focus, or Click */}
@@ -2343,10 +2343,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               variant="outline"
               size="sm"
               onClick={() => onDuplicate(id)}
-              className="text-sm h-9 px-3.5 gap-2 text-muted-foreground hover:text-foreground font-medium rounded-lg cursor-pointer"
+              className="text-sm h-9 px-3.5 gap-2 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary font-medium rounded-lg cursor-pointer transition-all duration-150 shadow-2xs group"
               title="Duplicate Question"
             >
-              <Copy className="w-4 h-4" />
+              <Copy className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
               <span>Duplicate</span>
             </Button>
             <Button
@@ -2354,10 +2354,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               variant="outline"
               size="sm"
               onClick={() => onRemove(id)}
-              className="text-sm h-9 px-3.5 gap-2 text-destructive hover:bg-destructive hover:text-destructive-foreground border-border font-medium rounded-lg cursor-pointer transition-all"
+              className="text-sm h-9 px-3.5 gap-2 text-destructive hover:bg-destructive hover:text-destructive-foreground border-destructive/30 hover:border-destructive font-medium rounded-lg cursor-pointer transition-all duration-150 shadow-2xs group"
               title="Delete Question"
             >
-              <Trash2 className="w-4 h-4" />
+              <Trash2 className="w-4 h-4 text-destructive group-hover:text-destructive-foreground transition-colors" />
               <span>Delete</span>
             </Button>
           </div>
