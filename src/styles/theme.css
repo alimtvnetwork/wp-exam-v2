@@ -1,11 +1,11 @@
 @keyframes cardEntrance {
   0% {
     opacity: 0;
-    transform: translateY(6px);
+    transform: translateY(12px) scale(0.98);
   }
   100% {
     opacity: 1;
-    transform: translateY(0);
+    transform: translateY(0) scale(1);
   }
 }
 @keyframes pulseGlow {
@@ -61,23 +61,6 @@
 .theme-riseup-asia,
 [data-theme="riseup-asia"],
 [data-theme="riseup"] {
-  --primary: 41 100% 50%;
-  --primary-foreground: 240 33% 6%;
-  --background: 240 33% 6%;
-  --foreground: 40 100% 92%;
-  --card: 240 28% 11%;
-  --card-foreground: 40 100% 92%;
-  --popover: 240 28% 11%;
-  --popover-foreground: 40 100% 92%;
-  --border: 240 24% 21%;
-  --input: 240 24% 21%;
-  --muted: 240 25% 16%;
-  --muted-foreground: 38 22% 64%;
-  --accent: 246 32% 19%;
-  --accent-foreground: 0 0% 100%;
-  --secondary: 246 32% 19%;
-  --secondary-foreground: 0 0% 100%;
-  --ring: 41 100% 50%;
   --wp-exam-bg: #0A0A14;
   --wp-exam-card: #141424;
   --wp-exam-card-border: #2A2A44;
@@ -94,23 +77,6 @@
 }
 .theme-dracula,
 [data-theme="dracula"] {
-  --primary: 265 89% 78%;
-  --primary-foreground: 231 15% 18%;
-  --background: 231 15% 12%;
-  --foreground: 60 30% 96%;
-  --card: 231 15% 18%;
-  --card-foreground: 60 30% 96%;
-  --popover: 231 15% 18%;
-  --popover-foreground: 60 30% 96%;
-  --border: 232 14% 31%;
-  --input: 232 14% 31%;
-  --muted: 232 14% 24%;
-  --muted-foreground: 225 27% 51%;
-  --accent: 265 89% 78%;
-  --accent-foreground: 231 15% 12%;
-  --secondary: 232 14% 24%;
-  --secondary-foreground: 60 30% 96%;
-  --ring: 265 89% 78%;
   --wp-exam-bg: #191A21;
   --wp-exam-card: #282A36;
   --wp-exam-card-border: #44475A;
@@ -126,27 +92,9 @@
   color: var(--wp-exam-text-primary);
 }
 .theme-vscode-dark,
-.theme-obsidian,
 [data-theme="vscode-dark"],
 [data-theme="obsidian"],
 [data-theme="dark"] {
-  --primary: 199 89% 60%;
-  --primary-foreground: 220 26% 7%;
-  --background: 220 26% 7%;
-  --foreground: 210 56% 96%;
-  --card: 215 21% 11%;
-  --card-foreground: 210 56% 96%;
-  --popover: 215 21% 11%;
-  --popover-foreground: 210 56% 96%;
-  --border: 215 12% 21%;
-  --input: 215 12% 21%;
-  --muted: 215 15% 15%;
-  --muted-foreground: 215 9% 58%;
-  --accent: 199 89% 60%;
-  --accent-foreground: 220 26% 7%;
-  --secondary: 215 15% 15%;
-  --secondary-foreground: 210 56% 96%;
-  --ring: 199 89% 60%;
   --wp-exam-bg: #0D1117;
   --wp-exam-card: #161B22;
   --wp-exam-card-border: #30363D;
@@ -165,23 +113,6 @@
 [data-theme="purple"],
 .theme-letterly,
 [data-theme="letterly"] {
-  --primary: 248 98% 63%;
-  --primary-foreground: 0 0% 100%;
-  --background: 246 35% 9%;
-  --foreground: 0 0% 100%;
-  --card: 245 36% 14%;
-  --card-foreground: 0 0% 100%;
-  --popover: 245 36% 14%;
-  --popover-foreground: 0 0% 100%;
-  --border: 246 34% 24%;
-  --input: 246 34% 24%;
-  --muted: 246 32% 19%;
-  --muted-foreground: 215 16% 65%;
-  --accent: 248 98% 63%;
-  --accent-foreground: 0 0% 100%;
-  --secondary: 246 32% 19%;
-  --secondary-foreground: 0 0% 100%;
-  --ring: 248 98% 63%;
   --wp-exam-bg: #0F0E1E;
   --wp-exam-card: #18162F;
   --wp-exam-card-border: #2C2852;
@@ -197,29 +128,9 @@
   color: var(--wp-exam-text-primary);
 }
 .theme-microsoft-blue,
-.theme-clean,
-.theme-light,
 [data-theme="microsoft-blue"],
 [data-theme="clean"],
-[data-theme="light"],
 [data-theme="white"] {
-  --primary: 221 83% 53%;
-  --primary-foreground: 0 0% 100%;
-  --background: 210 40% 98%;
-  --foreground: 222 47% 11%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
-  --accent: 210 40% 96.1%;
-  --accent-foreground: 222.2 47.4% 11.2%;
-  --secondary: 210 40% 96.1%;
-  --secondary-foreground: 222.2 47.4% 11.2%;
-  --ring: 221 83% 53%;
   --wp-exam-bg: #F8FAFC;
   --wp-exam-card: #FFFFFF;
   --wp-exam-card-border: #E2E8F0;
@@ -234,245 +145,3 @@
   background-color: var(--wp-exam-bg);
   color: var(--wp-exam-text-primary);
 }
-
-.theme-clean-wide,
-[data-theme="clean-wide"] {
-  --primary: 243 75% 59%;
-  --primary-foreground: 0 0% 100%;
-  --background: 0 0% 100%;
-  --foreground: 222 47% 11%;
-  --card: 0 0% 100%;
-  --card-foreground: 222 47% 11%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 222 47% 11%;
-  --border: 214 32% 91%;
-  --input: 214 32% 91%;
-  --muted: 210 40% 96%;
-  --muted-foreground: 215 16% 47%;
-  --accent: 243 75% 96%;
-  --accent-foreground: 243 75% 45%;
-  --secondary: 214 32% 95%;
-  --secondary-foreground: 222 47% 11%;
-  --ring: 243 75% 59%;
-  --wp-exam-bg: #FFFFFF;
-  --wp-exam-card: #FFFFFF;
-  --wp-exam-card-border: #E2E8F0;
-  --wp-exam-card-hover: #F8FAFC;
-  --wp-exam-primary: #4F46E5;
-  --wp-exam-primary-text: #FFFFFF;
-  --wp-exam-highlight: #4F46E5;
-  --wp-exam-text-primary: #0F172A;
-  --wp-exam-text-secondary: #64748B;
-  --wp-exam-progress-bar: #4F46E5;
-  --wp-exam-badge-bg: rgba(79, 70, 229, 0.1);
-  background-color: var(--wp-exam-bg);
-  color: var(--wp-exam-text-primary);
-}
-
-/* ══════════════════════════════════════════════════════════════
-   Sweet Digs (Eco-Luxury Editorial / Botanical Emerald)
-   Influenced by Sweet Digs Finder design system
-   ══════════════════════════════════════════════════════════════ */
-.theme-sweet-digs,
-[data-theme="sweet-digs"] {
-  --primary: 142 71% 45%;
-  --primary-foreground: 0 0% 100%;
-  --background: 140 20% 97%;
-  --foreground: 160 20% 10%;
-  --card: 0 0% 100%;
-  --card-foreground: 160 20% 10%;
-  --popover: 0 0% 100%;
-  --popover-foreground: 160 20% 10%;
-  --border: 150 13% 91%;
-  --input: 150 13% 91%;
-  --muted: 150 14% 96%;
-  --muted-foreground: 160 9% 46%;
-  --accent: 142 60% 93%;
-  --accent-foreground: 142 71% 30%;
-  --secondary: 142 60% 93%;
-  --secondary-foreground: 142 71% 30%;
-  --destructive: 0 84% 60%;
-  --destructive-foreground: 0 0% 100%;
-  --ring: 142 71% 45%;
-  --gradient-start: 142 40% 92%;
-  --gradient-end: 160 30% 90%;
-  --radius: 0.75rem;
-  --wp-exam-bg: #F4F8F5;
-  --wp-exam-card: #FFFFFF;
-  --wp-exam-card-border: #E1EAE5;
-  --wp-exam-card-hover: #F0FDF4;
-  --wp-exam-primary: #16A34A;
-  --wp-exam-primary-text: #FFFFFF;
-  --wp-exam-highlight: #16A34A;
-  --wp-exam-text-primary: #13201B;
-  --wp-exam-text-secondary: #6A7F75;
-  --wp-exam-progress-bar: #16A34A;
-  --wp-exam-badge-bg: rgba(22, 163, 74, 0.12);
-  background-color: var(--wp-exam-bg);
-  color: var(--wp-exam-text-primary);
-}
-
-.theme-sweet-digs.dark,
-[data-theme="sweet-digs"].dark,
-.dark .theme-sweet-digs,
-.dark [data-theme="sweet-digs"] {
-  --background: 160 20% 7%;
-  --foreground: 140 20% 95%;
-  --card: 160 20% 11%;
-  --card-foreground: 140 20% 95%;
-  --popover: 160 20% 11%;
-  --popover-foreground: 140 20% 95%;
-  --primary: 142 71% 45%;
-  --primary-foreground: 0 0% 100%;
-  --secondary: 160 20% 16%;
-  --secondary-foreground: 142 60% 80%;
-  --muted: 160 15% 15%;
-  --muted-foreground: 150 10% 60%;
-  --accent: 160 20% 18%;
-  --accent-foreground: 142 60% 85%;
-  --destructive: 0 62% 30%;
-  --destructive-foreground: 0 0% 95%;
-  --border: 160 15% 20%;
-  --input: 160 15% 20%;
-  --ring: 142 71% 45%;
-  --gradient-start: 160 30% 12%;
-  --gradient-end: 160 30% 8%;
-  --radius: 0.75rem;
-  --wp-exam-bg: #0E1613;
-  --wp-exam-card: #16221E;
-  --wp-exam-card-border: #23342E;
-  --wp-exam-card-hover: #1C2B26;
-  --wp-exam-primary: #22C55E;
-  --wp-exam-primary-text: #FFFFFF;
-  --wp-exam-highlight: #22C55E;
-  --wp-exam-text-primary: #F0FDF4;
-  --wp-exam-text-secondary: #94A3B8;
-  --wp-exam-progress-bar: #22C55E;
-  --wp-exam-badge-bg: rgba(34, 197, 94, 0.18);
-  background-color: var(--wp-exam-bg);
-  color: var(--wp-exam-text-primary);
-}
-
-/* ───── Sweet Digs CSS3 Animations ───── */
-@keyframes sweetDigsFadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(16px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes sweetDigsPulseGlow {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4);
-  }
-  50% {
-    box-shadow: 0 0 16px 3px rgba(22, 163, 74, 0.15);
-  }
-}
-
-@keyframes sweetDigsFloat {
-  0%, 100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-4px);
-  }
-}
-
-.animate-sweet-fade-in-up {
-  animation: sweetDigsFadeInUp 0.5s ease-out both;
-}
-
-@keyframes sweetDigsFadeIn {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
-.animate-sweet-fade-in {
-  animation: sweetDigsFadeIn 0.35s ease-out both;
-}
-
-.animate-sweet-pulse-glow {
-  animation: sweetDigsPulseGlow 2s ease-in-out infinite;
-}
-
-.animate-sweet-float {
-  animation: sweetDigsFloat 3s ease-in-out infinite;
-}
-
-/* ───── Stagger Delays (Sequential Entrances) ───── */
-.delay-100 { animation-delay: 0.1s; }
-.delay-200 { animation-delay: 0.2s; }
-.delay-300 { animation-delay: 0.3s; }
-.delay-400 { animation-delay: 0.4s; }
-.delay-500 { animation-delay: 0.5s; }
-
-/* ───── CSS3 Slide Text Button (Pure CSS GPU Motion) ───── */
-.slide-btn {
-  position: relative;
-  overflow: hidden;
-  padding: 0 1.25rem;
-  border-radius: 9999px;
-  background: hsl(var(--primary));
-  color: hsl(var(--primary-foreground));
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  height: 2.25rem;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid transparent;
-  transition: background-color 0.2s ease, border-color 0.2s ease;
-}
-
-.slide-btn__inner {
-  display: flex;
-  flex-direction: column;
-  transition: transform 350ms cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-.slide-btn__text {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  height: 2.25rem;
-  white-space: nowrap;
-}
-
-.slide-btn:hover .slide-btn__inner {
-  transform: translateY(-100%);
-}
-
-/* ───── Sweet Digs Interactive Card & Icon Pattern ───── */
-.sweet-card {
-  position: relative;
-  border-radius: 1rem;
-  border: 1px solid hsl(var(--border));
-  background: hsl(var(--card));
-  padding: 1.5rem;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-  transition: border-color 0.25s ease, box-shadow 0.25s ease;
-}
-
-.sweet-card:hover {
-  border-color: hsl(var(--primary) / 0.4);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
-}
-
-.sweet-icon-box {
-  width: 3rem;
-  height: 3rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 0.75rem;
-  background: hsl(var(--primary) / 0.1);
-  color: hsl(var(--primary));
-  transition: background-color 0.2s ease, color 0.2s ease;
-}
-

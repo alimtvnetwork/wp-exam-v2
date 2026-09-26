@@ -235,9 +235,9 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'riseup',
+  theme: 'sweet-digs',
   setTheme: () => {},
-  config: THEME_CONFIGS.riseup,
+  config: THEME_CONFIGS['sweet-digs'],
 });
 
 const STORAGE_KEY = 'wpexam_active_theme';
@@ -254,7 +254,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return saved as AppThemeType;
     }
 
-    return 'riseup';
+    return 'sweet-digs';
   });
 
   const config = THEME_CONFIGS[theme];

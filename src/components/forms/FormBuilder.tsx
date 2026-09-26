@@ -372,7 +372,7 @@ export const FormBuilder: React.FC = () => {
             </Button>
             <div className="h-5 w-px bg-border hidden sm:block" />
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground truncate">
-              Form & Assessment Builder
+              Form & Assessment <span className="text-primary">Builder</span>
             </h1>
             <Badge variant="secondary" className="text-sm font-mono shrink-0 px-2.5 py-0.5">
               Studio
@@ -582,11 +582,11 @@ export const FormBuilder: React.FC = () => {
         {/* Main Column: Google Forms Canvas */}
         <div className="lg:col-span-8 space-y-5">
           {/* Prominent Google Forms Header Card */}
-          <Card className="border-border bg-card shadow-sm rounded-xl overflow-hidden">
+          <Card className="border border-border/80 bg-card shadow-sm rounded-2xl overflow-hidden animate-sweet-fade-in">
             {/* Top Accent Ribbon (Dynamic Theme Tint) */}
-            <div className="h-2 bg-gradient-to-r from-primary via-primary/80 to-primary/60 w-full" />
+            <div className="h-2.5 bg-gradient-to-r from-primary via-primary/80 to-primary/60 w-full" />
 
-            <CardContent className="p-5 sm:p-6 space-y-4">
+            <CardContent className="p-6 sm:p-7 space-y-4">
               {/* Form Title & Description */}
               <div className="space-y-2">
                 <input

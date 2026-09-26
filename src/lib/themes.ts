@@ -334,13 +334,13 @@ export const THEME_ALIASES: Record<string, string> = {
   emerald: 'sweet-digs',
 };
 
-export const DEFAULT_THEME_ID = 'clean-wide';
+export const DEFAULT_THEME_ID = 'sweet-digs';
 
 export function getTheme(id: string): ThemeDefinition {
   const normalizedId = THEME_ALIASES[id] || id;
   const hasPreset = Boolean(THEME_PRESETS[normalizedId]);
 
-  return hasPreset ? THEME_PRESETS[normalizedId] : THEME_PRESETS['riseup-asia'];
+  return hasPreset ? THEME_PRESETS[normalizedId] : THEME_PRESETS['sweet-digs'];
 }
 
 export function getThemeCssVariables(theme: ThemeDefinition): Record<string, string> {

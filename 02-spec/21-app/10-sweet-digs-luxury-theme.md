@@ -206,3 +206,14 @@ All animations leverage pure CSS3 `@keyframes` without JavaScript render loops. 
 | **G-SD-03** | Zero Hover Scale | Hovering cards, buttons, or options triggers flat color transitions (`transition-colors duration-150`) with 0 scale transforms. |
 | **G-SD-04** | Air & Padding Scale | Question cards apply `p-6` body padding with `mb-4` to `mb-6` vertical rhythm. |
 | **G-SD-05** | Production Build & Tests | `npm test` (all 10 suites passing) and `npm run build` exit with code 0. |
+
+---
+
+## 7. Default System Activation & Two-Tone Typography
+
+1. **Global Default Theme:**
+   - Sweet Digs (`'sweet-digs'`) is configured as the active default across `theme-context.tsx`, `themes.ts`, `theme-definitions.ts`, and `FormRunner.tsx`.
+   - On initial load or fresh incognito sessions, the application directly renders the calm botanical sage-mist canvas and emerald primary styling without requiring manual theme selection.
+2. **Signature Two-Tone Typography Pattern:**
+   - Major headings feature the Sweet Digs editorial two-tone signature: `text-foreground` base with key action noun in `text-primary` (e.g. `Form & Assessment <span className="text-primary">Builder</span>`).
+

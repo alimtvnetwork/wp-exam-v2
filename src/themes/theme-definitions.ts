@@ -174,7 +174,7 @@ export const THEME_ALIASES: Record<string, string> = {
   emerald: 'sweet-digs',
 };
 
-export const DEFAULT_THEME_ID = 'riseup-asia';
+export const DEFAULT_THEME_ID = 'sweet-digs';
 
 export function getTheme(id: string): ThemeDefinition {
   const normalizedId = THEME_ALIASES[id] || id;

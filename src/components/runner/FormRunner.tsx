@@ -247,11 +247,11 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlTheme = params.get('theme');
-      if (urlTheme && (THEME_PRESETS[urlTheme] || urlTheme === 'clean-wide')) {
+      if (urlTheme && (THEME_PRESETS[urlTheme] || urlTheme === 'sweet-digs' || urlTheme === 'clean-wide')) {
         return urlTheme;
       }
     }
-    return 'clean-wide';
+    return 'sweet-digs';
   });
   const currentTheme = getTheme(activeThemeId);
   const themeVars = getThemeCssVariables(currentTheme);
