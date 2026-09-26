@@ -540,49 +540,67 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               </SelectContent>
             </Select>
 
-            {/* Live Test Preview Mode Toggle */}
-            <Button
-              type="button"
-              variant={showLivePreview ? 'default' : 'outline'}
-              size="sm"
-              className={`text-sm h-10 px-3.5 gap-2 transition-all duration-150 font-semibold rounded-lg cursor-pointer shadow-2xs group ${
-                showLivePreview
-                  ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                  : 'bg-card border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary'
-              }`}
-              onClick={() => setShowLivePreview(!showLivePreview)}
-              title="Toggle interactive live input preview test"
-            >
-              <Eye className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
-              <span className="hidden sm:inline">Preview</span>
-            </Button>
+            {/* Combined Preview & Actions Segmented Control with Crisp High-Contrast Icon */}
+            <div className="inline-flex items-center rounded-lg border border-border bg-card shadow-2xs overflow-hidden h-10 shrink-0">
+              {/* Preview Toggle Button */}
+              <button
+                type="button"
+                onClick={() => setShowLivePreview(!showLivePreview)}
+                className={`inline-flex items-center gap-1.5 h-full px-3 text-sm font-semibold transition-all cursor-pointer ${
+                  showLivePreview
+                    ? 'bg-primary text-primary-foreground shadow-inner'
+                    : 'text-foreground hover:bg-accent/80 hover:text-foreground'
+                }`}
+                title="Toggle interactive live input preview test"
+              >
+                <Eye className={`w-4 h-4 stroke-[2.2] ${showLivePreview ? 'text-primary-foreground' : 'text-foreground'}`} />
+                <span>Preview</span>
+              </button>
 
-            {/* Compact Actions Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className={`text-sm h-10 px-3.5 gap-2 border transition-all duration-150 font-semibold rounded-lg cursor-pointer shadow-2xs group ${
-                    showAdvanced || showTriggers || showConditions
-                      ? 'border-primary/50 bg-primary/10 text-primary hover:bg-primary/20'
-                      : 'bg-card border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary'
-                  }`}
-                >
-                  <SlidersHorizontal className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
-                  <span>Actions</span>
-                  {(showAdvanced || showTriggers || showConditions) && (
-                    <span className="w-2 h-2 rounded-full bg-primary" />
-                  )}
-                  <ChevronDown className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100 group-hover:text-primary-foreground transition-all" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 p-1 bg-popover border border-border shadow-lg">
-                <DropdownMenuItem
-                  onClick={() => setIsAiStudioOpen(true)}
-                  className="text-sm flex items-center justify-between cursor-pointer py-1.5"
-                >
+              {/* Vertical Divider */}
+              <div className="w-px h-5 bg-border shrink-0" />
+
+              {/* Actions Dropdown Trigger */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    className={`inline-flex items-center gap-1.5 h-full px-2.5 text-sm font-semibold transition-all cursor-pointer ${
+                      showAdvanced || showTriggers || showConditions
+                        ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                        : 'text-foreground hover:bg-accent/80 hover:text-foreground'
+                    }`}
+                    title="Question Actions & Configuration"
+                  >
+                    <SlidersHorizontal className="w-4 h-4 stroke-[2] text-foreground" />
+                    <span className="hidden sm:inline">Actions</span>
+                    {(showAdvanced || showTriggers || showConditions) && (
+                      <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                    )}
+                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground opacity-70" />
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56 p-1 bg-popover border border-border shadow-lg">
+                  {/* Quick toggle item for Live Preview inside the menu as well */}
+                  <DropdownMenuItem
+                    onClick={() => setShowLivePreview(!showLivePreview)}
+                    className="text-sm flex items-center justify-between cursor-pointer py-1.5"
+                  >
+                    <div className="flex items-center gap-2">
+                      <Eye className="w-4 h-4 text-foreground stroke-[2]" />
+                      <span>{showLivePreview ? 'Hide Live Preview' : 'Show Live Preview'}</span>
+                    </div>
+                    {showLivePreview && (
+                      <Badge variant="outline" className="text-xs px-1.5 py-0 h-4 bg-primary/10 text-primary border-primary/30">
+                        Active
+                      </Badge>
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator className="my-1 border-border/80" />
+                  <DropdownMenuItem
+                    onClick={() => setIsAiStudioOpen(true)}
+                    className="text-sm flex items-center justify-between cursor-pointer py-1.5"
+                  >
                   <div className="flex items-center gap-2">
                     <Sparkles className="w-4 h-4" />
                     <span>AI Studio & Schema</span>
@@ -762,6 +780,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+            </div>
           </div>
         </CardHeader>
 
@@ -800,19 +819,22 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 onChange={(e) => onUpdate(id, { label: e.target.value })}
                 onFocus={() => setIsTitleFocused(true)}
                 onBlur={() => setIsTitleFocused(false)}
-                placeholder={isTitleFocused ? '' : 'Untitled Question'}
-                className="text-lg font-bold h-12 pt-3 pb-1 px-3.5 w-full bg-background text-foreground shadow-2xs focus-visible:ring-2 focus-visible:ring-primary rounded-lg transition-all"
+                placeholder=""
+                className="text-base sm:text-lg font-bold h-12 pt-3.5 pb-1 px-3.5 w-full bg-background text-foreground shadow-2xs focus-visible:ring-2 focus-visible:ring-primary rounded-lg transition-all"
               />
-              {/* Floating animated title indicator */}
+              {/* Floating animated title indicator gliding smoothly from left placeholder to light uppercase right indicator */}
               <label
                 htmlFor={`field-title-${id}`}
-                className={`absolute pointer-events-none transition-all duration-200 select-none flex items-center gap-1 ${
+                className={`absolute pointer-events-none transition-all duration-300 ease-out select-none flex items-center gap-1 whitespace-nowrap font-medium ${
                   isTitleFocused || field.label
-                    ? 'top-1.5 right-3 text-[11px] font-semibold text-muted-foreground/70 uppercase tracking-wider'
-                    : 'top-3.5 left-3.5 text-sm font-normal text-muted-foreground/60'
+                    ? 'top-1 text-[11px] uppercase tracking-wider text-muted-foreground/60'
+                    : 'top-3 text-sm sm:text-base font-normal text-muted-foreground/50'
                 }`}
+                style={{
+                  left: isTitleFocused || field.label ? 'calc(100% - 64px)' : '14px',
+                }}
               >
-                <span>{isTitleFocused || field.label ? 'Question Title' : ''}</span>
+                <span>Title</span>
                 {field.isRequired && <span className="text-destructive font-bold ml-0.5">*</span>}
               </label>
             </div>

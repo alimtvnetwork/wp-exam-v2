@@ -672,7 +672,7 @@ export const FormBuilder: React.FC = () => {
             className="h-9 w-9 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all duration-150 rounded-xl cursor-pointer group"
             title="Preview interactive form in a new tab"
           >
-            <Eye className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
+            <Eye className="w-4 h-4 stroke-[2.2] text-foreground group-hover:text-primary-foreground transition-colors" />
           </Button>
 
           {/* Dedicated Icon-Only Save Button */}
