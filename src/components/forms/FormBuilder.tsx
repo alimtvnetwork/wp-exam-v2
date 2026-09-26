@@ -63,6 +63,7 @@ import {
   PlusCircle,
   HelpCircle,
   ListOrdered,
+  Shuffle,
   Award,
   Sparkles,
   Settings,
@@ -745,16 +746,36 @@ export const FormBuilder: React.FC = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  {/* Sequential Progression Switch */}
-                  <div className="flex items-center gap-2.5 bg-muted/40 px-3 py-1.5 rounded-lg border border-border/60">
-                    <Label htmlFor="sequential-toggle" className="text-sm font-semibold cursor-pointer text-foreground">
-                      Sequential
+                  {/* Sequential vs Random Order Toggle */}
+                  <div
+                    className={`flex items-center gap-2.5 px-3 py-1.5 rounded-lg border transition-all ${
+                      isSequential
+                        ? 'bg-muted/40 border-border/60 text-foreground'
+                        : 'bg-primary/10 border-primary/30 text-primary'
+                    }`}
+                  >
+                    <Label
+                      htmlFor="sequential-toggle"
+                      className="text-sm font-semibold cursor-pointer flex items-center gap-1.5 select-none"
+                    >
+                      {isSequential ? (
+                        <>
+                          <ListOrdered className="w-3.5 h-3.5 text-primary" />
+                          <span>Sequential</span>
+                        </>
+                      ) : (
+                        <>
+                          <Shuffle className="w-3.5 h-3.5 text-primary" />
+                          <span className="font-bold">Random Enabled</span>
+                        </>
+                      )}
                     </Label>
                     <Switch
                       id="sequential-toggle"
                       checked={isSequential}
                       onCheckedChange={setIsSequential}
                       className="data-[state=checked]:bg-primary"
+                      title={isSequential ? 'Sequential progression active (click to enable Random order)' : 'Random order enabled (click to enable Sequential order)'}
                     />
                   </div>
 
@@ -1332,16 +1353,23 @@ export const FormBuilder: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 3. Presentation Pacing */}
+                {/* 3. Presentation Pacing: Sequential vs Random Enabled */}
                 <div className="p-3 rounded-xl border border-border/70 bg-card/60 space-y-2">
                   <div className="flex items-center justify-between">
                     <div>
-                      <span className="font-semibold text-foreground block text-sm">Focus Step-by-Step</span>
-                      <span className="text-sm text-muted-foreground">Present 1 question per screen</span>
+                      <span className="font-semibold text-foreground block text-sm">
+                        {isSequential ? 'Sequential Progression' : 'Random Enabled'}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {isSequential
+                          ? 'Present questions sequentially 1-by-1'
+                          : 'Random order active: questions are shuffled for candidates'}
+                      </span>
                     </div>
                     <Switch
                       checked={isSequential}
                       onCheckedChange={setIsSequential}
+                      title={isSequential ? 'Sequential progression active' : 'Random enabled'}
                     />
                   </div>
                 </div>

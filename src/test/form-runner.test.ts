@@ -65,7 +65,23 @@ describe("WP Exam Form & Quiz Engine Store", () => {
 
     const state = useQuizStore.getState();
     expect(state.formType).toBe("quiz");
-    expect(state.isSequential).toBe(true);
+    expect(state.isSequential).toBeTruthy();
     expect(state.settings.passingScore).toBe(85);
+
+    // Switch off sequential mode -> Random Enabled
+    setIsSequential(false);
+    const updatedState = useQuizStore.getState();
+    expect(updatedState.isSequential).toBeFalsy();
+
+    const getProgressionDisplay = (isSeq: boolean) => {
+      if (isSeq) {
+        return { label: 'Sequential', icon: 'ListOrdered' };
+      }
+      return { label: 'Random Enabled', icon: 'Shuffle' };
+    };
+
+    expect(getProgressionDisplay(true).label).toBe('Sequential');
+    expect(getProgressionDisplay(false).label).toBe('Random Enabled');
+    expect(getProgressionDisplay(false).icon).toBe('Shuffle');
   });
 });
