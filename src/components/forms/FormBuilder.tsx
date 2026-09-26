@@ -33,6 +33,11 @@ import {
   PopoverTrigger,
   PopoverContent,
 } from '@/components/ui/popover';
+import {
+  HoverCard,
+  HoverCardTrigger,
+  HoverCardContent,
+} from '@/components/ui/hover-card';
 import { useTheme, THEME_CONFIGS, ORDERED_THEME_KEYS, AppThemeType } from '@/lib/theme-context';
 import { FormRunner } from '@/components/runner/FormRunner';
 import { JsonModal } from './json-modal';
@@ -73,6 +78,7 @@ import {
   Globe,
   ArrowLeft,
   Palette,
+  Loader2,
 } from 'lucide-react';
 import {
   DndContext,
@@ -364,150 +370,204 @@ export const FormBuilder: React.FC = () => {
 
   return (
     <div className="w-full px-3 sm:px-6 pt-1 pb-6 space-y-3.5">
-      {/* Top Action Bar with Integrated Live URL & Customizable Slug Ribbon */}
-      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-3 p-3 sm:px-4 sm:py-2.5 bg-card rounded-xl border border-border/80 shadow-xs">
-        <div className="space-y-1.5 min-w-0 flex-1">
-          <div className="flex items-center gap-3">
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              onClick={() => window.history.back()}
-              className="h-9 w-9 rounded-xl border border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground transition-all shadow-xs shrink-0 cursor-pointer"
-              title="Back to Admin Dashboard"
-            >
-              <ArrowLeft className="w-5 h-5 text-foreground" />
-            </Button>
-            <div className="h-5 w-px bg-border hidden sm:block" />
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground truncate">
-              Form & Assessment <span className="text-primary">Builder</span>
-            </h1>
-            <Badge variant="secondary" className="text-sm font-mono shrink-0 px-2.5 py-0.5">
-              Studio
-            </Badge>
-          </div>
-
-          {/* De-cluttered Compact Slug Chip with Popover Editor & 1-Click Copy */}
-          <div className="flex items-center gap-2 flex-wrap text-sm pt-0.5">
-            <div className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-muted/50 border border-border/80 font-mono text-sm text-muted-foreground shadow-2xs">
-              <span className="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0" />
-              <Popover>
-                <PopoverTrigger asChild>
-                  <button
-                    type="button"
-                    className="text-foreground hover:text-primary font-semibold transition-colors cursor-pointer truncate max-w-[160px] sm:max-w-[240px]"
-                    title="Click to edit form URL slug"
-                  >
-                    /f/{activeSlug}
-                  </button>
-                </PopoverTrigger>
-                <PopoverContent
-                  align="start"
-                  className="w-80 p-3.5 space-y-3 rounded-xl border border-border bg-popover shadow-xl"
-                >
-                  <div className="space-y-1">
-                    <h4 className="font-semibold text-sm text-foreground">Edit Form URL Slug</h4>
-                    <p className="text-xs text-muted-foreground">Customize public path for this assessment form</p>
-                  </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-xs font-mono text-muted-foreground">/f/</span>
-                    <Input
-                      value={slug || ''}
-                      onChange={(e) => setSlug(e.target.value)}
-                      placeholder="custom-slug"
-                      className="h-9 text-xs font-mono rounded-lg"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={() => {
-                        if (!title || title.trim().length === 0) {
-                          toast.error('Enter form title first');
-
-                          return;
-                        }
-                        const auto = title.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
-                        setSlug(auto);
-                        toast.success(`Slug auto-generated: "${auto}"`);
-                      }}
-                      className="h-9 px-2.5 shrink-0 rounded-lg"
-                      title="Auto-generate from title"
-                    >
-                      <Wand2 className="w-4 h-4" />
-                    </Button>
-                  </div>
-                  <div className="flex items-center justify-between pt-1 border-t border-border/60">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => setIsSlugModalOpen(true)}
-                      className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground gap-1.5"
-                    >
-                      <Globe className="w-3.5 h-3.5" />
-                      <span>Advanced Manager</span>
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleCopyLiveUrl}
-                      className="h-8 px-2.5 text-xs gap-1.5"
-                    >
-                      <Copy className="w-3.5 h-3.5" />
-                      <span>Copy URL</span>
-                    </Button>
-                  </div>
-                </PopoverContent>
-              </Popover>
-              <button
-                type="button"
-                onClick={handleCopyLiveUrl}
-                className="p-1 hover:text-primary text-muted-foreground transition-colors rounded hover:bg-accent cursor-pointer ml-0.5"
-                title="Copy Public Form URL to clipboard"
-              >
-                <Copy className="w-3.5 h-3.5" />
-              </button>
-            </div>
-
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => window.open(`/f/${activeSlug}`, '_blank')}
-              className="h-8 px-2 text-xs text-primary hover:bg-primary/10 gap-1.5 font-medium cursor-pointer"
-              title="Open Public Candidate URL in New Tab"
-            >
-              <span>Public</span>
-              <ExternalLink className="w-3.5 h-3.5" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Compact Aligned Action Controls with Enlarged Primary Actions */}
-        <div className="flex items-center gap-2 flex-wrap shrink-0">
-          {/* Design Health Score Pill */}
+      {/* Top Action Bar with Integrated Single-Line Live URL, HoverCard Health & Icon Actions */}
+      <div className="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-2.5 p-2.5 sm:px-4 bg-card rounded-xl border border-border/80 shadow-xs">
+        {/* Left Side: Single-Line Navigation, Title & URL Management */}
+        <div className="flex items-center gap-2.5 min-w-0 flex-wrap">
           <Button
             type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              setInspectorTab('audit');
-              setIsDesignPanelOpen(true);
-            }}
-            className="text-sm h-10 px-4 gap-2 font-semibold transition-all shadow-xs bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary rounded-xl cursor-pointer group"
-            title="Inspect form health, design validation warnings, and 1-click auto-fixes"
+            variant="ghost"
+            size="icon"
+            onClick={() => window.history.back()}
+            className="h-9 w-9 rounded-xl border border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground transition-all shadow-xs shrink-0 cursor-pointer"
+            title="Back to Admin Dashboard"
           >
-            <Shield className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
-            <span>Health: {designReport.score}%</span>
-            <Badge
-              variant="secondary"
-              className="text-xs px-2 py-0.5 h-5 font-bold bg-primary/10 text-primary group-hover:bg-primary-foreground/20 group-hover:text-primary-foreground transition-colors"
-            >
-              {designReport.grade}
-            </Badge>
+            <ArrowLeft className="w-5 h-5 text-foreground" />
           </Button>
+
+          <h1 className="text-lg sm:text-xl font-bold tracking-tight text-foreground whitespace-nowrap">
+            Form & Assessment <span className="text-primary">Builder</span>
+          </h1>
+
+          <Badge variant="secondary" className="text-xs font-mono shrink-0 px-2 py-0.5 hidden sm:inline-flex">
+            Studio
+          </Badge>
+
+          {/* De-cluttered Compact Slug Chip with Popover Editor & 1-Click Copy */}
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-muted/50 border border-border/80 font-mono text-xs text-muted-foreground shadow-2xs">
+            <span className="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0" />
+            <Popover>
+              <PopoverTrigger asChild>
+                <button
+                  type="button"
+                  className="text-foreground hover:text-primary font-semibold transition-colors cursor-pointer truncate max-w-[130px] sm:max-w-[190px]"
+                  title="Click to edit form URL slug"
+                >
+                  /f/{activeSlug}
+                </button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="start"
+                className="w-80 p-3.5 space-y-3 rounded-xl border border-border bg-popover shadow-xl"
+              >
+                <div className="space-y-1">
+                  <h4 className="font-semibold text-sm text-foreground">Edit Form URL Slug</h4>
+                  <p className="text-xs text-muted-foreground">Customize public path for this assessment form</p>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs font-mono text-muted-foreground">/f/</span>
+                  <Input
+                    value={slug || ''}
+                    onChange={(e) => setSlug(e.target.value)}
+                    placeholder="custom-slug"
+                    className="h-9 text-xs font-mono rounded-lg"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const hasTitle = Boolean(title && title.trim().length > 0);
+                      if (!hasTitle) {
+                        toast.error('Enter form title first');
+
+                        return;
+                      }
+                      const auto = title.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+                      setSlug(auto);
+                      toast.success(`Slug auto-generated: "${auto}"`);
+                    }}
+                    className="h-9 px-2.5 shrink-0 rounded-lg"
+                    title="Auto-generate from title"
+                  >
+                    <Wand2 className="w-4 h-4" />
+                  </Button>
+                </div>
+                <div className="flex items-center justify-between pt-1 border-t border-border/60">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setIsSlugModalOpen(true)}
+                    className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground gap-1.5"
+                  >
+                    <Globe className="w-3.5 h-3.5" />
+                    <span>Advanced Manager</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={handleCopyLiveUrl}
+                    className="h-8 px-2.5 text-xs gap-1.5"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                    <span>Copy URL</span>
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+            <button
+              type="button"
+              onClick={handleCopyLiveUrl}
+              className="p-1 hover:text-primary text-muted-foreground transition-colors rounded hover:bg-accent cursor-pointer ml-0.5"
+              title="Copy Public Form URL to clipboard"
+            >
+              <Copy className="w-3.5 h-3.5" />
+            </button>
+          </div>
+
+          {/* Public / Access Status Chip */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={() => window.open(`/f/${activeSlug}`, '_blank')}
+            className="h-8 px-2.5 text-xs text-primary hover:bg-primary/10 gap-1.5 font-medium cursor-pointer rounded-lg border border-primary/20"
+            title="Open Public Candidate URL in New Tab"
+          >
+            <Globe className="w-3.5 h-3.5" />
+            <span>{formAccess === 'public' ? 'Public' : 'Token'}</span>
+            <ExternalLink className="w-3.5 h-3.5" />
+          </Button>
+        </div>
+
+        {/* Right Side: Compact Aligned Action Controls with Icon-Only Actions */}
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
+          {/* Design Health Score Pill with Rich HoverCard */}
+          <HoverCard openDelay={150} closeDelay={150}>
+            <HoverCardTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  setInspectorTab('audit');
+                  setIsDesignPanelOpen(true);
+                }}
+                className="text-xs h-9 px-2.5 gap-1.5 font-semibold transition-all shadow-xs bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary rounded-xl cursor-pointer group"
+                title="Inspect form health, design validation warnings, and 1-click auto-fixes"
+              >
+                <Shield className="w-4 h-4 text-emerald-500 group-hover:text-primary-foreground transition-colors" />
+                <span className="font-mono">{designReport.score}%</span>
+                <Badge
+                  variant="secondary"
+                  className="text-[11px] px-1.5 py-0 h-4 font-bold bg-primary/10 text-primary group-hover:bg-primary-foreground/20 group-hover:text-primary-foreground transition-colors"
+                >
+                  {designReport.grade}
+                </Badge>
+              </Button>
+            </HoverCardTrigger>
+            <HoverCardContent
+              align="end"
+              className="w-80 p-3.5 space-y-3 rounded-xl border border-border bg-popover text-popover-foreground shadow-xl text-xs"
+            >
+              <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-emerald-500" />
+                  <span className="font-bold text-sm text-foreground">Form Health Audit</span>
+                </div>
+                <Badge variant="outline" className="font-mono font-bold text-xs bg-primary/10 text-primary border-primary/20">
+                  Grade {designReport.grade} ({designReport.score}%)
+                </Badge>
+              </div>
+
+              <div className="space-y-1.5 text-muted-foreground">
+                <div className="flex justify-between">
+                  <span>Audit Diagnostics:</span>
+                  <span className="font-semibold text-foreground">{designReport.issues?.length || 0} issues detected</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Questions Configured:</span>
+                  <span className="font-semibold text-foreground">{fields.length} questions</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Mandatory Fields:</span>
+                  <span className="font-semibold text-foreground">{requiredCount} required</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Grading Allocation:</span>
+                  <span className="font-semibold text-foreground">{totalPoints} total points</span>
+                </div>
+              </div>
+
+              <div className="pt-2 border-t border-border/60 flex items-center justify-between">
+                <span className="text-[11px] text-muted-foreground">Click badge or button to open audit dock</span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="default"
+                  onClick={() => {
+                    setInspectorTab('audit');
+                    setIsDesignPanelOpen(true);
+                  }}
+                  className="h-7 text-xs px-2.5 rounded-lg"
+                >
+                  Open Full Audit
+                </Button>
+              </div>
+            </HoverCardContent>
+          </HoverCard>
 
           {/* Dedicated AI Studio Trigger Button */}
           <AiSectionAssistant section="builder" title="AI Studio" />
@@ -518,12 +578,12 @@ export const FormBuilder: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-sm h-10 px-4 gap-2 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all duration-150 rounded-xl font-semibold cursor-pointer group"
+                className="text-xs h-9 px-3 gap-1.5 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs transition-all duration-150 rounded-xl font-semibold cursor-pointer group"
                 title="Open secondary builder tools and integrations"
               >
-                <Wand2 className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
+                <Wand2 className="w-3.5 h-3.5 text-primary group-hover:text-primary-foreground transition-colors" />
                 <span>Tools</span>
-                <ChevronDown className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" />
+                <ChevronDown className="w-3 h-3 opacity-70 group-hover:opacity-100" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 bg-popover border border-border shadow-xl p-1 text-sm">
@@ -578,28 +638,28 @@ export const FormBuilder: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Dedicated Live Preview Button */}
+          {/* Dedicated Icon-Only Live Preview Button */}
           <Button
             type="button"
             variant="outline"
-            size="sm"
+            size="icon"
             onClick={() => window.open('/preview/' + activeSlug + '?test=true', '_blank')}
-            className="text-sm h-10 px-4 gap-2 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all duration-150 rounded-xl font-semibold cursor-pointer group"
+            className="h-9 w-9 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all duration-150 rounded-xl cursor-pointer group"
             title="Preview interactive form in a new tab"
           >
             <Eye className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
-            <span>Preview</span>
           </Button>
 
-          {/* Save Button */}
+          {/* Dedicated Icon-Only Save Button */}
           <Button
+            type="button"
             onClick={handleSave}
             disabled={isSaving}
-            size="sm"
-            className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm h-10 px-5 gap-2.5 font-bold shadow-xs hover:shadow-md transition-all duration-150 rounded-xl cursor-pointer"
+            size="icon"
+            className="h-9 w-9 bg-primary hover:bg-primary/90 text-primary-foreground font-bold shadow-xs hover:shadow-md transition-all duration-150 rounded-xl cursor-pointer"
+            title={isSaving ? 'Saving Form...' : 'Save Form (Ctrl+S)'}
           >
-            <Save className="w-4 h-4" />
-            <span>{isSaving ? 'Saving...' : 'Save Form'}</span>
+            {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           </Button>
         </div>
       </div>
@@ -657,23 +717,6 @@ export const FormBuilder: React.FC = () => {
                         <SelectItem value="employee_signup" className="text-sm py-2">Candidate Application</SelectItem>
                         <SelectItem value="survey" className="text-sm py-2">Public Survey</SelectItem>
                         <SelectItem value="general_form" className="text-sm py-2">General Multi-Step Form</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Form Access Select */}
-                  <div className="flex items-center gap-2 shrink-0">
-                    <span className="text-foreground text-sm font-semibold shrink-0">Access:</span>
-                    <Select
-                      value={formAccess}
-                      onValueChange={(val) => setFormAccess(val as FormAccessType)}
-                    >
-                      <SelectTrigger className="h-9 w-auto min-w-[180px] shrink-0 text-sm font-semibold bg-background border border-border shadow-2xs cursor-pointer">
-                        <SelectValue placeholder="Access" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="public" className="text-sm py-2">Public Access</SelectItem>
-                        <SelectItem value="authenticated" className="text-sm py-2">Token / Invite Only</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>

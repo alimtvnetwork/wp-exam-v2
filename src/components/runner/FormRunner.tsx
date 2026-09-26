@@ -791,39 +791,40 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
         color: currentTheme.colors.textPrimary,
       }}
     >
-      {/* Project Selector & Deep-Link Bar */}
+      {/* Streamlined Single-Line Project Selector, Slug & Actions Bar */}
       <div 
-        className="p-3 border border-border bg-card text-card-foreground rounded-xl shadow-xs flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 transition-colors"
+        className="p-2 sm:px-3.5 border border-border bg-card text-card-foreground rounded-xl shadow-xs flex flex-wrap lg:flex-nowrap items-center justify-between gap-2.5 transition-colors"
       >
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="flex items-center gap-2">
-            <Label className="text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap text-foreground">
-              <Layers className="w-4 h-4 text-primary" />
-              <span>Project:</span>
+        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap min-w-0">
+          {/* Project Selector */}
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Label className="text-xs font-semibold flex items-center gap-1 whitespace-nowrap text-foreground">
+              <Layers className="w-3.5 h-3.5 text-primary" />
+              <span className="hidden sm:inline">Project:</span>
             </Label>
             <Select
               value={selectedProjectId}
               onValueChange={handleProjectSwitch}
             >
               <SelectTrigger 
-                className="text-sm font-semibold h-9 min-w-[210px] rounded-lg border border-border bg-background text-foreground shadow-2xs cursor-pointer"
+                className="text-xs font-semibold h-8 min-w-[160px] sm:min-w-[190px] max-w-[220px] rounded-lg border border-border bg-background text-foreground shadow-2xs cursor-pointer truncate"
               >
-                <SelectValue placeholder="Select Assessment Project" />
+                <SelectValue placeholder="Select Project" />
               </SelectTrigger>
               <SelectContent 
-                className="border border-border shadow-xl backdrop-blur-md rounded-xl bg-popover text-popover-foreground"
+                className="border border-border shadow-xl backdrop-blur-md rounded-xl bg-popover text-popover-foreground text-xs"
               >
-                <SelectItem value="intern-programmer" className="text-sm py-2">
+                <SelectItem value="intern-programmer" className="text-xs py-1.5">
                   Intern Programmer Assessment
                 </SelectItem>
-                <SelectItem value="full-stack-architect" className="text-sm py-2">
+                <SelectItem value="full-stack-architect" className="text-xs py-1.5">
                   Full-Stack Web Architecture
                 </SelectItem>
-                <SelectItem value="cybersecurity-essentials" className="text-sm py-2">
+                <SelectItem value="cybersecurity-essentials" className="text-xs py-1.5">
                   Cybersecurity Fundamentals
                 </SelectItem>
                 {(initialForm || quizStore.fields.length > 0) && (
-                  <SelectItem value="custom-active" className="text-sm py-2">
+                  <SelectItem value="custom-active" className="text-xs py-1.5">
                     Custom Form ({activeForm.title || 'Builder Active'})
                   </SelectItem>
                 )}
@@ -833,20 +834,20 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
           {/* Active Canonical Slug Indicator */}
           <div 
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-border bg-background text-sm font-mono shadow-2xs"
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border bg-background text-xs font-mono shadow-2xs shrink-0"
           >
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0" />
             <span className="text-muted-foreground">{isPreviewRoute ? '/preview/' : '/f/'}</span>
-            <span className="font-bold text-primary">
+            <span className="font-bold text-primary truncate max-w-[120px] sm:max-w-[160px]">
               {selectedProjectId === 'custom-active' ? (quizStore.slug || 'custom-form') : selectedProjectId}
             </span>
           </div>
 
           {/* Theme Selector */}
-          <div className="flex items-center gap-2">
-            <Label className="text-sm font-semibold flex items-center gap-1.5 whitespace-nowrap text-foreground">
-              <Palette className="w-4 h-4 text-primary" />
-              <span>Theme:</span>
+          <div className="flex items-center gap-1.5 shrink-0">
+            <Label className="text-xs font-semibold flex items-center gap-1 whitespace-nowrap text-foreground">
+              <Palette className="w-3.5 h-3.5 text-primary" />
+              <span className="hidden sm:inline">Theme:</span>
             </Label>
             <Select
               value={activeThemeId}
@@ -857,15 +858,15 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               }}
             >
               <SelectTrigger 
-                className="text-sm font-semibold h-9 w-[190px] rounded-lg border border-border bg-background text-foreground hover:border-primary/50 shadow-2xs cursor-pointer"
+                className="text-xs font-semibold h-8 w-[130px] sm:w-[150px] rounded-lg border border-border bg-background text-foreground hover:border-primary/50 shadow-2xs cursor-pointer truncate"
               >
                 <SelectValue placeholder="Select Theme" />
               </SelectTrigger>
               <SelectContent 
-                className="border border-border shadow-xl backdrop-blur-md rounded-xl bg-popover text-popover-foreground"
+                className="border border-border shadow-xl backdrop-blur-md rounded-xl bg-popover text-popover-foreground text-xs"
               >
                 {Object.values(THEME_PRESETS).map((t) => (
-                  <SelectItem key={t.id} value={t.id} className="text-sm py-2 font-medium">
+                  <SelectItem key={t.id} value={t.id} className="text-xs py-1.5 font-medium">
                     {t.name.split(' (')[0]}
                   </SelectItem>
                 ))}
@@ -874,26 +875,29 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           </div>
         </div>
 
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+        {/* Right Action Controls: Compact and Icon/Pill Streamlined */}
+        <div className="flex items-center gap-1.5 shrink-0 justify-end">
           <Button
             type="button"
             variant="outline"
-            size="sm"
+            size="icon"
             onClick={handleCopyProjectLink}
-            className="text-sm h-9 px-3.5 gap-2 font-semibold border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all cursor-pointer group"
+            className="h-8 w-8 rounded-lg border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs transition-all cursor-pointer group"
+            title="Copy Direct Canonical URL to Clipboard"
           >
-            <Share2 className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
-            <span>Share Direct URL</span>
+            <Share2 className="w-3.5 h-3.5 text-primary group-hover:text-primary-foreground transition-colors" />
           </Button>
+
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={handleAutoFill}
-            className="text-sm h-9 px-3.5 gap-2 font-semibold border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all cursor-pointer group"
+            className="text-xs h-8 px-2.5 gap-1.5 font-semibold border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs transition-all cursor-pointer group rounded-lg"
+            title="Auto-fill form fields with sample test data"
           >
-            <Zap className="w-4 h-4 text-amber-500 group-hover:text-primary-foreground transition-colors" />
-            <span>Auto Fill</span>
+            <Zap className="w-3.5 h-3.5 text-amber-500 group-hover:text-primary-foreground transition-colors" />
+            <span className="hidden md:inline">Auto Fill</span>
           </Button>
 
           <Button
@@ -901,15 +905,15 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             variant={isDebugMode ? 'default' : 'outline'}
             size="sm"
             onClick={() => setIsDebugMode(!isDebugMode)}
-            className={`text-sm h-9 px-3.5 gap-2 font-semibold border shadow-xs transition-all cursor-pointer ${
+            className={`text-xs h-8 px-2 gap-1 font-semibold border shadow-xs transition-all cursor-pointer rounded-lg ${
               isDebugMode
                 ? 'bg-amber-600 hover:bg-amber-700 text-white border-amber-600'
                 : 'border-border bg-card text-foreground hover:bg-amber-500/10 hover:text-amber-600 hover:border-amber-500/40'
             }`}
             title="Toggle Debug Simulator & Step Jumper"
           >
-            <Bug className="w-4 h-4 text-amber-500" />
-            <span>Debug</span>
+            <Bug className="w-3.5 h-3.5 text-amber-500" />
+            <span className="hidden lg:inline">Debug</span>
           </Button>
 
           <Button
@@ -922,11 +926,11 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 navigate('/');
               }
             }}
-            className="text-sm h-9 px-3.5 border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary cursor-pointer font-medium transition-all group"
+            className="text-xs h-8 px-2.5 border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary cursor-pointer font-medium transition-all group rounded-lg gap-1"
             title="Exit form runner and return to portal"
           >
-            <ArrowLeft className="w-4 h-4 mr-1.5" />
-            <span>Exit to Portal</span>
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Exit</span>
           </Button>
         </div>
       </div>
