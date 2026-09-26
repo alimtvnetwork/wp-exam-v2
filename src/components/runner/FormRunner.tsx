@@ -47,6 +47,7 @@ import {
   BookOpen,
 } from 'lucide-react';
 import { PhoneWithCountrySelect } from '@/components/ui/phone-input';
+import { MultilineListItemsInput } from '@/components/forms/multiline-list-items-input';
 import { toast } from 'sonner';
 import { getTheme, getThemeCssVariables, THEME_PRESETS } from '@/lib/themes';
 import {
@@ -1856,120 +1857,16 @@ export const RunnerListItemsInput: React.FC<{
   onChange: (val: string[]) => void;
   suggestionsPool?: string[];
   placeholder?: string;
-}> = ({ value, onChange, suggestionsPool, placeholder }) => {
-  const [inputText, setInputText] = useState('');
-
-  const items: string[] = useMemo(() => {
-    if (Array.isArray(value)) {
-      return value.map(String).filter(Boolean);
-    }
-
-    if (typeof value === 'string') {
-      const trimmed = value.trim();
-
-      if (trimmed) {
-        return trimmed.split(',').map((s) => s.trim()).filter(Boolean);
-      }
-    }
-
-    return [];
-  }, [value]);
-
-  const handleAddItem = (itemStr: string) => {
-    const trimmed = itemStr.trim();
-
-    if (!trimmed) {
-      return;
-    }
-
-    const hasItem = items.includes(trimmed);
-
-    if (hasItem) {
-      toast.info(`"${trimmed}" is already added.`);
-
-      return;
-    }
-
-    onChange([...items, trimmed]);
-    setInputText('');
-  };
-
-  const handleRemoveItem = (indexToRemove: number) => {
-    onChange(items.filter((_, idx) => idx !== indexToRemove));
-  };
-
+  isReadOnly?: boolean;
+}> = ({ value, onChange, suggestionsPool = [], placeholder, isReadOnly = false }) => {
   return (
-    <div className="space-y-3">
-      {items.length > 0 && (
-        <div className="flex flex-wrap gap-2 p-2.5 rounded-xl border border-border bg-muted/20">
-          {items.map((item, idx) => (
-            <span
-              key={`${item}-${idx}`}
-              className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-primary/10 text-primary border border-primary/30 animate-in fade-in duration-100"
-            >
-              <span className="font-mono text-[10px] opacity-70">#{idx + 1}</span>
-              <span>{item}</span>
-              <button
-                type="button"
-                onClick={() => handleRemoveItem(idx)}
-                className="hover:text-destructive transition-colors ml-0.5 cursor-pointer font-bold"
-                title={`Remove ${item}`}
-              >
-                &times;
-              </button>
-            </span>
-          ))}
-        </div>
-      )}
-
-      <div className="flex gap-2">
-        <Input
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          onKeyDown={(e) => {
-            if (e.key === 'Enter') {
-              e.preventDefault();
-              handleAddItem(inputText);
-            }
-          }}
-          placeholder={placeholder || 'Type item and press Enter...'}
-          className="h-10 text-sm bg-background flex-1 rounded-xl"
-        />
-        <Button
-          type="button"
-          onClick={() => handleAddItem(inputText)}
-          className="h-10 px-4 text-xs font-bold rounded-xl"
-        >
-          Add Item +
-        </Button>
-      </div>
-
-      {suggestionsPool && suggestionsPool.length > 0 && (
-        <div className="flex flex-wrap items-center gap-1.5 pt-1">
-          <span className="text-xs text-muted-foreground font-medium">Suggestions:</span>
-          {suggestionsPool.map((sug) => {
-            const isAdded = items.includes(sug);
-
-            return (
-              <button
-                key={sug}
-                type="button"
-                onClick={() => handleAddItem(sug)}
-                disabled={isAdded}
-                className={`text-xs px-3 py-1 rounded-full border transition-all font-medium cursor-pointer shadow-2xs ${
-                  isAdded
-                    ? 'border-border/40 bg-muted/40 text-muted-foreground line-through opacity-60 cursor-not-allowed'
-                    : 'border-border/80 bg-background text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary'
-                }`}
-                title={isAdded ? 'Already added' : `Add "${sug}"`}
-              >
-                + {sug}
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </div>
+    <MultilineListItemsInput
+      value={value}
+      onChange={onChange}
+      suggestionsPool={suggestionsPool}
+      placeholder={placeholder || 'Type an item or link and press Enter...'}
+      isReadOnly={isReadOnly}
+    />
   );
 };
 

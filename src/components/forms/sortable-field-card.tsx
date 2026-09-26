@@ -54,6 +54,7 @@ import {
 import { toast } from 'sonner';
 import { BranchingRuleEditor } from './branching-rule-editor';
 import { QuestionAiStudioModal } from './question-ai-studio-modal';
+import { MultilineListItemsInput } from './multiline-list-items-input';
 import {
   GripVertical,
   Trash2,
@@ -173,6 +174,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   const [previewDate, setPreviewDate] = useState<string>('');
   const [previewScale, setPreviewScale] = useState<number>(5);
   const [previewParagraph, setPreviewParagraph] = useState<string>('');
+  const [previewListItems, setPreviewListItems] = useState<string[]>([]);
   const [isAiStudioOpen, setIsAiStudioOpen] = useState(false);
   const [previewUploadedFile, setPreviewUploadedFile] = useState<{
     name: string;
@@ -512,7 +514,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 } else if (val === 'list_items') {
                   onUpdate(id, {
                     type: 'list_items',
-                    suggestionsPool: field.suggestionsPool || ['Item 1', 'Item 2'],
+                    suggestionsPool: field.suggestionsPool || [],
                   });
                 } else {
                   onUpdate(id, { type: val as FieldType });
@@ -1545,50 +1547,17 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                       <ListOrdered className="w-4 h-4 text-primary" />
-                      <span>List Candidate Input</span>
+                      <span>List / Links Live Preview</span>
                     </Label>
-                    <span className="text-xs text-muted-foreground">Enter items or click suggestions</span>
+                    <span className="text-xs text-muted-foreground">Type items line-by-line or press Enter</span>
                   </div>
 
-                  {(field.suggestionsPool || []).length > 0 && (
-                    <div className="space-y-1">
-                      <span className="text-[11px] font-semibold text-muted-foreground">Suggestions (Click to add):</span>
-                      <div className="flex items-center gap-1.5 flex-wrap">
-                        {field.suggestionsPool?.map((tag) => (
-                          <button
-                            key={tag}
-                            type="button"
-                            onClick={() => {
-                              const current = testInputValue ? testInputValue.split(',').map((s) => s.trim()).filter(Boolean) : [];
-                              if (!current.includes(tag)) {
-                                setTestInputValue([...current, tag].join(', '));
-                              }
-                            }}
-                            className="text-xs px-2.5 py-1 rounded-full border border-primary/30 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer font-medium"
-                          >
-                            +{tag}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  <Input
-                    value={testInputValue}
-                    onChange={(e) => setTestInputValue(e.target.value)}
-                    placeholder="e.g. Item 1, Item 2, Item 3..."
-                    className="text-sm h-10 bg-background"
+                  <MultilineListItemsInput
+                    value={previewListItems}
+                    onChange={setPreviewListItems}
+                    suggestionsPool={field.suggestionsPool || []}
+                    placeholder={field.placeholder || 'Type an item or link...'}
                   />
-                  {testInputValue && (
-                    <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                      <span className="text-xs text-muted-foreground">Items entered ({testInputValue.split(',').map((s) => s.trim()).filter(Boolean).length}):</span>
-                      {testInputValue.split(',').map((s) => s.trim()).filter(Boolean).map((item, idx) => (
-                        <Badge key={idx} variant="secondary" className="text-xs">
-                          {idx + 1}. {item}
-                        </Badge>
-                      ))}
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -2128,7 +2097,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               )}
 
               {/* Fallback Simulation for Other Field Types (Never Blank) */}
-              {!['phone', 'multiple_choice', 'single_choice', 'dropdown', 'rating', 'true_false', 'paragraph', 'short_answer', 'email', 'regex_text', 'date', 'scale', 'link', 'file_upload', 'video'].includes(field.type) && (
+              {!['phone', 'multiple_choice', 'single_choice', 'dropdown', 'rating', 'true_false', 'paragraph', 'short_answer', 'email', 'regex_text', 'date', 'scale', 'link', 'file_upload', 'video', 'list_items', 'boolean', 'section_header', 'faq'].includes(field.type) && (
                 <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border">
                   <Label className="text-sm font-semibold text-foreground flex items-center">
                     <span>Field Preview</span>
@@ -2906,23 +2875,24 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
               <div className="space-y-2">
                 <Label className="text-xs font-semibold text-muted-foreground">
-                  Suggestion Pool (comma-separated tags):
+                  Suggestion Pool (one suggestion per line):
                 </Label>
-                <Input
-                  value={(field.suggestionsPool || []).join(', ')}
+                <Textarea
+                  value={(field.suggestionsPool || []).join('\n')}
                   onChange={(e) => {
                     const pool = e.target.value
-                      .split(',')
+                      .split(/\r?\n/)
                       .map((s) => s.trim())
                       .filter((s) => s.length > 0);
                     onUpdate(id, { suggestionsPool: pool });
                   }}
-                  placeholder="e.g. React, Vue, Svelte, Angular, Next.js"
-                  className="text-sm bg-background text-foreground"
+                  placeholder={'React\nVue\nSvelte\nAngular\nNext.js'}
+                  rows={4}
+                  className="text-sm bg-background text-foreground font-sans resize-y"
                 />
                 {(field.suggestionsPool?.length || 0) > 0 && (
                   <div className="flex items-center gap-1.5 flex-wrap pt-1">
-                    <span className="text-xs font-semibold text-muted-foreground">Preview Pills:</span>
+                    <span className="text-xs font-semibold text-muted-foreground">Preview Pills ({field.suggestionsPool?.length}):</span>
                     {field.suggestionsPool?.map((tag) => (
                       <Badge key={tag} variant="secondary" className="text-xs px-2 py-0.5">
                         +{tag}

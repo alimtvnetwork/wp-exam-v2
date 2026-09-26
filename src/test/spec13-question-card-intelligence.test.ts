@@ -211,6 +211,48 @@ describe('Spec 13: Question Card Intelligence, Boolean Presets, Difficulty Tiers
       expect(candidateItems).toEqual(['TypeScript', 'Go', 'Docker']);
       expect(field.suggestionsPool).toContain('SQLite');
     });
+
+    it('should normalize multiline input strictly by newline rather than comma-separation', () => {
+      const parseMultilineItems = (rawInput: string | string[]): string[] => {
+        if (Array.isArray(rawInput)) {
+          const arr = rawInput.map((s) => String(s || '').trim()).filter(Boolean);
+
+          return arr.length > 0 ? arr : [''];
+        }
+
+        const trimmed = String(rawInput || '').trim();
+        if (trimmed.length > 0) {
+          // Strictly newline split, preserve commas within items (e.g. links with commas or titles)
+          const lines = trimmed
+            .split(/\r?\n/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+
+          return lines.length > 0 ? lines : [''];
+        }
+
+        return [''];
+      };
+
+      const multilineText = 'https://github.com/org/repo\nhttps://linkedin.com/in/user\nPortfolio, 2026 Edition';
+      const parsed = parseMultilineItems(multilineText);
+
+      expect(parsed).toHaveLength(3);
+      expect(parsed[0]).toBe('https://github.com/org/repo');
+      expect(parsed[1]).toBe('https://linkedin.com/in/user');
+      expect(parsed[2]).toBe('Portfolio, 2026 Edition');
+    });
+
+    it('should filter suggestionsPool by matching substring for autocomplete dropdown', () => {
+      const pool = ['React.js', 'React Native', 'Vue.js', 'Angular', 'Next.js'];
+      const activeLineText = 'react';
+
+      const matches = pool
+        .filter((sug) => sug.toLowerCase().includes(activeLineText.toLowerCase()))
+        .filter((sug) => sug.toLowerCase() !== activeLineText.toLowerCase());
+
+      expect(matches).toEqual(['React.js', 'React Native']);
+    });
   });
 
   describe('Exam Timers & Anti-Cheat Settings', () => {
