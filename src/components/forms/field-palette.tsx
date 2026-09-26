@@ -18,6 +18,8 @@ import {
   Layers,
   Search,
   Sparkles,
+  Heading,
+  HelpCircle,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -28,7 +30,7 @@ interface PaletteOption {
   shortLabel: string;
   description: string;
   icon: React.ComponentType<{ className?: string }>;
-  category: 'choice' | 'text' | 'media';
+  category: 'choice' | 'text' | 'media' | 'layout';
   colorClass: string;
 }
 
@@ -155,6 +157,26 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     category: 'media',
     colorClass: 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20',
   },
+
+  // Page Elements (Elementor-Style)
+  {
+    type: 'section_header',
+    label: 'Section Header / Title',
+    shortLabel: 'Heading',
+    description: 'Elementor-style section header, subtitle, and divider',
+    icon: Heading,
+    category: 'layout',
+    colorClass: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+  },
+  {
+    type: 'faq',
+    label: 'FAQ Accordion',
+    shortLabel: 'FAQ',
+    description: 'Collapsible questions & answers block',
+    icon: HelpCircle,
+    category: 'layout',
+    colorClass: 'text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border-emerald-500/20',
+  },
 ];
 
 interface FieldPaletteProps {
@@ -169,7 +191,7 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
   layoutMode = 'vertical',
   isEmbedded = false,
 }) => {
-  const [selectedCategory, setSelectedCategory] = useState<'all' | 'choice' | 'text' | 'media'>('all');
+  const [selectedCategory, setSelectedCategory] = useState<'all' | 'choice' | 'text' | 'media' | 'layout'>('all');
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredOptions = PALETTE_OPTIONS.filter((opt) => {
@@ -197,6 +219,7 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
     { id: 'choice', label: 'Choice', count: PALETTE_OPTIONS.filter((o) => o.category === 'choice').length },
     { id: 'text', label: 'Text', count: PALETTE_OPTIONS.filter((o) => o.category === 'text').length },
     { id: 'media', label: 'Media', count: PALETTE_OPTIONS.filter((o) => o.category === 'media').length },
+    { id: 'layout', label: 'Page Elements', count: PALETTE_OPTIONS.filter((o) => o.category === 'layout').length },
   ] as const;
 
   const content = (

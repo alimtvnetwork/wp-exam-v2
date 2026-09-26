@@ -15,7 +15,9 @@ export type FieldType =
   | 'file_upload'
   | 'link'
   | 'regex_text'
-  | 'video';
+  | 'video'
+  | 'section_header'
+  | 'faq';
 
 export type StringMatchRuleType =
   | 'starts_with'
@@ -107,6 +109,10 @@ export interface FormField {
   branchTarget?: string;
   allowOtherOption?: boolean;
   suggestedOtherOptions?: string[];
+  description?: string;
+  choiceAlignment?: 'left' | 'center' | 'right';
+  subtitle?: string;
+  faqItems?: Array<{ question: string; answer: string }>;
 }
 
 export interface FormSettings {

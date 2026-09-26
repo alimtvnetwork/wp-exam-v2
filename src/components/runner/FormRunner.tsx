@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
   FormModel,
   FormField,
@@ -34,6 +34,9 @@ import {
   Sparkles,
   Bug,
   HelpCircle,
+  ArrowLeft,
+  ChevronDown,
+  Heading,
 } from 'lucide-react';
 import { PhoneWithCountrySelect } from '@/components/ui/phone-input';
 import { toast } from 'sonner';
@@ -196,6 +199,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   isPreviewRoute,
 }) => {
   const { slug: routeSlug } = useParams<{ slug?: string }>();
+  const navigate = useNavigate();
   const examStore = useExamAppStore();
   const session = examStore.session;
   const quizStore = useQuizStore();
@@ -758,11 +762,20 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               Take Assessment Again
             </Button>
 
-            {onClose && (
-              <Button onClick={onClose} size="sm" variant="default" className="text-xs">
-                Close Runner
-              </Button>
-            )}
+            <Button
+              onClick={() => {
+                if (onClose) {
+                  onClose();
+                } else {
+                  navigate('/');
+                }
+              }}
+              size="sm"
+              variant="default"
+              className="text-xs"
+            >
+              Exit to Portal
+            </Button>
           </div>
         </CardContent>
       </Card>
@@ -899,16 +912,22 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             <span>Debug</span>
           </Button>
 
-          {onClose && (
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={onClose}
-              className="text-sm h-9 px-3.5 border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary cursor-pointer font-medium transition-all group"
-            >
-              Back
-            </Button>
-          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              if (onClose) {
+                onClose();
+              } else {
+                navigate('/');
+              }
+            }}
+            className="text-sm h-9 px-3.5 border border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary cursor-pointer font-medium transition-all group"
+            title="Exit form runner and return to portal"
+          >
+            <ArrowLeft className="w-4 h-4 mr-1.5" />
+            <span>Exit to Portal</span>
+          </Button>
         </div>
       </div>
 
@@ -1437,6 +1456,53 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
   const strValue = typeof value === 'string' ? value : '';
 
   switch (field.type) {
+    case 'section_header':
+      return (
+        <div className={`py-2 px-1 ${
+          field.choiceAlignment === 'center'
+            ? 'text-center'
+            : field.choiceAlignment === 'right'
+            ? 'text-right'
+            : 'text-left'
+        }`}>
+          {field.subtitle && (
+            <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+              {field.subtitle}
+            </p>
+          )}
+          <div className={`h-1 w-16 bg-primary rounded-full mt-3 ${
+            field.choiceAlignment === 'center'
+              ? 'mx-auto'
+              : field.choiceAlignment === 'right'
+              ? 'ml-auto'
+              : ''
+          }`} />
+        </div>
+      );
+
+    case 'faq':
+      return (
+        <div className="space-y-2.5">
+          {(field.faqItems || [
+            { question: 'What is the required notice period for this role?', answer: 'We prioritize candidates who can join immediately or within 30 days.' },
+            { question: 'Is remote work supported?', answer: 'Yes, this role offers 100% remote flexibility with core overlap hours.' },
+          ]).map((item, idx) => (
+            <details key={idx} className="group rounded-xl border border-border bg-card p-4 transition-all duration-150 open:bg-primary/5 open:border-primary/40">
+              <summary className="flex cursor-pointer items-center justify-between font-semibold text-sm sm:text-base text-foreground list-none">
+                <span className="flex items-center gap-2.5">
+                  <HelpCircle className="w-4 h-4 text-primary shrink-0" />
+                  <span>{item.question}</span>
+                </span>
+                <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform duration-150 group-open:rotate-180" />
+              </summary>
+              <p className="mt-3 text-sm text-muted-foreground pl-7 leading-relaxed border-t border-border/40 pt-2.5">
+                {item.answer}
+              </p>
+            </details>
+          ))}
+        </div>
+      );
+
     case 'video':
       return (
         <RunnerVideoPlayer

@@ -14,13 +14,6 @@ import {
   parseVideoEmbedUrl,
 } from '@/lib/types/form';
 
-declare module '@/lib/types/form' {
-  interface FormField {
-    description?: string;
-    choiceAlignment?: 'left' | 'center' | 'right';
-  }
-}
-
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -92,6 +85,7 @@ import {
   Video,
   Film,
   Image as ImageIcon,
+  Heading,
 } from 'lucide-react';
 import { DesignValidationIssue } from '@/lib/design-validation-engine';
 
@@ -1070,6 +1064,120 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             </div>
           )}
 
+          {/* Section Header / Heading (Elementor-Style) Configuration */}
+          {field.type === 'section_header' && (
+            <div className="p-3.5 bg-muted/30 rounded-lg border border-border space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-primary">
+                  <Heading className="w-4 h-4 text-emerald-500" />
+                  <span>Section Header / Heading (Elementor-Style)</span>
+                </div>
+                <div className="flex items-center gap-1 bg-background border border-border rounded-lg p-0.5 text-xs">
+                  <span className="text-[11px] text-muted-foreground px-1.5">Align:</span>
+                  {(['left', 'center', 'right'] as const).map((align) => (
+                    <button
+                      key={align}
+                      type="button"
+                      onClick={() => onUpdate(id, { choiceAlignment: align })}
+                      className={`px-2 py-0.5 rounded capitalize text-[11px] font-medium transition-colors ${
+                        (field.choiceAlignment || 'left') === align
+                          ? 'bg-primary text-primary-foreground font-semibold'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {align}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div>
+                <Label className="text-xs text-muted-foreground block mb-1">Subtitle / Supporting Description (Optional)</Label>
+                <Input
+                  value={field.subtitle || ''}
+                  onChange={(e) => onUpdate(id, { subtitle: e.target.value })}
+                  placeholder="e.g. Please read the technical instructions below before proceeding..."
+                  className="text-sm h-9 bg-background text-foreground"
+                />
+              </div>
+            </div>
+          )}
+
+          {/* FAQ Accordion (Elementor-Style) Configuration */}
+          {field.type === 'faq' && (
+            <div className="p-3.5 bg-muted/30 rounded-lg border border-border space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5 text-sm font-semibold text-primary">
+                  <HelpCircle className="w-4 h-4 text-emerald-500" />
+                  <span>FAQ Accordion Items</span>
+                </div>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  onClick={() => {
+                    const currentItems = field.faqItems || [];
+                    onUpdate(id, {
+                      faqItems: [
+                        ...currentItems,
+                        { question: 'Frequently asked question title?', answer: 'Detailed answer explanation.' },
+                      ],
+                    });
+                  }}
+                  className="h-7 text-xs gap-1 border-primary/30 text-primary hover:bg-primary/10"
+                >
+                  <Plus className="w-3.5 h-3.5" /> Add FAQ Item
+                </Button>
+              </div>
+
+              <div className="space-y-2.5">
+                {(field.faqItems || [
+                  { question: 'What is the required notice period for this role?', answer: 'We prioritize candidates who can join immediately or within 30 days.' },
+                  { question: 'Is remote work supported?', answer: 'Yes, this role offers 100% remote flexibility with core overlap hours.' },
+                ]).map((item, idx) => (
+                  <div key={idx} className="p-3 bg-background rounded-lg border border-border space-y-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <Input
+                        value={item.question}
+                        onChange={(e) => {
+                          const updated = [...(field.faqItems || [])];
+                          if (!updated[idx]) updated[idx] = { question: '', answer: '' };
+                          updated[idx] = { ...updated[idx], question: e.target.value };
+                          onUpdate(id, { faqItems: updated });
+                        }}
+                        placeholder="Question title..."
+                        className="text-sm h-8 font-semibold bg-background"
+                      />
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => {
+                          const updated = (field.faqItems || []).filter((_, i) => i !== idx);
+                          onUpdate(id, { faqItems: updated });
+                        }}
+                        className="h-7 w-7 text-muted-foreground hover:text-destructive shrink-0"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                    <Textarea
+                      value={item.answer}
+                      onChange={(e) => {
+                        const updated = [...(field.faqItems || [])];
+                        if (!updated[idx]) updated[idx] = { question: '', answer: '' };
+                        updated[idx] = { ...updated[idx], answer: e.target.value };
+                        onUpdate(id, { faqItems: updated });
+                      }}
+                      placeholder="Answer description..."
+                      rows={2}
+                      className="text-xs bg-muted/20"
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {/* Interactive In-Card Live Test Preview Drawer */}
           {showLivePreview && (
             <div className="p-4 bg-muted/40 rounded-xl border border-primary/30 space-y-3 animate-in fade-in-50 duration-200">
@@ -1078,14 +1186,30 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <span className="text-xs font-bold text-primary flex items-center gap-1.5">
                     <Eye className="w-4 h-4" /> Preview
                   </span>
-                  <span className="text-sm font-bold text-foreground flex items-center">
+                  <span className="text-sm font-semibold text-foreground flex items-center">
                     <span>{field.label || 'Untitled Question'}</span>
                     {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
                   </span>
                 </div>
-                <Badge variant="outline" className="text-xs font-mono">
-                  Preview Mode
-                </Badge>
+                {(field.type === 'true_false' || field.type === 'single_choice' || field.type === 'multiple_choice') && (
+                  <div className="flex items-center gap-1 bg-background border border-border rounded-lg p-0.5 text-xs">
+                    {(['left', 'center', 'right'] as const).map((align) => (
+                      <button
+                        key={align}
+                        type="button"
+                        onClick={() => onUpdate(id, { choiceAlignment: align })}
+                        className={`px-2 py-0.5 rounded capitalize text-[11px] font-medium transition-colors ${
+                          (field.choiceAlignment || 'left') === align
+                            ? 'bg-primary text-primary-foreground font-semibold'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                        title={`Align choices ${align}`}
+                      >
+                        {align}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
 
               {/* Display Question Description / Instructions if present */}
@@ -1216,12 +1340,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {/* True / False Interactive Preview */}
               {field.type === 'true_false' && (
                 <div className="space-y-3 bg-background/60 p-3.5 rounded-xl border border-border">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold text-foreground flex items-center">
-                      <span>True / False</span>
-                      {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
-                    </Label>
-                    {previewSelectedChoice && (
+                  {previewSelectedChoice && (
+                    <div className="flex justify-end">
                       <button
                         type="button"
                         onClick={() => setPreviewSelectedChoice('')}
@@ -1229,8 +1349,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                       >
                         Reset Selection
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                   <div className={`grid grid-cols-2 gap-3 max-w-sm ${
                     field.choiceAlignment === 'center'
@@ -1285,13 +1405,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {/* Multiple Choice Interactive Preview */}
               {field.type === 'multiple_choice' && (
                 <div className="space-y-2.5 bg-background/60 p-3.5 rounded-xl border border-border">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                      <CheckSquare className="w-3.5 h-3.5 text-primary" />
-                      <span>Multiple Choice</span>
-                      {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
-                    </Label>
-                    {previewMultipleChoices.length > 0 && (
+                  {previewMultipleChoices.length > 0 && (
+                    <div className="flex justify-end">
                       <button
                         type="button"
                         onClick={() => setPreviewMultipleChoices([])}
@@ -1299,8 +1414,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                       >
                         Clear Selected ({previewMultipleChoices.length})
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                   <div className={`grid grid-cols-1 sm:grid-cols-2 gap-2 ${
                     field.choiceAlignment === 'center'
@@ -1366,13 +1481,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {/* Single Choice Interactive Preview */}
               {field.type === 'single_choice' && (
                 <div className="space-y-2.5 bg-background/60 p-3.5 rounded-xl border border-border">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
-                      <CircleDot className="w-3.5 h-3.5 text-primary" />
-                      <span>Single Choice</span>
-                      {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
-                    </Label>
-                    {previewSelectedChoice && (
+                  {previewSelectedChoice && (
+                    <div className="flex justify-end">
                       <button
                         type="button"
                         onClick={() => setPreviewSelectedChoice('')}
@@ -1380,8 +1490,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                       >
                         Clear Selection
                       </button>
-                    )}
-                  </div>
+                    </div>
+                  )}
 
                   <div className={`grid grid-cols-1 sm:grid-cols-2 gap-2 ${
                     field.choiceAlignment === 'center'
@@ -1840,6 +1950,56 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     placeholder={field.placeholder || `Enter response for ${field.type.replace('_', ' ')}...`}
                     className="text-xs h-9 bg-background"
                   />
+                </div>
+              )}
+
+              {/* Section Header (Elementor-Style) Interactive Live Preview */}
+              {field.type === 'section_header' && (
+                <div className={`p-4 bg-background rounded-xl border border-border shadow-xs ${
+                  field.choiceAlignment === 'center'
+                    ? 'text-center'
+                    : field.choiceAlignment === 'right'
+                    ? 'text-right'
+                    : 'text-left'
+                }`}>
+                  <h3 className="text-lg font-bold text-foreground font-heading">
+                    {field.label || 'Section Header Title'}
+                  </h3>
+                  {field.subtitle && (
+                    <p className="text-sm text-muted-foreground mt-1 leading-relaxed">
+                      {field.subtitle}
+                    </p>
+                  )}
+                  <div className={`h-1 w-16 bg-primary rounded-full mt-3 ${
+                    field.choiceAlignment === 'center'
+                      ? 'mx-auto'
+                      : field.choiceAlignment === 'right'
+                      ? 'ml-auto'
+                      : ''
+                  }`} />
+                </div>
+              )}
+
+              {/* FAQ Accordion (Elementor-Style) Interactive Live Preview */}
+              {field.type === 'faq' && (
+                <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border">
+                  {(field.faqItems || [
+                    { question: 'What is the required notice period for this role?', answer: 'We prioritize candidates who can join immediately or within 30 days.' },
+                    { question: 'Is remote work supported?', answer: 'Yes, this role offers 100% remote flexibility with core overlap hours.' },
+                  ]).map((item, idx) => (
+                    <details key={idx} className="group rounded-lg border border-border bg-card p-3 transition-colors">
+                      <summary className="flex cursor-pointer items-center justify-between font-semibold text-sm text-foreground list-none">
+                        <span className="flex items-center gap-2">
+                          <HelpCircle className="w-4 h-4 text-primary shrink-0" />
+                          <span>{item.question}</span>
+                        </span>
+                        <ChevronDown className="w-4 h-4 text-muted-foreground transition-transform group-open:rotate-180" />
+                      </summary>
+                      <p className="mt-2.5 text-xs text-muted-foreground pl-6 leading-relaxed border-t border-border/40 pt-2">
+                        {item.answer}
+                      </p>
+                    </details>
+                  ))}
                 </div>
               )}
             </div>
