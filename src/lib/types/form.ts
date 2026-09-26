@@ -13,6 +13,7 @@ export type FieldType =
   | 'whatsapp'
   | 'dropdown'
   | 'rating'
+  | 'rating_feedback'
   | 'file_upload'
   | 'link'
   | 'regex_text'
@@ -20,6 +21,9 @@ export type FieldType =
   | 'list_items'
   | 'section_header'
   | 'faq';
+
+export type RatingIconType = 'star' | 'heart' | 'thumb' | 'smiley' | 'emoji';
+export type RatingScale = 5 | 10 | 20;
 
 export type BooleanDisplayPreset = 'true_false' | 'yes_no' | 'enable_disable' | 'agree_disagree';
 export type QuestionDifficulty = 'easy' | 'medium' | 'hard' | 'custom';
@@ -134,6 +138,11 @@ export interface FormField {
   booleanDisplay?: BooleanDisplayPreset;
   citations?: QuestionCitation[];
   suggestionsPool?: string[];
+  ratingIcon?: RatingIconType;
+  ratingMax?: RatingScale;
+  hasRatingFeedback?: boolean;
+  ratingFeedbackPlaceholder?: string;
+  ratingCustomEmoji?: string;
 }
 
 export interface FormSettings {

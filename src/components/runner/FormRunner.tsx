@@ -45,6 +45,10 @@ import {
   ShieldAlert,
   ListOrdered,
   BookOpen,
+  Star,
+  Heart,
+  ThumbsUp,
+  Smile,
 } from 'lucide-react';
 import { PhoneWithCountrySelect } from '@/components/ui/phone-input';
 import { MultilineListItemsInput } from '@/components/forms/multiline-list-items-input';
@@ -2326,24 +2330,104 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
         />
       );
 
-    case 'rating': {
-      const currentRating = typeof value === 'number' ? value : Number(value) || 0;
+    case 'rating':
+    case 'rating_feedback': {
+      let currentRating = 0;
+      let feedbackText = '';
+
+      if (typeof value === 'number') {
+        currentRating = value;
+      } else if (typeof value === 'object' && value !== null) {
+        const valObj = value as Record<string, unknown>;
+        currentRating = Number(valObj.rating) || 0;
+        feedbackText = String(valObj.feedback || '');
+      } else if (typeof value === 'string') {
+        currentRating = Number(value) || 0;
+      }
+
+      const maxScale = field.ratingMax || 5;
+      const iconType = field.ratingIcon || 'star';
+      const isFeedbackEnabled = Boolean(field.hasRatingFeedback || field.type === 'rating_feedback');
+
+      const handleRate = (num: number) => {
+        if (isFeedbackEnabled) {
+          onChange({ rating: num, feedback: feedbackText });
+        } else {
+          onChange(num);
+        }
+      };
+
+      const handleFeedbackChange = (text: string) => {
+        onChange({ rating: currentRating, feedback: text });
+      };
+
       return (
-        <div className="flex gap-2">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <button
-              key={star}
-              type="button"
-              onClick={() => onChange(star)}
-              className={`w-8 h-8 rounded-lg border font-bold text-xs transition ${
-                currentRating >= star
-                  ? 'border-amber-500 bg-amber-500 text-slate-950 shadow-sm'
-                  : 'border-border bg-card text-muted-foreground hover:bg-muted/40'
-              }`}
-            >
-              {star}
-            </button>
-          ))}
+        <div className="space-y-3 font-sans">
+          <div
+            className={`flex items-center gap-2 flex-wrap ${
+              (field.alignment || 'center') === 'center'
+                ? 'justify-center'
+                : field.alignment === 'right'
+                ? 'justify-end'
+                : 'justify-start'
+            }`}
+          >
+            {Array.from({ length: maxScale }, (_, i) => i + 1).map((star) => {
+              const isSelected = currentRating >= star;
+
+              return (
+                <button
+                  key={star}
+                  type="button"
+                  onClick={() => handleRate(star)}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border font-bold text-xs sm:text-sm transition-all cursor-pointer ${
+                    isSelected
+                      ? iconType === 'heart'
+                        ? 'border-rose-500 bg-rose-500/15 text-rose-600 shadow-xs'
+                        : iconType === 'thumb'
+                        ? 'border-sky-500 bg-sky-500/15 text-sky-600 shadow-xs'
+                        : 'border-amber-500 bg-amber-500/15 text-amber-600 shadow-xs'
+                      : 'border-border bg-card text-muted-foreground hover:bg-muted/40 hover:text-foreground'
+                  }`}
+                  title={`Rate ${star} out of ${maxScale}`}
+                >
+                  {iconType === 'heart' ? (
+                    <Heart className={`w-4 h-4 transition-colors ${isSelected ? 'text-rose-500 fill-rose-500' : 'text-muted-foreground/60'}`} />
+                  ) : iconType === 'thumb' ? (
+                    <ThumbsUp className={`w-4 h-4 transition-colors ${isSelected ? 'text-sky-500 fill-sky-500' : 'text-muted-foreground/60'}`} />
+                  ) : iconType === 'smiley' ? (
+                    <Smile className={`w-4 h-4 transition-colors ${isSelected ? 'text-amber-500' : 'text-muted-foreground/60'}`} />
+                  ) : iconType === 'emoji' ? (
+                    <span className="text-base leading-none">{field.ratingCustomEmoji || '🎯'}</span>
+                  ) : (
+                    <Star className={`w-4 h-4 transition-colors ${isSelected ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground/60'}`} />
+                  )}
+                  <span>{star}</span>
+                </button>
+              );
+            })}
+          </div>
+
+          {currentRating > 0 && (
+            <div className="text-center text-xs font-semibold text-muted-foreground">
+              {currentRating} out of {maxScale}
+            </div>
+          )}
+
+          {isFeedbackEnabled && (
+            <div className="space-y-1.5 pt-2 animate-in fade-in duration-150">
+              <Label className="text-xs font-semibold text-muted-foreground">
+                Feedback Commentary (Optional):
+              </Label>
+              <Textarea
+                value={feedbackText}
+                onChange={(e) => handleFeedbackChange(e.target.value)}
+                placeholder={field.ratingFeedbackPlaceholder || 'Share any comments or reasons for your rating...'}
+                rows={2}
+                className="text-sm bg-background rounded-xl"
+              />
+            </div>
+          )}
         </div>
       );
     }

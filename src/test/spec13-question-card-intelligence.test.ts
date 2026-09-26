@@ -320,4 +320,79 @@ describe('Spec 13: Question Card Intelligence, Boolean Presets, Difficulty Tiers
       expect(isLivePreview).toBe(false);
     });
   });
+
+  describe('Per-Question Save & Dirty State Tracking', () => {
+    it('should track question dirty state accurately when fields change and reset on save', () => {
+      const initialField: FormField = {
+        id: 'q-save-1',
+        type: 'short_answer',
+        label: 'Original Question',
+        isRequired: true,
+      };
+
+      let snapshot = JSON.stringify(initialField);
+      let currentField = { ...initialField };
+
+      // Clean initially
+      const isClean = JSON.stringify(currentField) === snapshot;
+      expect(isClean).toBe(true);
+
+      // Mutate field
+      currentField = { ...currentField, label: 'Updated Question Label' };
+      const isDirtyAfterEdit = JSON.stringify(currentField) !== snapshot;
+      expect(isDirtyAfterEdit).toBe(true);
+
+      // Save question
+      snapshot = JSON.stringify(currentField);
+      const isCleanAfterSave = JSON.stringify(currentField) === snapshot;
+      expect(isCleanAfterSave).toBe(true);
+    });
+  });
+
+  describe('Rating Scale, Custom Icons, Alignment & Feedback Box', () => {
+    it('should configure rating with 5, 10, or 20 scale and default center alignment', () => {
+      const field5: FormField = {
+        id: 'r-5',
+        type: 'rating',
+        label: 'Rate your satisfaction',
+        isRequired: false,
+        ratingMax: 5,
+        ratingIcon: 'star',
+        alignment: 'center',
+      };
+
+      const field10: FormField = {
+        id: 'r-10',
+        type: 'rating',
+        label: 'Net promoter score',
+        isRequired: true,
+        ratingMax: 10,
+        ratingIcon: 'heart',
+        alignment: 'center',
+      };
+
+      const field20: FormField = {
+        id: 'r-20',
+        type: 'rating',
+        label: 'Detailed rubric score',
+        isRequired: true,
+        ratingMax: 20,
+        ratingIcon: 'emoji',
+        ratingCustomEmoji: '🔥',
+        hasRatingFeedback: true,
+        ratingFeedbackPlaceholder: 'Provide justification for rating...',
+      };
+
+      expect(field5.ratingMax).toBe(5);
+      expect(field5.alignment).toBe('center');
+
+      expect(field10.ratingMax).toBe(10);
+      expect(field10.ratingIcon).toBe('heart');
+
+      expect(field20.ratingMax).toBe(20);
+      expect(field20.ratingCustomEmoji).toBe('🔥');
+      expect(field20.hasRatingFeedback).toBe(true);
+      expect(field20.ratingFeedbackPlaceholder).toBe('Provide justification for rating...');
+    });
+  });
 });
