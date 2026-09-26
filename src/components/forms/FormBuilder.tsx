@@ -71,6 +71,7 @@ import {
   Search,
   Shield,
   ShieldCheck,
+  ShieldAlert,
   Wand2,
   ChevronDown,
   Clock,
@@ -304,12 +305,20 @@ export const FormBuilder: React.FC = () => {
       },
     };
 
+    const isMedia = type === 'video' || type === 'link';
+    let isMandatory = !isMedia;
+
+    if (settings.defaultQuestionsRequired !== undefined) {
+      isMandatory = Boolean(settings.defaultQuestionsRequired);
+    }
+
     addField({
       id: newId,
       type,
       label: defaults[type]?.label || 'New Question',
       placeholder: defaults[type]?.placeholder || '',
-      isRequired: type !== 'video' && type !== 'link',
+      isRequired: isMandatory,
+      difficulty: 'medium',
       options: defaults[type]?.options,
       correctAnswer: defaults[type]?.correctAnswer,
       url: defaults[type]?.url,
@@ -317,7 +326,7 @@ export const FormBuilder: React.FC = () => {
       videoUrl: defaults[type]?.videoUrl,
       videoCaption: defaults[type]?.videoCaption,
       validationRule: defaults[type]?.validationRule,
-      points: type === 'video' || type === 'link' ? 0 : 10,
+      points: isMedia ? 0 : 10,
     });
 
     toast.success(`Added ${type.replace('_', ' ')} question`);
@@ -1158,9 +1167,9 @@ export const FormBuilder: React.FC = () => {
                     </Select>
                   </div>
 
-                  {/* Quiz Passing Score & Time Limit */}
+                  {/* Quiz Passing Score, Timer Mode & Exam Timers */}
                   {formType === 'quiz' && (
-                    <div className="space-y-2 pt-2 border-t border-border/60">
+                    <div className="space-y-3 pt-2.5 border-t border-border/60">
                       <div className="flex items-center justify-between">
                         <span className="text-muted-foreground text-xs">Pass Threshold:</span>
                         <div className="flex items-center gap-1 font-mono">
@@ -1176,25 +1185,154 @@ export const FormBuilder: React.FC = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center justify-between">
-                        <span className="text-muted-foreground text-xs flex items-center gap-1">
+                      {/* Timer Mode Selector */}
+                      <div className="space-y-1">
+                        <Label className="text-xs text-muted-foreground flex items-center gap-1">
                           <Clock className="w-3 h-3 text-amber-500" />
-                          <span>Time Limit:</span>
-                        </span>
-                        <div className="flex items-center gap-1 font-mono">
-                          <Input
-                            type="number"
-                            value={settings.timeLimitSeconds ?? 600}
-                            onChange={(e) =>
-                              updateSettings({ timeLimitSeconds: Number(e.target.value) || 0 })
-                            }
-                            className="h-7 w-20 text-sm text-right bg-background"
-                          />
-                          <span>sec</span>
-                        </div>
+                          <span>Exam Timer Mode</span>
+                        </Label>
+                        <Select
+                          value={settings.timerMode || 'global'}
+                          onValueChange={(val: 'none' | 'global' | 'per_question' | 'per_tier') =>
+                            updateSettings({ timerMode: val })
+                          }
+                        >
+                          <SelectTrigger className="w-full h-8 text-xs bg-background">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent className="bg-popover border-border">
+                            <SelectItem value="global" className="text-xs">⏱️ Global Timer (Entire Exam)</SelectItem>
+                            <SelectItem value="per_question" className="text-xs">⏳ Per-Question Timer</SelectItem>
+                            <SelectItem value="per_tier" className="text-xs">⚡ Difficulty-Based Timers (Easy/Med/Hard)</SelectItem>
+                            <SelectItem value="none" className="text-xs">🚫 Untimed (No Limit)</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
+
+                      {/* Global Timer Seconds */}
+                      {(settings.timerMode || 'global') === 'global' && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground text-xs">Total Duration:</span>
+                          <div className="flex items-center gap-1 font-mono">
+                            <Input
+                              type="number"
+                              value={settings.timeLimitSeconds ?? 600}
+                              onChange={(e) =>
+                                updateSettings({ timeLimitSeconds: Number(e.target.value) || 0 })
+                              }
+                              className="h-7 w-20 text-sm text-right bg-background"
+                            />
+                            <span>sec</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Per-Question Timer Seconds */}
+                      {settings.timerMode === 'per_question' && (
+                        <div className="flex items-center justify-between">
+                          <span className="text-muted-foreground text-xs">Time Per Question:</span>
+                          <div className="flex items-center gap-1 font-mono">
+                            <Input
+                              type="number"
+                              value={settings.perQuestionSeconds ?? 60}
+                              onChange={(e) =>
+                                updateSettings({ perQuestionSeconds: Number(e.target.value) || 0 })
+                              }
+                              className="h-7 w-20 text-sm text-right bg-background"
+                            />
+                            <span>sec</span>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Difficulty-Based Timers */}
+                      {settings.timerMode === 'per_tier' && (
+                        <div className="space-y-1.5 p-2 bg-muted/30 rounded-lg border border-border/50 text-xs">
+                          <span className="font-semibold text-foreground block">Tier Timer Limits (sec):</span>
+                          <div className="grid grid-cols-3 gap-1.5 font-mono">
+                            <div>
+                              <span className="text-[10px] text-emerald-500 font-bold block">Easy</span>
+                              <Input
+                                type="number"
+                                value={settings.difficultyTimers?.easy ?? 45}
+                                onChange={(e) =>
+                                  updateSettings({
+                                    difficultyTimers: {
+                                      ...(settings.difficultyTimers || { easy: 45, medium: 90, hard: 180 }),
+                                      easy: Number(e.target.value) || 0,
+                                    },
+                                  })
+                                }
+                                className="h-7 text-xs bg-background text-right"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-amber-500 font-bold block">Medium</span>
+                              <Input
+                                type="number"
+                                value={settings.difficultyTimers?.medium ?? 90}
+                                onChange={(e) =>
+                                  updateSettings({
+                                    difficultyTimers: {
+                                      ...(settings.difficultyTimers || { easy: 45, medium: 90, hard: 180 }),
+                                      medium: Number(e.target.value) || 0,
+                                    },
+                                  })
+                                }
+                                className="h-7 text-xs bg-background text-right"
+                              />
+                            </div>
+                            <div>
+                              <span className="text-[10px] text-rose-500 font-bold block">Hard</span>
+                              <Input
+                                type="number"
+                                value={settings.difficultyTimers?.hard ?? 180}
+                                onChange={(e) =>
+                                  updateSettings({
+                                    difficultyTimers: {
+                                      ...(settings.difficultyTimers || { easy: 45, medium: 90, hard: 180 }),
+                                      hard: Number(e.target.value) || 0,
+                                    },
+                                  })
+                                }
+                                className="h-7 text-xs bg-background text-right"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   )}
+                </div>
+
+                {/* 3. Anti-Cheat Security & Exam Integrity */}
+                <div className="p-3 rounded-xl border border-border/70 bg-card/60 space-y-2.5">
+                  <div className="flex items-center gap-1.5 text-foreground font-semibold">
+                    <ShieldAlert className="w-3.5 h-3.5 text-rose-500" />
+                    <span>Anti-Cheat & Exam Integrity</span>
+                  </div>
+
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <span className="font-semibold text-foreground block text-xs">Fullscreen Lock</span>
+                      <span className="text-xs text-muted-foreground">Blackout overlay if candidate tabs away</span>
+                    </div>
+                    <Switch
+                      checked={Boolean(settings.enableFullscreenLock)}
+                      onCheckedChange={(checked) => updateSettings({ enableFullscreenLock: checked })}
+                    />
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1 border-t border-border/40">
+                    <div>
+                      <span className="font-semibold text-foreground block text-xs">Default Required Questions</span>
+                      <span className="text-xs text-muted-foreground">New questions default to mandatory</span>
+                    </div>
+                    <Switch
+                      checked={Boolean(settings.defaultQuestionsRequired)}
+                      onCheckedChange={(checked) => updateSettings({ defaultQuestionsRequired: checked })}
+                    />
+                  </div>
                 </div>
 
                 {/* 3. Presentation Pacing */}

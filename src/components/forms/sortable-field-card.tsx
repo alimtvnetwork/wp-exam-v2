@@ -2814,15 +2814,72 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
           {/* List of Items Question Configuration */}
           {isListItemsField && (
             <div className="p-4 bg-muted/20 rounded-xl border border-border/80 space-y-3.5">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between flex-wrap gap-2">
                 <Label className="text-base font-bold text-foreground flex items-center gap-1.5">
                   <ListOrdered className="w-4 h-4 text-primary" />
                   <span>List of Items Autocomplete Suggestions</span>
                 </Label>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1 border-border font-medium"
+                    onClick={() => {
+                      const csv = (field.suggestionsPool || []).join(', ');
+                      navigator.clipboard.writeText(csv);
+                      toast.success(`Exported ${field.suggestionsPool?.length || 0} suggestions as CSV to clipboard!`);
+                    }}
+                    title="Export suggestions as CSV"
+                  >
+                    <Copy className="w-3 h-3" />
+                    <span>Export CSV</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs gap-1 border-border font-medium"
+                    onClick={() => {
+                      const json = JSON.stringify(field.suggestionsPool || [], null, 2);
+                      navigator.clipboard.writeText(json);
+                      toast.success(`Exported ${field.suggestionsPool?.length || 0} suggestions as JSON to clipboard!`);
+                    }}
+                    title="Export suggestions as JSON"
+                  >
+                    <FileJson className="w-3 h-3" />
+                    <span>Export JSON</span>
+                  </Button>
+                </div>
               </div>
+
               <p className="text-xs text-muted-foreground">
                 Candidates can input multiple items or select from intelligent suggestion pills.
               </p>
+
+              {/* Quick Presets */}
+              <div className="space-y-1.5">
+                <span className="text-[11px] font-semibold text-muted-foreground">Load Preset Library:</span>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {[
+                    { label: 'Full-Stack Stack', items: ['TypeScript', 'React', 'Node.js', 'PostgreSQL', 'Docker', 'GraphQL'] },
+                    { label: 'Cloud & DevOps', items: ['AWS', 'Kubernetes', 'CI/CD', 'Terraform', 'Linux', 'Docker'] },
+                    { label: 'Soft Skills', items: ['Communication', 'Problem Solving', 'Leadership', 'Teamwork', 'Critical Thinking'] },
+                  ].map((preset) => (
+                    <Button
+                      key={preset.label}
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onUpdate(id, { suggestionsPool: preset.items })}
+                      className="h-6 px-2 text-xs border border-border/70 hover:bg-primary/10 hover:text-primary hover:border-primary"
+                    >
+                      + {preset.label}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
               <div className="space-y-2">
                 <Label className="text-xs font-semibold text-muted-foreground">
                   Suggestion Pool (comma-separated tags):
