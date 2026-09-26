@@ -112,6 +112,9 @@ export const MultilineListItemsInput: React.FC<MultilineListItemsInputProps> = (
     commitUpdates(next);
   };
 
+  const isEditable = !isReadOnly;
+  const hasMultipleRows = parsedItems.length > 1;
+
   return (
     <div className="space-y-3 font-sans">
       {/* Multiline Items List (Each item is its own line) */}
@@ -133,7 +136,7 @@ export const MultilineListItemsInput: React.FC<MultilineListItemsInputProps> = (
             <div key={index} className="relative group/row">
               <div className="flex items-center gap-2">
                 {/* Line number badge */}
-                <div className="w-7 h-9 flex items-center justify-center rounded-lg bg-muted/50 border border-border/70 text-xs font-mono font-bold text-muted-foreground shrink-0 select-none">
+                <div className="w-7 h-9 flex items-center justify-center rounded-lg bg-muted/50 border border-border/70 text-xs font-sans font-medium text-muted-foreground shrink-0 select-none">
                   {index + 1}.
                 </div>
 
@@ -160,7 +163,7 @@ export const MultilineListItemsInput: React.FC<MultilineListItemsInputProps> = (
 
                   {/* Return Key Enter Hint */}
                   {isFocused && (
-                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-1 text-[10px] text-muted-foreground/50 font-mono">
+                    <div className="absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none flex items-center gap-1 text-[10px] text-muted-foreground/50 font-sans font-medium">
                       <span>Enter</span>
                       <CornerDownLeft className="w-3 h-3 opacity-60" />
                     </div>
@@ -168,7 +171,7 @@ export const MultilineListItemsInput: React.FC<MultilineListItemsInputProps> = (
                 </div>
 
                 {/* Remove Line Button */}
-                {!isReadOnly && parsedItems.length > 1 && (
+                {isEditable && hasMultipleRows && (
                   <button
                     type="button"
                     onClick={() => handleRemoveRow(index)}
@@ -198,7 +201,7 @@ export const MultilineListItemsInput: React.FC<MultilineListItemsInputProps> = (
                       className="w-full text-left px-2.5 py-1.5 text-xs rounded-md hover:bg-primary/10 hover:text-primary transition-colors flex items-center justify-between cursor-pointer"
                     >
                       <span className="font-medium text-foreground">{sug}</span>
-                      <span className="text-[10px] text-muted-foreground font-mono">+ Pick</span>
+                      <span className="text-[10px] text-muted-foreground font-sans font-medium">+ Pick</span>
                     </button>
                   ))}
                 </div>
@@ -210,20 +213,20 @@ export const MultilineListItemsInput: React.FC<MultilineListItemsInputProps> = (
 
       {/* Row Control Footer: + Add Line button and Item Counter */}
       <div className="flex items-center justify-between pt-1">
-        {!isReadOnly && (
+        {isEditable && (
           <Button
             type="button"
             variant="outline"
             size="sm"
             onClick={handleAppendBlankRow}
-            className="h-8 px-3 text-xs gap-1.5 font-medium border-border/80 bg-background hover:bg-primary/10 hover:text-primary hover:border-primary/40 rounded-lg shadow-2xs transition-all cursor-pointer"
+            className="h-8 px-3 text-xs gap-1.5 font-sans font-medium border-border/80 bg-background hover:bg-primary/10 hover:text-primary hover:border-primary/40 rounded-lg shadow-2xs transition-all cursor-pointer"
           >
             <Plus className="w-3.5 h-3.5" />
             <span>Add Item (or press Enter)</span>
           </Button>
         )}
 
-        <div className="text-xs text-muted-foreground font-mono ml-auto">
+        <div className="font-sans font-medium text-xs text-muted-foreground ml-auto bg-muted/40 px-2 py-0.5 rounded-md border border-border/50">
           {parsedItems.filter((s) => s.trim().length > 0).length} item
           {parsedItems.filter((s) => s.trim().length > 0).length === 1 ? '' : 's'} entered
         </div>
@@ -231,7 +234,7 @@ export const MultilineListItemsInput: React.FC<MultilineListItemsInputProps> = (
 
       {/* Suggested Items Quick Pool (Available suggestions below) */}
       {suggestionsPool.length > 0 && (
-        <div className="p-3 bg-muted/20 rounded-xl border border-border/60 space-y-2">
+        <div className="p-3 bg-muted/20 rounded-xl border border-border/60 space-y-2 font-sans">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
             <ListOrdered className="w-3.5 h-3.5 text-primary" />
             <span>Autocomplete Pool (Click to append):</span>
@@ -247,19 +250,21 @@ export const MultilineListItemsInput: React.FC<MultilineListItemsInputProps> = (
                   key={sug}
                   type="button"
                   onClick={() => {
-                    if (!isAlreadyEntered) {
-                      // Find first empty row or append
-                      const emptyIndex = parsedItems.findIndex((s) => s.trim().length === 0);
-                      if (emptyIndex >= 0) {
-                        handlePickSuggestion(sug, emptyIndex);
-                      } else {
-                        const next = [...parsedItems, sug, ''];
-                        commitUpdates(next);
-                      }
+                    if (isAlreadyEntered) {
+                      return;
+                    }
+
+                    // Find first empty row or append
+                    const emptyIndex = parsedItems.findIndex((s) => s.trim().length === 0);
+                    if (emptyIndex >= 0) {
+                      handlePickSuggestion(sug, emptyIndex);
+                    } else {
+                      const next = [...parsedItems, sug, ''];
+                      commitUpdates(next);
                     }
                   }}
                   disabled={isAlreadyEntered || isReadOnly}
-                  className={`text-xs px-2.5 py-1 rounded-full border transition-all cursor-pointer shadow-2xs font-medium ${
+                  className={`text-xs px-2.5 py-1 rounded-full border transition-all cursor-pointer shadow-2xs font-sans font-medium ${
                     isAlreadyEntered
                       ? 'border-border/40 bg-muted/40 text-muted-foreground line-through opacity-50 cursor-not-allowed'
                       : 'border-border/80 bg-background text-foreground hover:bg-primary/10 hover:border-primary/40 hover:text-primary'

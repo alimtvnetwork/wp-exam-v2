@@ -39,9 +39,11 @@ import {
   HelpCircle,
   ArrowLeft,
   ChevronDown,
+  ChevronRight,
   Heading,
   Clock,
   Maximize2,
+  Minimize2,
   ShieldAlert,
   ListOrdered,
   BookOpen,
@@ -49,6 +51,11 @@ import {
   Heart,
   ThumbsUp,
   Smile,
+  Award,
+  GraduationCap,
+  Circle,
+  Save,
+  RotateCcw,
 } from 'lucide-react';
 import { PhoneWithCountrySelect } from '@/components/ui/phone-input';
 import { MultilineListItemsInput } from '@/components/forms/multiline-list-items-input';
@@ -206,6 +213,138 @@ const PRESET_PROJECTS: Record<string, FormModel> = {
   },
 };
 
+export interface QuizSessionData {
+  formSlug: string;
+  answers: Record<string, unknown>;
+  currentStep: number;
+  stepHistory: number[];
+  savedAt: number;
+  isTimed: boolean;
+  timeLeftSeconds: number | null;
+}
+
+interface QuizHeroSectionProps {
+  title: string;
+  description?: string;
+  questionCount: number;
+  totalPoints: number;
+  passingScore: number;
+  isTimed: boolean;
+  timeLimitSeconds?: number;
+  hasSavedSession: boolean;
+  savedTimeAgo?: string;
+  currentStep: number;
+  onStartOrResume: () => void;
+  onSaveProgress: () => void;
+}
+
+const QuizHeroSection: React.FC<QuizHeroSectionProps> = ({
+  title,
+  description,
+  questionCount,
+  totalPoints,
+  passingScore,
+  isTimed,
+  timeLimitSeconds,
+  hasSavedSession,
+  savedTimeAgo,
+  currentStep,
+  onStartOrResume,
+  onSaveProgress,
+}) => {
+  const formatHeroTimer = (seconds?: number): string => {
+    if (!seconds) {
+      return 'Untimed';
+    }
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return `${m}:${s < 10 ? '0' : ''}${s}`;
+  };
+
+  const isTimedWithSeconds = Boolean(isTimed && timeLimitSeconds);
+  const isQuestionActive = currentStep > 0;
+
+  return (
+    <div className="w-full bg-card/70 backdrop-blur-xs border border-border rounded-2xl p-6 sm:p-8 text-center shadow-xs relative overflow-hidden transition-all">
+      <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-primary/5 via-transparent to-transparent -z-10" />
+
+      {/* Icon Badge */}
+      <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mx-auto mb-3 shadow-2xs">
+        <GraduationCap className="w-6 h-6" />
+      </div>
+
+      {/* Gradient Heading (Ubuntu) */}
+      <h1 className="font-heading font-bold text-2xl sm:text-3xl tracking-tight bg-gradient-to-r from-foreground via-foreground/90 to-primary bg-clip-text text-transparent">
+        {title}
+      </h1>
+
+      {/* Description (Poppins) */}
+      <p className="font-sans text-sm sm:text-base text-muted-foreground max-w-2xl mx-auto mt-2 leading-relaxed">
+        {description || 'Evaluate candidate skills with standardized assessment modules and live performance verification.'}
+      </p>
+
+      {/* Metadata Stats Grid / Pills */}
+      <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mt-4 text-xs font-sans">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/60 border border-border text-foreground font-medium">
+          <ListOrdered className="w-3.5 h-3.5 text-primary" />
+          <span>{questionCount} Questions</span>
+        </span>
+
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/60 border border-border text-foreground font-medium">
+          <Clock className="w-3.5 h-3.5 text-amber-500" />
+          <span>
+            {isTimedWithSeconds ? `Timed Exam (${formatHeroTimer(timeLimitSeconds)})` : 'Self-Paced / Untimed'}
+          </span>
+        </span>
+
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/60 border border-border text-foreground font-medium">
+          <Award className="w-3.5 h-3.5 text-primary" />
+          <span>{totalPoints} Total Points</span>
+        </span>
+
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/60 border border-border text-foreground font-medium">
+          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+          <span>Pass Score: {passingScore}%</span>
+        </span>
+
+        {hasSavedSession ? (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary font-medium">
+            <Sparkles className="w-3.5 h-3.5 text-primary" />
+            <span>Saved Session {savedTimeAgo ? `(${savedTimeAgo})` : 'Available'}</span>
+          </span>
+        ) : null}
+      </div>
+
+      {/* Hero Actions */}
+      <div className="flex flex-wrap items-center justify-center gap-3 mt-5 font-sans">
+        <Button
+          type="button"
+          onClick={onStartOrResume}
+          size="sm"
+          className="relative overflow-hidden group text-xs sm:text-sm font-semibold h-9 px-5 bg-primary text-primary-foreground shadow-xs hover:shadow-md transition-all cursor-pointer rounded-lg"
+        >
+          <span className="relative z-10 flex items-center gap-1.5">
+            {hasSavedSession ? 'Resume Saved Session' : isQuestionActive ? `Continue Question #${currentStep + 1}` : 'Start Assessment'}
+            <ChevronRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+          </span>
+          <span className="absolute inset-0 bg-primary-foreground/15 translate-y-full group-hover:translate-y-0 transition-transform duration-200" />
+        </Button>
+
+        <Button
+          type="button"
+          onClick={onSaveProgress}
+          variant="outline"
+          size="sm"
+          className="text-xs sm:text-sm font-medium h-9 px-4 border border-border hover:bg-accent hover:text-foreground cursor-pointer flex items-center gap-1.5 rounded-lg"
+        >
+          <Save className="w-3.5 h-3.5 text-primary" />
+          <span>Save Progress</span>
+        </Button>
+      </div>
+    </div>
+  );
+};
+
 export const FormRunner: React.FC<FormRunnerProps> = ({
   form: initialForm,
   onClose,
@@ -298,6 +437,78 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [result, setResult] = useState<FormSubmissionResult | null>(null);
+
+  const activeSlug = selectedProjectId === 'custom-active' 
+    ? (quizStore.slug || 'custom-form') 
+    : selectedProjectId;
+  const storageKey = `wp_quiz_session_${activeSlug}`;
+
+  const [savedSession, setSavedSession] = useState<QuizSessionData | null>(null);
+  const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
+
+  // Load saved session on activeSlug change
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(storageKey);
+      if (raw) {
+        const parsed: QuizSessionData = JSON.parse(raw);
+        setSavedSession(parsed);
+        const minsAgo = Math.max(1, Math.round((Date.now() - parsed.savedAt) / 60000));
+        setLastSavedTime(`${minsAgo}m ago`);
+      } else {
+        setSavedSession(null);
+        setLastSavedTime(null);
+      }
+    } catch {
+      setSavedSession(null);
+      setLastSavedTime(null);
+    }
+  }, [storageKey]);
+
+  const totalPossiblePoints = useMemo(() => {
+    return visibleFields.reduce((sum, f) => {
+      const pts = f.customPointsOverride ?? (f.difficulty === 'hard' ? 20 : f.difficulty === 'medium' ? 10 : 5);
+      return sum + pts;
+    }, 0);
+  }, [visibleFields]);
+
+  const handleSaveProgress = () => {
+    try {
+      const sessionData: QuizSessionData = {
+        formSlug: activeSlug,
+        answers,
+        currentStep,
+        stepHistory,
+        savedAt: Date.now(),
+        isTimed: Boolean(activeForm.hasTimeLimit || activeForm.timeLimitSeconds),
+        timeLeftSeconds,
+      };
+      localStorage.setItem(storageKey, JSON.stringify(sessionData));
+      setSavedSession(sessionData);
+      setLastSavedTime('Just now');
+      toast.success('Quiz progress saved to session successfully!');
+    } catch {
+      toast.error('Failed to save quiz session to local storage.');
+    }
+  };
+
+  const handleResumeSession = () => {
+    if (savedSession) {
+      if (savedSession.answers) {
+        setAnswers(savedSession.answers);
+      }
+      if (typeof savedSession.currentStep === 'number') {
+        setCurrentStep(savedSession.currentStep);
+      }
+      if (savedSession.stepHistory) {
+        setStepHistory(savedSession.stepHistory);
+      }
+      if (savedSession.timeLeftSeconds !== null && savedSession.timeLeftSeconds !== undefined) {
+        setTimeLeftSeconds(savedSession.timeLeftSeconds);
+      }
+      toast.success('Saved session restored successfully!');
+    }
+  };
 
   const handleTestAutoFill = () => {
     if (isSequential && currentField) {
@@ -1070,7 +1281,11 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
   return (
     <div 
-      className={`space-y-4 font-sans ${activeThemeId === 'clean-wide' ? 'max-w-5xl' : 'max-w-4xl'} mx-auto p-4 sm:p-6 rounded-2xl transition-all duration-300 theme-${activeThemeId}`}
+      className={`space-y-5 font-sans ${
+        isFullscreen 
+          ? 'fixed inset-0 z-50 bg-background overflow-y-auto p-4 sm:p-8 min-h-screen'
+          : `${activeThemeId === 'clean-wide' ? 'max-w-7xl' : 'max-w-6xl'} mx-auto p-3 sm:p-6 rounded-2xl`
+      } transition-all duration-300 theme-${activeThemeId}`}
       style={{
         ...themeVars,
         backgroundColor: currentTheme.colors.background,
@@ -1079,38 +1294,38 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     >
       {/* Streamlined Single-Line Project Selector, Slug & Actions Bar */}
       <div 
-        className="p-2 sm:px-3.5 border border-border bg-card text-card-foreground rounded-xl shadow-xs flex flex-wrap lg:flex-nowrap items-center justify-between gap-2.5 transition-colors"
+        className="p-2.5 sm:px-4 border border-border bg-card text-card-foreground rounded-xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors"
       >
-        <div className="flex items-center gap-2 flex-wrap sm:flex-nowrap min-w-0">
+        <div className="flex items-center gap-2 flex-wrap min-w-0">
           {/* Project Selector */}
           <div className="flex items-center gap-1.5 shrink-0">
-            <Label className="text-xs font-semibold flex items-center gap-1 whitespace-nowrap text-foreground">
+            <Label className="text-xs font-medium font-sans flex items-center gap-1 whitespace-nowrap text-foreground">
               <Layers className="w-3.5 h-3.5 text-primary" />
-              <span className="hidden sm:inline">Project:</span>
+              <span>Project:</span>
             </Label>
             <Select
               value={selectedProjectId}
               onValueChange={handleProjectSwitch}
             >
               <SelectTrigger 
-                className="text-xs font-semibold h-8 min-w-[160px] sm:min-w-[190px] max-w-[220px] rounded-lg border border-border bg-background text-foreground shadow-2xs cursor-pointer truncate"
+                className="text-xs font-medium font-sans h-8 w-[160px] sm:w-[190px] max-w-[220px] rounded-lg border border-border bg-background text-foreground shadow-2xs cursor-pointer truncate"
               >
                 <SelectValue placeholder="Select Project" />
               </SelectTrigger>
               <SelectContent 
-                className="border border-border shadow-xl backdrop-blur-md rounded-xl bg-popover text-popover-foreground text-xs"
+                className="border border-border shadow-xl backdrop-blur-md rounded-xl bg-popover text-popover-foreground text-xs font-sans"
               >
-                <SelectItem value="intern-programmer" className="text-xs py-1.5">
+                <SelectItem value="intern-programmer" className="text-xs py-1.5 font-sans">
                   Intern Programmer Assessment
                 </SelectItem>
-                <SelectItem value="full-stack-architect" className="text-xs py-1.5">
+                <SelectItem value="full-stack-architect" className="text-xs py-1.5 font-sans">
                   Full-Stack Web Architecture
                 </SelectItem>
-                <SelectItem value="cybersecurity-essentials" className="text-xs py-1.5">
+                <SelectItem value="cybersecurity-essentials" className="text-xs py-1.5 font-sans">
                   Cybersecurity Fundamentals
                 </SelectItem>
                 {(initialForm || quizStore.fields.length > 0) && (
-                  <SelectItem value="custom-active" className="text-xs py-1.5">
+                  <SelectItem value="custom-active" className="text-xs py-1.5 font-sans">
                     Custom Form ({activeForm.title || 'Builder Active'})
                   </SelectItem>
                 )}
@@ -1124,14 +1339,17 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           >
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0" />
             <span className="text-muted-foreground">{isPreviewRoute ? '/preview/' : '/f/'}</span>
-            <span className="font-bold text-primary truncate max-w-[120px] sm:max-w-[160px]">
+            <span className="font-semibold text-primary truncate max-w-[130px] sm:max-w-[180px]">
               {selectedProjectId === 'custom-active' ? (quizStore.slug || 'custom-form') : selectedProjectId}
             </span>
           </div>
+        </div>
 
+        {/* Right Action Controls: Anti-Collision guaranteed */}
+        <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap shrink-0 justify-end">
           {/* Theme Selector */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            <Label className="text-xs font-semibold flex items-center gap-1 whitespace-nowrap text-foreground">
+          <div className="flex items-center gap-1 shrink-0">
+            <Label className="text-xs font-medium font-sans flex items-center gap-1 whitespace-nowrap text-foreground">
               <Palette className="w-3.5 h-3.5 text-primary" />
               <span className="hidden sm:inline">Theme:</span>
             </Label>
@@ -1144,31 +1362,28 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               }}
             >
               <SelectTrigger 
-                className="text-xs font-semibold h-8 w-[130px] sm:w-[150px] rounded-lg border border-border bg-background text-foreground hover:border-primary/50 shadow-2xs cursor-pointer truncate"
+                className="text-xs font-medium font-sans h-8 w-[115px] sm:w-[135px] rounded-lg border border-border bg-background text-foreground hover:border-primary/50 shadow-2xs cursor-pointer truncate"
               >
-                <SelectValue placeholder="Select Theme" />
+                <SelectValue placeholder="Theme" />
               </SelectTrigger>
               <SelectContent 
-                className="border border-border shadow-xl backdrop-blur-md rounded-xl bg-popover text-popover-foreground text-xs"
+                className="border border-border shadow-xl backdrop-blur-md rounded-xl bg-popover text-popover-foreground text-xs font-sans"
               >
                 {Object.values(THEME_PRESETS).map((t) => (
-                  <SelectItem key={t.id} value={t.id} className="text-xs py-1.5 font-medium">
+                  <SelectItem key={t.id} value={t.id} className="text-xs py-1.5 font-medium font-sans">
                     {t.name.split(' (')[0]}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
-        </div>
 
-        {/* Right Action Controls: Compact and Icon/Pill Streamlined */}
-        <div className="flex items-center gap-1.5 shrink-0 justify-end">
           <Button
             type="button"
             variant="outline"
             size="icon"
             onClick={handleCopyProjectLink}
-            className="h-8 w-8 rounded-lg border border-border bg-card text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/40 shadow-xs transition-all cursor-pointer group"
+            className="h-8 w-8 rounded-lg border border-border bg-card text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/40 shadow-xs transition-all cursor-pointer group shrink-0"
             title="Copy Direct Canonical URL to Clipboard"
           >
             <Share2 className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform" />
@@ -1179,11 +1394,11 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             variant="outline"
             size="sm"
             onClick={handleAutoFill}
-            className="text-xs h-8 px-2.5 gap-1.5 font-semibold border border-border bg-card text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/40 shadow-xs transition-all cursor-pointer group rounded-lg"
+            className="text-xs h-8 px-2.5 gap-1.5 font-medium font-sans border border-border bg-card text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/40 shadow-xs transition-all cursor-pointer group rounded-lg shrink-0 whitespace-nowrap"
             title="Auto-fill form fields with sample test data"
           >
             <Zap className="w-3.5 h-3.5 text-amber-500 group-hover:scale-110 transition-transform" />
-            <span className="hidden md:inline">Auto Fill</span>
+            <span>Auto Fill</span>
           </Button>
 
           <Button
@@ -1191,7 +1406,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             variant={isDebugMode ? 'default' : 'outline'}
             size="sm"
             onClick={() => setIsDebugMode(!isDebugMode)}
-            className={`text-xs h-8 px-2 gap-1 font-semibold border shadow-xs transition-all cursor-pointer rounded-lg ${
+            className={`text-xs h-8 px-2.5 gap-1 font-medium font-sans border shadow-xs transition-all cursor-pointer rounded-lg shrink-0 whitespace-nowrap ${
               isDebugMode
                 ? 'bg-amber-600 hover:bg-amber-700 text-white border-amber-600'
                 : 'border-border bg-card text-foreground hover:bg-amber-500/10 hover:text-amber-600 hover:border-amber-500/40'
@@ -1199,7 +1414,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             title="Toggle Debug Simulator & Step Jumper"
           >
             <Bug className="w-3.5 h-3.5 text-amber-500" />
-            <span className="hidden lg:inline">Debug</span>
+            <span>Debug</span>
           </Button>
 
           <Button
@@ -1212,7 +1427,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 navigate('/');
               }
             }}
-            className="text-xs h-8 px-2.5 border border-border bg-card text-foreground hover:bg-accent hover:text-foreground cursor-pointer font-medium transition-all group rounded-lg gap-1"
+            className="text-xs h-8 px-2.5 border border-border bg-card text-foreground hover:bg-accent hover:text-foreground cursor-pointer font-medium font-sans transition-all group rounded-lg gap-1 shrink-0 whitespace-nowrap"
             title="Exit form runner and return to portal"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
@@ -1220,6 +1435,28 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           </Button>
         </div>
       </div>
+
+      {/* Hero Model: Assessment Introduction & Overview */}
+      <QuizHeroSection
+        title={activeForm.title || 'Candidate Assessment'}
+        description={activeForm.description}
+        questionCount={visibleFields.length}
+        totalPoints={totalPossiblePoints}
+        passingScore={activeForm.passingScore || 70}
+        isTimed={Boolean(activeForm.hasTimeLimit || activeForm.timeLimitSeconds)}
+        timeLimitSeconds={activeForm.timeLimitSeconds}
+        hasSavedSession={Boolean(savedSession)}
+        savedTimeAgo={lastSavedTime || undefined}
+        currentStep={currentStep}
+        onStartOrResume={() => {
+          if (savedSession) {
+            handleResumeSession();
+          } else {
+            setCurrentStep(0);
+          }
+        }}
+        onSaveProgress={handleSaveProgress}
+      />
 
       {/* Candidate Role & Access Bar */}
       <div 
@@ -1337,136 +1574,231 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
         </div>
       )}
 
-      {/* Sequential Wizard Runner */}
+      {/* Sequential Wizard Runner with Left-Hand Sequence Navigator */}
       {isSequential && currentField ? (
-        <Card className={`w-full ${activeThemeId === 'clean-wide' ? 'max-w-4xl' : 'max-w-3xl'} mx-auto border border-border shadow-xl bg-card text-card-foreground rounded-2xl overflow-hidden animate-in fade-in duration-150`}>
-          <CardHeader className="py-4 px-6 border-b border-border bg-muted/20">
-            <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-              <span className="font-bold text-sm text-primary">
-                Step {stepHistory.length + 1} of ~{visibleFields.length} (Question #{currentStep + 1})
-              </span>
-              <div className="flex items-center gap-2">
-                {timeLeftSeconds !== null && (
-                  <Badge variant="outline" className={`font-mono text-xs gap-1 font-semibold ${
-                    timeLeftSeconds < 60 ? 'border-destructive text-destructive bg-destructive/10 animate-pulse' : 'border-amber-500/40 text-amber-600 bg-amber-500/10'
-                  }`}>
-                    <Clock className="w-3.5 h-3.5" />
-                    <span>{formatTimerDisplay(timeLeftSeconds)}</span>
-                  </Badge>
-                )}
-                {currentField.difficulty && (
-                  <Badge variant="outline" className={`text-xs font-semibold uppercase ${
-                    currentField.difficulty === 'hard'
-                      ? 'border-rose-500/40 text-rose-600 bg-rose-500/10'
-                      : currentField.difficulty === 'medium'
-                      ? 'border-amber-500/40 text-amber-600 bg-amber-500/10'
-                      : 'border-emerald-500/40 text-emerald-600 bg-emerald-500/10'
-                  }`}>
-                    {currentField.difficulty} ({currentField.customPointsOverride ?? (currentField.difficulty === 'hard' ? 20 : currentField.difficulty === 'medium' ? 10 : 5)} pt)
-                  </Badge>
-                )}
+        <div className="flex flex-col lg:flex-row items-start gap-6 w-full">
+          {/* Left-Hand Question Sequence & Session Sidebar */}
+          <aside className="w-full lg:w-72 xl:w-80 shrink-0 space-y-4">
+            <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4 sticky top-4">
+              {/* Progress Tracker */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-xs font-sans">
+                  <span className="font-semibold text-foreground">Progress</span>
+                  <span className="font-mono text-primary font-bold">
+                    {Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}%
+                  </span>
+                </div>
+                <Progress
+                  value={Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}
+                  className="h-2 bg-secondary"
+                />
+                <div className="text-[11px] text-muted-foreground font-sans flex items-center justify-between">
+                  <span>Question {currentStep + 1} of {visibleFields.length}</span>
+                  <span>{Object.keys(answers).length} answered</span>
+                </div>
+              </div>
+
+              {/* Question Sequence List */}
+              <div className="space-y-1.5 max-h-[380px] overflow-y-auto pr-1">
+                <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-1 mb-1">
+                  Questions Sequence
+                </div>
+                {visibleFields.map((f, idx) => {
+                  const isCurrent = currentStep === idx;
+                  const isAnswered = answers[f.id] !== undefined && answers[f.id] !== '' && (Array.isArray(answers[f.id]) ? (answers[f.id] as unknown[]).length > 0 : true);
+
+                  return (
+                    <button
+                      key={f.id}
+                      type="button"
+                      onClick={() => setCurrentStep(idx)}
+                      className={`w-full text-left px-3 py-2 rounded-xl text-xs font-sans transition-all flex items-center justify-between gap-2 cursor-pointer ${
+                        isCurrent
+                          ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                          : isAnswered
+                          ? 'bg-muted/40 hover:bg-muted text-foreground border border-border/60'
+                          : 'hover:bg-muted/30 text-muted-foreground border border-transparent'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2 truncate">
+                        <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono shrink-0 ${
+                          isCurrent
+                            ? 'bg-primary-foreground text-primary font-bold'
+                            : isAnswered
+                            ? 'bg-emerald-500/20 text-emerald-600 font-bold'
+                            : 'bg-muted text-muted-foreground'
+                        }`}>
+                          {idx + 1}
+                        </span>
+                        <span className="truncate">{f.label || `Question #${idx + 1}`}</span>
+                      </div>
+                      {isAnswered ? (
+                        <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? 'text-primary-foreground' : 'text-emerald-500'}`} />
+                      ) : (
+                        <Circle className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? 'text-primary-foreground/60' : 'text-muted-foreground/40'}`} />
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* Sidebar Session & Fullscreen Actions */}
+              <div className="pt-3 border-t border-border flex flex-col gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSaveProgress}
+                  className="w-full h-8 text-xs font-medium font-sans justify-center gap-1.5 border-border bg-background hover:bg-primary/10 hover:text-primary rounded-lg transition-all cursor-pointer"
+                >
+                  <Save className="w-3.5 h-3.5 text-primary" />
+                  <span>Save as Session</span>
+                </Button>
                 <Button
                   type="button"
                   variant="ghost"
-                  size="icon"
+                  size="sm"
                   onClick={handleToggleFullscreen}
-                  className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                  title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen Exam'}
+                  className="w-full h-8 text-xs font-sans text-muted-foreground hover:text-foreground justify-center gap-1.5 rounded-lg transition-all cursor-pointer"
                 >
-                  <Maximize2 className="w-3.5 h-3.5" />
+                  {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+                  <span>{isFullscreen ? 'Exit Full Screen' : 'Full Screen Canvas'}</span>
                 </Button>
-                <Badge variant="outline" className="font-mono text-xs border-border text-muted-foreground">{activeForm.formType.replace('_', ' ')}</Badge>
               </div>
             </div>
-            <Progress
-              value={Math.min(
-                100,
-                Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, stepHistory.length + 1)) * 100)
-              )}
-              className="h-2 mb-2 bg-secondary"
-            />
-            <CardTitle className="text-xl sm:text-2xl font-bold tracking-tight text-foreground leading-snug">
-              {currentField.label}
-              {isCurrentFieldRequired && (
-                <span className="text-destructive text-red-500 font-bold ml-1.5" title="Mandatory Response">*</span>
-              )}
-            </CardTitle>
-            {isCurrentFieldRequired && (
-              <Badge variant="outline" className="text-xs font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1.5 w-fit mt-2 font-semibold">
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                <span>Mandatory Response</span>
-              </Badge>
-            )}
-          </CardHeader>
+          </aside>
 
-          <CardContent className="space-y-4 p-6">
-            {/* Question Illustration / Image */}
-            {currentField.imageUrl && (
-              <div className="w-full my-2 rounded-xl overflow-hidden border border-border/80 shadow-xs bg-muted/20">
-                <img
-                  src={currentField.imageUrl}
-                  alt={currentField.imageCaption || currentField.label}
-                  className="w-full max-h-80 object-contain mx-auto"
+          {/* Right-Hand Main Question Canvas */}
+          <main className="flex-1 min-w-0 w-full">
+            <Card className="w-full border border-border shadow-md bg-card text-card-foreground rounded-2xl overflow-hidden animate-in fade-in duration-150">
+              <CardHeader className="py-4 px-6 border-b border-border bg-muted/20">
+                <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                  <span className="font-bold text-sm text-primary">
+                    Step {stepHistory.length + 1} of ~{visibleFields.length} (Question #{currentStep + 1})
+                  </span>
+                  <div className="flex items-center gap-2">
+                    {timeLeftSeconds !== null && (
+                      <Badge variant="outline" className={`font-mono text-xs gap-1 font-semibold ${
+                        timeLeftSeconds < 60 ? 'border-destructive text-destructive bg-destructive/10 animate-pulse' : 'border-amber-500/40 text-amber-600 bg-amber-500/10'
+                      }`}>
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>{formatTimerDisplay(timeLeftSeconds)}</span>
+                      </Badge>
+                    )}
+                    {currentField.difficulty && (
+                      <Badge variant="outline" className={`text-xs font-semibold uppercase ${
+                        currentField.difficulty === 'hard'
+                          ? 'border-rose-500/40 text-rose-600 bg-rose-500/10'
+                          : currentField.difficulty === 'medium'
+                          ? 'border-amber-500/40 text-amber-600 bg-amber-500/10'
+                          : 'border-emerald-500/40 text-emerald-600 bg-emerald-500/10'
+                      }`}>
+                        {currentField.difficulty} ({currentField.customPointsOverride ?? (currentField.difficulty === 'hard' ? 20 : currentField.difficulty === 'medium' ? 10 : 5)} pt)
+                      </Badge>
+                    )}
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      onClick={handleToggleFullscreen}
+                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                      title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen Exam'}
+                    >
+                      <Maximize2 className="w-3.5 h-3.5" />
+                    </Button>
+                  </div>
+                </div>
+                <Progress
+                  value={Math.min(
+                    100,
+                    Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, stepHistory.length + 1)) * 100)
+                  )}
+                  className="h-2 mb-2 bg-secondary"
                 />
-                {currentField.imageCaption && (
-                  <p className="text-xs text-muted-foreground p-2 text-center italic bg-muted/40 border-t border-border/60">
-                    {currentField.imageCaption}
-                  </p>
+                <CardTitle className="text-xl sm:text-2xl font-bold tracking-tight text-foreground leading-snug">
+                  {currentField.label}
+                  {isCurrentFieldRequired && (
+                    <span className="text-destructive text-red-500 font-bold ml-1.5" title="Mandatory Response">*</span>
+                  )}
+                </CardTitle>
+                {isCurrentFieldRequired && (
+                  <Badge variant="outline" className="text-xs font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1.5 w-fit mt-2 font-semibold">
+                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
+                    <span>Mandatory Response</span>
+                  </Badge>
                 )}
-              </div>
-            )}
+              </CardHeader>
 
-            {currentField.type !== 'video' && currentField.videoUrl && (
-              <RunnerVideoPlayer
-                videoUrl={currentField.videoUrl}
-                videoCaption={currentField.videoCaption}
-                title={currentField.label}
-              />
-            )}
+              <CardContent className="space-y-4 p-6">
+                {/* Question Illustration / Image */}
+                {currentField.imageUrl && (
+                  <div className="w-full my-2 rounded-xl overflow-hidden border border-border/80 shadow-xs bg-muted/20">
+                    <img
+                      src={currentField.imageUrl}
+                      alt={currentField.imageCaption || currentField.label}
+                      className="w-full max-h-80 object-contain mx-auto"
+                    />
+                    {currentField.imageCaption && (
+                      <p className="text-xs text-muted-foreground p-2 text-center italic bg-muted/40 border-t border-border/60">
+                        {currentField.imageCaption}
+                      </p>
+                    )}
+                  </div>
+                )}
 
-            {/* Prefix Citations */}
-            {renderCitations(currentField.citations, 'prefix')}
+                {currentField.type !== 'video' && currentField.videoUrl && (
+                  <RunnerVideoPlayer
+                    videoUrl={currentField.videoUrl}
+                    videoCaption={currentField.videoCaption}
+                    title={currentField.label}
+                  />
+                )}
 
-            {renderFieldInput(currentField, answers[currentField.id], (val) => handleAnswerChange(currentField.id, val))}
+                {/* Prefix Citations */}
+                {renderCitations(currentField.citations, 'prefix')}
 
-            {/* Suffix Citations */}
-            {renderCitations(currentField.citations, 'suffix')}
+                {renderFieldInput(currentField, answers[currentField.id], (val) => handleAnswerChange(currentField.id, val))}
 
-            <div className="flex justify-between items-center pt-4 border-t border-border">
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  disabled={currentStep === 0}
-                  onClick={handlePreviousStep}
-                  className="text-sm h-9 px-4 font-medium border-border hover:bg-accent cursor-pointer"
-                >
-                  Previous
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={handleTestAutoFill}
-                  className="text-xs h-9 px-3.5 font-bold rounded-xl border border-primary/40 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer"
-                  title="Fill valid answer and advance immediately"
-                >
-                  ⚡ Test Fill &amp; Next
-                </Button>
-              </div>
+                {/* Suffix Citations */}
+                {renderCitations(currentField.citations, 'suffix')}
 
-              {isLastVisibleStep ? (
-                <Button size="sm" onClick={handleNextStep} className="text-sm h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer">
-                  Submit Assessment &check;
-                </Button>
-              ) : (
-                <Button size="sm" onClick={handleNextStep} className="text-sm h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer">
-                  Next Question &rarr;
-                </Button>
-              )}
-            </div>
-          </CardContent>
-        </Card>
+                <div className="flex justify-between items-center pt-4 border-t border-border">
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      disabled={currentStep === 0}
+                      onClick={handlePreviousStep}
+                      className="text-sm h-9 px-4 font-medium border-border hover:bg-accent cursor-pointer"
+                    >
+                      Previous
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleTestAutoFill}
+                      className="text-xs h-9 px-3.5 font-bold rounded-xl border border-primary/40 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer"
+                      title="Fill valid answer and advance immediately"
+                    >
+                      ⚡ Test Fill &amp; Next
+                    </Button>
+                  </div>
+
+                  {isLastVisibleStep ? (
+                    <Button size="sm" onClick={handleNextStep} className="text-sm h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer">
+                      Submit Assessment &check;
+                    </Button>
+                  ) : (
+                    <Button size="sm" onClick={handleNextStep} className="text-sm h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer">
+                      Next Question &rarr;
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </main>
+        </div>
       ) : (
         /* Single-Page Form Mode */
         <Card className={`w-full ${activeThemeId === 'clean-wide' ? 'max-w-4xl' : 'max-w-2xl'} mx-auto border-border shadow-lg bg-card animate-in fade-in duration-150`}>
