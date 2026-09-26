@@ -509,7 +509,7 @@ export const FormBuilder: React.FC = () => {
                 className="text-sm h-8 gap-1.5 border-border"
                 title="Open secondary builder tools and integrations"
               >
-                <Wand2 className="w-3.5 h-3.5 text-primary" />
+                <Wand2 className="w-3.5 h-3.5" />
                 <span>Tools</span>
                 <ChevronDown className="w-3 h-3 text-muted-foreground" />
               </Button>
@@ -575,7 +575,7 @@ export const FormBuilder: React.FC = () => {
             className="text-sm h-8 gap-1.5 border-border"
             title="Preview interactive form in a new tab"
           >
-            <Eye className="w-3.5 h-3.5 text-sky-400" />
+            <Eye className="w-3.5 h-3.5" />
             <span>Preview</span>
           </Button>
 
