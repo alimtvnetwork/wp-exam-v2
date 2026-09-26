@@ -743,8 +743,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             variant="outline"
             size="sm"
             onClick={handleCopyProjectLink}
-            className="text-xs h-8 gap-1 border bg-card hover:bg-muted"
+            className="text-xs h-8 gap-1 border"
             style={{
+              backgroundColor: currentTheme.colors.background,
               borderColor: currentTheme.colors.cardBorder,
               color: currentTheme.colors.textPrimary,
             }}
@@ -757,8 +758,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             variant="outline"
             size="sm"
             onClick={handleAutoFill}
-            className="text-xs h-8 gap-1 border bg-card hover:bg-muted"
+            className="text-xs h-8 gap-1 border"
             style={{
+              backgroundColor: currentTheme.colors.background,
               borderColor: currentTheme.colors.cardBorder,
               color: currentTheme.colors.textPrimary,
             }}
