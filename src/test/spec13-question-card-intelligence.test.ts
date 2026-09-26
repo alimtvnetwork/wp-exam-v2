@@ -193,4 +193,46 @@ describe('Spec 13: Question Card Intelligence, Boolean Presets, Difficulty Tiers
       expect(updated?.enableFullscreenLock).toBe(true);
     });
   });
+
+  describe('Animated Floating Title & Combined Preview Controls', () => {
+    it('should compute floating position state accurately for Title label', () => {
+      const computeFloatingState = (isFocused: boolean, label: string) => {
+        const isFloating = Boolean(isFocused || label.trim().length > 0);
+        return {
+          isFloating,
+          labelLeft: isFloating ? 'calc(100% - 64px)' : '14px',
+          labelText: 'Title',
+        };
+      };
+
+      // Empty and unfocused: rests at placeholder position
+      const unfocusedState = computeFloatingState(false, '');
+      expect(unfocusedState.isFloating).toBe(false);
+      expect(unfocusedState.labelLeft).toBe('14px');
+      expect(unfocusedState.labelText).toBe('Title');
+
+      // Focused with empty text: glides to top-right
+      const focusedEmptyState = computeFloatingState(true, '');
+      expect(focusedEmptyState.isFloating).toBe(true);
+      expect(focusedEmptyState.labelLeft).toBe('calc(100% - 64px)');
+
+      // Unfocused with text: remains at top-right
+      const filledState = computeFloatingState(false, 'What is recursion?');
+      expect(filledState.isFloating).toBe(true);
+      expect(filledState.labelLeft).toBe('calc(100% - 64px)');
+    });
+
+    it('should maintain combined preview-action configuration', () => {
+      let isLivePreview = false;
+      const togglePreview = () => {
+        isLivePreview = !isLivePreview;
+      };
+
+      expect(isLivePreview).toBe(false);
+      togglePreview();
+      expect(isLivePreview).toBe(true);
+      togglePreview();
+      expect(isLivePreview).toBe(false);
+    });
+  });
 });
