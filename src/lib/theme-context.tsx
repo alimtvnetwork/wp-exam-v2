@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 
-export type AppThemeType = 'riseup' | 'dracula' | 'purple' | 'obsidian' | 'clean' | 'clean-wide' | 'sweet-digs';
+export type AppThemeType = 'riseup' | 'dracula' | 'purple' | 'obsidian' | 'clean' | 'clean-wide' | 'sweet-digs' | 'green-choice';
 
 export interface ThemeConfig {
   id: AppThemeType;
@@ -24,10 +24,40 @@ export interface ThemeConfig {
 }
 
 export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
+  'green-choice': {
+    id: 'green-choice',
+    name: 'Green Choice',
+    tagline: 'Emerald Botanical & Warm Sage',
+    primaryColor: '#16A34A',
+    bgColor: '#F4F8F5',
+    cardColor: '#FFFFFF',
+    borderColor: '#E1EAE5',
+    accentColor: '#16A34A',
+    badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    hslValues: {
+      '--primary': '142 71% 45%',
+      '--primary-foreground': '0 0% 100%',
+      '--background': '140 20% 97%',
+      '--foreground': '160 20% 10%',
+      '--card': '0 0% 100%',
+      '--card-foreground': '160 20% 10%',
+      '--popover': '0 0% 100%',
+      '--popover-foreground': '160 20% 10%',
+      '--border': '150 13% 91%',
+      '--input': '150 13% 91%',
+      '--ring': '142 71% 45%',
+      '--accent': '142 60% 93%',
+      '--accent-foreground': '142 71% 30%',
+      '--secondary': '142 60% 93%',
+      '--secondary-foreground': '142 71% 30%',
+      '--muted': '150 14% 96%',
+      '--muted-foreground': '160 9% 46%',
+    },
+  },
   'sweet-digs': {
     id: 'sweet-digs',
-    name: 'Sweet Digs',
-    tagline: 'Emerald Eco-Luxury & Warm Sage',
+    name: 'Green Choice',
+    tagline: 'Emerald Botanical & Warm Sage',
     primaryColor: '#16A34A',
     bgColor: '#F4F8F5',
     cardColor: '#FFFFFF',
@@ -228,6 +258,16 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
   },
 };
 
+export const ORDERED_THEME_KEYS: AppThemeType[] = [
+  'green-choice',
+  'clean-wide',
+  'clean',
+  'riseup',
+  'dracula',
+  'purple',
+  'obsidian',
+];
+
 interface ThemeContextType {
   theme: AppThemeType;
   setTheme: (theme: AppThemeType) => void;
@@ -235,9 +275,9 @@ interface ThemeContextType {
 }
 
 const ThemeContext = createContext<ThemeContextType>({
-  theme: 'sweet-digs',
+  theme: 'green-choice',
   setTheme: () => {},
-  config: THEME_CONFIGS['sweet-digs'],
+  config: THEME_CONFIGS['green-choice'],
 });
 
 const STORAGE_KEY = 'wpexam_active_theme';
@@ -250,14 +290,18 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       return 'purple';
     }
 
+    if (saved === 'sweet-digs') {
+      return 'green-choice';
+    }
+
     if (saved && saved in THEME_CONFIGS) {
       return saved as AppThemeType;
     }
 
-    return 'sweet-digs';
+    return 'green-choice';
   });
 
-  const config = THEME_CONFIGS[theme];
+  const config = THEME_CONFIGS[theme] || THEME_CONFIGS['green-choice'];
 
   const setTheme = (newTheme: AppThemeType) => {
     setThemeState(newTheme);
@@ -285,7 +329,13 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
     }
 
-    if (theme === 'clean' || theme === 'clean-wide' || theme === 'sweet-digs') {
+    if (theme === 'green-choice' || theme === 'sweet-digs') {
+      root.classList.add('theme-green-choice', 'theme-sweet-digs');
+    } else {
+      root.classList.remove('theme-green-choice', 'theme-sweet-digs');
+    }
+
+    if (theme === 'clean' || theme === 'clean-wide' || theme === 'sweet-digs' || theme === 'green-choice') {
       root.classList.remove('dark');
       root.classList.add('light');
     } else {
@@ -329,9 +379,9 @@ export const ThemeSwitcher: React.FC<{ className?: string }> = ({ className }) =
         <div className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border/60 mb-1">
           Select Presentation Theme
         </div>
-        {(Object.keys(THEME_CONFIGS) as AppThemeType[]).map((themeKey) => {
+        {ORDERED_THEME_KEYS.map((themeKey) => {
           const item = THEME_CONFIGS[themeKey];
-          const isSelected = theme === themeKey;
+          const isSelected = theme === themeKey || (theme === 'sweet-digs' && themeKey === 'green-choice');
 
           return (
             <DropdownMenuItem

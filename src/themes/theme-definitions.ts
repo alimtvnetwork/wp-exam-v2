@@ -137,9 +137,31 @@ export const THEME_PRESETS: Record<string, ThemeDefinition> = {
     },
   },
 
+  'green-choice': {
+    id: 'green-choice',
+    name: 'Green Choice (Emerald Eco-Luxury)',
+    description: 'Modern botanical editorial theme with lush emerald green, soft sage surfaces, obsidian spruce typography, and zero-clash harmony.',
+    appearance: 'light',
+    colors: {
+      background: '#F4F8F5',
+      cardBg: '#FFFFFF',
+      cardBorder: '#E1EAE5',
+      cardHover: '#F0FDF4',
+      cardActiveBorder: '#16A34A',
+      cardActiveBg: '#DCFCE7',
+      primary: '#16A34A',
+      primaryText: '#FFFFFF',
+      highlightWord: '#16A34A',
+      textPrimary: '#13201B',
+      textSecondary: '#6A7F75',
+      progressBar: '#16A34A',
+      badgeBg: '#DCFCE7',
+    },
+  },
+
   'sweet-digs': {
     id: 'sweet-digs',
-    name: 'Sweet Digs (Emerald Eco-Luxury)',
+    name: 'Green Choice (Emerald Eco-Luxury)',
     description: 'Modern botanical editorial theme with lush emerald green, soft sage surfaces, obsidian spruce typography, and zero-clash harmony.',
     appearance: 'light',
     colors: {
@@ -171,10 +193,13 @@ export const THEME_ALIASES: Record<string, string> = {
   white: 'microsoft-blue',
   sweet: 'sweet-digs',
   'sweet-digs-finder': 'sweet-digs',
+  'sweet-digs': 'sweet-digs',
   emerald: 'sweet-digs',
+  'green-choice': 'green-choice',
+  green: 'green-choice',
 };
 
-export const DEFAULT_THEME_ID = 'sweet-digs';
+export const DEFAULT_THEME_ID = 'green-choice';
 
 export function getTheme(id: string): ThemeDefinition {
   const normalizedId = THEME_ALIASES[id] || id;

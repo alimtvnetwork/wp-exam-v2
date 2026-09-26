@@ -13,6 +13,14 @@ import {
   FieldActionTrigger,
   parseVideoEmbedUrl,
 } from '@/lib/types/form';
+
+declare module '@/lib/types/form' {
+  interface FormField {
+    description?: string;
+    choiceAlignment?: 'left' | 'center' | 'right';
+  }
+}
+
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -210,6 +218,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   const [showVideoConfig, setShowVideoConfig] = useState(Boolean(field.videoUrl));
   const hasAttachedImage = Boolean(field.imageUrl && field.imageUrl.trim().length > 0);
   const [showImageConfig, setShowImageConfig] = useState(Boolean(field.imageUrl));
+  const hasAttachedDescription = Boolean(field.description && field.description.trim().length > 0);
+  const [showDescription, setShowDescription] = useState(hasAttachedDescription);
   const isRegexField = field.type === 'regex_text';
   const isFileUploadField = field.type === 'file_upload';
   const isTextInputField =
@@ -409,8 +419,9 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
             {/* Question Index & Section Chip */}
             <div className="flex items-center gap-2.5">
-              <span className="font-mono text-sm px-3 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 font-bold shrink-0">
-                #{index + 1}
+              <span className="font-mono text-sm px-3 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 font-bold shrink-0 flex items-center gap-1">
+                <span>#{index + 1}</span>
+                {field.isRequired && <span className="text-destructive font-bold ml-0.5">*</span>}
               </span>
 
               {field.group && (
@@ -716,24 +727,42 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
           <div className="space-y-3">
             <div>
               <div className="flex items-center justify-between mb-2">
-                <Label className="text-base font-bold text-foreground">
-                  Question Title
+                <Label className="text-base font-bold text-foreground flex items-center">
+                  <span>Question Title</span>
+                  {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
                 </Label>
-                <Button
-                  type="button"
-                  variant={showImageConfig || hasAttachedImage ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setShowImageConfig(!showImageConfig)}
-                  className={`h-8 px-3 text-xs gap-1.5 transition-all duration-150 font-semibold rounded-lg cursor-pointer group shadow-2xs ${
-                    hasAttachedImage
-                      ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                      : 'border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary'
-                  }`}
-                  title="Attach an illustration or question image"
-                >
-                  <ImageIcon className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
-                  <span>{hasAttachedImage ? 'Image Attached' : 'Add Image'}</span>
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant={showDescription || hasAttachedDescription ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setShowDescription(!showDescription)}
+                    className={`h-8 px-3 text-xs gap-1.5 transition-all duration-150 font-semibold rounded-lg cursor-pointer group shadow-2xs ${
+                      hasAttachedDescription
+                        ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                        : 'border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary'
+                    }`}
+                    title="Toggle question description / hint instructions"
+                  >
+                    <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${showDescription ? 'rotate-180' : ''}`} />
+                    <span>{hasAttachedDescription ? 'Description' : 'Add Description'}</span>
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={showImageConfig || hasAttachedImage ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setShowImageConfig(!showImageConfig)}
+                    className={`h-8 px-3 text-xs gap-1.5 transition-all duration-150 font-semibold rounded-lg cursor-pointer group shadow-2xs ${
+                      hasAttachedImage
+                        ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                        : 'border-border bg-card text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary'
+                    }`}
+                    title="Attach an illustration or question image"
+                  >
+                    <ImageIcon className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
+                    <span>{hasAttachedImage ? 'Image Attached' : 'Add Image'}</span>
+                  </Button>
+                </div>
               </div>
               <Input
                 value={field.label}
@@ -741,6 +770,39 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 placeholder="Untitled Question"
                 className="text-lg font-bold h-12 px-3.5 w-full bg-background text-foreground shadow-2xs focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
               />
+
+              {/* Expandable Question Description / Hint Accordion */}
+              {showDescription && (
+                <div className="mt-3 p-3 bg-muted/20 rounded-xl border border-border/80 space-y-2 animate-in fade-in-50 duration-150">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-primary">
+                      <HelpCircle className="w-3.5 h-3.5" />
+                      <span>Question Description / Candidate Instructions</span>
+                    </div>
+                    {hasAttachedDescription && (
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          onUpdate(id, { description: undefined });
+                          setShowDescription(false);
+                        }}
+                        className="h-6 px-2 text-xs text-muted-foreground hover:text-destructive"
+                      >
+                        <X className="w-3 h-3 mr-1" /> Clear
+                      </Button>
+                    )}
+                  </div>
+                  <Textarea
+                    value={field.description || ''}
+                    onChange={(e) => onUpdate(id, { description: e.target.value })}
+                    placeholder="Enter optional description, instructions, or candidate guidance..."
+                    rows={2}
+                    className="text-sm bg-background text-foreground rounded-lg shadow-2xs resize-y"
+                  />
+                </div>
+              )}
             </div>
 
             {/* Question Image Configuration Drawer */}
@@ -1012,16 +1074,35 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
           {showLivePreview && (
             <div className="p-4 bg-muted/40 rounded-xl border border-primary/30 space-y-3 animate-in fade-in-50 duration-200">
               <div className="flex items-center justify-between border-b border-border/60 pb-2">
-                <span className="text-xs font-bold text-primary flex items-center gap-1.5">
-                  <Eye className="w-4 h-4" /> Live Interactive Preview & Validation Test
-                </span>
-                <span className="text-xs text-muted-foreground">Test how candidates interact with this field</span>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-xs font-bold text-primary flex items-center gap-1.5">
+                    <Eye className="w-4 h-4" /> Preview
+                  </span>
+                  <span className="text-sm font-bold text-foreground flex items-center">
+                    <span>{field.label || 'Untitled Question'}</span>
+                    {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
+                  </span>
+                </div>
+                <Badge variant="outline" className="text-xs font-mono">
+                  Preview Mode
+                </Badge>
               </div>
+
+              {/* Display Question Description / Instructions if present */}
+              {field.description && (
+                <div className="p-2.5 rounded-lg bg-primary/5 border border-primary/20 text-xs text-foreground flex items-start gap-2">
+                  <HelpCircle className="w-4 h-4 text-primary shrink-0 mt-0.5" />
+                  <span className="leading-relaxed">{field.description}</span>
+                </div>
+              )}
 
               {/* Phone / WhatsApp Interactive Live Tester */}
               {field.type === 'phone' && (
                 <div className="space-y-2 bg-background/60 p-3.5 rounded-lg border border-border">
-                  <Label className="text-sm font-semibold text-foreground">WhatsApp Preview:</Label>
+                  <Label className="text-sm font-semibold text-foreground flex items-center">
+                    <span>WhatsApp / Phone</span>
+                    {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
+                  </Label>
                   <div className="flex gap-2">
                     <Select value={previewTestCountry} onValueChange={setPreviewTestCountry}>
                       <SelectTrigger className="w-24 h-9 text-xs bg-background border-border">
@@ -1066,7 +1147,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                       <Star className="w-3.5 h-3.5 text-amber-400 fill-amber-400" />
-                      <span>Rating Scale (1 - 5):</span>
+                      <span>Rating Scale (1 - 5)</span>
+                      {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
                     </Label>
                     {previewRating > 0 && (
                       <button
@@ -1135,7 +1217,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {field.type === 'true_false' && (
                 <div className="space-y-3 bg-background/60 p-3.5 rounded-xl border border-border">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold text-foreground">True / False Preview:</Label>
+                    <Label className="text-sm font-semibold text-foreground flex items-center">
+                      <span>True / False</span>
+                      {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
+                    </Label>
                     {previewSelectedChoice && (
                       <button
                         type="button"
@@ -1147,7 +1232,13 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     )}
                   </div>
 
-                  <div className="grid grid-cols-2 gap-3 max-w-sm">
+                  <div className={`grid grid-cols-2 gap-3 max-w-sm ${
+                    field.choiceAlignment === 'center'
+                      ? 'mx-auto'
+                      : field.choiceAlignment === 'right'
+                      ? 'ml-auto'
+                      : ''
+                  }`}>
                     {['True', 'False'].map((val) => {
                       const isSelected = previewSelectedChoice === val;
                       return (
@@ -1197,7 +1288,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                       <CheckSquare className="w-3.5 h-3.5 text-primary" />
-                      <span>Multiple Choice Preview:</span>
+                      <span>Multiple Choice</span>
+                      {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
                     </Label>
                     {previewMultipleChoices.length > 0 && (
                       <button
@@ -1210,9 +1302,18 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className={`grid grid-cols-1 sm:grid-cols-2 gap-2 ${
+                    field.choiceAlignment === 'center'
+                      ? 'text-center'
+                      : field.choiceAlignment === 'right'
+                      ? 'text-right'
+                      : 'text-left'
+                  }`}>
                     {(field.options || []).map((opt, i) => {
                       const isChecked = previewMultipleChoices.includes(opt);
+                      const isCenter = field.choiceAlignment === 'center';
+                      const isRight = field.choiceAlignment === 'right';
+
                       return (
                         <button
                           key={i}
@@ -1224,13 +1325,19 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                               setPreviewMultipleChoices([...previewMultipleChoices, opt]);
                             }
                           }}
-                          className={`p-2.5 rounded-lg border text-left text-xs font-medium transition-all flex items-center justify-between ${
+                          className={`p-2.5 rounded-lg border text-xs font-medium transition-all flex items-center ${
+                            isCenter
+                              ? 'justify-center gap-2'
+                              : isRight
+                              ? 'justify-end flex-row-reverse gap-2'
+                              : 'justify-between'
+                          } ${
                             isChecked
                               ? 'bg-primary/20 border-primary text-primary font-bold shadow-xs'
                               : 'bg-card border-border hover:bg-accent/40 text-foreground'
                           }`}
                         >
-                          <div className="flex items-center gap-2">
+                          <div className={`flex items-center gap-2 ${isRight ? 'flex-row-reverse' : ''}`}>
                             <span className="font-mono text-muted-foreground">{String.fromCharCode(65 + i)}.</span>
                             <span>{opt}</span>
                           </div>
@@ -1262,7 +1369,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                       <CircleDot className="w-3.5 h-3.5 text-primary" />
-                      <span>Single Choice Preview:</span>
+                      <span>Single Choice</span>
+                      {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
                     </Label>
                     {previewSelectedChoice && (
                       <button
@@ -1275,21 +1383,36 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     )}
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <div className={`grid grid-cols-1 sm:grid-cols-2 gap-2 ${
+                    field.choiceAlignment === 'center'
+                      ? 'text-center'
+                      : field.choiceAlignment === 'right'
+                      ? 'text-right'
+                      : 'text-left'
+                  }`}>
                     {(field.options || []).map((opt, i) => {
                       const isSelected = previewSelectedChoice === opt;
+                      const isCenter = field.choiceAlignment === 'center';
+                      const isRight = field.choiceAlignment === 'right';
+
                       return (
                         <button
                           key={i}
                           type="button"
                           onClick={() => setPreviewSelectedChoice(opt)}
-                          className={`p-2.5 rounded-lg border text-left text-xs font-medium transition-all flex items-center justify-between ${
+                          className={`p-2.5 rounded-lg border text-xs font-medium transition-all flex items-center ${
+                            isCenter
+                              ? 'justify-center gap-2'
+                              : isRight
+                              ? 'justify-end flex-row-reverse gap-2'
+                              : 'justify-between'
+                          } ${
                             isSelected
                               ? 'bg-primary/20 border-primary text-primary font-bold shadow-xs'
                               : 'bg-card border-border hover:bg-accent/40 text-foreground'
                           }`}
                         >
-                          <div className="flex items-center gap-2">
+                          <div className={`flex items-center gap-2 ${isRight ? 'flex-row-reverse' : ''}`}>
                             <span className="font-mono text-muted-foreground">{String.fromCharCode(65 + i)}.</span>
                             <span>{opt}</span>
                           </div>
@@ -1327,7 +1450,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {/* Dropdown Select Interactive Preview */}
               {field.type === 'dropdown' && (
                 <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border max-w-md">
-                  <Label className="text-sm font-semibold text-foreground">Dropdown Preview:</Label>
+                  <Label className="text-sm font-semibold text-foreground flex items-center">
+                    <span>Dropdown</span>
+                    {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
+                  </Label>
                   <Select value={previewSelectedChoice} onValueChange={setPreviewSelectedChoice}>
                     <SelectTrigger className="w-full h-9 text-xs bg-background border-border">
                       <SelectValue placeholder={field.placeholder || 'Select an option...'} />
@@ -1353,7 +1479,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border max-w-sm">
                   <Label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                     <Calendar className="w-3.5 h-3.5 text-primary" />
-                    <span>Date Picker Preview:</span>
+                    <span>Date Picker</span>
+                    {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
                   </Label>
                   <Input
                     type="date"
@@ -1373,7 +1500,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {field.type === 'scale' && (
                 <div className="space-y-3 bg-background/60 p-3.5 rounded-xl border border-border">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold text-foreground">Scale (1 - 10):</Label>
+                    <Label className="text-sm font-semibold text-foreground flex items-center">
+                      <span>Scale (1 - 10)</span>
+                      {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
+                    </Label>
                     <span className="font-mono text-primary font-bold text-xs">{previewScale} / 10</span>
                   </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -1422,7 +1552,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                       <UploadCloud className="w-3.5 h-3.5 text-primary" />
-                      <span>Interactive File Dropzone Preview:</span>
+                      <span>File Upload</span>
+                      {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
                     </Label>
                     <span className="text-xs text-muted-foreground font-mono">
                       Max: {currentFileValidation.maxSizeMb || 10}MB ({(currentFileValidation.allowedExtensions || ['pdf', 'docx', 'zip', 'png']).map((e) => e.toUpperCase()).join(', ')})
@@ -1553,7 +1684,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {field.type === 'paragraph' && (
                 <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold text-foreground">Text Area Preview:</Label>
+                    <Label className="text-sm font-semibold text-foreground flex items-center">
+                      <span>Text Area / Paragraph</span>
+                      {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
+                    </Label>
                     <span className="text-xs text-muted-foreground font-mono">
                       {previewParagraph.length} chars • {previewParagraph.trim() ? previewParagraph.trim().split(/\s+/).length : 0} words
                     </span>
@@ -1586,8 +1720,9 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {(field.type === 'short_answer' || field.type === 'email' || field.type === 'regex_text') && (
                 <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border">
                   <div className="flex items-center justify-between">
-                    <Label className="text-sm font-semibold text-foreground">
-                      {field.type === 'email' ? 'Email Preview:' : 'Input Preview:'}
+                    <Label className="text-sm font-semibold text-foreground flex items-center">
+                      <span>{field.type === 'email' ? 'Email Address' : 'Input'}</span>
+                      {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
                     </Label>
                     {testInputValue && (
                       <button
@@ -1627,7 +1762,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <div className="flex items-center justify-between">
                     <Label className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                       <Video className="w-3.5 h-3.5 text-rose-500" />
-                      <span>Video Stream Preview:</span>
+                      <span>Video Stream</span>
+                      {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
                     </Label>
                     {field.videoUrl && (
                       <Button
@@ -1694,7 +1830,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               {/* Fallback Simulation for Other Field Types (Never Blank) */}
               {!['phone', 'multiple_choice', 'single_choice', 'dropdown', 'rating', 'true_false', 'paragraph', 'short_answer', 'email', 'regex_text', 'date', 'scale', 'link', 'file_upload', 'video'].includes(field.type) && (
                 <div className="space-y-2 bg-background/60 p-3.5 rounded-xl border border-border">
-                  <Label className="text-sm font-semibold text-foreground">Field Preview:</Label>
+                  <Label className="text-sm font-semibold text-foreground flex items-center">
+                    <span>Field Preview</span>
+                    {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
+                  </Label>
                   <Input
                     value={testInputValue}
                     onChange={(e) => setTestInputValue(e.target.value)}
@@ -2078,11 +2217,30 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     </Badge>
                   )}
                 </div>
-                {isQuiz && (
-                  <span className="text-xs text-muted-foreground font-mono">
-                    Click "Mark Correct" on one or more options for auto-grading
-                  </span>
-                )}
+
+                {/* Choice Alignment Options: Left, Center, Right */}
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-muted-foreground">Alignment:</span>
+                  <div className="flex items-center rounded-lg border border-border bg-background p-0.5 shadow-2xs">
+                    {(['left', 'center', 'right'] as const).map((align) => {
+                      const isSelected = (field.choiceAlignment || 'left') === align;
+                      return (
+                        <button
+                          key={align}
+                          type="button"
+                          onClick={() => onUpdate(id, { choiceAlignment: align })}
+                          className={`px-2.5 py-1 text-xs font-medium rounded-md capitalize transition-colors ${
+                            isSelected
+                              ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          {align}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
 
               <div className="space-y-3">
@@ -2217,40 +2375,72 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             </div>
           )}
 
-          {/* True / False Specific Correct Answer */}
-          {field.type === 'true_false' && isQuiz && (
-            <div className="flex items-center gap-4 p-3.5 bg-muted/20 rounded-xl border border-border">
-              <Label className="text-sm font-semibold text-foreground">Correct Answer:</Label>
-              <div className="flex gap-2">
-                {['True', 'False'].map((val) => {
-                  const isSelected = field.correctAnswer === val;
-
-                  return (
-                    <Button
-                      key={val}
-                      type="button"
-                      variant={isSelected ? 'default' : 'outline'}
-                      size="sm"
-                      className={`h-8 w-24 justify-center text-sm font-semibold transition-all ${
-                        isSelected
-                          ? val === 'True'
-                            ? 'bg-emerald-600 text-white hover:bg-emerald-700'
-                            : 'bg-rose-600 text-white hover:bg-rose-700'
-                          : 'text-muted-foreground'
-                      }`}
-                      onClick={() =>
-                        onUpdate(id, {
-                          correctAnswer: val,
-                          correctAnswers: [val],
-                          options: ['True', 'False'],
-                        })
-                      }
-                    >
-                      {val}
-                    </Button>
-                  );
-                })}
+          {/* True / False Configuration & Choice Alignment */}
+          {field.type === 'true_false' && (
+            <div className="p-3.5 bg-muted/20 rounded-xl border border-border space-y-3">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <Label className="text-base font-bold text-foreground">
+                  True / False Options
+                </Label>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-semibold text-muted-foreground">Alignment:</span>
+                  <div className="flex items-center rounded-lg border border-border bg-background p-0.5 shadow-2xs">
+                    {(['left', 'center', 'right'] as const).map((align) => {
+                      const isSelected = (field.choiceAlignment || 'left') === align;
+                      return (
+                        <button
+                          key={align}
+                          type="button"
+                          onClick={() => onUpdate(id, { choiceAlignment: align })}
+                          className={`px-2.5 py-1 text-xs font-medium rounded-md capitalize transition-colors ${
+                            isSelected
+                              ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                              : 'text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          {align}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
+
+              {isQuiz && (
+                <div className="flex items-center gap-3 pt-1">
+                  <Label className="text-sm font-semibold text-foreground">Correct Answer:</Label>
+                  <div className="flex gap-2">
+                    {['True', 'False'].map((val) => {
+                      const isSelected = field.correctAnswer === val;
+
+                      return (
+                        <Button
+                          key={val}
+                          type="button"
+                          variant={isSelected ? 'default' : 'outline'}
+                          size="sm"
+                          className={`h-8 w-24 justify-center text-sm font-semibold transition-all ${
+                            isSelected
+                              ? val === 'True'
+                                ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                                : 'bg-rose-600 text-white hover:bg-rose-700'
+                              : 'text-muted-foreground'
+                          }`}
+                          onClick={() =>
+                            onUpdate(id, {
+                              correctAnswer: val,
+                              correctAnswers: [val],
+                              options: ['True', 'False'],
+                            })
+                          }
+                        >
+                          {val}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -2278,10 +2468,11 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
         {/* Card Footer: Bottom toolbar dividing settings cleanly */}
         <CardFooter className="py-3.5 px-5 sm:px-6 border-t border-border/60 bg-muted/10 flex flex-wrap items-center justify-between gap-3 rounded-b-2xl">
           <div className="flex items-center gap-4 flex-wrap">
-            {/* Required switch with clear label (text-sm font-semibold) */}
+            {/* Required switch with clear label (text-sm font-semibold) and red asterisk */}
             <div className="flex items-center gap-2">
-              <Label htmlFor={`footer-req-${id}`} className="text-sm font-semibold cursor-pointer">
-                Required
+              <Label htmlFor={`footer-req-${id}`} className="text-sm font-semibold cursor-pointer flex items-center">
+                <span>Required</span>
+                {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
               </Label>
               <Switch
                 id={`footer-req-${id}`}
@@ -2305,6 +2496,34 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   className="w-20 h-9 text-sm font-semibold font-mono bg-background text-center rounded-lg shadow-2xs"
                   min={1}
                 />
+              </div>
+            )}
+
+            {/* Choice / True-False Alignment Selector (text-sm) */}
+            {(isChoiceField || field.type === 'true_false') && (
+              <div className="flex items-center gap-2 border-l border-border/50 pl-4">
+                <Label className="text-sm font-semibold text-muted-foreground">
+                  Align:
+                </Label>
+                <div className="flex items-center rounded-lg border border-border bg-background p-0.5 shadow-2xs">
+                  {(['left', 'center', 'right'] as const).map((align) => {
+                    const isSelected = (field.choiceAlignment || 'left') === align;
+                    return (
+                      <button
+                        key={align}
+                        type="button"
+                        onClick={() => onUpdate(id, { choiceAlignment: align })}
+                        className={`px-2 py-0.5 text-xs font-medium rounded capitalize transition-colors ${
+                          isSelected
+                            ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                      >
+                        {align}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
 

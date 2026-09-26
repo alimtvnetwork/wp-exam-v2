@@ -11,6 +11,8 @@ Master directory of architectural and execution plans.
 
 ## Completed Plans
 
+- [64-wpexam-ui-ux-enhancements.md](completed/64-wpexam-ui-ux-enhancements.md): WP Exam UI/UX Comprehensive Redesign & Interactive Enhancement (Poppins/Ubuntu typography, phone country flag selector, mandatory red asterisks, 15 searchable roles, ⚡ Test Fill & Next engine, debug simulator, Green Choice theme & Radix select fix; 86/86 tests passed).
+
 - [62-v2-audit-verification-and-ui-fluidity.md](completed/62-v2-audit-verification-and-ui-fluidity.md): V2 Full Verification, Slug Hierarchy, File Upload Engine, Modern UI & Fluid Theming (74/74 tests passed).
 - [61-slug-management-file-upload-ai-schema-theming.md](completed/61-slug-management-file-upload-ai-schema-theming.md): Visual Slug Management Inspector ribbon & canonical URLs, interactive runner file upload dropzone & live diagnostics, modern Required badge redesign, question AI instruction studio & 1-click JSON import/export, and fluid HSL theming with button hover micro-interactions (71/71 tests passed).
 - [60-slug-routing-file-upload-validation-and-theming.md](completed/60-slug-routing-file-upload-validation-and-theming.md): Live browser address bar URL sync (/admin/form/:slug), dedicated file upload validation engine & interactive dropzone verification, 1-click cross-section mover submenu, and fluid CSS theming transitions (71/71 tests passed).

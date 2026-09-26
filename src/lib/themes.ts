@@ -72,9 +72,50 @@ export const THEME_PRESETS: Record<string, ThemeDefinition> = {
     },
   },
 
+  'green-choice': {
+    id: 'green-choice',
+    name: 'Green Choice (Emerald Eco-Luxury)',
+    description: 'Modern botanical editorial theme with lush emerald green, soft sage surfaces, obsidian spruce typography, and zero-clash harmony.',
+    appearance: 'light',
+    colors: {
+      background: '#F4F8F5',
+      cardBg: '#FFFFFF',
+      cardBorder: '#E1EAE5',
+      cardHover: '#F0FDF4',
+      cardActiveBorder: '#16A34A',
+      cardActiveBg: '#DCFCE7',
+      primary: '#16A34A',
+      primaryText: '#FFFFFF',
+      highlightWord: '#16A34A',
+      textPrimary: '#13201B',
+      textSecondary: '#6A7F75',
+      progressBar: '#16A34A',
+      badgeBg: '#DCFCE7',
+    },
+    hslValues: {
+      '--primary': '142 71% 45%',
+      '--primary-foreground': '0 0% 100%',
+      '--background': '140 20% 97%',
+      '--foreground': '160 20% 10%',
+      '--card': '0 0% 100%',
+      '--card-foreground': '160 20% 10%',
+      '--popover': '0 0% 100%',
+      '--popover-foreground': '160 20% 10%',
+      '--border': '150 13% 91%',
+      '--input': '150 13% 91%',
+      '--ring': '142 71% 45%',
+      '--accent': '142 60% 93%',
+      '--accent-foreground': '142 71% 30%',
+      '--secondary': '142 60% 93%',
+      '--secondary-foreground': '142 71% 30%',
+      '--muted': '150 14% 96%',
+      '--muted-foreground': '160 9% 46%',
+    },
+  },
+
   'sweet-digs': {
     id: 'sweet-digs',
-    name: 'Sweet Digs (Emerald Eco-Luxury)',
+    name: 'Green Choice (Emerald Eco-Luxury)',
     description: 'Modern botanical editorial theme with lush emerald green, soft sage surfaces, obsidian spruce typography, and zero-clash harmony.',
     appearance: 'light',
     colors: {
@@ -331,16 +372,19 @@ export const THEME_ALIASES: Record<string, string> = {
   'wide-white': 'clean-wide',
   sweet: 'sweet-digs',
   'sweet-digs-finder': 'sweet-digs',
+  'sweet-digs': 'sweet-digs',
   emerald: 'sweet-digs',
+  'green-choice': 'green-choice',
+  green: 'green-choice',
 };
 
-export const DEFAULT_THEME_ID = 'sweet-digs';
+export const DEFAULT_THEME_ID = 'green-choice';
 
 export function getTheme(id: string): ThemeDefinition {
   const normalizedId = THEME_ALIASES[id] || id;
   const hasPreset = Boolean(THEME_PRESETS[normalizedId]);
 
-  return hasPreset ? THEME_PRESETS[normalizedId] : THEME_PRESETS['sweet-digs'];
+  return hasPreset ? THEME_PRESETS[normalizedId] : THEME_PRESETS['green-choice'];
 }
 
 export function getThemeCssVariables(theme: ThemeDefinition): Record<string, string> {

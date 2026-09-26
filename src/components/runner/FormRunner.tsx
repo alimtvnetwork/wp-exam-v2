@@ -31,7 +31,11 @@ import {
   Video,
   Film,
   Zap,
+  Sparkles,
+  Bug,
+  HelpCircle,
 } from 'lucide-react';
+import { PhoneWithCountrySelect } from '@/components/ui/phone-input';
 import { toast } from 'sonner';
 import { getTheme, getThemeCssVariables, THEME_PRESETS } from '@/lib/themes';
 import {
@@ -247,14 +251,16 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const urlTheme = params.get('theme');
-      if (urlTheme && (THEME_PRESETS[urlTheme] || urlTheme === 'sweet-digs' || urlTheme === 'clean-wide')) {
+      if (urlTheme && (THEME_PRESETS[urlTheme] || urlTheme === 'green-choice' || urlTheme === 'sweet-digs' || urlTheme === 'clean-wide')) {
         return urlTheme;
       }
     }
-    return 'sweet-digs';
+    return 'green-choice';
   });
   const currentTheme = getTheme(activeThemeId);
   const themeVars = getThemeCssVariables(currentTheme);
+
+  const [isDebugMode, setIsDebugMode] = useState<boolean>(false);
 
   const activeForm: FormModel = useMemo(() => {
     if (selectedProjectId === 'custom-active') {
@@ -275,6 +281,60 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const [authMessage, setAuthMessage] = useState<string | null>(null);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [result, setResult] = useState<FormSubmissionResult | null>(null);
+
+  const handleTestAutoFill = () => {
+    if (isSequential && currentField) {
+      let mockVal: unknown = 'Sample Response';
+      if (currentField.type === 'multiple_choice') {
+        mockVal = currentField.correctAnswer ? [currentField.correctAnswer] : currentField.options?.slice(0, 1) || ['A'];
+      } else if (currentField.type === 'single_choice' || currentField.type === 'true_false') {
+        mockVal = currentField.correctAnswer || currentField.options?.[0] || 'True';
+      } else if (currentField.type === 'rating') {
+        mockVal = 5;
+      } else if (currentField.type === 'dropdown') {
+        mockVal = currentField.correctAnswer || currentField.options?.[0] || '';
+      } else if (currentField.type === 'email') {
+        mockVal = 'candidate.test@example.com';
+      } else if (currentField.type === 'phone' || currentField.type === 'whatsapp') {
+        mockVal = '+880 1712345678';
+      } else if (currentField.type === 'regex_text') {
+        mockVal = 'STU-2026-1024';
+      } else if (currentField.type === 'file_upload') {
+        mockVal = { fileName: 'resume-portfolio.pdf', fileSizeMb: 1.5 };
+      }
+      handleAnswerChange(currentField.id, mockVal);
+      toast.success(`⚡ Auto-filled Question #${currentStep + 1}`);
+      setTimeout(() => {
+        handleNextStep();
+      }, 250);
+      return;
+    }
+
+    const newAnswers: Record<string, unknown> = { ...answers };
+    fields.forEach((f) => {
+      if (!newAnswers[f.id]) {
+        if (f.type === 'multiple_choice') {
+          newAnswers[f.id] = f.correctAnswer ? [f.correctAnswer] : f.options?.slice(0, 1) || ['A'];
+        } else if (f.type === 'single_choice' || f.type === 'true_false') {
+          newAnswers[f.id] = f.correctAnswer || f.options?.[0] || 'True';
+        } else if (f.type === 'rating') {
+          newAnswers[f.id] = 5;
+        } else if (f.type === 'dropdown') {
+          newAnswers[f.id] = f.correctAnswer || f.options?.[0] || '';
+        } else if (f.type === 'email') {
+          newAnswers[f.id] = 'candidate.test@example.com';
+        } else if (f.type === 'phone' || f.type === 'whatsapp') {
+          newAnswers[f.id] = '+880 1712345678';
+        } else if (f.type === 'regex_text') {
+          newAnswers[f.id] = 'STU-2026-1024';
+        } else {
+          newAnswers[f.id] = `Valid Response for ${f.label}`;
+        }
+      }
+    });
+    setAnswers(newAnswers);
+    toast.success('⚡ Auto-filled all questions!');
+  };
 
   useEffect(() => {
     if (session.isAuthenticated) {
@@ -823,6 +883,22 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             <span>Auto Fill</span>
           </Button>
 
+          <Button
+            type="button"
+            variant={isDebugMode ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setIsDebugMode(!isDebugMode)}
+            className={`text-sm h-9 px-3.5 gap-2 font-semibold border shadow-xs transition-all cursor-pointer ${
+              isDebugMode
+                ? 'bg-amber-600 hover:bg-amber-700 text-white border-amber-600'
+                : 'border-border bg-card text-foreground hover:bg-amber-500/10 hover:text-amber-600 hover:border-amber-500/40'
+            }`}
+            title="Toggle Debug Simulator & Step Jumper"
+          >
+            <Bug className="w-4 h-4 text-amber-500" />
+            <span>Debug</span>
+          </Button>
+
           {onClose && (
             <Button
               variant="outline"
@@ -893,6 +969,65 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
         </div>
       )}
 
+      {/* Debug Mode Simulator & Step Jumper Panel */}
+      {isDebugMode && (
+        <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs space-y-3 animate-in fade-in duration-150">
+          <div className="flex items-center justify-between">
+            <span className="font-bold flex items-center gap-1.5 font-heading">
+              <Bug className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+              Developer Debug Simulator &amp; Field Inspector
+            </span>
+            <span className="font-mono text-muted-foreground">
+              {isSequential ? `Question ${currentStep + 1} of ${fields.length}` : `${fields.length} Fields`}
+            </span>
+          </div>
+
+          {isSequential && fields.length > 1 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="font-semibold text-muted-foreground">Jump Step:</span>
+              {fields.map((f, idx) => (
+                <Button
+                  key={f.id}
+                  type="button"
+                  size="sm"
+                  variant={currentStep === idx ? 'default' : 'outline'}
+                  onClick={() => setCurrentStep(idx)}
+                  className={`h-7 px-2.5 text-xs font-mono font-semibold rounded-lg ${
+                    currentStep === idx ? 'bg-amber-600 text-white' : 'border-border/80'
+                  }`}
+                >
+                  #{idx + 1}
+                </Button>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-wrap items-center gap-2 pt-1 border-t border-amber-500/20 text-xs">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleTestAutoFill}
+              className="h-7 px-2.5 text-xs font-bold border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20"
+            >
+              ⚡ Fill &amp; Advance Current
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={handleAutoFill}
+              className="h-7 px-2.5 text-xs font-bold border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300 hover:bg-amber-500/20"
+            >
+              ⚡ Fill All Questions
+            </Button>
+            <span className="text-muted-foreground font-mono">
+              Payload: {Object.keys(answers).length} answers recorded
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Sequential Wizard Runner */}
       {isSequential && currentField ? (
         <Card className={`w-full ${activeThemeId === 'clean-wide' ? 'max-w-4xl' : 'max-w-3xl'} mx-auto border border-border shadow-xl bg-card text-card-foreground rounded-2xl overflow-hidden animate-in fade-in duration-150`}>
@@ -910,7 +1045,12 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               )}
               className="h-2 mb-2 bg-secondary"
             />
-            <CardTitle className="text-xl sm:text-2xl font-bold tracking-tight text-foreground leading-snug">{currentField.label}</CardTitle>
+            <CardTitle className="text-xl sm:text-2xl font-bold tracking-tight text-foreground leading-snug">
+              {currentField.label}
+              {isCurrentFieldRequired && (
+                <span className="text-destructive text-red-500 font-bold ml-1.5" title="Mandatory Response">*</span>
+              )}
+            </CardTitle>
             {isCurrentFieldRequired && (
               <Badge variant="outline" className="text-xs font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1.5 w-fit mt-2 font-semibold">
                 <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
@@ -946,15 +1086,27 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             {renderFieldInput(currentField, answers[currentField.id], (val) => handleAnswerChange(currentField.id, val))}
 
             <div className="flex justify-between items-center pt-4 border-t border-border">
-              <Button
-                variant="outline"
-                size="sm"
-                disabled={currentStep === 0}
-                onClick={handlePreviousStep}
-                className="text-sm h-9 px-4 font-medium border-border hover:bg-accent cursor-pointer"
-              >
-                Previous
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={currentStep === 0}
+                  onClick={handlePreviousStep}
+                  className="text-sm h-9 px-4 font-medium border-border hover:bg-accent cursor-pointer"
+                >
+                  Previous
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTestAutoFill}
+                  className="text-xs h-9 px-3.5 font-bold rounded-xl border border-primary/40 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer"
+                  title="Fill valid answer and advance immediately"
+                >
+                  ⚡ Test Fill &amp; Next
+                </Button>
+              </div>
 
               {isLastVisibleStep ? (
                 <Button size="sm" onClick={handleNextStep} className="text-sm h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer">
@@ -1011,7 +1163,12 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 return (
                   <div key={f.id} className="p-5 sm:p-6 rounded-2xl border border-border bg-card space-y-4">
                     <label className="font-semibold text-base sm:text-lg flex items-center justify-between gap-2">
-                      <span className="text-foreground">{idx + 1}. {f.label}</span>
+                      <span className="text-foreground">
+                        {idx + 1}. {f.label}
+                        {isFieldRequired && (
+                          <span className="text-destructive text-red-500 font-bold ml-1.5" title="Mandatory Response">*</span>
+                        )}
+                      </span>
                       {isFieldRequired ? (
                         <Badge variant="outline" className="text-xs font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 flex items-center gap-1 shrink-0 font-semibold">
                           <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
@@ -1635,17 +1792,26 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
       );
     }
 
+    case 'phone':
+    case 'whatsapp':
+      return (
+        <PhoneWithCountrySelect
+          value={strValue}
+          onChange={(val) => onChange(val)}
+          placeholder={field.placeholder}
+        />
+      );
+
     case 'short_answer':
     case 'email':
-    case 'phone':
     default:
       return (
         <Input
-          type={field.type === 'email' ? 'email' : field.type === 'phone' ? 'tel' : 'text'}
+          type={field.type === 'email' ? 'email' : 'text'}
           value={strValue}
           onChange={(e) => onChange(e.target.value)}
           placeholder={field.placeholder || 'Enter your response...'}
-          className="text-xs bg-background h-8"
+          className="text-sm bg-background h-10 rounded-xl"
         />
       );
   }
