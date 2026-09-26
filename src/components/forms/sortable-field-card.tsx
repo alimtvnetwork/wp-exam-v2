@@ -888,7 +888,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 htmlFor={`field-title-${id}`}
                 className={`absolute pointer-events-none transition-all duration-300 ease-out select-none flex items-center gap-1 whitespace-nowrap top-1/2 -translate-y-1/2 font-sans ${
                   isTitleFocused || (field.label && field.label.trim().length > 0)
-                    ? 'text-xs font-semibold text-muted-foreground opacity-85'
+                    ? 'text-xs font-medium text-muted-foreground opacity-85'
                     : 'text-sm sm:text-base font-medium text-muted-foreground/75 opacity-90'
                 }`}
                 style={{
@@ -1591,7 +1591,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                               key={val}
                               type="button"
                               onClick={() => setPreviewSelectedChoice(val)}
-                              className={`p-3 rounded-xl border text-center text-xs font-bold transition-all flex items-center justify-center gap-2 ${
+                              className={`p-3 rounded-xl border text-center text-sm font-medium font-sans transition-all flex items-center justify-center gap-2 ${
                                 isSelected
                                   ? idx === 0
                                     ? 'border-emerald-500 bg-emerald-500/20 text-emerald-400 shadow-xs'
@@ -2617,11 +2617,11 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             <div className="p-4 bg-muted/20 rounded-xl space-y-3.5 border border-border/80">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
-                  <Label className="text-base font-bold text-foreground">
+                  <Label className="text-sm sm:text-base font-medium font-sans text-foreground">
                     Selectable Options & Answers
                   </Label>
                   {isQuiz && (field.correctAnswers?.length || 0) > 0 && (
-                    <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30 font-semibold px-2.5 py-0.5">
+                    <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30 font-medium font-sans px-2.5 py-0.5">
                       {field.correctAnswers?.length} Correct Answer{(field.correctAnswers?.length || 0) > 1 ? 's' : ''} Configured
                     </Badge>
                   )}
@@ -2629,7 +2629,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
                 {/* Choice Alignment Options: Left, Center, Right */}
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-muted-foreground">Alignment:</span>
+                  <span className="text-xs font-medium font-sans text-muted-foreground">Alignment:</span>
                   <div className="flex items-center rounded-lg border border-border bg-background p-0.5 shadow-2xs">
                     {(['left', 'center', 'right'] as const).map((align) => {
                       const isSelected = (field.choiceAlignment || 'left') === align;
@@ -2638,9 +2638,9 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                           key={align}
                           type="button"
                           onClick={() => onUpdate(id, { choiceAlignment: align })}
-                          className={`px-2.5 py-1 text-xs font-medium rounded-md capitalize transition-colors ${
+                          className={`px-2.5 py-1 text-xs font-medium font-sans rounded-md capitalize transition-colors ${
                             isSelected
-                              ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                              ? 'bg-primary text-primary-foreground font-medium font-sans shadow-xs'
                               : 'text-muted-foreground hover:text-foreground'
                           }`}
                         >
@@ -2687,7 +2687,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                           type="button"
                           variant="outline"
                           size="sm"
-                          className={`h-11 px-4 shrink-0 text-sm font-semibold transition-all duration-150 rounded-lg flex items-center gap-2 cursor-pointer ${
+                          className={`h-11 px-4 shrink-0 text-sm font-medium font-sans transition-all duration-150 rounded-lg flex items-center gap-2 cursor-pointer ${
                             isCorrect
                               ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90 shadow-xs'
                               : 'bg-background hover:bg-primary/10 hover:border-primary/50 hover:text-primary text-muted-foreground border-border/80'
@@ -2789,7 +2789,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             <div className="p-4 bg-muted/20 rounded-xl border border-border/80 space-y-3.5">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
-                  <Label className="text-base font-bold text-foreground">
+                  <Label className="text-sm sm:text-base font-medium font-sans text-foreground">
                     Boolean Display Preset
                   </Label>
                   <Select
@@ -2823,7 +2823,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-muted-foreground">Alignment:</span>
+                  <span className="text-xs font-medium font-sans text-muted-foreground">Alignment:</span>
                   <div className="flex items-center rounded-lg border border-border bg-background p-0.5 shadow-2xs">
                     {(['left', 'center', 'right'] as const).map((align) => {
                       const isSelected = (field.choiceAlignment || 'left') === align;
@@ -2832,9 +2832,9 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                           key={align}
                           type="button"
                           onClick={() => onUpdate(id, { choiceAlignment: align })}
-                          className={`px-2.5 py-1 text-xs font-medium rounded-md capitalize transition-colors ${
+                          className={`px-2.5 py-1 text-xs font-medium font-sans rounded-md capitalize transition-colors ${
                             isSelected
-                              ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                              ? 'bg-primary text-primary-foreground font-medium font-sans shadow-xs'
                               : 'text-muted-foreground hover:text-foreground'
                           }`}
                         >
@@ -2848,7 +2848,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
               {isQuiz && (
                 <div className="flex items-center gap-3 pt-1">
-                  <Label className="text-sm font-semibold text-foreground">Correct Answer:</Label>
+                  <Label className="text-sm font-medium font-sans text-foreground">Correct Answer:</Label>
                   <div className="flex gap-2">
                     {(() => {
                       const preset = field.booleanDisplay || 'true_false';
@@ -2867,7 +2867,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                             type="button"
                             variant={isSelected ? 'default' : 'outline'}
                             size="sm"
-                            className={`h-9 min-w-24 px-4 justify-center text-sm font-semibold transition-all rounded-lg cursor-pointer ${
+                            className={`h-9 min-w-24 px-4 justify-center text-sm font-medium font-sans transition-all rounded-lg cursor-pointer ${
                               isSelected
                                 ? idx === 0
                                   ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs'
@@ -2898,7 +2898,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
           {isRatingField && (
             <div className="p-4 bg-muted/20 rounded-xl border border-border/80 space-y-4 font-sans">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <Label className="text-base font-bold text-foreground flex items-center gap-1.5 font-sans">
+                <Label className="text-sm sm:text-base font-medium text-foreground flex items-center gap-1.5 font-sans">
                   <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
                   <span>Rating Scale & Display Configuration</span>
                 </Label>
@@ -3017,7 +3017,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
           {isListItemsField && (
             <div className="p-4 bg-muted/20 rounded-xl border border-border/80 space-y-3.5">
               <div className="flex items-center justify-between flex-wrap gap-2">
-                <Label className="text-base font-bold text-foreground flex items-center gap-1.5">
+                <Label className="text-sm sm:text-base font-medium text-foreground flex items-center gap-1.5 font-sans">
                   <ListOrdered className="w-4 h-4 text-primary" />
                   <span>List of Items Autocomplete Suggestions</span>
                 </Label>

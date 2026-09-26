@@ -2157,10 +2157,10 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 ${alignClass} ${
+                className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-medium font-sans cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 ${alignClass} ${
                   isSelected
-                    ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
-                    : 'border-border bg-card text-foreground'
+                    ? 'border-primary bg-primary/10 text-primary font-medium font-sans shadow-xs'
+                    : 'border-border bg-card text-foreground font-sans'
                 }`}
               >
                 <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono text-sm font-bold shrink-0 transition-colors ${
