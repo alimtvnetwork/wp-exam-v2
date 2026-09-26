@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 
-export type AppThemeType = 'riseup' | 'dracula' | 'purple' | 'obsidian' | 'clean' | 'clean-wide';
+export type AppThemeType = 'riseup' | 'dracula' | 'purple' | 'obsidian' | 'clean' | 'clean-wide' | 'sweet-digs';
 
 export interface ThemeConfig {
   id: AppThemeType;
@@ -24,6 +24,36 @@ export interface ThemeConfig {
 }
 
 export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
+  'sweet-digs': {
+    id: 'sweet-digs',
+    name: 'Sweet Digs',
+    tagline: 'Emerald Eco-Luxury & Warm Sage',
+    primaryColor: '#16A34A',
+    bgColor: '#F4F8F5',
+    cardColor: '#FFFFFF',
+    borderColor: '#E1EAE5',
+    accentColor: '#16A34A',
+    badgeClass: 'bg-emerald-50 text-emerald-800 border-emerald-200',
+    hslValues: {
+      '--primary': '142 71% 45%',
+      '--primary-foreground': '0 0% 100%',
+      '--background': '140 20% 97%',
+      '--foreground': '160 20% 10%',
+      '--card': '0 0% 100%',
+      '--card-foreground': '160 20% 10%',
+      '--popover': '0 0% 100%',
+      '--popover-foreground': '160 20% 10%',
+      '--border': '150 13% 91%',
+      '--input': '150 13% 91%',
+      '--ring': '142 71% 45%',
+      '--accent': '142 60% 93%',
+      '--accent-foreground': '142 71% 30%',
+      '--secondary': '142 60% 93%',
+      '--secondary-foreground': '142 71% 30%',
+      '--muted': '150 14% 96%',
+      '--muted-foreground': '160 9% 46%',
+    },
+  },
   'clean-wide': {
     id: 'clean-wide',
     name: 'Clean Wide White',
@@ -255,7 +285,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
     }
 
-    if (theme === 'clean' || theme === 'clean-wide') {
+    if (theme === 'clean' || theme === 'clean-wide' || theme === 'sweet-digs') {
       root.classList.remove('dark');
       root.classList.add('light');
     } else {

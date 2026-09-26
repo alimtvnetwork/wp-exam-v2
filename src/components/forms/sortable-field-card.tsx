@@ -386,16 +386,16 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   }
 
   return (
-    <div ref={setNodeRef} style={style} className="relative group/card mb-3.5">
+    <div ref={setNodeRef} style={style} className="relative group/card mb-5">
       <Card
-        className={`transition-all duration-200 border bg-card ${
+        className={`transition-all duration-200 border bg-card rounded-2xl ${
           isDragging
             ? 'shadow-2xl ring-2 ring-primary border-primary/80 bg-card/95'
             : 'border-border/80 hover:border-primary/40 shadow-xs hover:shadow-md'
         }`}
       >
         {/* Card Header: Drag Handle + Question # on left, Field Type Select on right */}
-        <CardHeader className="py-3 px-4 flex flex-row items-center justify-between border-b border-border/60 bg-muted/15 space-y-0 gap-3">
+        <CardHeader className="py-3.5 px-5 sm:px-6 flex flex-row items-center justify-between border-b border-border/60 bg-muted/15 space-y-0 gap-3 rounded-t-2xl">
           <div className="flex items-center gap-2.5 flex-wrap">
             {/* Dedicated Drag Handle */}
             <div
@@ -688,7 +688,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
         </CardHeader>
 
         {/* Card Content & Question Editor */}
-        <CardContent className="space-y-4 p-4">
+        <CardContent className="space-y-5 p-5 sm:p-6">
           {/* Inline Design Diagnostics Notice */}
           {designIssues && designIssues.length > 0 && (
             <div
@@ -2276,7 +2276,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
         </CardContent>
 
         {/* Card Footer: Bottom toolbar dividing settings cleanly */}
-        <CardFooter className="py-3 px-4 border-t border-border/60 bg-muted/10 flex flex-wrap items-center justify-between gap-3">
+        <CardFooter className="py-3.5 px-5 sm:px-6 border-t border-border/60 bg-muted/10 flex flex-wrap items-center justify-between gap-3 rounded-b-2xl">
           <div className="flex items-center gap-4 flex-wrap">
             {/* Required switch with clear label (text-sm font-semibold) */}
             <div className="flex items-center gap-2">

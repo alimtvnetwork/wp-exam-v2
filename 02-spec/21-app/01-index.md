@@ -54,6 +54,7 @@ App-specific specification content for the WP Exam plugin. This engine provides 
 | 52 | [52-slug-routing-file-upload-preview-and-ai-studio/01-overview.md](./52-slug-routing-file-upload-preview-and-ai-studio/01-overview.md) | Slug Routing, File Upload Preview, AI Studio & Theme Engine | Complete |
 | 61 | [61-slug-management-file-upload-ai-schema-theming.md](./61-slug-management-file-upload-ai-schema-theming.md) | Comprehensive Slug Management, File Upload Engine & Theming | Complete |
 | 62 | [62-v2-audit-verification-and-ui-fluidity.md](./62-v2-audit-verification-and-ui-fluidity.md) | V2 Full Verification, Slug Hierarchy, File Upload & UI Fluidity | Complete |
+| 10 | [10-sweet-digs-luxury-theme.md](./10-sweet-digs-luxury-theme.md) | Sweet Digs Eco-Luxury Editorial Theme & Motion Architecture | Complete |
 
 ---
 

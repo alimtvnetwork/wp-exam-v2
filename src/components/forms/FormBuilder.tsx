@@ -583,8 +583,8 @@ export const FormBuilder: React.FC = () => {
         <div className="lg:col-span-8 space-y-5">
           {/* Prominent Google Forms Header Card */}
           <Card className="border-border bg-card shadow-sm rounded-xl overflow-hidden">
-            {/* Top Accent Gradient Ribbon */}
-            <div className="h-2.5 bg-gradient-to-r from-primary via-indigo-500 to-purple-600 w-full" />
+            {/* Top Accent Ribbon (Dynamic Theme Tint) */}
+            <div className="h-2 bg-gradient-to-r from-primary via-primary/80 to-primary/60 w-full" />
 
             <CardContent className="p-5 sm:p-6 space-y-4">
               {/* Form Title & Description */}

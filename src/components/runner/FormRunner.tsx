@@ -1009,7 +1009,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 const isFieldRequired = evaluateFieldRequired(f, answers, fields);
 
                 return (
-                  <div key={f.id} className="p-4 sm:p-5 rounded-xl border border-border bg-card space-y-3">
+                  <div key={f.id} className="p-5 sm:p-6 rounded-2xl border border-border bg-card space-y-4">
                     <label className="font-semibold text-base sm:text-lg flex items-center justify-between gap-2">
                       <span className="text-foreground">{idx + 1}. {f.label}</span>
                       {isFieldRequired ? (

@@ -268,3 +268,123 @@
   background-color: var(--wp-exam-bg);
   color: var(--wp-exam-text-primary);
 }
+
+/* ══════════════════════════════════════════════════════════════
+   Sweet Digs (Eco-Luxury Editorial / Botanical Emerald)
+   Influenced by Sweet Digs Finder design system
+   ══════════════════════════════════════════════════════════════ */
+.theme-sweet-digs,
+[data-theme="sweet-digs"] {
+  --primary: 142 71% 45%;
+  --primary-foreground: 0 0% 100%;
+  --background: 140 20% 97%;
+  --foreground: 160 20% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 160 20% 10%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 160 20% 10%;
+  --border: 150 13% 91%;
+  --input: 150 13% 91%;
+  --muted: 150 14% 96%;
+  --muted-foreground: 160 9% 46%;
+  --accent: 142 60% 93%;
+  --accent-foreground: 142 71% 30%;
+  --secondary: 142 60% 93%;
+  --secondary-foreground: 142 71% 30%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 0 0% 100%;
+  --ring: 142 71% 45%;
+  --wp-exam-bg: #F4F8F5;
+  --wp-exam-card: #FFFFFF;
+  --wp-exam-card-border: #E1EAE5;
+  --wp-exam-card-hover: #F0FDF4;
+  --wp-exam-primary: #16A34A;
+  --wp-exam-primary-text: #FFFFFF;
+  --wp-exam-highlight: #16A34A;
+  --wp-exam-text-primary: #13201B;
+  --wp-exam-text-secondary: #6A7F75;
+  --wp-exam-progress-bar: #16A34A;
+  --wp-exam-badge-bg: rgba(22, 163, 74, 0.12);
+  background-color: var(--wp-exam-bg);
+  color: var(--wp-exam-text-primary);
+}
+
+.theme-sweet-digs.dark,
+[data-theme="sweet-digs"].dark,
+.dark .theme-sweet-digs,
+.dark [data-theme="sweet-digs"] {
+  --background: 160 20% 7%;
+  --foreground: 140 20% 95%;
+  --card: 160 20% 11%;
+  --card-foreground: 140 20% 95%;
+  --popover: 160 20% 11%;
+  --popover-foreground: 140 20% 95%;
+  --primary: 142 71% 45%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 160 20% 16%;
+  --secondary-foreground: 142 60% 80%;
+  --muted: 160 15% 15%;
+  --muted-foreground: 150 10% 60%;
+  --accent: 160 20% 18%;
+  --accent-foreground: 142 60% 85%;
+  --destructive: 0 62% 30%;
+  --destructive-foreground: 0 0% 95%;
+  --border: 160 15% 20%;
+  --input: 160 15% 20%;
+  --ring: 142 71% 45%;
+  --wp-exam-bg: #0E1613;
+  --wp-exam-card: #16221E;
+  --wp-exam-card-border: #23342E;
+  --wp-exam-card-hover: #1C2B26;
+  --wp-exam-primary: #22C55E;
+  --wp-exam-primary-text: #FFFFFF;
+  --wp-exam-highlight: #22C55E;
+  --wp-exam-text-primary: #F0FDF4;
+  --wp-exam-text-secondary: #94A3B8;
+  --wp-exam-progress-bar: #22C55E;
+  --wp-exam-badge-bg: rgba(34, 197, 94, 0.18);
+  background-color: var(--wp-exam-bg);
+  color: var(--wp-exam-text-primary);
+}
+
+/* ───── Sweet Digs CSS3 Animations ───── */
+@keyframes sweetDigsFadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sweetDigsPulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(22, 163, 74, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 16px 3px rgba(22, 163, 74, 0.15);
+  }
+}
+
+@keyframes sweetDigsFloat {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+.animate-sweet-fade-in-up {
+  animation: sweetDigsFadeInUp 0.5s ease-out both;
+}
+
+.animate-sweet-pulse-glow {
+  animation: sweetDigsPulseGlow 2s ease-in-out infinite;
+}
+
+.animate-sweet-float {
+  animation: sweetDigsFloat 3s ease-in-out infinite;
+}
