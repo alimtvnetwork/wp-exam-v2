@@ -78,6 +78,7 @@ import {
   X,
   Star,
   Calendar,
+  Circle,
   CircleDot,
   CheckSquare,
   Video,
@@ -131,6 +132,22 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   const [showLivePreview, setShowLivePreview] = useState(false);
   const [showTriggers, setShowTriggers] = useState(false);
   const [testInputValue, setTestInputValue] = useState('');
+  const [isSectionMenuOpen, setIsSectionMenuOpen] = useState(false);
+  const sectionMenuTimerRef = React.useRef<NodeJS.Timeout | null>(null);
+
+  const handleSectionMouseEnter = () => {
+    if (sectionMenuTimerRef.current) {
+      clearTimeout(sectionMenuTimerRef.current);
+      sectionMenuTimerRef.current = null;
+    }
+    setIsSectionMenuOpen(true);
+  };
+
+  const handleSectionMouseLeave = () => {
+    sectionMenuTimerRef.current = setTimeout(() => {
+      setIsSectionMenuOpen(false);
+    }, 250);
+  };
 
   // Interactive Live Preview Local States
   const [previewTestCountry, setPreviewTestCountry] = useState('+1');
@@ -344,6 +361,18 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
     )
   );
 
+  const sectionCounts = React.useMemo(() => {
+    const counts: Record<string, number> = {};
+    (allFields || otherFields || []).forEach((f) => {
+      if (f.group && f.group.trim().length > 0) {
+        const g = f.group.trim();
+        counts[g] = (counts[g] || 0) + 1;
+      }
+    });
+
+    return counts;
+  }, [allFields, otherFields]);
+
   const isFileUploadValidationDrawerOpen = showAdvanced && isFileUploadField;
 
   let isCompoundValidationDrawerOpen = false;
@@ -458,28 +487,28 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
           {/* Action Toolbar: Field Type Selector on Right + Preview & Actions */}
           <div className="flex items-center gap-2.5 shrink-0 flex-wrap justify-end">
-            {/* Field Type Selector (~180px, text-sm) */}
+            {/* Field Type Selector (~190px, text-sm font-semibold) */}
             <Select
               value={field.type}
               onValueChange={(val) => onUpdate(id, { type: val as FieldType })}
             >
-              <SelectTrigger className="h-8 text-sm bg-background text-foreground border border-input rounded-md font-medium w-[180px]">
+              <SelectTrigger className="h-10 text-sm bg-background text-foreground border border-input rounded-lg font-semibold w-[190px] shadow-2xs cursor-pointer">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border max-h-72">
-                <SelectItem value="multiple_choice" className="text-sm">Multiple Choice</SelectItem>
-                <SelectItem value="single_choice" className="text-sm">Single Choice</SelectItem>
-                <SelectItem value="true_false" className="text-sm">True / False</SelectItem>
-                <SelectItem value="dropdown" className="text-sm">Dropdown Select</SelectItem>
-                <SelectItem value="rating" className="text-sm">Rating Scale (1-5)</SelectItem>
-                <SelectItem value="short_answer" className="text-sm">Short Answer</SelectItem>
-                <SelectItem value="paragraph" className="text-sm">Paragraph Text</SelectItem>
-                <SelectItem value="email" className="text-sm">Email Address</SelectItem>
-                <SelectItem value="phone" className="text-sm">WhatsApp / Phone</SelectItem>
-                <SelectItem value="regex_text" className="text-sm">Regex</SelectItem>
-                <SelectItem value="link" className="text-sm">Link</SelectItem>
-                <SelectItem value="file_upload" className="text-sm">File Upload</SelectItem>
-                <SelectItem value="video" className="text-sm">Video</SelectItem>
+                <SelectItem value="multiple_choice" className="text-sm py-2 cursor-pointer font-medium">Multiple Choice</SelectItem>
+                <SelectItem value="single_choice" className="text-sm py-2 cursor-pointer font-medium">Single Choice</SelectItem>
+                <SelectItem value="true_false" className="text-sm py-2 cursor-pointer font-medium">True / False</SelectItem>
+                <SelectItem value="dropdown" className="text-sm py-2 cursor-pointer font-medium">Dropdown Select</SelectItem>
+                <SelectItem value="rating" className="text-sm py-2 cursor-pointer font-medium">Rating Scale (1-5)</SelectItem>
+                <SelectItem value="short_answer" className="text-sm py-2 cursor-pointer font-medium">Short Answer</SelectItem>
+                <SelectItem value="paragraph" className="text-sm py-2 cursor-pointer font-medium">Paragraph Text</SelectItem>
+                <SelectItem value="email" className="text-sm py-2 cursor-pointer font-medium">Email Address</SelectItem>
+                <SelectItem value="phone" className="text-sm py-2 cursor-pointer font-medium">WhatsApp / Phone</SelectItem>
+                <SelectItem value="regex_text" className="text-sm py-2 cursor-pointer font-medium">Regex</SelectItem>
+                <SelectItem value="link" className="text-sm py-2 cursor-pointer font-medium">Link</SelectItem>
+                <SelectItem value="file_upload" className="text-sm py-2 cursor-pointer font-medium">File Upload</SelectItem>
+                <SelectItem value="video" className="text-sm py-2 cursor-pointer font-medium">Video</SelectItem>
               </SelectContent>
             </Select>
 
@@ -488,7 +517,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               type="button"
               variant={showLivePreview ? 'default' : 'outline'}
               size="sm"
-              className={`text-sm h-8 px-2.5 gap-1.5 transition-all ${
+              className={`text-sm h-10 px-3.5 gap-2 transition-all font-semibold rounded-lg cursor-pointer ${
                 showLivePreview
                   ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
                   : 'border-border text-foreground hover:bg-accent'
@@ -507,18 +536,18 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className={`text-sm h-8 px-2.5 gap-1.5 border transition-all font-medium ${
+                  className={`text-sm h-10 px-3.5 gap-2 border transition-all font-semibold rounded-lg cursor-pointer ${
                     showAdvanced || showTriggers || showConditions
                       ? 'border-primary/50 bg-primary/10 text-primary hover:bg-primary/15'
                       : 'border-border text-foreground hover:bg-accent'
                   }`}
                 >
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-muted-foreground" />
+                  <SlidersHorizontal className="w-4 h-4 text-muted-foreground" />
                   <span>Actions</span>
                   {(showAdvanced || showTriggers || showConditions) && (
-                    <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+                    <span className="w-2 h-2 rounded-full bg-primary" />
                   )}
-                  <ChevronDown className="w-3 h-3 opacity-60" />
+                  <ChevronDown className="w-3.5 h-3.5 opacity-60" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56 p-1 bg-popover border border-border shadow-lg">
@@ -736,8 +765,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
           {/* Google Forms CardBody: Full-width Question Title + Image & Section Selector */}
           <div className="space-y-3">
             <div>
-              <div className="flex items-center justify-between mb-1.5">
-                <Label className="text-sm font-semibold text-foreground">
+              <div className="flex items-center justify-between mb-2">
+                <Label className="text-base font-bold text-foreground">
                   Question Title
                 </Label>
                 <Button
@@ -745,14 +774,14 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   variant={showImageConfig || hasAttachedImage ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setShowImageConfig(!showImageConfig)}
-                  className={`h-7 px-2.5 text-xs gap-1.5 transition-all ${
+                  className={`h-8 px-3 text-xs gap-1.5 transition-all font-semibold rounded-lg cursor-pointer ${
                     hasAttachedImage
-                      ? 'bg-primary text-primary-foreground font-semibold'
-                      : 'border-border text-muted-foreground hover:text-foreground'
+                      ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                      : 'border-border text-muted-foreground hover:text-foreground hover:bg-accent'
                   }`}
                   title="Attach an illustration or question image"
                 >
-                  <ImageIcon className="w-3.5 h-3.5" />
+                  <ImageIcon className="w-4 h-4" />
                   <span>{hasAttachedImage ? 'Image Attached' : 'Add Image'}</span>
                 </Button>
               </div>
@@ -760,7 +789,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 value={field.label}
                 onChange={(e) => onUpdate(id, { label: e.target.value })}
                 placeholder="Untitled Question"
-                className="text-base font-semibold h-10 w-full bg-background text-foreground shadow-2xs focus-visible:ring-1 focus-visible:ring-primary"
+                className="text-lg font-bold h-12 px-3.5 w-full bg-background text-foreground shadow-2xs focus-visible:ring-2 focus-visible:ring-primary rounded-lg"
               />
             </div>
 
@@ -820,50 +849,94 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             )}
 
             {/* Interactive Section Combobox with Dropdown & Suggestion Pills */}
-            <div className="p-2.5 rounded-lg bg-muted/20 border border-border/60 space-y-2">
+            <div
+              className="relative p-3 rounded-xl bg-muted/20 border border-border/80 space-y-2.5"
+              onMouseEnter={handleSectionMouseEnter}
+              onMouseLeave={handleSectionMouseLeave}
+            >
               <div className="flex items-center gap-3 flex-wrap">
-                <div className="flex items-center gap-2 text-sm font-medium text-muted-foreground shrink-0">
+                <div className="flex items-center gap-2 text-sm font-semibold text-foreground shrink-0">
                   <Layers className="w-4 h-4 text-primary" />
                   <span>Section / Group:</span>
                 </div>
-                <div className="flex-1 min-w-[200px] max-w-sm flex items-center gap-1.5">
+                <div className="relative flex-1 min-w-[220px] max-w-md flex items-center gap-1.5">
                   <Input
+                    list={`section-datalist-${id}`}
                     value={field.group || ''}
                     onChange={(e) => onUpdate(id, { group: e.target.value })}
+                    onFocus={() => setIsSectionMenuOpen(true)}
                     placeholder="Type new section or pick from dropdown..."
-                    className="text-sm h-8 bg-background text-foreground shadow-2xs flex-1"
+                    className="text-sm h-10 bg-background text-foreground shadow-2xs flex-1 rounded-lg font-medium"
                   />
-                  {availableSections.length > 0 && (
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="h-8 px-2 gap-1 text-xs border-border shrink-0 hover:bg-accent"
-                          title="View all existing sections in this quiz"
-                        >
-                          <ChevronDown className="w-3.5 h-3.5" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end" className="w-56 p-1 bg-popover border border-border shadow-lg">
-                        <div className="px-2 py-1 text-xs font-semibold text-muted-foreground uppercase">
-                          Quiz Sections
+                  <datalist id={`section-datalist-${id}`}>
+                    {availableSections.map((sec) => (
+                      <option key={sec} value={sec} />
+                    ))}
+                  </datalist>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsSectionMenuOpen(!isSectionMenuOpen)}
+                    className="h-10 px-3 gap-1 text-sm border-border shrink-0 hover:bg-accent cursor-pointer rounded-lg"
+                    title="Toggle quiz sections dropdown"
+                  >
+                    <ChevronDown className="w-4 h-4 text-muted-foreground" />
+                  </Button>
+
+                  {/* Dropdown Menu Activated on Hover, Focus, or Click */}
+                  {isSectionMenuOpen && availableSections.length > 0 && (
+                    <div
+                      className="absolute left-0 top-full mt-1.5 w-full bg-popover text-popover-foreground border border-border rounded-xl shadow-2xl p-1.5 z-50 animate-in fade-in duration-150"
+                      onMouseEnter={handleSectionMouseEnter}
+                      onMouseLeave={handleSectionMouseLeave}
+                    >
+                      <div className="px-2.5 py-1.5 text-xs font-bold text-muted-foreground uppercase tracking-wider flex items-center justify-between border-b border-border/60 mb-1">
+                        <span>Quiz Sections</span>
+                        <span className="text-xs font-normal lowercase">{availableSections.length} available</span>
+                      </div>
+                      <div className="max-h-52 overflow-y-auto space-y-0.5">
+                        {availableSections.map((sec) => {
+                          const count = sectionCounts[sec] || 0;
+                          const isSelected = field.group === sec;
+                          return (
+                            <button
+                              key={sec}
+                              type="button"
+                              onClick={() => {
+                                onUpdate(id, { group: sec });
+                                setIsSectionMenuOpen(false);
+                                toast.success(`Assigned to section: "${sec}"`);
+                              }}
+                              className={`w-full text-left px-2.5 py-2 rounded-lg text-sm flex items-center justify-between transition-colors cursor-pointer ${
+                                isSelected
+                                  ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                                  : 'hover:bg-accent text-foreground'
+                              }`}
+                            >
+                              <span className="truncate flex-1 pr-2">{sec}</span>
+                              <div className="flex items-center gap-1.5 shrink-0">
+                                <span className={`text-xs px-1.5 py-0.5 rounded font-mono ${
+                                  isSelected ? 'bg-primary-foreground/20 text-primary-foreground' : 'bg-muted text-muted-foreground'
+                                }`}>
+                                  {count} q{count !== 1 ? 's' : ''}
+                                </span>
+                                {isSelected && <Check className="w-4 h-4" />}
+                              </div>
+                            </button>
+                          );
+                        })}
+                      </div>
+                      {field.group && !availableSections.includes(field.group) && (
+                        <div className="pt-1 mt-1 border-t border-border/60">
+                          <div className="px-2.5 py-1.5 text-xs text-primary font-semibold flex items-center gap-1.5">
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>New Section: "{field.group}"</span>
+                          </div>
                         </div>
-                        {availableSections.map((sec) => (
-                          <DropdownMenuItem
-                            key={sec}
-                            onClick={() => onUpdate(id, { group: sec })}
-                            className={`text-sm flex items-center justify-between cursor-pointer py-1.5 ${
-                              field.group === sec ? 'bg-primary/10 font-bold text-primary' : ''
-                            }`}
-                          >
-                            <span className="truncate">{sec}</span>
-                            {field.group === sec && <Check className="w-4 h-4 text-primary" />}
-                          </DropdownMenuItem>
-                        ))}
-                      </DropdownMenuContent>
-                    </DropdownMenu>
+                      )}
+                    </div>
                   )}
                 </div>
                 {field.group && (
@@ -872,7 +945,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     variant="ghost"
                     size="sm"
                     onClick={() => onUpdate(id, { group: undefined })}
-                    className="h-8 px-2 text-sm text-muted-foreground hover:text-foreground"
+                    className="h-10 px-3 text-sm text-muted-foreground hover:text-foreground cursor-pointer rounded-lg"
                   >
                     Clear
                   </Button>
@@ -881,17 +954,17 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
               {/* Quick clickable section suggestion pills */}
               {availableSections.length > 0 && (
-                <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                  <span className="text-xs text-muted-foreground mr-1">Existing:</span>
+                <div className="flex items-center gap-2 flex-wrap pt-0.5">
+                  <span className="text-xs font-semibold text-muted-foreground mr-1">Existing:</span>
                   {availableSections.map((sec) => (
                     <button
                       key={sec}
                       type="button"
                       onClick={() => onUpdate(id, { group: sec })}
-                      className={`text-xs px-2.5 py-0.5 rounded-full border transition-all ${
+                      className={`text-xs px-3 py-1 rounded-full border transition-all cursor-pointer ${
                         field.group === sec
                           ? 'bg-primary text-primary-foreground border-primary font-semibold shadow-xs'
-                          : 'bg-background hover:bg-primary/10 hover:border-primary/50 text-foreground border-border/80'
+                          : 'bg-background hover:bg-primary/10 hover:border-primary/50 text-foreground border-border/80 font-medium'
                       }`}
                     >
                       {sec}
@@ -2043,34 +2116,37 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
           {/* Choice Options Editor */}
           {isChoiceField && (
-            <div className="p-4 bg-muted/20 rounded-xl space-y-3 border border-border/80">
-              <div className="flex items-center justify-between">
-                <Label className="text-sm font-semibold text-foreground">
-                  Selectable Options & Answers
-                </Label>
+            <div className="p-4 bg-muted/20 rounded-xl space-y-3.5 border border-border/80">
+              <div className="flex items-center justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <Label className="text-base font-bold text-foreground">
+                    Selectable Options & Answers
+                  </Label>
+                  {isQuiz && (field.correctAnswers?.length || 0) > 0 && (
+                    <Badge variant="outline" className="text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 font-semibold px-2 py-0.5">
+                      {field.correctAnswers?.length} Correct Answer{(field.correctAnswers?.length || 0) > 1 ? 's' : ''} Configured
+                    </Badge>
+                  )}
+                </div>
                 {isQuiz && (
                   <span className="text-xs text-muted-foreground font-mono">
-                    {field.type === 'multiple_choice'
-                      ? 'Select one or more correct answers for auto-grading'
-                      : 'Select the correct answer for auto-grading'}
+                    Click "Mark Correct" on one or more options for auto-grading
                   </span>
                 )}
               </div>
 
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 {(field.options || []).map((opt, optIndex) => {
                   const currentAnswers = (field.correctAnswers && field.correctAnswers.length > 0)
                     ? field.correctAnswers
                     : field.correctAnswer
                     ? [field.correctAnswer]
                     : [];
-                  const isCorrect = field.type === 'multiple_choice'
-                    ? currentAnswers.includes(opt)
-                    : field.correctAnswer === opt;
+                  const isCorrect = currentAnswers.includes(opt);
 
                   return (
                     <div key={optIndex} className="flex gap-2.5 items-center">
-                      <span className="w-6 h-6 rounded-full bg-muted border border-border flex items-center justify-center font-mono text-xs text-muted-foreground font-bold shrink-0">
+                      <span className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center font-mono text-sm text-foreground font-bold shrink-0">
                         {String.fromCharCode(65 + optIndex)}
                       </span>
 
@@ -2082,38 +2158,41 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                           onUpdate(id, { options: newOpts });
                         }}
                         placeholder={`Option ${optIndex + 1}`}
-                        className="text-sm h-9 bg-background text-foreground flex-1"
+                        className="text-base h-11 px-3.5 bg-background text-foreground flex-1 font-medium rounded-lg"
                       />
 
                       {isQuiz && (
                         <Button
                           type="button"
-                          variant={isCorrect ? 'default' : 'outline'}
+                          variant="outline"
                           size="sm"
-                          className={`h-9 px-3 shrink-0 text-sm whitespace-nowrap transition-all justify-center ${
+                          className={`h-11 px-4 shrink-0 text-sm font-semibold transition-all duration-150 rounded-lg flex items-center gap-2 cursor-pointer ${
                             isCorrect
-                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-semibold shadow-xs'
-                              : 'text-muted-foreground hover:text-foreground'
+                              ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-xs'
+                              : 'bg-background hover:bg-emerald-500/10 hover:border-emerald-500 hover:text-emerald-600 text-muted-foreground border-border/80'
                           }`}
                           onClick={() => {
-                            if (field.type === 'multiple_choice') {
-                              const nextAnswers = isCorrect
-                                ? currentAnswers.filter((a) => a !== opt)
-                                : [...currentAnswers, opt];
-                              onUpdate(id, {
-                                correctAnswers: nextAnswers,
-                                correctAnswer: nextAnswers[0] || '',
-                              });
-                            } else {
-                              const nextAnswer = isCorrect ? '' : opt;
-                              onUpdate(id, {
-                                correctAnswer: nextAnswer,
-                                correctAnswers: nextAnswer ? [nextAnswer] : [],
-                              });
-                            }
+                            const nextAnswers = isCorrect
+                              ? currentAnswers.filter((a) => a !== opt)
+                              : [...currentAnswers, opt];
+                            onUpdate(id, {
+                              correctAnswers: nextAnswers,
+                              correctAnswer: nextAnswers[0] || '',
+                            });
                           }}
+                          title={isCorrect ? 'Marked as correct answer (click to deselect)' : 'Click to mark as correct answer'}
                         >
-                          {isCorrect ? '✓ Correct Answer' : 'Mark Correct'}
+                          {isCorrect ? (
+                            <>
+                              <CheckCircle2 className="w-4 h-4 text-white" />
+                              <span>Correct Answer</span>
+                            </>
+                          ) : (
+                            <>
+                              <Circle className="w-4 h-4 text-muted-foreground/60" />
+                              <span>Mark Correct</span>
+                            </>
+                          )}
                         </Button>
                       )}
 
@@ -2121,7 +2200,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-destructive text-base font-semibold"
+                        className="h-11 w-11 shrink-0 p-0 text-muted-foreground hover:text-destructive cursor-pointer rounded-lg"
                         onClick={() => {
                           const newOpts = field.options?.filter((_, i) => i !== optIndex);
                           onUpdate(id, { options: newOpts });
@@ -2135,16 +2214,16 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 })}
 
                 {field.allowOtherOption && (
-                  <div className="flex gap-2.5 items-center p-2.5 rounded-lg bg-muted/30 border border-dashed border-border text-sm text-muted-foreground">
-                    <span className="w-6 h-6 rounded-full bg-muted border border-border flex items-center justify-center font-mono text-xs text-muted-foreground font-bold shrink-0">
+                  <div className="flex gap-2.5 items-center p-3 rounded-lg bg-muted/30 border border-dashed border-border text-sm text-muted-foreground">
+                    <span className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center font-mono text-sm text-muted-foreground font-bold shrink-0">
                       {String.fromCharCode(65 + (field.options?.length || 0))}
                     </span>
-                    <span className="italic flex-1">Other... (Candidate enters custom text)</span>
+                    <span className="italic flex-1 font-medium">Other... (Candidate enters custom text)</span>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="h-8 px-2.5 text-xs text-muted-foreground hover:text-destructive"
+                      className="h-9 px-3 text-sm text-muted-foreground hover:text-destructive cursor-pointer"
                       onClick={() => onUpdate(id, { allowOtherOption: false })}
                     >
                       Remove
@@ -2158,7 +2237,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   type="button"
                   variant="outline"
                   size="sm"
-                  className="text-sm h-8 text-primary hover:bg-primary/10 border-primary/30 gap-1.5"
+                  className="text-sm h-10 px-4 text-primary hover:bg-primary/10 border-primary/40 gap-2 font-semibold rounded-lg cursor-pointer"
                   onClick={() => {
                     const count = (field.options?.length || 0) + 1;
                     onUpdate(id, {
@@ -2174,10 +2253,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="text-sm h-8 text-muted-foreground hover:text-foreground gap-1.5"
+                    className="text-sm h-10 px-4 text-muted-foreground hover:text-foreground gap-2 font-medium cursor-pointer rounded-lg"
                     onClick={() => onUpdate(id, { allowOtherOption: true })}
                   >
-                    <Plus className="w-4 h-4" /> Add &quot;Other&quot;
+                    <Plus className="w-4 h-4" /> Add "Other"
                   </Button>
                 )}
               </div>
@@ -2245,9 +2324,9 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
         {/* Card Footer: Bottom toolbar dividing settings cleanly */}
         <CardFooter className="py-3 px-4 border-t border-border/60 bg-muted/10 flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-4 flex-wrap">
-            {/* Required switch with clear label (text-sm) */}
+            {/* Required switch with clear label (text-sm font-semibold) */}
             <div className="flex items-center gap-2">
-              <Label htmlFor={`footer-req-${id}`} className="text-sm font-medium cursor-pointer">
+              <Label htmlFor={`footer-req-${id}`} className="text-sm font-semibold cursor-pointer">
                 Required
               </Label>
               <Switch
@@ -2261,7 +2340,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             {/* Points / Grading input (text-sm) */}
             {isQuiz && (
               <div className="flex items-center gap-2 border-l border-border/50 pl-4">
-                <Label htmlFor={`footer-pts-${id}`} className="text-sm font-medium">
+                <Label htmlFor={`footer-pts-${id}`} className="text-sm font-semibold">
                   Points
                 </Label>
                 <Input
@@ -2269,7 +2348,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   type="number"
                   value={field.points ?? 1}
                   onChange={(e) => onUpdate(id, { points: Math.max(1, Number(e.target.value) || 1) })}
-                  className="w-16 h-8 text-sm font-mono bg-background text-center"
+                  className="w-20 h-9 text-sm font-semibold font-mono bg-background text-center rounded-lg shadow-2xs"
                   min={1}
                 />
               </div>
@@ -2278,7 +2357,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             {/* Allow "Other" toggle (text-sm) */}
             {isChoiceField && (
               <div className="flex items-center gap-2 border-l border-border/50 pl-4">
-                <Label htmlFor={`footer-other-${id}`} className="text-sm font-medium cursor-pointer">
+                <Label htmlFor={`footer-other-${id}`} className="text-sm font-semibold cursor-pointer">
                   Allow &quot;Other&quot;
                 </Label>
                 <Switch
@@ -2298,7 +2377,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               variant="outline"
               size="sm"
               onClick={() => onDuplicate(id)}
-              className="text-sm h-8 px-3 gap-1.5 text-muted-foreground hover:text-foreground"
+              className="text-sm h-9 px-3.5 gap-2 text-muted-foreground hover:text-foreground font-medium rounded-lg cursor-pointer"
               title="Duplicate Question"
             >
               <Copy className="w-4 h-4" />
@@ -2309,7 +2388,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               variant="outline"
               size="sm"
               onClick={() => onRemove(id)}
-              className="text-sm h-8 px-3 gap-1.5 text-destructive hover:bg-destructive/10 hover:text-destructive border-border"
+              className="text-sm h-9 px-3.5 gap-2 text-destructive hover:bg-destructive hover:text-destructive-foreground border-border font-medium rounded-lg cursor-pointer transition-all"
               title="Delete Question"
             >
               <Trash2 className="w-4 h-4" />

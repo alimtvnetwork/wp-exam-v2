@@ -231,11 +231,12 @@ export const AiSectionAssistant: React.FC<AiSectionAssistantProps> = ({ section,
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         <Button
-          variant="outline"
+          type="button"
           size="sm"
-          className="text-xs h-8 gap-1.5 border-primary/30 hover:border-primary text-primary hover:bg-primary/10 transition-colors"
+          className="text-sm h-9 px-3.5 gap-2 bg-indigo-600 dark:bg-indigo-600 text-white hover:bg-indigo-700 dark:hover:bg-indigo-500 hover:shadow-md hover:scale-[1.02] active:scale-[0.98] shadow-xs transition-all duration-150 font-semibold border-0 cursor-pointer"
+          title="Open AI Studio Prompt & JSON Assistant"
         >
-          <Sparkles className="w-3.5 h-3.5 text-amber-500 animate-pulse" />
+          <Sparkles className="w-4 h-4 text-amber-300 animate-pulse" />
           <span>{title || 'AI Instructions'}</span>
         </Button>
       </DialogTrigger>

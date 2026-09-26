@@ -364,29 +364,29 @@ export const FormBuilder: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => window.history.back()}
-              className="text-sm h-8 gap-1.5 font-medium shrink-0 bg-background border border-border text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary transition-all shadow-xs"
+              className="text-sm h-9 px-3 gap-2 font-medium shrink-0 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary transition-all shadow-xs cursor-pointer"
               title="Back to Admin Dashboard"
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
+              <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Back to Admin</span>
             </Button>
-            <div className="h-4 w-px bg-border hidden sm:block" />
-            <h1 className="text-xl font-bold tracking-tight text-foreground truncate">
+            <div className="h-5 w-px bg-border hidden sm:block" />
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-foreground truncate">
               Form & Assessment Builder
             </h1>
-            <Badge variant="secondary" className="text-sm font-mono shrink-0">
+            <Badge variant="secondary" className="text-sm font-mono shrink-0 px-2.5 py-0.5">
               Studio
             </Badge>
           </div>
 
           {/* Integrated Live URL & Customizable Slug Ribbon */}
           <div className="flex items-center gap-2 flex-wrap text-sm pt-0.5">
-            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-muted/40 border border-border/60 font-mono text-xs text-muted-foreground focus-within:border-primary focus-within:ring-1 focus-within:ring-primary shadow-2xs">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted/50 border border-border/80 font-mono text-sm text-muted-foreground focus-within:border-primary focus-within:ring-1 focus-within:ring-primary shadow-2xs">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
               <button
                 type="button"
                 onClick={() => setIsSlugModalOpen(true)}
-                className="text-foreground/80 hover:text-primary font-bold shrink-0 transition-colors"
+                className="text-foreground/80 hover:text-primary font-bold shrink-0 transition-colors cursor-pointer"
                 title="Open Slug Manager"
               >
                 /f/
@@ -396,7 +396,7 @@ export const FormBuilder: React.FC = () => {
                 value={slug || ''}
                 onChange={(e) => setSlug(e.target.value)}
                 placeholder="form-slug"
-                className="bg-transparent border-0 font-mono text-xs text-primary font-semibold focus:outline-none focus:ring-0 w-28 sm:w-36"
+                className="bg-transparent border-0 font-mono text-sm text-primary font-semibold focus:outline-none focus:ring-0 w-32 sm:w-44"
                 title="Edit customizable URL slug for this form"
               />
               <button
@@ -411,18 +411,18 @@ export const FormBuilder: React.FC = () => {
                   setSlug(auto);
                   toast.success(`Slug auto-generated: "${auto}"`);
                 }}
-                className="p-0.5 hover:text-primary text-muted-foreground transition-colors rounded hover:bg-accent"
+                className="p-1 hover:text-primary text-muted-foreground transition-colors rounded hover:bg-accent cursor-pointer"
                 title="Auto-generate slug from title"
               >
-                <Wand2 className="w-3 h-3" />
+                <Wand2 className="w-3.5 h-3.5" />
               </button>
               <button
                 type="button"
                 onClick={handleCopyLiveUrl}
-                className="p-0.5 hover:text-foreground text-muted-foreground transition-colors ml-0.5 rounded hover:bg-accent"
+                className="p-1 hover:text-foreground text-muted-foreground transition-colors ml-0.5 rounded hover:bg-accent cursor-pointer"
                 title="Copy Public Form URL to clipboard"
               >
-                <Copy className="w-3 h-3" />
+                <Copy className="w-3.5 h-3.5" />
               </button>
             </div>
 
@@ -431,10 +431,10 @@ export const FormBuilder: React.FC = () => {
               variant="outline"
               size="sm"
               onClick={() => setIsSlugModalOpen(true)}
-              className="text-primary border-primary/30 hover:bg-primary/10 gap-1 font-medium transition-all"
+              className="h-9 px-3 text-sm text-primary border-primary/40 hover:bg-primary hover:text-primary-foreground gap-1.5 font-medium transition-all cursor-pointer"
               title="Open Visual Slug & Canonical URL Inspector"
             >
-              <Globe className="w-3 h-3" />
+              <Globe className="w-3.5 h-3.5" />
               <span>Slug Manager</span>
             </Button>
 
@@ -443,11 +443,11 @@ export const FormBuilder: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={() => window.open(`/f/${activeSlug}`, '_blank')}
-              className="text-primary hover:bg-primary/10 gap-1 font-medium"
+              className="h-9 px-3 text-sm text-primary hover:bg-primary/10 gap-1.5 font-medium cursor-pointer"
               title="Open Public Candidate URL in New Tab"
             >
               <span>Public</span>
-              <ExternalLink className="w-3 h-3" />
+              <ExternalLink className="w-3.5 h-3.5" />
             </Button>
 
             <Button
@@ -455,11 +455,11 @@ export const FormBuilder: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={() => window.open(`/preview/${activeSlug}`, '_blank')}
-              className="text-muted-foreground hover:text-foreground hover:bg-accent gap-1 font-medium"
+              className="h-9 px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent gap-1.5 font-medium cursor-pointer"
               title="Open Dedicated Full-Screen Live Preview in New Tab"
             >
               <span>Preview</span>
-              <ExternalLink className="w-3 h-3" />
+              <ExternalLink className="w-3.5 h-3.5" />
             </Button>
           </div>
         </div>
@@ -475,20 +475,20 @@ export const FormBuilder: React.FC = () => {
               setInspectorTab('audit');
               setIsDesignPanelOpen(true);
             }}
-            className={`text-sm h-8 gap-1.5 font-medium transition-all shadow-xs bg-background border ${
+            className={`text-sm h-9 px-3 gap-2 font-semibold transition-all shadow-xs bg-card border cursor-pointer ${
               designReport.score >= 90
-                ? 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/10 hover:border-emerald-500'
+                ? 'border-emerald-500/40 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-600 hover:text-white hover:border-emerald-600'
                 : designReport.score >= 75
-                ? 'border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 hover:border-amber-500'
-                : 'border-destructive/40 text-destructive hover:bg-destructive/10 hover:border-destructive'
+                ? 'border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-600 hover:text-white hover:border-amber-600'
+                : 'border-destructive/40 text-destructive hover:bg-destructive hover:text-destructive-foreground hover:border-destructive'
             }`}
             title="Inspect form health, design validation warnings, and 1-click auto-fixes"
           >
-            <Shield className="w-3.5 h-3.5" />
+            <Shield className="w-4 h-4" />
             <span>Health: {designReport.score}%</span>
             <Badge
               variant="secondary"
-              className={`text-xs px-1 py-0 h-4 font-bold ${
+              className={`text-xs px-1.5 py-0.5 h-5 font-bold ${
                 designReport.score >= 90
                   ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400'
                   : designReport.score >= 75
@@ -509,12 +509,12 @@ export const FormBuilder: React.FC = () => {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-sm h-8 gap-1.5 bg-background border border-border text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary shadow-xs transition-all font-medium"
+                className="text-sm h-9 px-3.5 gap-2 bg-card border border-border text-foreground hover:bg-primary hover:text-primary-foreground hover:border-primary shadow-xs hover:shadow-md transition-all duration-150 font-semibold cursor-pointer group"
                 title="Open secondary builder tools and integrations"
               >
-                <Wand2 className="w-3.5 h-3.5 text-primary" />
+                <Wand2 className="w-4 h-4 text-primary group-hover:text-primary-foreground transition-colors" />
                 <span>Tools</span>
-                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                <ChevronDown className="w-3.5 h-3.5 opacity-70 group-hover:opacity-100" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-64 bg-popover border border-border shadow-xl p-1 text-sm">

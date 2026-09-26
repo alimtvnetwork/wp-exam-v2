@@ -1405,7 +1405,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                   : 'border-border bg-card text-foreground'
               }`}
             >
-              <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-colors ${
+              <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono text-sm font-bold shrink-0 transition-colors ${
                 selectedOpts.includes(opt)
                   ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-muted/60 border-border text-muted-foreground'
@@ -1522,7 +1522,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                   : 'border-border bg-card text-foreground'
               }`}
             >
-              <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-colors ${
+              <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono text-sm font-bold shrink-0 transition-colors ${
                 strValue === opt
                   ? 'bg-primary text-primary-foreground border-primary'
                   : 'bg-muted/60 border-border text-muted-foreground'
