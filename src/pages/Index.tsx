@@ -176,13 +176,14 @@ export const Index: React.FC = () => {
   }
 
   // Theme container classes
-  const themeClassMap: Record<string, string> = {
+  const themeClassMap: Record<AppThemeType, string> = {
     riseup: 'theme-riseup-asia bg-background text-foreground',
     purple: 'theme-purple bg-background text-foreground',
     dracula: 'theme-dracula bg-background text-foreground',
     obsidian: 'theme-obsidian bg-background text-foreground',
     clean: 'theme-clean bg-background text-foreground',
     'clean-wide': 'theme-clean-wide bg-background text-foreground',
+    'sweet-digs': 'theme-sweet-digs bg-background text-foreground',
   };
 
   return (

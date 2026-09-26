@@ -294,6 +294,9 @@
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   --ring: 142 71% 45%;
+  --gradient-start: 142 40% 92%;
+  --gradient-end: 160 30% 90%;
+  --radius: 0.75rem;
   --wp-exam-bg: #F4F8F5;
   --wp-exam-card: #FFFFFF;
   --wp-exam-card-border: #E1EAE5;
@@ -332,6 +335,9 @@
   --border: 160 15% 20%;
   --input: 160 15% 20%;
   --ring: 142 71% 45%;
+  --gradient-start: 160 30% 12%;
+  --gradient-end: 160 30% 8%;
+  --radius: 0.75rem;
   --wp-exam-bg: #0E1613;
   --wp-exam-card: #16221E;
   --wp-exam-card-border: #23342E;
@@ -381,6 +387,15 @@
   animation: sweetDigsFadeInUp 0.5s ease-out both;
 }
 
+@keyframes sweetDigsFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.animate-sweet-fade-in {
+  animation: sweetDigsFadeIn 0.35s ease-out both;
+}
+
 .animate-sweet-pulse-glow {
   animation: sweetDigsPulseGlow 2s ease-in-out infinite;
 }
@@ -388,3 +403,76 @@
 .animate-sweet-float {
   animation: sweetDigsFloat 3s ease-in-out infinite;
 }
+
+/* ───── Stagger Delays (Sequential Entrances) ───── */
+.delay-100 { animation-delay: 0.1s; }
+.delay-200 { animation-delay: 0.2s; }
+.delay-300 { animation-delay: 0.3s; }
+.delay-400 { animation-delay: 0.4s; }
+.delay-500 { animation-delay: 0.5s; }
+
+/* ───── CSS3 Slide Text Button (Pure CSS GPU Motion) ───── */
+.slide-btn {
+  position: relative;
+  overflow: hidden;
+  padding: 0 1.25rem;
+  border-radius: 9999px;
+  background: hsl(var(--primary));
+  color: hsl(var(--primary-foreground));
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  height: 2.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid transparent;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.slide-btn__inner {
+  display: flex;
+  flex-direction: column;
+  transition: transform 350ms cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slide-btn__text {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 2.25rem;
+  white-space: nowrap;
+}
+
+.slide-btn:hover .slide-btn__inner {
+  transform: translateY(-100%);
+}
+
+/* ───── Sweet Digs Interactive Card & Icon Pattern ───── */
+.sweet-card {
+  position: relative;
+  border-radius: 1rem;
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--card));
+  padding: 1.5rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.sweet-card:hover {
+  border-color: hsl(var(--primary) / 0.4);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
+}
+
+.sweet-icon-box {
+  width: 3rem;
+  height: 3rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.75rem;
+  background: hsl(var(--primary) / 0.1);
+  color: hsl(var(--primary));
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+

@@ -329,6 +329,9 @@ export const THEME_ALIASES: Record<string, string> = {
   white: 'clean-wide',
   wide: 'clean-wide',
   'wide-white': 'clean-wide',
+  sweet: 'sweet-digs',
+  'sweet-digs-finder': 'sweet-digs',
+  emerald: 'sweet-digs',
 };
 
 export const DEFAULT_THEME_ID = 'clean-wide';

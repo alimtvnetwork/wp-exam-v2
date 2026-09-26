@@ -173,11 +173,14 @@ All animations leverage pure CSS3 `@keyframes` without JavaScript render loops. 
 }
 ```
 
-### 4.2 Utility Classes
-- `.animate-sweet-fade-in-up`: `animation: sweet-digs-fade-in-up 0.5s ease-out both;`
-- `.animate-sweet-fade-in`: `animation: sweet-digs-fade-in 0.3s ease-out both;`
-- `.animate-sweet-pulse-glow`: `animation: sweet-digs-pulse-glow 2s ease-in-out infinite;`
-- `.animate-sweet-float`: `animation: sweet-digs-float 3s ease-in-out infinite;`
+### 4.2 Utility Classes & CSS3 Motion Primitives
+- `.animate-sweet-fade-in-up`: `animation: sweetDigsFadeInUp 0.5s ease-out both;`
+- `.animate-sweet-fade-in`: `animation: sweetDigsFadeIn 0.35s ease-out both;`
+- `.animate-sweet-pulse-glow`: `animation: sweetDigsPulseGlow 2s ease-in-out infinite;`
+- `.animate-sweet-float`: `animation: sweetDigsFloat 3s ease-in-out infinite;`
+- **Stagger Delays:** `.delay-100` (0.1s), `.delay-200` (0.2s), `.delay-300` (0.3s), `.delay-400` (0.4s), `.delay-500` (0.5s).
+- **CSS3 Slide Text Button (`.slide-btn`):** Stacked dual-label GPU motion via `cubic-bezier(0.4, 0, 0.2, 1)` with 350ms duration, replacing jarring scale hover effects.
+- **Eco-Luxury Card (`.sweet-card`):** `rounded-2xl` (16px), 24px padding (`p-6`), subtle border transition to `primary/40` on hover, and icon container `.sweet-icon-box`.
 
 ---
 

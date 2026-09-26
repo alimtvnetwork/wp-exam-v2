@@ -169,6 +169,9 @@ export const THEME_ALIASES: Record<string, string> = {
   dark: 'vscode-dark',
   clean: 'microsoft-blue',
   white: 'microsoft-blue',
+  sweet: 'sweet-digs',
+  'sweet-digs-finder': 'sweet-digs',
+  emerald: 'sweet-digs',
 };
 
 export const DEFAULT_THEME_ID = 'riseup-asia';

@@ -36,7 +36,7 @@ describe('Slug Routing, Theming Engine & AI Studio Verification', () => {
   });
 
   it('provides complete HSL CSS tokens across all supported themes', () => {
-    const themeKeys: AppThemeType[] = ['riseup', 'dracula', 'purple', 'obsidian', 'clean'];
+    const themeKeys: AppThemeType[] = ['riseup', 'dracula', 'purple', 'obsidian', 'clean', 'clean-wide', 'sweet-digs'];
 
     themeKeys.forEach((themeKey) => {
       const config = THEME_CONFIGS[themeKey];
@@ -57,6 +57,11 @@ describe('Slug Routing, Theming Engine & AI Studio Verification', () => {
 
     // Dracula must feature purple primary (265 89% 78%)
     expect(THEME_CONFIGS.dracula.hslValues['--primary']).toBe('265 89% 78%');
+
+    // Sweet Digs must feature Botanical Emerald primary (142 71% 45%) and Sage canvas (140 20% 97%)
+    expect(THEME_CONFIGS['sweet-digs'].hslValues['--primary']).toBe('142 71% 45%');
+    expect(THEME_CONFIGS['sweet-digs'].hslValues['--background']).toBe('140 20% 97%');
+    expect(THEME_CONFIGS['sweet-digs'].badgeClass).toContain('emerald');
   });
 
   it('generates structured LLM instruction prompt containing full question context', () => {
@@ -262,5 +267,28 @@ describe('Slug Routing, Theming Engine & AI Studio Verification', () => {
 
     expect(checkTrueFalse('True', 'True')).toBe(true);
     expect(checkTrueFalse('False', 'True')).toBe(false);
+  });
+
+  it('resolves sweet-digs theme definition, aliases, and CSS variables cleanly', async () => {
+    const { getTheme, THEME_PRESETS, THEME_ALIASES, getThemeCssVariables } = await import('../lib/themes');
+
+    expect(THEME_PRESETS['sweet-digs']).toBeDefined();
+    expect(THEME_PRESETS['sweet-digs'].colors.primary).toBe('#16A34A');
+    expect(THEME_PRESETS['sweet-digs'].colors.background).toBe('#F4F8F5');
+    expect(THEME_PRESETS['sweet-digs'].colors.cardBg).toBe('#FFFFFF');
+
+    // Test alias resolution
+    expect(getTheme('sweet-digs').id).toBe('sweet-digs');
+    expect(getTheme('sweet').id).toBe('sweet-digs');
+    expect(getTheme('emerald').id).toBe('sweet-digs');
+    expect(THEME_ALIASES['sweet']).toBe('sweet-digs');
+    expect(THEME_ALIASES['emerald']).toBe('sweet-digs');
+
+    // Verify CSS variables mapping
+    const cssVars = getThemeCssVariables(THEME_PRESETS['sweet-digs']);
+    expect(cssVars['--wp-exam-primary']).toBe('#16A34A');
+    expect(cssVars['--wp-exam-bg']).toBe('#F4F8F5');
+    expect(cssVars['--wp-exam-card']).toBe('#FFFFFF');
+    expect(cssVars['--wp-exam-card-border']).toBe('#E1EAE5');
   });
 });
