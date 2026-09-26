@@ -446,6 +446,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const [savedSession, setSavedSession] = useState<QuizSessionData | null>(null);
   const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
 
+  const hasSavedSessionToResume = Boolean(savedSession && Object.keys(answers).length === 0);
+
   // Load saved session on activeSlug change
   useEffect(() => {
     try {
@@ -1570,6 +1572,47 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             <span className="text-muted-foreground font-mono">
               Payload: {Object.keys(answers).length} answers recorded
             </span>
+          </div>
+        </div>
+      )}
+
+      {/* In-Runner Session Resume Banner */}
+      {hasSavedSessionToResume && (
+        <div className="w-full bg-primary/10 border border-primary/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-sans animate-in fade-in duration-150">
+          <div className="flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary shrink-0">
+              <Sparkles className="w-4 h-4" />
+            </div>
+            <div>
+              <div className="font-semibold text-foreground text-sm">Saved Session Detected</div>
+              <div className="text-muted-foreground text-xs">
+                You have saved progress from {lastSavedTime || 'earlier'}. Would you like to resume your assessment?
+              </div>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleResumeSession}
+              className="h-8 px-4 text-xs bg-primary text-primary-foreground hover:bg-primary/90 font-semibold cursor-pointer rounded-lg shadow-xs"
+            >
+              Resume Session
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                localStorage.removeItem(storageKey);
+                setSavedSession(null);
+                setLastSavedTime(null);
+                toast.info('Saved session dismissed. Starting fresh assessment.');
+              }}
+              className="h-8 px-3 text-xs text-muted-foreground hover:text-foreground cursor-pointer rounded-lg"
+            >
+              Start Fresh
+            </Button>
           </div>
         </div>
       )}
