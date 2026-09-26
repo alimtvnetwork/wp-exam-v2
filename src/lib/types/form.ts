@@ -22,7 +22,7 @@ export type FieldType =
   | 'faq';
 
 export type BooleanDisplayPreset = 'true_false' | 'yes_no' | 'enable_disable' | 'agree_disagree';
-export type QuestionDifficulty = 'easy' | 'medium' | 'hard';
+export type QuestionDifficulty = 'easy' | 'medium' | 'hard' | 'custom';
 export type CitationPosition = 'prefix' | 'suffix';
 
 export interface QuestionCitation {

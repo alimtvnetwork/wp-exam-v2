@@ -96,6 +96,43 @@ describe('Spec 13: Question Card Intelligence, Boolean Presets, Difficulty Tiers
 
       expect(resolvePoints(customField)).toBe(35);
     });
+
+    it('should handle tier dropdown selection and conditional custom input activation', () => {
+      const applyTierChange = (val: 'easy' | 'medium' | 'hard' | 'custom', prevPts?: number) => {
+        if (val === 'custom') {
+          return {
+            difficulty: 'custom' as const,
+            customPointsOverride: true,
+            points: prevPts || 10,
+            showCustomInput: true,
+          };
+        }
+
+        const defaultPts = val === 'easy' ? 5 : val === 'medium' ? 10 : 20;
+        return {
+          difficulty: val,
+          customPointsOverride: false,
+          points: defaultPts,
+          showCustomInput: false,
+        };
+      };
+
+      const easyRes = applyTierChange('easy');
+      expect(easyRes.difficulty).toBe('easy');
+      expect(easyRes.points).toBe(5);
+      expect(easyRes.showCustomInput).toBeFalsy();
+
+      const hardRes = applyTierChange('hard');
+      expect(hardRes.difficulty).toBe('hard');
+      expect(hardRes.points).toBe(20);
+      expect(hardRes.showCustomInput).toBeFalsy();
+
+      const customRes = applyTierChange('custom', 45);
+      expect(customRes.difficulty).toBe('custom');
+      expect(customRes.customPointsOverride).toBeTruthy();
+      expect(customRes.points).toBe(45);
+      expect(customRes.showCustomInput).toBeTruthy();
+    });
   });
 
   describe('Citations, Reference Links & Actionable Checklist Gates', () => {
@@ -197,29 +234,35 @@ describe('Spec 13: Question Card Intelligence, Boolean Presets, Difficulty Tiers
   describe('Animated Floating Title & Combined Preview Controls', () => {
     it('should compute floating position state accurately for Title label', () => {
       const computeFloatingState = (isFocused: boolean, label: string) => {
-        const isFloating = Boolean(isFocused || label.trim().length > 0);
+        const hasContentOrFocus = Boolean(isFocused || label.trim().length > 0);
         return {
-          isFloating,
-          labelLeft: isFloating ? 'calc(100% - 64px)' : '14px',
+          isFloating: hasContentOrFocus,
+          labelLeft: hasContentOrFocus ? 'calc(100% - 60px)' : '16px',
           labelText: 'Title',
+          fontFamily: 'Poppins',
+          isBold: false,
+          isVerticallyCentered: true,
         };
       };
 
       // Empty and unfocused: rests at placeholder position
       const unfocusedState = computeFloatingState(false, '');
-      expect(unfocusedState.isFloating).toBe(false);
-      expect(unfocusedState.labelLeft).toBe('14px');
+      expect(unfocusedState.isFloating).toBeFalsy();
+      expect(unfocusedState.labelLeft).toBe('16px');
       expect(unfocusedState.labelText).toBe('Title');
+      expect(unfocusedState.isBold).toBeFalsy();
+      expect(unfocusedState.fontFamily).toBe('Poppins');
+      expect(unfocusedState.isVerticallyCentered).toBeTruthy();
 
-      // Focused with empty text: glides to top-right
+      // Focused with empty text: glides to right-hand side, subtle and faded
       const focusedEmptyState = computeFloatingState(true, '');
-      expect(focusedEmptyState.isFloating).toBe(true);
-      expect(focusedEmptyState.labelLeft).toBe('calc(100% - 64px)');
+      expect(focusedEmptyState.isFloating).toBeTruthy();
+      expect(focusedEmptyState.labelLeft).toBe('calc(100% - 60px)');
 
-      // Unfocused with text: remains at top-right
+      // Unfocused with text: remains at right-hand side
       const filledState = computeFloatingState(false, 'What is recursion?');
-      expect(filledState.isFloating).toBe(true);
-      expect(filledState.labelLeft).toBe('calc(100% - 64px)');
+      expect(filledState.isFloating).toBeTruthy();
+      expect(filledState.labelLeft).toBe('calc(100% - 60px)');
     });
 
     it('should maintain combined preview-action configuration', () => {

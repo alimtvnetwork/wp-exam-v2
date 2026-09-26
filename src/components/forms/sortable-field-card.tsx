@@ -812,7 +812,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
           {/* Google Forms CardBody: Full-width Question Title with Floating Animated Placeholder */}
           <div className="space-y-3">
             {/* Relative container for Title Input + Floating Animated Label */}
-            <div className="relative">
+            <div className="relative flex items-center">
               <Input
                 id={`field-title-${id}`}
                 value={field.label}
@@ -820,18 +820,20 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 onFocus={() => setIsTitleFocused(true)}
                 onBlur={() => setIsTitleFocused(false)}
                 placeholder=""
-                className="text-base sm:text-lg font-bold h-12 pt-3.5 pb-1 px-3.5 w-full bg-background text-foreground shadow-2xs focus-visible:ring-2 focus-visible:ring-primary rounded-lg transition-all"
+                className="font-sans font-normal text-sm sm:text-base h-11 pl-4 pr-24 w-full bg-background text-foreground shadow-2xs focus-visible:ring-2 focus-visible:ring-primary rounded-lg transition-all"
               />
-              {/* Floating animated title indicator gliding smoothly from left placeholder to light uppercase right indicator */}
+              {/* Floating animated title indicator gliding smoothly between left placeholder and subtle right-hand hint */}
               <label
                 htmlFor={`field-title-${id}`}
-                className={`absolute pointer-events-none transition-all duration-300 ease-out select-none flex items-center gap-1 whitespace-nowrap font-medium ${
-                  isTitleFocused || field.label
-                    ? 'top-1 text-[11px] uppercase tracking-wider text-muted-foreground/60'
-                    : 'top-3 text-sm sm:text-base font-normal text-muted-foreground/50'
+                className={`absolute pointer-events-none transition-all duration-300 ease-out select-none flex items-center gap-1 whitespace-nowrap top-1/2 -translate-y-1/2 font-sans font-normal ${
+                  isTitleFocused || (field.label && field.label.trim().length > 0)
+                    ? 'text-xs text-muted-foreground/35 opacity-40'
+                    : 'text-sm sm:text-base text-muted-foreground/60 opacity-80'
                 }`}
                 style={{
-                  left: isTitleFocused || field.label ? 'calc(100% - 64px)' : '14px',
+                  left: isTitleFocused || (field.label && field.label.trim().length > 0)
+                    ? 'calc(100% - 60px)'
+                    : '16px',
                 }}
               >
                 <span>Title</span>
@@ -2970,68 +2972,57 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               />
             </div>
 
-            {/* Difficulty Tiers & Points Allocation (Easy 5pt, Medium 10pt, Hard 20pt, Custom) */}
+            {/* Difficulty Tiers & Points Allocation via Dropdown with Conditional Custom Input */}
             {isQuiz && (
-              <div className="flex items-center gap-2.5 border-l border-border/50 pl-4 flex-wrap">
-                <Label className="text-sm font-semibold text-foreground">
+              <div className="flex items-center gap-2 border-l border-border/50 pl-3 sm:pl-4">
+                <Label htmlFor={`footer-tier-${id}`} className="text-sm font-semibold text-foreground whitespace-nowrap">
                   Tier:
                 </Label>
-                <div className="flex items-center gap-1 bg-background border border-border rounded-lg p-0.5 shadow-2xs">
-                  {(['easy', 'medium', 'hard'] as const).map((diff) => {
-                    const currentDiff = field.difficulty || 'medium';
-                    const isSelected = currentDiff === diff;
-                    const defaultPts = diff === 'easy' ? 5 : diff === 'medium' ? 10 : 20;
-
-                    return (
-                      <button
-                        key={diff}
-                        type="button"
-                        onClick={() => {
-                          const updates: Partial<FormField> = { difficulty: diff };
-                          if (!showPointsOverride && !field.customPointsOverride) {
-                            updates.points = defaultPts;
-                          }
-                          onUpdate(id, updates);
-                        }}
-                        className={`px-2.5 py-1 text-xs font-semibold rounded-md capitalize transition-colors ${
-                          isSelected
-                            ? 'bg-primary text-primary-foreground shadow-xs'
-                            : 'text-muted-foreground hover:text-foreground'
-                        }`}
-                      >
-                        {diff} ({defaultPts}pt)
-                      </button>
-                    );
-                  })}
-                </div>
-
-                {/* Custom Points Toggle & Numeric Input */}
-                <button
-                  type="button"
-                  onClick={() => {
-                    const nextVal = !showPointsOverride;
-                    setShowPointsOverride(nextVal);
-                    onUpdate(id, { customPointsOverride: nextVal });
+                <Select
+                  value={field.customPointsOverride || field.difficulty === 'custom' ? 'custom' : field.difficulty || 'medium'}
+                  onValueChange={(val) => {
+                    if (val === 'custom') {
+                      onUpdate(id, {
+                        difficulty: 'custom',
+                        customPointsOverride: true,
+                        points: field.points || 10,
+                      });
+                    } else {
+                      const diff = val as 'easy' | 'medium' | 'hard';
+                      const defaultPts = diff === 'easy' ? 5 : diff === 'medium' ? 10 : 20;
+                      onUpdate(id, {
+                        difficulty: diff,
+                        customPointsOverride: false,
+                        points: defaultPts,
+                      });
+                    }
                   }}
-                  className={`px-2 py-1 text-xs rounded-md border transition-colors cursor-pointer ${
-                    showPointsOverride || field.customPointsOverride
-                      ? 'border-primary bg-primary/10 text-primary font-semibold'
-                      : 'border-border text-muted-foreground hover:text-foreground'
-                  }`}
-                  title="Toggle custom points override"
                 >
-                  Custom
-                </button>
+                  <SelectTrigger id={`footer-tier-${id}`} className="h-8 text-xs font-medium w-36 bg-background border-border shadow-2xs">
+                    <SelectValue placeholder="Select Tier" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border-border">
+                    <SelectItem value="easy" className="text-xs">Easy (5 pts)</SelectItem>
+                    <SelectItem value="medium" className="text-xs">Medium (10 pts)</SelectItem>
+                    <SelectItem value="hard" className="text-xs">Hard (20 pts)</SelectItem>
+                    <SelectItem value="custom" className="text-xs font-semibold text-primary">Custom...</SelectItem>
+                  </SelectContent>
+                </Select>
 
-                {(showPointsOverride || field.customPointsOverride) && (
-                  <Input
-                    id={`footer-pts-${id}`}
-                    type="number"
-                    value={field.points ?? 10}
-                    onChange={(e) => onUpdate(id, { points: Math.max(1, Number(e.target.value) || 1) })}
-                    className="w-16 h-8 text-xs font-semibold font-mono bg-background text-center rounded-lg shadow-2xs"
-                    min={1}
-                  />
+                {/* If Custom is picked, the text box appears! */}
+                {(field.customPointsOverride || field.difficulty === 'custom') && (
+                  <div className="flex items-center gap-1 animate-in fade-in-50 duration-150">
+                    <Input
+                      id={`footer-pts-${id}`}
+                      type="number"
+                      value={field.points ?? 10}
+                      onChange={(e) => onUpdate(id, { points: Math.max(1, Number(e.target.value) || 1) })}
+                      className="w-16 h-8 text-xs font-mono bg-background text-center rounded-lg shadow-2xs"
+                      min={1}
+                      title="Enter custom points"
+                    />
+                    <span className="text-xs text-muted-foreground font-medium">pts</span>
+                  </div>
                 )}
               </div>
             )}
