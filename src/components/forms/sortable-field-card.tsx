@@ -672,7 +672,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 }
               }}
             >
-              <SelectTrigger className="h-10 text-sm bg-background text-foreground border border-input rounded-lg font-semibold w-[205px] shadow-2xs cursor-pointer">
+              <SelectTrigger className="h-10 text-sm bg-background text-foreground border border-input rounded-lg font-semibold w-[155px] sm:w-[175px] shadow-2xs cursor-pointer">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border max-h-72">
@@ -699,7 +699,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               <button
                 type="button"
                 onClick={() => onUpdate(id, { layoutMode: 'standard' })}
-                className={`inline-flex items-center gap-1.5 h-full px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 h-full px-2 sm:px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                   field.layoutMode !== 'presentation_split'
                     ? 'bg-primary text-primary-foreground shadow-xs font-bold'
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
@@ -707,12 +707,12 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 title="Display question in Standard Quiz format"
               >
                 <LayoutTemplate className="w-3.5 h-3.5" />
-                <span>Quiz Format</span>
+                <span className="hidden xl:inline">Quiz</span>
               </button>
               <button
                 type="button"
                 onClick={() => onUpdate(id, { layoutMode: 'presentation_split' })}
-                className={`inline-flex items-center gap-1.5 h-full px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center gap-1.5 h-full px-2 sm:px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                   field.layoutMode === 'presentation_split'
                     ? 'bg-primary text-primary-foreground shadow-xs font-bold'
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
@@ -720,7 +720,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 title="Display question in 2-Column Presentation Slide format"
               >
                 <Columns className="w-3.5 h-3.5" />
-                <span>Presentation Slide</span>
+                <span className="hidden xl:inline">Slide</span>
               </button>
             </div>
 
