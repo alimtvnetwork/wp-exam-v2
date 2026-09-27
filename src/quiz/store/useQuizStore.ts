@@ -23,6 +23,7 @@ interface QuizState {
   isPublished: boolean;
   settings: FormSettings;
   fields: FormField[];
+  trashFields: Array<{ field: FormField; originalIndex: number; deletedAt: string }>;
   isLoading: boolean;
   isSaving: boolean;
 
@@ -41,6 +42,8 @@ interface QuizState {
   addField: (field: FormField) => void;
   updateField: (id: string, field: Partial<FormField>) => void;
   removeField: (id: string) => void;
+  restoreField: (id: string) => void;
+  clearTrash: () => void;
   setFields: (fields: FormField[]) => void;
 
   // Backward compatibility methods
@@ -97,6 +100,7 @@ export const useQuizStore = create<QuizState>()(
   settings: initialSettings,
   fields: defaultFields,
   questions: defaultFields,
+  trashFields: [],
   isLoading: false,
   isSaving: false,
 
@@ -131,9 +135,29 @@ export const useQuizStore = create<QuizState>()(
 
   removeField: (id) =>
     set((state) => {
+      const fieldIndex = state.fields.findIndex((f) => f.id === id);
+      const targetField = state.fields[fieldIndex];
       const updated = state.fields.filter((f) => f.id !== id);
-      return { fields: updated, questions: updated };
+      const newTrash = targetField
+        ? [{ field: targetField, originalIndex: fieldIndex, deletedAt: new Date().toISOString() }, ...state.trashFields]
+        : state.trashFields;
+      return { fields: updated, questions: updated, trashFields: newTrash };
     }),
+
+  restoreField: (id) =>
+    set((state) => {
+      const trashItem = state.trashFields.find((t) => t.field.id === id);
+      if (!trashItem) {
+        return {};
+      }
+      const remainingTrash = state.trashFields.filter((t) => t.field.id !== id);
+      const newFields = [...state.fields];
+      const insertIndex = Math.min(Math.max(trashItem.originalIndex, 0), newFields.length);
+      newFields.splice(insertIndex, 0, trashItem.field);
+      return { fields: newFields, questions: newFields, trashFields: remainingTrash };
+    }),
+
+  clearTrash: () => set({ trashFields: [] }),
 
   setFields: (fields) => set({ fields, questions: fields }),
 
@@ -155,6 +179,7 @@ export const useQuizStore = create<QuizState>()(
       settings: initialSettings,
       fields: [],
       questions: [],
+      trashFields: [],
     }),
 
   saveForm: async () => {
@@ -231,6 +256,7 @@ export const useQuizStore = create<QuizState>()(
       settings: state.settings,
       fields: state.fields,
       questions: state.questions,
+      trashFields: state.trashFields,
     }),
   }
   )

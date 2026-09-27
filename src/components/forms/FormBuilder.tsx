@@ -47,6 +47,7 @@ import { auditFormDesign, DesignHealthReport } from '@/lib/design-validation-eng
 import { AiSectionAssistant } from './ai-section-assistant';
 import { BranchingFlowModal } from './branching-flow-modal';
 import { SlugManagementModal } from './slug-management-modal';
+import { NotificationTriggerModal } from './notification-trigger-modal';
 import { SortableFieldCard } from './sortable-field-card';
 import { FieldPalette } from './field-palette';
 import { toast } from 'sonner';
@@ -82,6 +83,7 @@ import {
   ArrowLeft,
   Palette,
   Loader2,
+  Bell,
 } from 'lucide-react';
 import {
   DndContext,
@@ -109,6 +111,7 @@ export const FormBuilder: React.FC = () => {
     isSequential,
     settings,
     fields,
+    trashFields,
     isSaving,
     setTitle,
     setDescription,
@@ -120,6 +123,8 @@ export const FormBuilder: React.FC = () => {
     addField,
     updateField,
     removeField,
+    restoreField,
+    clearTrash,
     setFields,
     saveForm,
   } = useQuizStore();
@@ -130,6 +135,7 @@ export const FormBuilder: React.FC = () => {
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
   const [isSlugModalOpen, setIsSlugModalOpen] = useState(false);
+  const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
   const [outlineFilter, setOutlineFilter] = useState<string>('');
@@ -592,6 +598,80 @@ export const FormBuilder: React.FC = () => {
             <Share2 className="w-4 h-4 text-foreground group-hover:text-primary transition-colors" />
           </Button>
 
+          {/* Quick Notification Triggers & Templates Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="icon"
+            onClick={() => setIsNotificationModalOpen(true)}
+            className="h-9 w-9 bg-card border border-border text-foreground hover:bg-accent hover:text-primary hover:border-primary/40 shadow-xs rounded-xl cursor-pointer shrink-0 transition-all group"
+            title="Configure Automated Notification Triggers & Email Templates"
+          >
+            <Bell className="w-4 h-4 text-foreground group-hover:text-primary transition-colors" />
+          </Button>
+
+          {/* Trash Recovery Ledger Popover */}
+          {trashFields && trashFields.length > 0 && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-9 px-2.5 gap-1.5 bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20 shadow-xs rounded-xl font-semibold cursor-pointer shrink-0 transition-all animate-in fade-in duration-150"
+                  title={`${trashFields.length} deleted question(s) in trash. Click to restore.`}
+                >
+                  <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                  <span>Trash ({trashFields.length})</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-3 space-y-2.5 rounded-xl border border-border bg-popover shadow-xl text-xs">
+                <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                  <div className="flex items-center gap-1.5 font-bold text-foreground">
+                    <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                    <span>Deleted Questions Ledger</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearTrash}
+                    className="h-6 px-1.5 text-[11px] text-muted-foreground hover:text-destructive"
+                  >
+                    Clear All
+                  </Button>
+                </div>
+                <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                  {trashFields.map((item) => (
+                    <div
+                      key={item.field.id}
+                      className="p-2 rounded-lg border border-border/70 bg-card flex items-center justify-between gap-2"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-semibold truncate text-foreground">{item.field.label || 'Untitled Question'}</div>
+                        <div className="text-[10px] text-muted-foreground capitalize">
+                          {item.field.type.replace(/_/g, ' ')} • Deleted {new Date(item.deletedAt).toLocaleTimeString()}
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          restoreField(item.field.id);
+                          toast.success(`Restored "${item.field.label || 'question'}"`);
+                        }}
+                        className="h-6 px-2 text-[11px] border-primary/40 text-primary hover:bg-primary/10 shrink-0 font-semibold"
+                      >
+                        Restore
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+
           {/* Unified Tools ▾ Dropdown Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -610,6 +690,19 @@ export const FormBuilder: React.FC = () => {
               <DropdownMenuLabel className="text-sm font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1">
                 Integrations & Tools
               </DropdownMenuLabel>
+
+              <DropdownMenuItem
+                onClick={() => setIsNotificationModalOpen(true)}
+                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary border border-transparent hover:border-primary/20 transition-colors"
+              >
+                <div className="w-7 h-7 rounded-md bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 flex items-center justify-center shrink-0">
+                  <Bell className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="font-semibold text-foreground">Notification Triggers</div>
+                  <div className="text-sm text-muted-foreground">Email, WhatsApp & Telegram alerts</div>
+                </div>
+              </DropdownMenuItem>
 
               <DropdownMenuItem
                 onClick={() => setIsGoogleModalOpen(true)}
@@ -1460,6 +1553,12 @@ export const FormBuilder: React.FC = () => {
         fields={fields}
         onUpdateFields={setFields}
         onJumpToField={scrollToField}
+      />
+
+      {/* Notification Triggers & Sanitized Email Template Studio Modal */}
+      <NotificationTriggerModal
+        isOpen={isNotificationModalOpen}
+        onClose={() => setIsNotificationModalOpen(false)}
       />
     </div>
   );

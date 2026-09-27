@@ -1,8 +1,9 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import {
   FormModel,
   FormField,
+  DropdownOptionItem,
   FormSubmissionResult,
   evaluateFileUploadValidation,
   parseVideoEmbedUrl,
@@ -54,6 +55,7 @@ import {
   Award,
   GraduationCap,
   Circle,
+  Check,
   Save,
   RotateCcw,
 } from 'lucide-react';
@@ -2300,6 +2302,368 @@ export const RunnerListItemsInput: React.FC<{
   );
 };
 
+interface RunnerDropdownSelectProps {
+  field: FormField;
+  value: unknown;
+  onChange: (val: unknown) => void;
+}
+
+const RunnerDropdownSelect: React.FC<RunnerDropdownSelectProps> = ({ field, value, onChange }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const items: DropdownOptionItem[] = (field.dropdownOptions && field.dropdownOptions.length > 0)
+    ? field.dropdownOptions
+    : (field.options || []).map((o) => ({ label: o, value: o }));
+
+  const otherPrefix = '__other__:';
+  const strVal = typeof value === 'string' ? value : '';
+  const isOtherSelected = strVal.startsWith(otherPrefix) || strVal === '__other__';
+  const otherCustomText = isOtherSelected ? strVal.replace(otherPrefix, '').replace('__other__', '').trim() : '';
+
+  const currentItem = items.find((i) => i.value === strVal || i.label === strVal);
+  const displayLabel = isOtherSelected
+    ? (otherCustomText ? `Other: ${otherCustomText}` : 'Other (Custom answer)')
+    : (currentItem?.label || strVal || field.placeholder || 'Select an option...');
+
+  const filteredItems = items.filter((item) => {
+    const q = searchQuery.toLowerCase();
+    return item.label.toLowerCase().includes(q) || item.value.toLowerCase().includes(q);
+  });
+
+  useEffect(() => {
+    const handleOutsideClick = (e: MouseEvent) => {
+      const targetNode = e.target as Node;
+      if (dropdownRef.current) {
+        if (!dropdownRef.current.contains(targetNode)) {
+          setIsOpen(false);
+        }
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => {
+      document.removeEventListener('mousedown', handleOutsideClick);
+    };
+  }, []);
+
+  return (
+    <div className="space-y-2 font-sans relative" ref={dropdownRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full h-11 px-3.5 rounded-xl border border-input bg-background text-foreground flex items-center justify-between text-sm sm:text-base font-sans font-medium hover:border-primary/60 transition-colors cursor-pointer shadow-2xs"
+      >
+        <span className={strVal ? 'text-foreground' : 'text-muted-foreground'}>
+          {displayLabel}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-muted-foreground transition-transform duration-150 ${isOpen ? 'rotate-180 text-primary' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-full left-0 mt-1.5 w-full bg-popover text-popover-foreground border border-border rounded-xl shadow-2xl p-2 z-50 animate-in fade-in duration-150 space-y-1.5 max-h-72 flex flex-col">
+          <div className="px-1 pb-1 border-b border-border/50">
+            <Input
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search options..."
+              className="h-8 text-xs bg-muted/40"
+              autoFocus
+            />
+          </div>
+
+          <div className="overflow-y-auto space-y-1 pr-1 flex-1">
+            {filteredItems.map((item, idx) => {
+              const isSelected = item.value === strVal || item.label === strVal;
+              return (
+                <button
+                  key={idx}
+                  type="button"
+                  onClick={() => {
+                    onChange(item.value);
+                    setIsOpen(false);
+                    setSearchQuery('');
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between transition-colors cursor-pointer ${
+                    isSelected
+                      ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                      : 'hover:bg-primary/10 hover:text-primary text-foreground'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5 min-w-0">
+                    <span className={`w-6 h-6 rounded border flex items-center justify-center font-mono text-xs font-bold shrink-0 ${
+                      isSelected ? 'border-primary-foreground/30 bg-primary-foreground/20' : 'border-border bg-muted/60 text-foreground'
+                    }`}>
+                      {String.fromCharCode(65 + idx)}
+                    </span>
+                    <span className="truncate">{item.label}</span>
+                  </div>
+                  {isSelected && <Check className="w-4 h-4 shrink-0 text-primary-foreground" />}
+                </button>
+              );
+            })}
+
+            {field.allowOtherOption && (
+              <button
+                type="button"
+                onClick={() => {
+                  onChange(otherPrefix + (otherCustomText || ''));
+                  setIsOpen(false);
+                  setSearchQuery('');
+                }}
+                className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between transition-colors cursor-pointer border-t border-border/40 mt-1 pt-1.5 ${
+                  isOtherSelected
+                    ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                    : 'hover:bg-primary/10 hover:text-primary text-foreground'
+                }`}
+              >
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <span className={`w-6 h-6 rounded border flex items-center justify-center font-mono text-xs font-bold shrink-0 ${
+                    isOtherSelected ? 'border-primary-foreground/30 bg-primary-foreground/20' : 'border-border bg-muted/60 text-foreground'
+                  }`}>
+                    {String.fromCharCode(65 + items.length)}
+                  </span>
+                  <span className="italic font-medium">Other... (Type custom answer)</span>
+                </div>
+                {isOtherSelected && <Check className="w-4 h-4 shrink-0 text-primary-foreground" />}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
+      {isOtherSelected && (
+        <div className="pt-1.5 animate-in fade-in duration-150">
+          <Label className="text-xs font-semibold text-muted-foreground block mb-1">
+            Specify Custom Value for &quot;Other&quot;:
+          </Label>
+          <Input
+            value={otherCustomText}
+            onChange={(e) => onChange(otherPrefix + e.target.value)}
+            placeholder="Type your custom response here..."
+            className="h-10 text-sm bg-background border-primary/50 focus-visible:ring-primary rounded-xl"
+            autoFocus
+          />
+        </div>
+      )}
+    </div>
+  );
+};
+
+interface RunnerRatingFieldProps {
+  field: FormField;
+  value: unknown;
+  onChange: (val: unknown) => void;
+}
+
+const RunnerRatingField: React.FC<RunnerRatingFieldProps> = ({ field, value, onChange }) => {
+  let currentRating = 0;
+  let feedbackText = '';
+  let selectedTags: string[] = [];
+
+  if (typeof value === 'number') {
+    currentRating = value;
+  } else if (typeof value === 'object' && value !== null) {
+    const valObj = value as Record<string, unknown>;
+    currentRating = Number(valObj.rating) || 0;
+    feedbackText = String(valObj.feedback || '');
+    if (Array.isArray(valObj.tags)) {
+      selectedTags = valObj.tags as string[];
+    }
+  } else if (typeof value === 'string') {
+    currentRating = Number(value) || 0;
+  }
+
+  const mode = field.ratingDisplayMode || 'stars';
+  const maxScale = mode === 'emojis' ? 5 : (field.ratingMax || 5);
+  const lowThreshold = field.ratingFeedbackThreshold || 3;
+  const highThreshold = field.ratingReviewThreshold || 4;
+
+  const feelings = [
+    { num: 1, emoji: '😢', label: 'Cry / Terrible' },
+    { num: 2, emoji: '🙁', label: 'Sad / Poor' },
+    { num: 3, emoji: '😐', label: 'Neutral / Average' },
+    { num: 4, emoji: '😊', label: 'Happy / Good' },
+    { num: 5, emoji: '😍', label: 'Love / Excellent' },
+  ];
+
+  const appreciationTags = field.ratingAppreciationTags && field.ratingAppreciationTags.length > 0
+    ? field.ratingAppreciationTags
+    : ['⚡ Fast Response', '🎓 Knowledgeable', '📚 Great Curriculum', '🤝 Supportive Mentors', '✨ Seamless Experience'];
+
+  const emitUpdate = (newRating: number, newFeedback: string, newTags: string[]) => {
+    onChange({
+      rating: newRating,
+      feedback: newFeedback,
+      tags: newTags,
+    });
+  };
+
+  const handleRate = (num: number) => {
+    emitUpdate(num, feedbackText, selectedTags);
+  };
+
+  const handleFeedbackChange = (text: string) => {
+    emitUpdate(currentRating, text, selectedTags);
+  };
+
+  const handleTagToggle = (tag: string) => {
+    const nextTags = selectedTags.includes(tag)
+      ? selectedTags.filter((t) => t !== tag)
+      : [...selectedTags, tag];
+    emitUpdate(currentRating, feedbackText, nextTags);
+  };
+
+  const isLowScore = Boolean(currentRating > 0 && currentRating <= lowThreshold);
+  const isHighScore = Boolean(currentRating >= highThreshold);
+
+  return (
+    <div className="space-y-4 font-sans">
+      {mode === 'emojis' ? (
+        <div className="flex items-center justify-center gap-3 sm:gap-4 flex-wrap py-2">
+          {feelings.map((f) => {
+            const isSelected = currentRating === f.num;
+            return (
+              <button
+                key={f.num}
+                type="button"
+                onClick={() => handleRate(f.num)}
+                className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border transition-all duration-200 cursor-pointer min-w-16 sm:min-w-20 ${
+                  isSelected
+                    ? 'border-primary bg-primary/20 scale-110 shadow-md ring-2 ring-primary/40'
+                    : 'border-border/80 bg-card hover:bg-muted/50 hover:border-primary/40 hover:scale-105'
+                }`}
+                title={f.label}
+              >
+                <span className="text-3xl sm:text-4xl select-none">{f.emoji}</span>
+                <span className={`text-[11px] font-semibold text-center leading-tight ${isSelected ? 'text-primary' : 'text-muted-foreground'}`}>
+                  {f.label.split(' / ')[0]}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      ) : mode === 'numbers' ? (
+        <div className="flex items-center justify-center gap-2 flex-wrap py-1">
+          {Array.from({ length: maxScale }, (_, i) => i + 1).map((num) => {
+            const isSelected = currentRating === num;
+            return (
+              <button
+                key={num}
+                type="button"
+                onClick={() => handleRate(num)}
+                className={`w-11 h-11 rounded-xl border font-bold text-sm sm:text-base flex items-center justify-center transition-all cursor-pointer ${
+                  isSelected
+                    ? 'border-primary bg-primary text-primary-foreground shadow-md scale-105'
+                    : 'border-border bg-card text-foreground hover:border-primary/50 hover:bg-primary/10'
+                }`}
+              >
+                {num}
+              </button>
+            );
+          })}
+        </div>
+      ) : (
+        <div className="flex items-center justify-center gap-1.5 sm:gap-2 flex-wrap py-2">
+          {Array.from({ length: maxScale }, (_, i) => i + 1).map((star) => {
+            const isFilled = currentRating >= star;
+            return (
+              <button
+                key={star}
+                type="button"
+                onClick={() => handleRate(star)}
+                className={`flex items-center gap-1.5 px-3 py-2.5 rounded-xl border font-bold text-sm sm:text-base transition-all duration-150 cursor-pointer ${
+                  isFilled
+                    ? 'border-amber-400 bg-amber-400/15 text-amber-600 dark:text-amber-300 shadow-xs scale-105'
+                    : 'border-border bg-card text-muted-foreground hover:bg-amber-400/10 hover:border-amber-400/50'
+                }`}
+                title={`Rate ${star} / ${maxScale}`}
+              >
+                <Star
+                  className={`w-5 h-5 transition-colors ${
+                    isFilled ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground/40'
+                  }`}
+                />
+                <span className="font-mono text-xs">{star}</span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+
+      {currentRating > 0 && (
+        <div className="text-center text-xs font-semibold text-muted-foreground">
+          Selected: <strong className="text-primary">{currentRating}</strong> of {maxScale}
+        </div>
+      )}
+
+      {isLowScore && (
+        <div className="p-4 rounded-xl border border-amber-500/30 bg-amber-500/5 space-y-2 animate-in fade-in duration-200">
+          <div className="flex items-center gap-2 text-xs font-bold text-amber-700 dark:text-amber-300">
+            <AlertCircle className="w-4 h-4 text-amber-600" />
+            <span>How can we improve your experience?</span>
+          </div>
+          <Textarea
+            value={feedbackText}
+            onChange={(e) => handleFeedbackChange(e.target.value)}
+            placeholder={field.ratingFeedbackPlaceholder || 'Please let us know what went wrong or how we can do better...'}
+            rows={3}
+            className="text-sm bg-background border-border/80 rounded-xl"
+          />
+        </div>
+      )}
+
+      {isHighScore && (
+        <div className="p-4 rounded-xl border border-emerald-500/30 bg-emerald-500/5 space-y-3.5 animate-in fade-in duration-200">
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2 text-xs font-bold text-emerald-700 dark:text-emerald-300">
+              <Sparkles className="w-4 h-4 text-emerald-600" />
+              <span>Thank you for your stellar rating!</span>
+            </div>
+            {field.ratingReviewUrl && (
+              <a
+                href={field.ratingReviewUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-xs transition-colors cursor-pointer"
+              >
+                <span>Review on Google Maps</span>
+                <ExternalLink className="w-3.5 h-3.5" />
+              </a>
+            )}
+          </div>
+
+          <div className="space-y-1.5">
+            <span className="text-xs font-semibold text-muted-foreground block">
+              What did you appreciate most? (Select all that apply)
+            </span>
+            <div className="flex items-center gap-2 flex-wrap">
+              {appreciationTags.map((tag) => {
+                const isTagSelected = selectedTags.includes(tag);
+                return (
+                  <button
+                    key={tag}
+                    type="button"
+                    onClick={() => handleTagToggle(tag)}
+                    className={`text-xs px-3 py-1.5 rounded-full border transition-all cursor-pointer font-medium ${
+                      isTagSelected
+                        ? 'bg-emerald-600 text-white border-emerald-600 shadow-xs'
+                        : 'bg-background text-foreground border-border hover:border-emerald-500 hover:bg-emerald-500/10'
+                    }`}
+                  >
+                    {isTagSelected && '✓ '}
+                    {tag}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 function renderFieldInput(field: FormField, value: unknown, onChange: (val: unknown) => void) {
   const strValue = typeof value === 'string' ? value : '';
 
@@ -2445,10 +2809,10 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
           {options.map((opt, optIndex) => (
             <label
               key={opt}
-              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 ${
+              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary hover:bg-primary/10 hover:shadow-xs ${
                 selectedOpts.includes(opt)
                   ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
-                  : 'border-border/80 bg-card hover:bg-accent/40 hover:border-primary/40 text-foreground'
+                  : 'border-border/80 bg-card text-foreground'
               }`}
             >
               <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
@@ -2466,16 +2830,16 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                 onChange={(e) => handleChange(opt, e.target.checked)}
                 className="text-primary focus:ring-primary h-4 w-4 rounded accent-primary cursor-pointer"
               />
-              <span className="flex-1 font-sans">{opt}</span>
+              <span className="flex-1 font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
             </label>
           ))}
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary hover:bg-primary/10 hover:shadow-xs ${
                   hasOther
                     ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
-                    : 'border-border/80 bg-card hover:bg-accent/40 hover:border-primary/40 text-foreground'
+                    : 'border-border/80 bg-card text-foreground'
                 }`}
               >
                 <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-sans text-xs font-semibold shrink-0 transition-colors ${
@@ -2583,10 +2947,10 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 ${alignClass} ${
+                className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary hover:bg-primary/10 hover:shadow-xs ${alignClass} ${
                   isSelected
                     ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
-                    : 'border-border/80 bg-card hover:bg-accent/40 hover:border-primary/40 text-foreground'
+                    : 'border-border/80 bg-card text-foreground'
                 }`}
               >
                 <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
@@ -2604,7 +2968,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                   onChange={() => onChange(opt)}
                   className="text-primary focus:ring-primary h-4 w-4 accent-primary cursor-pointer"
                 />
-                <span className="font-sans font-medium">{opt}</span>
+                <span className="font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
               </label>
             );
           })}
@@ -2634,10 +2998,10 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
           {options.map((opt, optIndex) => (
             <label
               key={opt}
-              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 ${
+              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary hover:bg-primary/10 hover:shadow-xs ${
                 strValue === opt
                   ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
-                  : 'border-border/80 bg-card hover:bg-accent/40 hover:border-primary/40 text-foreground'
+                  : 'border-border/80 bg-card text-foreground'
               }`}
             >
               <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
@@ -2655,16 +3019,16 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                 onChange={() => onChange(opt)}
                 className="text-primary focus:ring-primary h-4 w-4 accent-primary cursor-pointer"
               />
-              <span className="flex-1 font-sans">{opt}</span>
+              <span className="flex-1 font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
             </label>
           ))}
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary/50 hover:bg-primary/5 ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary hover:bg-primary/10 hover:shadow-xs ${
                   hasOther
                     ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
-                    : 'border-border/80 bg-card hover:bg-accent/40 hover:border-primary/40 text-foreground'
+                    : 'border-border/80 bg-card text-foreground'
                 }`}
               >
                 <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-sans text-xs font-semibold shrink-0 transition-colors ${
@@ -2727,23 +3091,8 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
       );
     }
 
-    case 'dropdown': {
-      const options = field.options || [];
-      return (
-        <select
-          value={strValue}
-          onChange={(e) => onChange(e.target.value)}
-          className="w-full h-8 px-2 border border-input rounded-md text-xs bg-background text-foreground dark:bg-slate-900 dark:text-slate-100 dark:border-slate-700"
-        >
-          <option value="" className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">-- Choose Option --</option>
-          {options.map((opt) => (
-            <option key={opt} value={opt} className="bg-popover text-popover-foreground dark:bg-slate-900 dark:text-slate-100">
-              {opt}
-            </option>
-          ))}
-        </select>
-      );
-    }
+    case 'dropdown':
+      return <RunnerDropdownSelect field={field} value={value} onChange={onChange} />;
 
     case 'paragraph':
       return (
@@ -2757,106 +3106,8 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
       );
 
     case 'rating':
-    case 'rating_feedback': {
-      let currentRating = 0;
-      let feedbackText = '';
-
-      if (typeof value === 'number') {
-        currentRating = value;
-      } else if (typeof value === 'object' && value !== null) {
-        const valObj = value as Record<string, unknown>;
-        currentRating = Number(valObj.rating) || 0;
-        feedbackText = String(valObj.feedback || '');
-      } else if (typeof value === 'string') {
-        currentRating = Number(value) || 0;
-      }
-
-      const maxScale = field.ratingMax || 5;
-      const iconType = field.ratingIcon || 'star';
-      const isFeedbackEnabled = Boolean(field.hasRatingFeedback || field.type === 'rating_feedback');
-
-      const handleRate = (num: number) => {
-        if (isFeedbackEnabled) {
-          onChange({ rating: num, feedback: feedbackText });
-        } else {
-          onChange(num);
-        }
-      };
-
-      const handleFeedbackChange = (text: string) => {
-        onChange({ rating: currentRating, feedback: text });
-      };
-
-      return (
-        <div className="space-y-3 font-sans">
-          <div
-            className={`flex items-center gap-2 flex-wrap ${
-              (field.alignment || 'center') === 'center'
-                ? 'justify-center'
-                : field.alignment === 'right'
-                ? 'justify-end'
-                : 'justify-start'
-            }`}
-          >
-            {Array.from({ length: maxScale }, (_, i) => i + 1).map((star) => {
-              const isSelected = currentRating >= star;
-
-              return (
-                <button
-                  key={star}
-                  type="button"
-                  onClick={() => handleRate(star)}
-                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl border font-bold text-xs sm:text-sm transition-all cursor-pointer ${
-                    isSelected
-                      ? iconType === 'heart'
-                        ? 'border-rose-500 bg-rose-500/15 text-rose-600 shadow-xs'
-                        : iconType === 'thumb'
-                        ? 'border-sky-500 bg-sky-500/15 text-sky-600 shadow-xs'
-                        : 'border-amber-500 bg-amber-500/15 text-amber-600 shadow-xs'
-                      : 'border-border bg-card text-muted-foreground hover:bg-muted/40 hover:text-foreground'
-                  }`}
-                  title={`Rate ${star} out of ${maxScale}`}
-                >
-                  {iconType === 'heart' ? (
-                    <Heart className={`w-4 h-4 transition-colors ${isSelected ? 'text-rose-500 fill-rose-500' : 'text-muted-foreground/60'}`} />
-                  ) : iconType === 'thumb' ? (
-                    <ThumbsUp className={`w-4 h-4 transition-colors ${isSelected ? 'text-sky-500 fill-sky-500' : 'text-muted-foreground/60'}`} />
-                  ) : iconType === 'smiley' ? (
-                    <Smile className={`w-4 h-4 transition-colors ${isSelected ? 'text-amber-500' : 'text-muted-foreground/60'}`} />
-                  ) : iconType === 'emoji' ? (
-                    <span className="text-base leading-none">{field.ratingCustomEmoji || '🎯'}</span>
-                  ) : (
-                    <Star className={`w-4 h-4 transition-colors ${isSelected ? 'text-amber-500 fill-amber-500' : 'text-muted-foreground/60'}`} />
-                  )}
-                  <span>{star}</span>
-                </button>
-              );
-            })}
-          </div>
-
-          {currentRating > 0 && (
-            <div className="text-center text-xs font-semibold text-muted-foreground">
-              {currentRating} out of {maxScale}
-            </div>
-          )}
-
-          {isFeedbackEnabled && (
-            <div className="space-y-1.5 pt-2 animate-in fade-in duration-150">
-              <Label className="text-xs font-semibold text-muted-foreground">
-                Feedback Commentary (Optional):
-              </Label>
-              <Textarea
-                value={feedbackText}
-                onChange={(e) => handleFeedbackChange(e.target.value)}
-                placeholder={field.ratingFeedbackPlaceholder || 'Share any comments or reasons for your rating...'}
-                rows={2}
-                className="text-sm bg-background rounded-xl"
-              />
-            </div>
-          )}
-        </div>
-      );
-    }
+    case 'rating_feedback':
+      return <RunnerRatingField field={field} value={value} onChange={onChange} />;
 
     case 'phone':
     case 'whatsapp':

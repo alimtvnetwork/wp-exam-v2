@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assessment Submission - {{candidate_name}}</title>
+</head>
+<body style="margin: 0; padding: 0; background: #f6f7fb; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+  <table role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0" style="background: #f6f7fb;">
+    <tbody>
+      <tr>
+        <td align="center" style="padding: 28px 12px;">
+          <table role="presentation" border="0" width="680" cellspacing="0" cellpadding="0" style="width: 100%; max-width: 680px; background: #ffffff; border-radius: 16px; overflow: hidden; border: 1px solid #eceef5; box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);">
+            <tbody>
+              <!-- Header Banner -->
+              <tr>
+                <td style="padding: 24px 26px; background: {{primary_color|default('#0b1220')}};">
+                  <div style="font-family: inherit; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: #aab2c5; font-weight: 600;">
+                    {{company_name|default('WP Exam System')}} — New Submission
+                  </div>
+                  <div style="font-family: inherit; font-size: 20px; line-height: 28px; color: #ffffff; font-weight: bold; margin-top: 8px;">
+                    {{form_title|default('Assessment')}} - {{job_position|default('Candidate Assessment')}} - {{candidate_name|default('Alex Morgan')}}
+                  </div>
+                  <div style="font-family: inherit; font-size: 13px; line-height: 20px; color: #d7dbea; margin-top: 10px;">
+                    Email: <a href="mailto:{{candidate_email|default('candidate@example.org')}}" style="color: #60a5fa; text-decoration: underline;">{{candidate_email|default('candidate@example.org')}}</a>
+                    &nbsp;&nbsp;•&nbsp;&nbsp;
+                    Phone: <span style="color: #d7dbea;">{{candidate_phone|default('+1 (555) 019-2834')}}</span>
+                    &nbsp;&nbsp;•&nbsp;&nbsp;
+                    Country: <span style="color: #d7dbea;">{{candidate_country|default('United States')}}</span>
+                  </div>
+                </td>
+              </tr>
+
+              <!-- Content Body -->
+              <tr>
+                <td style="padding: 24px 24px 18px 24px;">
+                  <div style="height: 2px; line-height: 2px;">&nbsp;</div>
+
+                  <!-- Step 1: Applicant & Role -->
+                  <table role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0">
+                    <tbody>
+                      <tr>
+                        <td style="padding: 10px; background: #f6f7fb; border-radius: 16px;">
+                          <table role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #eceef5; border-radius: 14px; background: #ffffff; overflow: hidden;">
+                            <tbody>
+                              <tr>
+                                <td style="padding: 16px 16px 10px 16px; background: #fbfbfe; border-bottom: 1px solid #eceef5;">
+                                  <div style="font-family: inherit; font-size: 14px; color: #0b1220; font-weight: bold;">
+                                    Section 1 — Applicant &amp; Role Details
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style="padding: 12px 16px;">
+                                  <table role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #eceef5; border-radius: 12px; overflow: hidden; background: #ffffff;">
+                                    <tbody>
+                                      <tr>
+                                        <td valign="top" width="50%" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">Full Name</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220; font-weight: 600;">{{candidate_name|default('Alex Morgan')}}</td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">Target Role / Position</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220; font-weight: 600;">{{job_position|default('Senior Full Stack Developer')}}</td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">Open to Work Immediately?</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220;">{{open_to_work|default('Yes')}}</td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">Email Address</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220;">
+                                          <a href="mailto:{{candidate_email|default('candidate@example.org')}}" style="color: #2563eb; text-decoration: underline;">{{candidate_email|default('candidate@example.org')}}</a>
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">Phone / Contact</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220;">{{candidate_phone|default('+1 (555) 019-2834')}}</td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">Country / Region</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220;">{{candidate_country|default('United States')}}</td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">Years of Relevant Experience</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220;">{{experience_years|default('4')}}</td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; font-size: 13px; color: #5b647a;">Core Technologies</td>
+                                        <td valign="top" style="padding: 12px; font-size: 13px; color: #0b1220;">{{languages_known|default('TypeScript, React, Python, Go, Tailwind CSS')}}</td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <div style="height: 14px; line-height: 14px;">&nbsp;</div>
+
+                  <!-- Step 2: Profiles & Work Links -->
+                  <table role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0">
+                    <tbody>
+                      <tr>
+                        <td style="padding: 10px; background: #f6f7fb; border-radius: 16px;">
+                          <table role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #eceef5; border-radius: 14px; background: #ffffff; overflow: hidden;">
+                            <tbody>
+                              <tr>
+                                <td style="padding: 16px 16px 10px 16px; background: #fbfbfe; border-bottom: 1px solid #eceef5;">
+                                  <div style="font-family: inherit; font-size: 14px; color: #0b1220; font-weight: bold;">
+                                    Section 2 — Portfolio &amp; Online Profiles
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style="padding: 12px 16px;">
+                                  <table role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #eceef5; border-radius: 12px; overflow: hidden; background: #ffffff;">
+                                    <tbody>
+                                      <tr>
+                                        <td valign="top" width="50%" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">GitHub Profile</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220;">
+                                          <a href="{{github_url|default('https://github.com/sample-candidate')}}" target="_blank" style="color: #2563eb; text-decoration: underline;">{{github_url|default('https://github.com/sample-candidate')}}</a>
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">LinkedIn Profile</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220;">
+                                          <a href="{{linkedin_url|default('https://linkedin.com/in/sample-candidate')}}" target="_blank" style="color: #2563eb; text-decoration: underline;">{{linkedin_url|default('https://linkedin.com/in/sample-candidate')}}</a>
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">Portfolio / Personal Website</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220;">
+                                          <a href="{{portfolio_url|default('https://sample-portfolio.example.com')}}" target="_blank" style="color: #2563eb; text-decoration: underline;">{{portfolio_url|default('https://sample-portfolio.example.com')}}</a>
+                                        </td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; font-size: 13px; color: #5b647a;">CV / Resume Link</td>
+                                        <td valign="top" style="padding: 12px; font-size: 13px; color: #0b1220;">
+                                          <a href="{{cv_drive_url|default('https://drive.google.com/file/d/sample-resume-id/view')}}" target="_blank" style="color: #2563eb; text-decoration: underline;">View Candidate Resume</a>
+                                        </td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <div style="height: 14px; line-height: 14px;">&nbsp;</div>
+
+                  <!-- Step 3: Education & Work Setup -->
+                  <table role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0">
+                    <tbody>
+                      <tr>
+                        <td style="padding: 10px; background: #f6f7fb; border-radius: 16px;">
+                          <table role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #eceef5; border-radius: 14px; background: #ffffff; overflow: hidden;">
+                            <tbody>
+                              <tr>
+                                <td style="padding: 16px 16px 10px 16px; background: #fbfbfe; border-bottom: 1px solid #eceef5;">
+                                  <div style="font-family: inherit; font-size: 14px; color: #0b1220; font-weight: bold;">
+                                    Section 3 — Qualifications &amp; Workstation
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style="padding: 12px 16px;">
+                                  <table role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #eceef5; border-radius: 12px; overflow: hidden; background: #ffffff;">
+                                    <tbody>
+                                      <tr>
+                                        <td valign="top" width="50%" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">Degree / Academic Background</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220;">{{degree_info|default('Bachelor of Science in Computer Science')}}</td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">Remote Setup Compatible?</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220;">{{remote_compatible|default('Yes')}}</td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">Workstation / Hardware Specs</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220;">{{workstation_specs|default('Core i7, 32GB RAM, Dual Monitors, High-speed Fiber Connection')}}</td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; font-size: 13px; color: #5b647a;">Seniority Tier</td>
+                                        <td valign="top" style="padding: 12px; font-size: 13px; color: #0b1220;">{{seniority_level|default('Mid-Level / Senior (3-5 Years)')}}</td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <div style="height: 14px; line-height: 14px;">&nbsp;</div>
+
+                  <!-- Step 4: Technical Narrative & Self Introduction -->
+                  <table role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0">
+                    <tbody>
+                      <tr>
+                        <td style="padding: 10px; background: #f6f7fb; border-radius: 16px;">
+                          <table role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #eceef5; border-radius: 14px; background: #ffffff; overflow: hidden;">
+                            <tbody>
+                              <tr>
+                                <td style="padding: 16px 16px 10px 16px; background: #fbfbfe; border-bottom: 1px solid #eceef5;">
+                                  <div style="font-family: inherit; font-size: 14px; color: #0b1220; font-weight: bold;">
+                                    Section 4 — Technical Statement &amp; Answers
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style="padding: 12px 16px;">
+                                  <div style="padding: 12px; border: 1px solid #eceef5; border-radius: 12px; background: #ffffff; margin-bottom: 10px;">
+                                    <div style="font-size: 12px; color: #5b647a; margin-bottom: 6px; font-weight: 600;">Technical Approach &amp; AI Integration</div>
+                                    <div style="font-size: 13px; line-height: 20px; color: #0b1220;">
+                                      {{ai_statement|default('Experienced in architecting reactive frontends, designing robust monadic APIs, and leveraging AI coding assistants for high-velocity software engineering with zero test regressions.')}}
+                                    </div>
+                                  </div>
+
+                                  <div style="padding: 12px; border: 1px solid #eceef5; border-radius: 12px; background: #ffffff;">
+                                    <div style="font-size: 12px; color: #5b647a; margin-bottom: 6px; font-weight: 600;">Candidate Self Introduction</div>
+                                    <div style="font-size: 13px; line-height: 20px; color: #0b1220;">
+                                      {{candidate_intro|default('Driven software engineer specializing in scalable modern web ecosystems. Passionate about clean architecture, high-contrast user interfaces, and automated workflows that delight users and drive real business outcomes.')}}
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                  <div style="height: 14px; line-height: 14px;">&nbsp;</div>
+
+                  <!-- Step 5: Compensation & Availability -->
+                  <table role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0">
+                    <tbody>
+                      <tr>
+                        <td style="padding: 10px; background: #f6f7fb; border-radius: 16px;">
+                          <table role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #eceef5; border-radius: 14px; background: #ffffff; overflow: hidden;">
+                            <tbody>
+                              <tr>
+                                <td style="padding: 16px 16px 10px 16px; background: #fbfbfe; border-bottom: 1px solid #eceef5;">
+                                  <div style="font-family: inherit; font-size: 14px; color: #0b1220; font-weight: bold;">
+                                    Section 5 — Compensation &amp; Availability
+                                  </div>
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style="padding: 12px 16px;">
+                                  <table role="presentation" border="0" width="100%" cellspacing="0" cellpadding="0" style="border: 1px solid #eceef5; border-radius: 12px; overflow: hidden; background: #ffffff;">
+                                    <tbody>
+                                      <tr>
+                                        <td valign="top" width="50%" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">Current Compensation</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220;">{{current_salary|default('$4,500 / month')}}</td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">Asking Compensation</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220; font-weight: 600;">{{asking_salary|default('$6,000 / month')}}</td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; border-bottom: 1px solid #eceef5; font-size: 13px; color: #5b647a;">Acceptable Salary Range</td>
+                                        <td valign="top" style="padding: 12px; border-bottom: 1px solid #eceef5; font-size: 13px; color: #0b1220;">{{min_salary|default('$5,500')}} - {{max_salary|default('$7,500')}}</td>
+                                      </tr>
+                                      <tr>
+                                        <td valign="top" style="padding: 12px; background: #fbfbfe; font-size: 13px; color: #5b647a;">Full-time 40-45 hrs/week Commitment?</td>
+                                        <td valign="top" style="padding: 12px; font-size: 13px; color: #0b1220;">{{full_time_commitment|default('Yes')}}</td>
+                                      </tr>
+                                    </tbody>
+                                  </table>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </td>
+                      </tr>
+                    </tbody>
+                  </table>
+
+                </td>
+              </tr>
+
+              <!-- Footer -->
+              <tr>
+                <td style="padding: 18px 24px; background: #fbfbfe; border-top: 1px solid #eceef5;">
+                  <div style="font-family: inherit; font-size: 12px; line-height: 18px; color: #7a849b;">
+                    Submission captured by <strong style="color: #0b1220;">WP Exam Application Engine</strong>.<br>
+                    <span style="color: #a1a9bd;">{{company_name|default('WP Exam System')}} • Hiring &amp; Assessment Operations</span>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</body>
+</html>

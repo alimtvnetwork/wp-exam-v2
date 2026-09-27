@@ -24,6 +24,33 @@ export type FieldType =
 
 export type RatingIconType = 'star' | 'heart' | 'thumb' | 'smiley' | 'emoji';
 export type RatingScale = 5 | 10 | 20;
+export type RatingDisplayMode = 'numbers' | 'stars' | 'emojis';
+
+export interface DropdownOptionItem {
+  label: string;
+  value: string;
+}
+
+export type NotificationChannel = 'email' | 'whatsapp' | 'telegram';
+export type NotificationTriggerEvent = 'on_field_answer' | 'on_section_complete' | 'on_form_submit' | 'on_score_threshold';
+
+export interface NotificationTrigger {
+  id: string;
+  channel: NotificationChannel;
+  event: NotificationTriggerEvent;
+  to: string;
+  fromName?: string;
+  fromEmail?: string;
+  replyTo?: string;
+  cc?: string;
+  bcc?: string;
+  subject?: string;
+  templateId?: string;
+  templateHtml?: string;
+  colorPalette?: string;
+  conditionScoreMin?: number;
+  conditionScoreMax?: number;
+}
 
 export type BooleanDisplayPreset = 'true_false' | 'yes_no' | 'enable_disable' | 'agree_disagree';
 export type QuestionDifficulty = 'easy' | 'medium' | 'hard' | 'custom';
@@ -140,9 +167,17 @@ export interface FormField {
   suggestionsPool?: string[];
   ratingIcon?: RatingIconType;
   ratingMax?: RatingScale;
+  ratingDisplayMode?: RatingDisplayMode;
+  ratingReviewUrl?: string;
+  ratingAppreciationTags?: string[];
+  ratingFeedbackThreshold?: number;
+  ratingReviewThreshold?: number;
   hasRatingFeedback?: boolean;
   ratingFeedbackPlaceholder?: string;
   ratingCustomEmoji?: string;
+  dropdownOptions?: DropdownOptionItem[];
+  dropdownAllowSearch?: boolean;
+  notificationTriggers?: NotificationTrigger[];
 }
 
 export interface FormSettings {
@@ -156,6 +191,7 @@ export interface FormSettings {
   passingScore?: number;
   notificationEmail?: string;
   successMessage?: string;
+  notificationTriggers?: NotificationTrigger[];
 }
 
 export interface FormModel {

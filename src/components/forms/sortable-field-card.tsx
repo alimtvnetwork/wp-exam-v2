@@ -2652,6 +2652,46 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 </div>
               </div>
 
+              {/* Dropdown-Specific Configuration Bar */}
+              {field.type === 'dropdown' && (
+                <div className="flex items-center justify-between py-2 px-3 bg-muted/40 rounded-lg border border-border text-xs flex-wrap gap-2">
+                  <span className="text-foreground font-semibold flex items-center gap-1.5 font-sans">
+                    <ListOrdered className="w-3.5 h-3.5 text-primary" />
+                    <span>Dropdown Item Settings</span>
+                  </span>
+                  <div className="flex items-center gap-4">
+                    <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-foreground font-sans">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(field.dropdownAllowSearch)}
+                        onChange={(e) => onUpdate(id, { dropdownAllowSearch: e.target.checked })}
+                        className="rounded text-primary focus:ring-primary h-3.5 w-3.5 accent-primary"
+                      />
+                      <span>Option Search Bar</span>
+                    </label>
+                    <label className="flex items-center gap-1.5 cursor-pointer text-xs font-semibold text-foreground font-sans">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(field.dropdownOptions && field.dropdownOptions.length > 0)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            const initial = (field.options || ['Option 1', 'Option 2']).map((o) => ({
+                              label: o,
+                              value: o.toLowerCase().trim().replace(/[\s_-]+/g, '_'),
+                            }));
+                            onUpdate(id, { dropdownOptions: initial });
+                          } else {
+                            onUpdate(id, { dropdownOptions: undefined });
+                          }
+                        }}
+                        className="rounded text-primary focus:ring-primary h-3.5 w-3.5 accent-primary"
+                      />
+                      <span>Custom Stored Values</span>
+                    </label>
+                  </div>
+                </div>
+              )}
+
               <div className="space-y-3">
                 {(field.options || []).map((opt, optIndex) => {
                   const currentAnswers = (field.correctAnswers && field.correctAnswers.length > 0)
@@ -2660,6 +2700,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     ? [field.correctAnswer]
                     : [];
                   const isCorrect = currentAnswers.includes(opt);
+                  const hasCustomValues = Boolean(field.type === 'dropdown' && field.dropdownOptions && field.dropdownOptions.length > 0);
+                  const storedValue = field.dropdownOptions?.[optIndex]?.value || '';
 
                   return (
                     <div key={optIndex} className="flex gap-2.5 items-center">
@@ -2671,16 +2713,50 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                         {String.fromCharCode(65 + optIndex)}
                       </span>
 
-                      <Input
-                        value={opt}
-                        onChange={(e) => {
-                          const newOpts = [...(field.options || [])];
-                          newOpts[optIndex] = e.target.value;
-                          onUpdate(id, { options: newOpts });
-                        }}
-                        placeholder={`Option ${optIndex + 1}`}
-                        className="text-base h-11 px-3.5 bg-background text-foreground flex-1 font-medium rounded-lg"
-                      />
+                      {hasCustomValues ? (
+                        <div className="flex-1 flex items-center gap-2">
+                          <Input
+                            value={opt}
+                            onChange={(e) => {
+                              const newOpts = [...(field.options || [])];
+                              newOpts[optIndex] = e.target.value;
+                              const newDropdownOpts = [...(field.dropdownOptions || [])];
+                              newDropdownOpts[optIndex] = {
+                                label: e.target.value,
+                                value: newDropdownOpts[optIndex]?.value || e.target.value.toLowerCase().replace(/[\s_-]+/g, '_'),
+                              };
+                              onUpdate(id, { options: newOpts, dropdownOptions: newDropdownOpts });
+                            }}
+                            placeholder={`Display Label (e.g. Option ${optIndex + 1})`}
+                            className="text-base h-11 px-3.5 bg-background text-foreground flex-1 font-medium rounded-lg"
+                          />
+                          <Input
+                            value={storedValue}
+                            onChange={(e) => {
+                              const newDropdownOpts = [...(field.dropdownOptions || [])];
+                              newDropdownOpts[optIndex] = {
+                                label: opt,
+                                value: e.target.value,
+                              };
+                              onUpdate(id, { dropdownOptions: newDropdownOpts });
+                            }}
+                            placeholder="Stored Value"
+                            className="text-sm h-11 px-3 bg-muted/30 font-mono text-foreground w-36 sm:w-44 rounded-lg shrink-0"
+                            title="Internal stored value"
+                          />
+                        </div>
+                      ) : (
+                        <Input
+                          value={opt}
+                          onChange={(e) => {
+                            const newOpts = [...(field.options || [])];
+                            newOpts[optIndex] = e.target.value;
+                            onUpdate(id, { options: newOpts });
+                          }}
+                          placeholder={`Option ${optIndex + 1}`}
+                          className="text-base h-11 px-3.5 bg-background text-foreground flex-1 font-medium rounded-lg"
+                        />
+                      )}
 
                       {isQuiz && (
                         <Button
@@ -2724,7 +2800,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                         className="h-11 w-11 shrink-0 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer rounded-lg transition-colors"
                         onClick={() => {
                           const newOpts = field.options?.filter((_, i) => i !== optIndex);
-                          onUpdate(id, { options: newOpts });
+                          const newDropdownOpts = field.dropdownOptions?.filter((_, i) => i !== optIndex);
+                          onUpdate(id, { options: newOpts, dropdownOptions: newDropdownOpts });
                         }}
                         title="Delete option"
                       >
@@ -2761,8 +2838,14 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   className="text-sm h-10 px-4 text-primary hover:bg-primary/10 border-primary/40 gap-2 font-semibold rounded-lg cursor-pointer"
                   onClick={() => {
                     const count = (field.options?.length || 0) + 1;
+                    const newLabel = `Option ${count}`;
+                    const nextOptions = [...(field.options || []), newLabel];
+                    const nextDropdownOptions = field.dropdownOptions
+                      ? [...field.dropdownOptions, { label: newLabel, value: `option_${count}` }]
+                      : undefined;
                     onUpdate(id, {
-                      options: [...(field.options || []), `Option ${count}`],
+                      options: nextOptions,
+                      dropdownOptions: nextDropdownOptions,
                     });
                   }}
                 >
@@ -2900,8 +2983,41 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <Label className="text-sm sm:text-base font-medium text-foreground flex items-center gap-1.5 font-sans">
                   <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                  <span>Rating Scale & Display Configuration</span>
+                  <span>Rating Mode & Conditional Feedback</span>
                 </Label>
+              </div>
+
+              {/* Mode Selector: Numbers, IMDB Stars, Feeling Emojis */}
+              <div className="space-y-1.5 font-sans">
+                <Label className="text-xs font-semibold text-muted-foreground font-sans">Rating Display Mode</Label>
+                <div className="grid grid-cols-3 gap-2">
+                  {[
+                    { id: 'numbers', label: '1 2 3 Numbers' },
+                    { id: 'stars', label: '⭐ IMDB Stars' },
+                    { id: 'emojis', label: '😢..😍 Feelings' },
+                  ].map((mode) => {
+                    const isSelected = (field.ratingDisplayMode || 'stars') === mode.id;
+                    return (
+                      <button
+                        key={mode.id}
+                        type="button"
+                        onClick={() => {
+                          onUpdate(id, {
+                            ratingDisplayMode: mode.id as 'numbers' | 'stars' | 'emojis',
+                            ratingMax: mode.id === 'emojis' ? 5 : (field.ratingMax || 5),
+                          });
+                        }}
+                        className={`py-2 px-3 rounded-lg text-xs font-medium border transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-primary text-primary-foreground border-primary font-semibold shadow-xs'
+                            : 'bg-background border-border text-foreground hover:bg-muted'
+                        }`}
+                      >
+                        {mode.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
@@ -2910,31 +3026,33 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <Label className="text-xs font-semibold text-muted-foreground font-sans">Rating Scale</Label>
                   <Select
                     value={String(field.ratingMax || 5)}
+                    disabled={field.ratingDisplayMode === 'emojis'}
                     onValueChange={(val) => onUpdate(id, { ratingMax: Number(val) as RatingScale })}
                   >
                     <SelectTrigger className="h-9 text-xs bg-background">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-popover border-border">
-                      <SelectItem value="5" className="text-xs">5 out of 5 (1 - 5)</SelectItem>
-                      <SelectItem value="10" className="text-xs">10 out of 10 (1 - 10)</SelectItem>
-                      <SelectItem value="20" className="text-xs">20 out of 20 (1 - 20)</SelectItem>
+                      <SelectItem value="5" className="text-xs">5 Scale (1 - 5)</SelectItem>
+                      <SelectItem value="10" className="text-xs">10 Scale (1 - 10)</SelectItem>
+                      <SelectItem value="20" className="text-xs">20 Scale (1 - 20)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                {/* Icon / Style: Star, Heart, Thumb, Smiley, Emoji */}
+                {/* Icon / Style when in star mode */}
                 <div className="space-y-1.5 font-sans">
-                  <Label className="text-xs font-semibold text-muted-foreground font-sans">Display Icon</Label>
+                  <Label className="text-xs font-semibold text-muted-foreground font-sans">Star / Icon Preset</Label>
                   <Select
                     value={field.ratingIcon || 'star'}
+                    disabled={field.ratingDisplayMode === 'emojis'}
                     onValueChange={(val) => onUpdate(id, { ratingIcon: val as RatingIconType })}
                   >
                     <SelectTrigger className="h-9 text-xs bg-background">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent className="bg-popover border-border">
-                      <SelectItem value="star" className="text-xs">⭐ Star</SelectItem>
+                      <SelectItem value="star" className="text-xs">⭐ Star (IMDB)</SelectItem>
                       <SelectItem value="heart" className="text-xs">❤️ Heart</SelectItem>
                       <SelectItem value="thumb" className="text-xs">👍 Thumbs Up</SelectItem>
                       <SelectItem value="smiley" className="text-xs">😀 Smiley Face</SelectItem>
@@ -2968,48 +3086,65 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 </div>
               </div>
 
-              {/* Custom Emoji input if emoji selected */}
-              {field.ratingIcon === 'emoji' && (
-                <div className="space-y-1.5 font-sans">
-                  <Label className="text-xs font-semibold text-muted-foreground font-sans">Custom Emoji Character</Label>
-                  <Input
-                    value={field.ratingCustomEmoji || '🎯'}
-                    onChange={(e) => onUpdate(id, { ratingCustomEmoji: e.target.value })}
-                    placeholder="e.g. 🔥, 🚀, 🎯, 💡"
-                    className="text-sm h-9 bg-background w-36 text-center font-sans"
-                  />
+              {/* Conditional Score-Driven Triggers */}
+              <div className="pt-2 border-t border-border/60 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div className="space-y-0.5">
+                    <Label className="text-sm font-semibold text-foreground font-sans">
+                      Conditional Score Actions
+                    </Label>
+                    <p className="text-xs text-muted-foreground">
+                      Automatically prompt for feedback on low scores or review links & appreciation tags on high scores.
+                    </p>
+                  </div>
                 </div>
-              )}
 
-              {/* Optional Feedback Section Toggle */}
-              <div className="pt-2 border-t border-border/60 flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label htmlFor={`rating-feedback-${id}`} className="text-sm font-semibold text-foreground cursor-pointer font-sans">
-                    Include Feedback Text Box
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {/* Low Rating Feedback Box */}
+                  <div className="p-3 rounded-lg border border-border bg-background space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-amber-600 dark:text-amber-400">Low Score Feedback</span>
+                      <span className="text-[11px] text-muted-foreground">Score &le; {field.ratingFeedbackThreshold || 3}</span>
+                    </div>
+                    <Input
+                      value={field.ratingFeedbackPlaceholder || ''}
+                      onChange={(e) => onUpdate(id, { ratingFeedbackPlaceholder: e.target.value, hasRatingFeedback: true })}
+                      placeholder="Prompt: How can we improve our service?"
+                      className="text-xs h-8 bg-muted/20"
+                    />
+                  </div>
+
+                  {/* High Rating Google Maps Review & Appreciation */}
+                  <div className="p-3 rounded-lg border border-border bg-background space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400">High Score Review CTA</span>
+                      <span className="text-[11px] text-muted-foreground">Score &ge; {field.ratingReviewThreshold || 4}</span>
+                    </div>
+                    <Input
+                      value={field.ratingReviewUrl || ''}
+                      onChange={(e) => onUpdate(id, { ratingReviewUrl: e.target.value })}
+                      placeholder="Google Maps Review URL (e.g. https://g.page/r/...)"
+                      className="text-xs h-8 bg-muted/20"
+                    />
+                  </div>
+                </div>
+
+                {/* Appreciation Tag Pills Configuration */}
+                <div className="space-y-1.5 pt-1">
+                  <Label className="text-xs font-semibold text-muted-foreground font-sans">
+                    Appreciation Tag Pills (shown on high score)
                   </Label>
-                  <p className="text-xs text-muted-foreground">
-                    Candidates can write explanatory feedback or commentary with their rating.
-                  </p>
-                </div>
-                <Switch
-                  id={`rating-feedback-${id}`}
-                  checked={Boolean(field.hasRatingFeedback)}
-                  onCheckedChange={(checked) => onUpdate(id, { hasRatingFeedback: checked })}
-                  className="data-[state=checked]:bg-primary"
-                />
-              </div>
-
-              {field.hasRatingFeedback && (
-                <div className="space-y-1.5 animate-in fade-in-50 duration-150 font-sans">
-                  <Label className="text-xs font-semibold text-muted-foreground font-sans">Feedback Box Placeholder</Label>
                   <Input
-                    value={field.ratingFeedbackPlaceholder || ''}
-                    onChange={(e) => onUpdate(id, { ratingFeedbackPlaceholder: e.target.value })}
-                    placeholder="e.g. Tell us more about why you chose this rating..."
-                    className="text-sm sm:text-base h-10 bg-background font-sans"
+                    value={(field.ratingAppreciationTags || ['⚡ Fast Response', '🎓 Knowledgeable', '📚 Great Curriculum', '🤝 Supportive Mentors', '✨ Seamless Experience']).join(', ')}
+                    onChange={(e) => {
+                      const tags = e.target.value.split(',').map((t) => t.trim()).filter(Boolean);
+                      onUpdate(id, { ratingAppreciationTags: tags });
+                    }}
+                    placeholder="Comma-separated tags (e.g. Fast Response, Knowledgeable, Supportive Mentors)"
+                    className="text-xs h-8 bg-background font-sans"
                   />
                 </div>
-              )}
+              </div>
             </div>
           )}
 
@@ -3136,7 +3271,52 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
         {/* Card Footer: Bottom toolbar dividing settings cleanly */}
         <CardFooter className="py-3.5 px-5 sm:px-6 border-t border-border/60 bg-muted/10 flex flex-wrap items-center justify-between gap-3 rounded-b-2xl">
-          <div className="flex items-center gap-4 flex-wrap">
+          {/* Low-Resolution Responsive Properties Menu (< 640px) */}
+          <div className="sm:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 border-border bg-card">
+                  <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
+                  <span>Field Settings</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent className="w-56 p-3 space-y-3 bg-popover border-border shadow-xl">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-foreground">Required</span>
+                  <Switch
+                    checked={field.isRequired}
+                    onCheckedChange={(checked) => onUpdate(id, { isRequired: checked })}
+                    className="data-[state=checked]:bg-primary"
+                  />
+                </div>
+                {isChoiceField && (
+                  <div className="flex items-center justify-between pt-1 border-t border-border/60">
+                    <span className="text-xs font-semibold text-foreground">Allow &quot;Other&quot;</span>
+                    <Switch
+                      checked={Boolean(field.allowOtherOption)}
+                      onCheckedChange={(checked) => onUpdate(id, { allowOtherOption: checked })}
+                      className="data-[state=checked]:bg-primary"
+                    />
+                  </div>
+                )}
+                {isQuiz && (
+                  <div className="space-y-1.5 pt-1 border-t border-border/60">
+                    <span className="text-xs font-semibold text-foreground block">Points Allocation</span>
+                    <Input
+                      type="number"
+                      value={field.points ?? 10}
+                      onChange={(e) => onUpdate(id, { points: Math.max(1, Number(e.target.value) || 1), customPointsOverride: true })}
+                      className="h-8 text-xs font-mono bg-background"
+                      min={1}
+                    />
+                  </div>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* Standard Viewport Field Properties (>= 640px) */}
+          <div className="hidden sm:flex items-center gap-4 flex-wrap">
             {/* Required switch with clear label (text-sm font-semibold) and red asterisk */}
             <div className="flex items-center gap-2">
               <Label htmlFor={`footer-req-${id}`} className="text-sm font-semibold cursor-pointer flex items-center">
@@ -3234,26 +3414,34 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             )}
           </div>
 
-          {/* Combined Save, Duplicate & Delete Segmented Control */}
+          {/* Combined Action Buttons: [Delete - Red on LEFT] | [Duplicate - Blue in CENTER] | [Save - Green on RIGHT] */}
           <div className="inline-flex items-center rounded-lg border border-border bg-card shadow-2xs overflow-hidden h-9 ml-auto shrink-0">
-            {/* Save Question Button Segment */}
+            {/* Delete Button Segment (LEFT - Destructive Red) */}
             <button
               type="button"
-              onClick={handleSaveQuestion}
-              className={`inline-flex items-center justify-center h-full px-2.5 transition-colors cursor-pointer group ${
-                isQuestionDirty
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                  : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 opacity-70'
-              }`}
-              title={isQuestionDirty ? 'Save changes to this question' : 'Question is saved'}
+              onClick={() => {
+                onRemove(id);
+                toast.success(`Question #${index + 1} deleted`, {
+                  action: {
+                    label: 'Undo',
+                    onClick: () => {
+                      useQuizStore.getState().restoreField(id);
+                      toast.info('Question restored');
+                    },
+                  },
+                  duration: 6000,
+                });
+              }}
+              className="inline-flex items-center justify-center h-full px-2.5 text-destructive hover:bg-destructive/10 transition-colors cursor-pointer group"
+              title="Delete Question"
             >
-              <Save className={`w-4 h-4 ${isQuestionDirty ? 'text-white' : 'text-muted-foreground'}`} />
+              <Trash2 className="w-4 h-4 text-destructive group-hover:scale-110 transition-transform" />
             </button>
 
             {/* Subtle Divider */}
             <div className="w-px h-5 bg-border shrink-0" />
 
-            {/* Duplicate Button Segment */}
+            {/* Duplicate Button Segment (CENTER - Primary Blue) */}
             <button
               type="button"
               onClick={() => onDuplicate(id)}
@@ -3266,14 +3454,18 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             {/* Subtle Divider */}
             <div className="w-px h-5 bg-border shrink-0" />
 
-            {/* Delete Button Segment */}
+            {/* Save Question Button Segment (RIGHT - Emerald Green) */}
             <button
               type="button"
-              onClick={() => onRemove(id)}
-              className="inline-flex items-center justify-center h-full px-2.5 text-destructive hover:bg-destructive/10 transition-colors cursor-pointer group"
-              title="Delete Question"
+              onClick={handleSaveQuestion}
+              className={`inline-flex items-center justify-center h-full px-2.5 transition-colors cursor-pointer group ${
+                isQuestionDirty
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-medium'
+                  : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 opacity-70'
+              }`}
+              title={isQuestionDirty ? 'Save changes to this question' : 'Question is saved'}
             >
-              <Trash2 className="w-4 h-4 text-destructive group-hover:scale-110 transition-transform" />
+              <Save className={`w-4 h-4 ${isQuestionDirty ? 'text-white' : 'text-emerald-500'}`} />
             </button>
           </div>
         </CardFooter>
