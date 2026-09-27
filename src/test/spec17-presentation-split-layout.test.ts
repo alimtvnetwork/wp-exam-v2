@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import {
   resolveQuestionLayoutMode,
+  resolveAnswerPlacement,
   extractQuestionReferences,
   extractQuestionChecklist,
   verifyChecklistCompletion,
@@ -247,6 +248,41 @@ describe('Spec 17: Presentation Split Layout, Question Display Modes & UI/UX Pre
       expect(mockForm.fields[0].referenceLinks?.[0].title).toBe('Distributed Caching Patterns');
       expect(mockForm.fields[0].actionChecklist?.[0].isRequired).toBe(true);
       expect(mockForm.fields[1].layoutMode).toBe('standard');
+    });
+  });
+
+  describe('Answer / Checkbox Placement Resolution', () => {
+    it('prioritizes question-level answerPlacement when set', () => {
+      const leftMode = resolveAnswerPlacement({
+        fieldPlacement: 'left',
+        formDefaultPlacement: 'right',
+      });
+      expect(leftMode).toBe('left');
+
+      const rightMode = resolveAnswerPlacement({
+        fieldPlacement: 'right',
+        formDefaultPlacement: 'left',
+      });
+      expect(rightMode).toBe('right');
+    });
+
+    it('falls back to formDefaultPlacement when fieldPlacement is unset', () => {
+      const fallbackLeft = resolveAnswerPlacement({
+        fieldPlacement: undefined,
+        formDefaultPlacement: 'left',
+      });
+      expect(fallbackLeft).toBe('left');
+
+      const fallbackRight = resolveAnswerPlacement({
+        fieldPlacement: undefined,
+        formDefaultPlacement: 'right',
+      });
+      expect(fallbackRight).toBe('right');
+    });
+
+    it('defaults to right-hand side placement when all are unset', () => {
+      const defaultPlacement = resolveAnswerPlacement({});
+      expect(defaultPlacement).toBe('right');
     });
   });
 });

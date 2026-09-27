@@ -1,4 +1,4 @@
-import { FormField, QuestionLayoutMode, QuestionActionChecklistItem, QuestionReferenceLinkItem } from './types/form';
+import { FormField, QuestionLayoutMode, QuestionActionChecklistItem, QuestionReferenceLinkItem, AnswerPlacementMode } from './types/form';
 
 export interface ResolveLayoutModeParams {
   runtimeOverride?: QuestionLayoutMode | 'default';
@@ -25,6 +25,25 @@ export function resolveQuestionLayoutMode(params: ResolveLayoutModeParams): Ques
   }
 
   return 'standard';
+}
+
+export interface ResolveAnswerPlacementParams {
+  fieldPlacement?: AnswerPlacementMode;
+  formDefaultPlacement?: AnswerPlacementMode;
+}
+
+export function resolveAnswerPlacement(params: ResolveAnswerPlacementParams): AnswerPlacementMode {
+  const field = params.fieldPlacement;
+  if (field) {
+    return field;
+  }
+
+  const formDef = params.formDefaultPlacement;
+  if (formDef) {
+    return formDef;
+  }
+
+  return 'right';
 }
 
 export interface ExtractReferencesParams {

@@ -251,21 +251,18 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
     };
     updated[citeIdx] = { ...current, [key]: val };
 
-    const hasTitle = Boolean(updated[citeIdx].title?.trim());
-    const hasUrl = Boolean(updated[citeIdx].url?.trim());
+    const hasText = Boolean(updated[citeIdx].title?.trim() || updated[citeIdx].url?.trim());
     const isLast = citeIdx === updated.length - 1;
 
     if (isLast) {
-      if (hasTitle) {
-        if (hasUrl) {
-          updated.push({
-            id: `cite-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-            title: '',
-            url: '',
-            position: 'prefix',
-            isRequiredCheck: false,
-          });
-        }
+      if (hasText) {
+        updated.push({
+          id: `cite-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+          title: '',
+          url: '',
+          position: 'prefix',
+          isRequiredCheck: false,
+        });
       }
     }
 
@@ -1039,7 +1036,35 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                       className="h-8 text-xs bg-background flex-1"
                     />
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                    {/* Per-Question Answer Placement Toggle: Right vs Left */}
+                    <div className="inline-flex items-center rounded-lg border border-border bg-background p-0.5 h-8 shrink-0 text-xs shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => onUpdate(id, { answerPlacement: 'right' })}
+                        className={`px-2 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
+                          (field.answerPlacement || 'right') === 'right'
+                            ? 'bg-primary text-primary-foreground font-semibold shadow-2xs'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                        title="Display Choices / Checkboxes on Right-Hand Side"
+                      >
+                        Answers Right
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onUpdate(id, { answerPlacement: 'left' })}
+                        className={`px-2 py-1 rounded text-xs font-medium transition-colors cursor-pointer ${
+                          field.answerPlacement === 'left'
+                            ? 'bg-primary text-primary-foreground font-semibold shadow-2xs'
+                            : 'text-muted-foreground hover:text-foreground'
+                        }`}
+                        title="Display Choices / Checkboxes on Left-Hand Side"
+                      >
+                        Answers Left
+                      </button>
+                    </div>
+
                     <Button
                       type="button"
                       variant="outline"
@@ -1587,16 +1612,32 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
           {/* Interactive In-Card Live Test Preview Drawer */}
           {showLivePreview && (
             <div className="p-4 bg-muted/40 rounded-xl border border-primary/30 space-y-3 animate-in fade-in-50 duration-200">
-              <div className="flex items-center justify-between border-b border-border/60 pb-2">
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-xs font-bold text-primary flex items-center gap-1.5">
-                    <Eye className="w-4 h-4" /> Live Preview
-                  </span>
-                  <span className="text-sm font-semibold text-foreground flex items-center">
-                    <span>{field.label || 'Untitled Question'}</span>
-                    {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
-                  </span>
+              <div className="flex items-center justify-between border-b border-border/60 pb-2 flex-wrap gap-2">
+                <div className="flex items-center gap-2">
+                  <Badge variant="outline" className="text-xs font-mono font-bold bg-primary/10 text-primary border-primary/30 flex items-center gap-1.5">
+                    {field.layoutMode === 'presentation_split' ? (
+                      <>
+                        <Columns className="w-3.5 h-3.5" />
+                        <span>Presentation Split ({field.answerPlacement === 'left' ? 'Answers on Left' : 'Answers on Right'})</span>
+                      </>
+                    ) : (
+                      <>
+                        <LayoutTemplate className="w-3.5 h-3.5" />
+                        <span>Standard Quiz Format</span>
+                      </>
+                    )}
+                  </Badge>
                 </div>
+
+                {field.layoutMode === 'presentation_split' && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdate(id, { answerPlacement: field.answerPlacement === 'left' ? 'right' : 'left' })}
+                    className="text-xs text-primary hover:underline font-medium cursor-pointer"
+                  >
+                    Switch to {field.answerPlacement === 'left' ? 'Answers on Right' : 'Answers on Left'}
+                  </button>
+                )}
               </div>
 
               {/* Display Question Description / Instructions if present */}
@@ -3482,21 +3523,21 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               />
             </div>
 
-            {/* Low-Resolution Responsive Actions Overflow Dropdown (< 640px) */}
-            <div className="sm:hidden">
+            {/* Responsive Actions Overflow Dropdown (visible when space is reduced: < 1024px) */}
+            <div className="lg:hidden">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 px-2.5 text-xs gap-1.5 border-border bg-card text-muted-foreground hover:text-foreground"
+                    className="h-8 px-2.5 text-xs gap-1.5 border-border bg-card text-muted-foreground hover:text-foreground cursor-pointer shadow-2xs"
                     title="More actions and question settings"
                   >
                     <MoreHorizontal className="w-3.5 h-3.5" />
-                    <span>More</span>
+                    <span>Options</span>
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-60 p-2 space-y-1.5 bg-popover border-border shadow-xl">
+                <DropdownMenuContent align="start" className="w-64 p-2 space-y-1.5 bg-popover border-border shadow-xl">
                   {isChoiceField && (
                     <div className="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-muted/40 transition-colors">
                       <span className="text-xs font-medium text-foreground">Allow &quot;Other&quot;</span>
@@ -3559,19 +3600,6 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     </div>
                   )}
 
-                  <DropdownMenuItem
-                    onClick={() => setShowTriggers(true)}
-                    className="gap-2 text-xs cursor-pointer py-1.5 px-2 rounded-md"
-                  >
-                    <Mail className="w-3.5 h-3.5 text-primary" />
-                    <span>Email Alert Trigger</span>
-                    {activeTriggers.length > 0 && (
-                      <Badge variant="secondary" className="ml-auto text-[10px] px-1 py-0 h-4">
-                        {activeTriggers.length}
-                      </Badge>
-                    )}
-                  </DropdownMenuItem>
-
                   <DropdownMenuSeparator className="my-1 border-border/60" />
 
                   <DropdownMenuItem
@@ -3594,8 +3622,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             </div>
           </div>
 
-          {/* Standard Viewport Field Properties (>= 640px) */}
-          <div className="hidden sm:flex items-center gap-4 flex-wrap">
+          {/* Standard Viewport Field Properties (>= 1024px) */}
+          <div className="hidden lg:flex items-center gap-4 flex-wrap">
             {/* Difficulty Tiers & Points Allocation via Dropdown with Conditional Custom Input */}
             {isQuiz && (
               <div className="flex items-center gap-2 border-l border-border/50 pl-3 sm:pl-4">
@@ -3677,28 +3705,6 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 Max {field.fileValidation?.maxSizeMb || 10}MB
               </Badge>
             )}
-
-            {/* Quick Question Email & Webhook Alert Trigger Button */}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setShowTriggers(!showTriggers)}
-              className={`h-8 px-2.5 text-xs gap-1.5 rounded-lg border transition-all cursor-pointer ${
-                showTriggers
-                  ? 'bg-primary/10 border-primary text-primary font-semibold'
-                  : 'border-border/80 text-muted-foreground hover:text-foreground hover:border-primary/40'
-              }`}
-              title="Configure Question Email & Webhook Triggers"
-            >
-              <Mail className="w-3.5 h-3.5 text-primary" />
-              <span>Email Alert</span>
-              {activeTriggers.length > 0 && (
-                <span className="w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center ml-0.5">
-                  {activeTriggers.length}
-                </span>
-              )}
-            </Button>
           </div>
 
           {/* Right Action Buttons */}

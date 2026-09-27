@@ -84,6 +84,7 @@ import {
 } from '@/lib/branching-engine';
 import {
   resolveQuestionLayoutMode,
+  resolveAnswerPlacement,
   extractQuestionReferences,
   extractQuestionChecklist,
   verifyChecklistCompletion,
@@ -725,6 +726,13 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       formDefaultMode: activeForm.settings?.defaultQuestionLayout,
     });
   }, [runnerViewMode, currentField?.layoutMode, activeForm.settings?.defaultQuestionLayout]);
+
+  const effectiveAnswerPlacement = useMemo(() => {
+    return resolveAnswerPlacement({
+      fieldPlacement: currentField?.answerPlacement,
+      formDefaultPlacement: activeForm.settings?.defaultAnswerPlacement,
+    });
+  }, [currentField?.answerPlacement, activeForm.settings?.defaultAnswerPlacement]);
 
   const referenceItems = useMemo(() => {
     return extractQuestionReferences({ field: currentField });
@@ -1995,8 +2003,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
                 {/* 2-Column Presentation Grid (50% / 50% on Desktop) */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 items-start">
-                  {/* Left Column: Eyebrow, Large Title, Description, References & Action Checklist */}
-                  <div className="w-full space-y-6">
+                  {/* Left/Right Column: Eyebrow, Large Title, Description, References & Action Checklist */}
+                  <div className={`w-full space-y-6 ${effectiveAnswerPlacement === 'left' ? 'lg:order-2' : 'lg:order-1'}`}>
                     {/* Eyebrow Kicker Badge */}
                     <div className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
                       <span className="w-2 h-2 rounded-full bg-primary" />
@@ -2131,8 +2139,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     {renderCitations(currentField.citations, 'suffix')}
                   </div>
 
-                  {/* Right Column: Elevated Fluid Answer Card */}
-                  <div className="w-full space-y-5">
+                  {/* Left/Right Column: Elevated Fluid Answer Card */}
+                  <div className={`w-full space-y-5 ${effectiveAnswerPlacement === 'left' ? 'lg:order-1' : 'lg:order-2'}`}>
                     <div className="bg-card border border-border/80 rounded-2xl p-6 sm:p-8 shadow-lg space-y-6">
                       <div className="flex items-center justify-between pb-3 border-b border-border/70">
                         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">

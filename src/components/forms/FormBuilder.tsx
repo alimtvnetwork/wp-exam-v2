@@ -558,6 +558,42 @@ export const FormBuilder: React.FC = () => {
               <span>Slide</span>
             </button>
           </div>
+
+          {/* Default Answer Placement for Presentation Slides */}
+          {settings.defaultQuestionLayout === 'presentation_split' && (
+            <div className="hidden md:inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5 h-8 shrink-0 shadow-2xs">
+              <button
+                type="button"
+                onClick={() => {
+                  updateSettings({ defaultAnswerPlacement: 'right' });
+                  toast.info('Default answer placement: Right-hand side');
+                }}
+                className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                  settings.defaultAnswerPlacement !== 'left'
+                    ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Default layout: Question on Left, Answers/Checkboxes on Right"
+              >
+                <span>Answers Right</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  updateSettings({ defaultAnswerPlacement: 'left' });
+                  toast.info('Default answer placement: Left-hand side');
+                }}
+                className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                  settings.defaultAnswerPlacement === 'left'
+                    ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Default layout: Answers/Checkboxes on Left, Question on Right"
+              >
+                <span>Answers Left</span>
+              </button>
+            </div>
+          )}
         </div>
 
         {/* Right Side: Quick Action Cluster with Compact Tools Dropdown & Save */}

@@ -206,12 +206,15 @@ export interface FormField {
   dropdownAllowSearch?: boolean;
   notificationTriggers?: NotificationTrigger[];
   layoutMode?: QuestionLayoutMode;
+  answerPlacement?: 'right' | 'left';
   kickerText?: string;
   actionChecklist?: QuestionActionChecklistItem[];
   referenceLinks?: QuestionReferenceLinkItem[];
 }
 
 export type QuestionLayoutMode = 'standard' | 'presentation_split';
+
+export type AnswerPlacementMode = 'right' | 'left';
 
 export interface QuestionActionChecklistItem {
   id: string;
@@ -240,6 +243,7 @@ export interface FormSettings {
   notificationTriggers?: NotificationTrigger[];
   emailCustomization?: EmailCustomizationConfig;
   defaultQuestionLayout?: QuestionLayoutMode;
+  defaultAnswerPlacement?: AnswerPlacementMode;
 }
 
 export interface FormModel {
