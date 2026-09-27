@@ -213,7 +213,7 @@ export const Index: React.FC = () => {
             variant="ghost"
             size="sm"
             onClick={() => navigate('/')}
-            className="text-sm h-7 px-2 gap-1.5 text-muted-foreground hover:text-primary hover:bg-accent/50 cursor-pointer"
+            className="text-sm h-7 px-2 gap-1.5 text-muted-foreground hover:text-foreground hover:bg-accent/50 cursor-pointer"
             title="Visit Public Candidate Portal"
           >
             <ExternalLink className="w-3.5 h-3.5" />
@@ -231,7 +231,7 @@ export const Index: React.FC = () => {
           <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
             <span className="hidden md:inline">Howdy,</span>
             <span className="font-semibold text-foreground">admin</span>
-            <div className="w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center text-primary">
+            <div className="w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center text-foreground">
               <User className="w-3 h-3" />
             </div>
           </div>

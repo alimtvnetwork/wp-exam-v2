@@ -136,10 +136,12 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
       '--border': '240 24% 22%',
       '--input': '240 24% 22%',
       '--ring': '41 100% 50%',
-      '--accent': '41 100% 50%',
-      '--accent-foreground': '240 33% 6%',
+      '--accent': '246 32% 19%',
+      '--accent-foreground': '0 0% 100%',
+      '--secondary': '246 32% 19%',
+      '--secondary-foreground': '0 0% 100%',
       '--muted': '240 20% 16%',
-      '--muted-foreground': '215 20% 65%',
+      '--muted-foreground': '38 22% 70%',
     },
   },
   dracula: {
@@ -161,13 +163,15 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
       '--card-foreground': '60 30% 96%',
       '--popover': '231 15% 18%',
       '--popover-foreground': '60 30% 96%',
+      '--secondary': '232 14% 24%',
+      '--secondary-foreground': '60 30% 96%',
       '--border': '232 14% 31%',
       '--input': '232 14% 31%',
       '--ring': '265 89% 78%',
-      '--accent': '135 94% 65%',
-      '--accent-foreground': '231 15% 11%',
+      '--accent': '232 14% 24%',
+      '--accent-foreground': '60 30% 96%',
       '--muted': '232 14% 24%',
-      '--muted-foreground': '225 15% 65%',
+      '--muted-foreground': '225 25% 70%',
     },
   },
   purple: {
@@ -183,19 +187,21 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
     hslValues: {
       '--primary': '247 98% 63%',
       '--primary-foreground': '0 0% 100%',
-      '--background': '244 36% 9%',
-      '--foreground': '210 40% 98%',
-      '--card': '244 38% 14%',
-      '--card-foreground': '210 40% 98%',
-      '--popover': '244 38% 14%',
-      '--popover-foreground': '210 40% 98%',
-      '--border': '245 38% 31%',
-      '--input': '245 38% 31%',
+      '--background': '246 35% 9%',
+      '--foreground': '0 0% 100%',
+      '--card': '245 36% 14%',
+      '--card-foreground': '0 0% 100%',
+      '--popover': '245 36% 14%',
+      '--popover-foreground': '0 0% 100%',
+      '--secondary': '246 32% 20%',
+      '--secondary-foreground': '0 0% 100%',
+      '--border': '246 34% 24%',
+      '--input': '246 34% 24%',
       '--ring': '247 98% 63%',
-      '--accent': '247 100% 74%',
-      '--accent-foreground': '244 36% 9%',
-      '--muted': '245 25% 18%',
-      '--muted-foreground': '215 20% 65%',
+      '--accent': '246 32% 22%',
+      '--accent-foreground': '0 0% 100%',
+      '--muted': '246 32% 18%',
+      '--muted-foreground': '215 20% 75%',
     },
   },
   obsidian: {
@@ -217,13 +223,15 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
       '--card-foreground': '212 50% 96%',
       '--popover': '215 21% 11%',
       '--popover-foreground': '212 50% 96%',
+      '--secondary': '215 15% 15%',
+      '--secondary-foreground': '212 50% 96%',
       '--border': '213 12% 21%',
       '--input': '213 12% 21%',
       '--ring': '199 89% 48%',
-      '--accent': '199 89% 48%',
-      '--accent-foreground': '216 28% 7%',
+      '--accent': '215 21% 18%',
+      '--accent-foreground': '212 50% 96%',
       '--muted': '214 15% 16%',
-      '--muted-foreground': '215 20% 65%',
+      '--muted-foreground': '215 20% 70%',
     },
   },
   clean: {
@@ -329,10 +337,32 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       });
     }
 
-    if (theme === 'green-choice' || theme === 'sweet-digs') {
-      root.classList.add('theme-green-choice', 'theme-sweet-digs');
-    } else {
-      root.classList.remove('theme-green-choice', 'theme-sweet-digs');
+    const allThemeClasses = [
+      'theme-green-choice',
+      'theme-sweet-digs',
+      'theme-clean',
+      'theme-clean-wide',
+      'theme-purple',
+      'theme-letterly',
+      'theme-dracula',
+      'theme-obsidian',
+      'theme-vscode-dark',
+      'theme-riseup',
+      'theme-riseup-asia',
+    ];
+    root.classList.remove(...allThemeClasses);
+    root.classList.add(`theme-${theme}`);
+    if (theme === 'green-choice') {
+      root.classList.add('theme-sweet-digs');
+    }
+    if (theme === 'purple') {
+      root.classList.add('theme-letterly');
+    }
+    if (theme === 'obsidian') {
+      root.classList.add('theme-vscode-dark');
+    }
+    if (theme === 'riseup') {
+      root.classList.add('theme-riseup-asia');
     }
 
     if (theme === 'clean' || theme === 'clean-wide' || theme === 'sweet-digs' || theme === 'green-choice') {

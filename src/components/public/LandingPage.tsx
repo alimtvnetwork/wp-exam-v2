@@ -58,14 +58,14 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <nav className="hidden md:flex items-center gap-6 text-xs font-semibold text-muted-foreground">
-            <a href="#features" className="hover:text-primary transition-colors">Features</a>
-            <button type="button" onClick={() => navigate('/admin?tab=builder')} className="hover:text-primary transition-colors">
+            <a href="#features" className="hover:text-foreground transition-colors cursor-pointer">Features</a>
+            <button type="button" onClick={() => navigate('/admin?tab=builder')} className="hover:text-foreground transition-colors cursor-pointer">
               Form Builder
             </button>
-            <button type="button" onClick={() => navigate('/apply')} className="hover:text-primary transition-colors">
+            <button type="button" onClick={() => navigate('/apply')} className="hover:text-foreground transition-colors cursor-pointer">
               Candidate Portal
             </button>
-            <button type="button" onClick={() => navigate('/runner')} className="hover:text-primary transition-colors">
+            <button type="button" onClick={() => navigate('/runner')} className="hover:text-foreground transition-colors cursor-pointer">
               Live Preview
             </button>
           </nav>
@@ -74,11 +74,10 @@ export const LandingPage: React.FC = () => {
             <ThemeSwitcher />
             <Button
               size="sm"
-              variant="outline"
               onClick={handleAdminClick}
-              className="text-xs h-9 px-3.5 border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground gap-1.5 font-bold rounded-xl shadow-xs cursor-pointer transition-all"
+              className="text-xs h-9 px-4 bg-primary text-primary-foreground hover:bg-primary/90 gap-1.5 font-bold rounded-xl shadow-md shadow-primary/20 cursor-pointer transition-all"
             >
-              <Lock className="w-3.5 h-3.5 text-foreground" />
+              <Lock className="w-3.5 h-3.5 text-primary-foreground" />
               <span>{isAuthenticated ? 'Admin Console' : 'Admin Login'}</span>
             </Button>
           </div>
