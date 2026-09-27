@@ -18,6 +18,7 @@ import {
   CitationPosition,
   RatingIconType,
   RatingScale,
+  QuestionLayoutMode,
 } from '@/lib/types/form';
 
 import { Button } from '@/components/ui/button';
@@ -99,6 +100,8 @@ import {
   Heart,
   ThumbsUp,
   Smile,
+  Columns,
+  LayoutTemplate,
 } from 'lucide-react';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
 import { DesignValidationIssue } from '@/lib/design-validation-engine';
@@ -766,6 +769,31 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   ) : null}
                 </DropdownMenuItem>
 
+                <DropdownMenuItem
+                  onClick={() =>
+                    onUpdate(id, {
+                      layoutMode:
+                        field.layoutMode === 'presentation_split' ? 'standard' : 'presentation_split',
+                    })
+                  }
+                  className="text-sm flex items-center justify-between cursor-pointer py-1.5"
+                >
+                  <div className="flex items-center gap-2">
+                    <Columns className="w-4 h-4 text-primary" />
+                    <span>Presentation Split Layout</span>
+                  </div>
+                  <Badge
+                    variant="outline"
+                    className={`text-xs px-1.5 py-0 h-4 font-mono ${
+                      field.layoutMode === 'presentation_split'
+                        ? 'bg-primary/10 text-primary border-primary/30 font-bold'
+                        : 'bg-muted/80 text-muted-foreground border-border'
+                    }`}
+                  >
+                    {field.layoutMode === 'presentation_split' ? 'Split' : 'Standard'}
+                  </Badge>
+                </DropdownMenuItem>
+
                 <DropdownMenuSeparator className="my-1 border-border/80" />
 
                 <DropdownMenuSub>
@@ -872,6 +900,27 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
           {/* Google Forms CardBody: Full-width Question Title with Floating Animated Placeholder */}
           <div className="space-y-3">
+            {/* Presentation Split Layout Kicker / Eyebrow Header Bar */}
+            {field.layoutMode === 'presentation_split' && (
+              <div className="p-2.5 bg-primary/5 rounded-lg border border-primary/20 flex items-center justify-between gap-3 animate-in fade-in duration-150">
+                <div className="flex items-center gap-2 flex-1">
+                  <span className="text-xs font-bold text-primary uppercase tracking-wider font-mono flex items-center gap-1">
+                    <Columns className="w-3.5 h-3.5" />
+                    <span>Eyebrow Kicker:</span>
+                  </span>
+                  <Input
+                    value={field.kickerText || ''}
+                    onChange={(e) => onUpdate(id, { kickerText: e.target.value })}
+                    placeholder="e.g. Question 03 • Architectural Guidelines"
+                    className="h-7 text-xs bg-background flex-1"
+                  />
+                </div>
+                <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30 font-bold shrink-0">
+                  Presentation Mode
+                </Badge>
+              </div>
+            )}
+
             {/* Relative container for Title Input + Floating Animated Label */}
             <div className="relative flex items-center">
               <Input
@@ -972,6 +1021,22 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   >
                     <BookOpen className="w-3.5 h-3.5 text-primary" />
                     <span>Manage Citations & To-Dos</span>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() =>
+                      onUpdate(id, {
+                        layoutMode:
+                          field.layoutMode === 'presentation_split' ? 'standard' : 'presentation_split',
+                      })
+                    }
+                    className="gap-2 cursor-pointer py-1.5 text-xs"
+                  >
+                    <Columns className="w-3.5 h-3.5 text-primary" />
+                    <span>
+                      {field.layoutMode === 'presentation_split'
+                        ? 'Disable Split Presentation'
+                        : 'Enable Split Presentation'}
+                    </span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>

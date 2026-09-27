@@ -10,6 +10,7 @@ import {
   QuestionCitation,
   CitationPosition,
   BooleanDisplayPreset,
+  QuestionLayoutMode,
 } from '@/lib/types/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,6 +59,8 @@ import {
   Check,
   Save,
   RotateCcw,
+  Columns,
+  LayoutTemplate,
 } from 'lucide-react';
 import { PhoneWithCountrySelect } from '@/components/ui/phone-input';
 import { MultilineListItemsInput } from '@/components/forms/multiline-list-items-input';
@@ -77,6 +80,12 @@ import {
   getNextStepIndex,
   getPreviousStepIndex,
 } from '@/lib/branching-engine';
+import {
+  resolveQuestionLayoutMode,
+  extractQuestionReferences,
+  extractQuestionChecklist,
+  verifyChecklistCompletion,
+} from '@/lib/presentation-layout';
 
 interface FormRunnerProps {
   form?: FormModel;
@@ -103,11 +112,34 @@ const PRESET_PROJECTS: Record<string, FormModel> = {
         id: 'q1',
         type: 'multiple_choice',
         label: 'What is the time complexity of searching an element in a balanced binary search tree?',
+        description: 'Binary search trees maintain a sorted invariant where every left child is strictly smaller and every right child is strictly greater than the root. Self-balancing trees guarantee logarithmic search heights.',
         isRequired: true,
         options: ['O(1)', 'O(log n)', 'O(n)', 'O(n log n)'],
         correctAnswer: 'O(log n)',
         points: 10,
         group: 'Algorithms',
+        layoutMode: 'presentation_split',
+        kickerText: 'Question 01 • Algorithmic Complexity',
+        referenceLinks: [
+          {
+            id: 'ref-bst',
+            title: 'Balanced Binary Search Trees & Big-O Invariants',
+            url: 'https://en.wikipedia.org/wiki/Self-balancing_binary_search_tree',
+            description: 'Canonical guide to tree balancing operations and logarithmic search heights.',
+          },
+        ],
+        actionChecklist: [
+          {
+            id: 'chk-bst-rotations',
+            label: 'Review height-balancing tree rotations (LL, RR, LR, RL)',
+            isRequired: true,
+          },
+          {
+            id: 'chk-bst-recurrence',
+            label: 'Verify logarithmic search recurrence relation: T(n) = T(n/2) + O(1)',
+            isRequired: false,
+          },
+        ],
       },
       {
         id: 'q2',
@@ -674,6 +706,23 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const [tabBlurCount, setTabBlurCount] = useState<number>(0);
   const [showBlackoutWarning, setShowBlackoutWarning] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [runnerViewMode, setRunnerViewMode] = useState<'default' | 'standard' | 'presentation_split'>('default');
+
+  const effectiveLayoutMode: QuestionLayoutMode = useMemo(() => {
+    return resolveQuestionLayoutMode({
+      runtimeOverride: runnerViewMode,
+      fieldMode: currentField?.layoutMode,
+      formDefaultMode: activeForm.settings?.defaultQuestionLayout,
+    });
+  }, [runnerViewMode, currentField?.layoutMode, activeForm.settings?.defaultQuestionLayout]);
+
+  const referenceItems = useMemo(() => {
+    return extractQuestionReferences({ field: currentField });
+  }, [currentField]);
+
+  const checklistItems = useMemo(() => {
+    return extractQuestionChecklist({ field: currentField });
+  }, [currentField]);
 
   const handleToggleFullscreen = () => {
     if (!document.fullscreenElement) {
@@ -983,19 +1032,15 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     }
 
     // Verify mandatory checklist to-dos for current field
-    if (currentField.citations && currentField.citations.length > 0) {
-      const incompleteCheck = currentField.citations.find((c) => {
-        if (!c.isRequiredCheck) {
-          return false;
-        }
-
-        const isDone = Boolean(completedChecks[c.id]);
-
-        return !isDone;
+    if (checklistItems.length > 0) {
+      const checklistStatus = verifyChecklistCompletion({
+        items: checklistItems,
+        completedMap: completedChecks,
       });
 
-      if (incompleteCheck) {
-        toast.error(`Please complete mandatory requirement: "${incompleteCheck.title}" before proceeding.`);
+      if (!checklistStatus.isMandatorySatisfied) {
+        const firstMissing = checklistStatus.missingMandatoryLabels[0] || 'Prerequisite Task';
+        toast.error(`Please complete mandatory requirement: "${firstMissing}" before proceeding.`);
 
         return;
       }
@@ -1029,6 +1074,38 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     }
   };
 
+  // Keyboard Shortcut: Press Enter ↵ to advance in sequential mode
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (isSubmitted) {
+        return;
+      }
+
+      if (e.key === 'Enter') {
+        const target = e.target as HTMLElement | null;
+        if (target) {
+          const tagName = target.tagName.toLowerCase();
+          if (tagName === 'textarea') {
+            return;
+          }
+          if (tagName === 'button') {
+            return;
+          }
+        }
+
+        if (isSequential) {
+          handleNextStep();
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleGlobalKeyDown);
+
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+  }, [isSubmitted, isSequential, handleNextStep]);
+
   const handleSubmit = () => {
     const finalName = guestName.trim() || session.respondentName || 'Anonymous Candidate';
     const finalEmail = guestEmail.trim() || session.respondentEmail || 'candidate@example.com';
@@ -1058,19 +1135,16 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
     // Verify mandatory checklist to-dos across all visible fields
     for (const f of currentVisibleFields) {
-      if (f.citations && f.citations.length > 0) {
-        const incompleteCheck = f.citations.find((c) => {
-          if (!c.isRequiredCheck) {
-            return false;
-          }
-
-          const isDone = Boolean(completedChecks[c.id]);
-
-          return !isDone;
+      const fieldChecklist = extractQuestionChecklist({ field: f });
+      if (fieldChecklist.length > 0) {
+        const checklistStatus = verifyChecklistCompletion({
+          items: fieldChecklist,
+          completedMap: completedChecks,
         });
 
-        if (incompleteCheck) {
-          toast.error(`Please complete mandatory task: "${incompleteCheck.title}" (Question: ${f.label})`);
+        if (!checklistStatus.isMandatorySatisfied) {
+          const firstMissing = checklistStatus.missingMandatoryLabels[0] || 'Prerequisite Task';
+          toast.error(`Please complete mandatory task: "${firstMissing}" (Question: ${f.label})`);
 
           return;
         }
@@ -1389,6 +1463,46 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             <span className="font-semibold text-primary truncate max-w-[130px] sm:max-w-[180px]">
               {selectedProjectId === 'custom-active' ? (quizStore.slug || 'custom-form') : selectedProjectId}
             </span>
+          </div>
+
+          {/* Real-time Preview Mode Switcher (Quiz View vs Presentation View) */}
+          <div className="flex items-center gap-1 bg-muted/60 p-0.5 rounded-lg border border-border shrink-0">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setRunnerViewMode('standard');
+                toast.info('Switched to Standard Quiz View');
+              }}
+              className={`h-7 px-2.5 text-xs font-sans rounded-md transition-all gap-1.5 cursor-pointer ${
+                effectiveLayoutMode === 'standard'
+                  ? 'bg-background text-foreground font-semibold shadow-2xs border border-border/80'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Standard Quiz Card View"
+            >
+              <LayoutTemplate className="w-3.5 h-3.5 text-primary" />
+              <span className="hidden sm:inline">Quiz View</span>
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => {
+                setRunnerViewMode('presentation_split');
+                toast.info('Switched to 2-Column Presentation Split View');
+              }}
+              className={`h-7 px-2.5 text-xs font-sans rounded-md transition-all gap-1.5 cursor-pointer ${
+                effectiveLayoutMode === 'presentation_split'
+                  ? 'bg-primary text-primary-foreground font-semibold shadow-2xs'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="2-Column Presentation Split View"
+            >
+              <Columns className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Presentation View</span>
+            </Button>
           </div>
         </div>
 
@@ -1766,23 +1880,22 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
           {/* Right-Hand Main Question Canvas */}
           <main className="flex-1 min-w-0 w-full">
-            <Card className="w-full border border-border shadow-md bg-card text-card-foreground rounded-2xl overflow-hidden animate-in fade-in duration-150">
-              <CardHeader className="py-4 px-6 border-b border-border bg-muted/20">
-                <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                  <span className="font-bold text-sm text-primary">
-                    Step {stepHistory.length + 1} of ~{visibleFields.length} (Question #{currentStep + 1})
-                  </span>
-                  <div className="flex items-center gap-2">
-                    {timeLeftSeconds !== null && (
-                      <Badge variant="outline" className={`font-mono text-xs gap-1 font-semibold ${
-                        timeLeftSeconds < 60 ? 'border-destructive text-destructive bg-destructive/10 animate-pulse' : 'border-amber-500/40 text-amber-600 bg-amber-500/10'
-                      }`}>
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{formatTimerDisplay(timeLeftSeconds)}</span>
+            {effectiveLayoutMode === 'presentation_split' ? (
+              /* Presentation-Grade 2-Column Split Question Canvas */
+              <div className="w-full bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-md space-y-8 animate-in fade-in duration-150">
+                {/* Top Meta Bar */}
+                <div className="flex items-center justify-between text-xs text-muted-foreground pb-4 border-b border-border/80">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Badge variant="outline" className="px-3 py-1 rounded-full text-xs font-mono font-semibold border-primary/40 text-primary bg-primary/10 tracking-wide">
+                      {currentField.kickerText || `Question #${currentStep + 1} • ${currentField.group || activeForm.title}`}
+                    </Badge>
+                    {isCurrentFieldRequired && (
+                      <Badge variant="outline" className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold border-amber-500/40 text-amber-500 bg-amber-500/10">
+                        Mandatory Response
                       </Badge>
                     )}
                     {currentField.difficulty && (
-                      <Badge variant="outline" className={`text-xs font-semibold uppercase ${
+                      <Badge variant="outline" className={`px-2 py-0.5 rounded-full text-[11px] uppercase font-mono ${
                         currentField.difficulty === 'hard'
                           ? 'border-rose-500/40 text-rose-600 bg-rose-500/10'
                           : currentField.difficulty === 'medium'
@@ -1790,6 +1903,17 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                           : 'border-emerald-500/40 text-emerald-600 bg-emerald-500/10'
                       }`}>
                         {currentField.difficulty} ({currentField.customPointsOverride ?? (currentField.difficulty === 'hard' ? 20 : currentField.difficulty === 'medium' ? 10 : 5)} pt)
+                      </Badge>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    {timeLeftSeconds !== null && (
+                      <Badge variant="outline" className={`font-mono text-xs gap-1 font-semibold ${
+                        timeLeftSeconds < 60 ? 'border-destructive text-destructive bg-destructive/10 animate-pulse' : 'border-amber-500/40 text-amber-600 bg-amber-500/10'
+                      }`}>
+                        <Clock className="w-3.5 h-3.5" />
+                        <span>{formatTimerDisplay(timeLeftSeconds)}</span>
                       </Badge>
                     )}
                     <Button
@@ -1804,95 +1928,333 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     </Button>
                   </div>
                 </div>
-                <Progress
-                  value={Math.min(
-                    100,
-                    Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, stepHistory.length + 1)) * 100)
-                  )}
-                  className="h-2 mb-2 bg-secondary"
-                />
-                <CardTitle className="font-sans font-medium text-lg sm:text-xl tracking-normal text-foreground leading-relaxed">
-                  {currentField.label}
-                  {isCurrentFieldRequired && (
-                    <span className="text-destructive text-red-500 font-bold ml-1.5" title="Mandatory Response">*</span>
-                  )}
-                </CardTitle>
-                {isCurrentFieldRequired && (
-                  <Badge variant="outline" className="text-xs font-sans font-medium border-amber-500/40 text-amber-400 bg-amber-500/15 flex items-center gap-1.5 w-fit mt-2">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                    <span>Mandatory Response</span>
-                  </Badge>
-                )}
-              </CardHeader>
 
-              <CardContent className="space-y-4 p-6">
-                {/* Question Illustration / Image */}
-                {currentField.imageUrl && (
-                  <div className="w-full my-2 rounded-xl overflow-hidden border border-border/80 shadow-xs bg-muted/20">
-                    <img
-                      src={currentField.imageUrl}
-                      alt={currentField.imageCaption || currentField.label}
-                      className="w-full max-h-80 object-contain mx-auto"
+                {/* 2-Column Presentation Grid */}
+                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                  {/* Left Column: Narrative, Question, References & Action Checklist */}
+                  <div className="lg:col-span-6 xl:col-span-7 space-y-6">
+                    {/* Big Ubuntu Question Headline */}
+                    <div className="space-y-2">
+                      <h2 className="font-heading font-bold text-2xl sm:text-3xl text-foreground leading-snug tracking-tight">
+                        {currentField.label}
+                        {isCurrentFieldRequired && (
+                          <span className="text-destructive text-red-500 font-bold ml-1.5" title="Mandatory Response">*</span>
+                        )}
+                      </h2>
+
+                      {currentField.description && (
+                        <div className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-wrap pt-1">
+                          {currentField.description}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Question Media if present */}
+                    {currentField.imageUrl && (
+                      <div className="w-full my-2 rounded-xl overflow-hidden border border-border/80 shadow-xs bg-muted/20">
+                        <img
+                          src={currentField.imageUrl}
+                          alt={currentField.imageCaption || currentField.label}
+                          className="w-full max-h-72 object-contain mx-auto"
+                        />
+                        {currentField.imageCaption && (
+                          <p className="text-xs text-muted-foreground p-2 text-center italic bg-muted/40 border-t border-border/60">
+                            {currentField.imageCaption}
+                          </p>
+                        )}
+                      </div>
+                    )}
+
+                    {currentField.type !== 'video' && currentField.videoUrl && (
+                      <RunnerVideoPlayer
+                        videoUrl={currentField.videoUrl}
+                        videoCaption={currentField.videoCaption}
+                        title={currentField.label}
+                      />
+                    )}
+
+                    {/* Prefix Citations */}
+                    {renderCitations(currentField.citations, 'prefix')}
+
+                    {/* Reference Resources & Links */}
+                    {referenceItems.length > 0 && (
+                      <div className="space-y-2.5 pt-2">
+                        <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                          <BookOpen className="w-3.5 h-3.5 text-primary" />
+                          <span>Reference Resources &amp; Specifications</span>
+                        </div>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                          {referenceItems.map((ref) => (
+                            <a
+                              key={ref.id}
+                              href={ref.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="p-3 rounded-xl border border-border bg-background hover:bg-primary/5 hover:border-primary/40 text-foreground transition-all group flex items-start justify-between gap-2 shadow-2xs"
+                            >
+                              <div className="min-w-0 flex-1">
+                                <div className="text-xs sm:text-sm font-semibold group-hover:text-primary transition-colors truncate">
+                                  {ref.title}
+                                </div>
+                                {ref.description && (
+                                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{ref.description}</p>
+                                )}
+                              </div>
+                              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary shrink-0 mt-0.5 transition-colors" />
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Mandatory Action Checklist ("Must-Do Before Answering") */}
+                    {checklistItems.length > 0 && (
+                      <div className="space-y-2.5 pt-2">
+                        <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
+                          <span className="flex items-center gap-1.5">
+                            <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+                            <span>Action Checklist (Must-Do Before Answering)</span>
+                          </span>
+                          <span className="text-[11px] font-mono text-muted-foreground font-semibold">
+                            {checklistItems.filter((item) => completedChecks[item.id]).length}/{checklistItems.length} completed
+                          </span>
+                        </div>
+                        <div className="space-y-2">
+                          {checklistItems.map((item) => {
+                            const isDone = Boolean(completedChecks[item.id]);
+                            return (
+                              <div
+                                key={item.id}
+                                onClick={() => setCompletedChecks((prev) => ({ ...prev, [item.id]: !isDone }))}
+                                className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-3 select-none ${
+                                  isDone
+                                    ? 'border-emerald-500/50 bg-emerald-500/10 text-foreground'
+                                    : 'border-border bg-background hover:border-primary/40 hover:bg-muted/40 text-foreground'
+                                }`}
+                              >
+                                <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors border ${
+                                  isDone
+                                    ? 'bg-emerald-600 border-emerald-600 text-white'
+                                    : 'border-border bg-background'
+                                }`}>
+                                  {isDone && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                                </div>
+                                <span className={`text-xs sm:text-sm font-medium flex-1 ${isDone ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
+                                  {item.label}
+                                </span>
+                                {item.isRequired && (
+                                  <Badge variant="outline" className="text-[10px] uppercase font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 shrink-0">
+                                    Required
+                                  </Badge>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Suffix Citations */}
+                    {renderCitations(currentField.citations, 'suffix')}
+                  </div>
+
+                  {/* Right Column: Interactive Response Container & Advance Actions */}
+                  <div className="lg:col-span-6 xl:col-span-5 space-y-5">
+                    <div className="bg-card/90 backdrop-blur-md border border-border rounded-2xl p-5 sm:p-6 shadow-sm space-y-5">
+                      <div className="flex items-center justify-between pb-3 border-b border-border/70">
+                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
+                          <Sparkles className="w-3.5 h-3.5 text-primary" />
+                          <span>Candidate Response</span>
+                        </span>
+                        <span className="text-[11px] font-mono text-muted-foreground">
+                          Step {currentStep + 1} of {visibleFields.length}
+                        </span>
+                      </div>
+
+                      {/* Interactive Field Input */}
+                      <div className="space-y-4">
+                        {renderFieldInput(currentField, answers[currentField.id], (val) => handleAnswerChange(currentField.id, val))}
+                      </div>
+
+                      {/* Navigation & Advance Footer */}
+                      <div className="pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={currentStep === 0}
+                          onClick={handlePreviousStep}
+                          className="text-xs h-9 px-4 font-medium border-border hover:bg-accent cursor-pointer w-full sm:w-auto"
+                        >
+                          Previous
+                        </Button>
+
+                        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleTestAutoFill}
+                            className="text-xs h-9 px-3 font-semibold rounded-lg border border-primary/30 bg-primary/5 text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer"
+                            title="Fill valid answer and advance"
+                          >
+                            ⚡ Auto Fill
+                          </Button>
+
+                          {isLastVisibleStep ? (
+                            <Button
+                              size="sm"
+                              onClick={handleNextStep}
+                              className="text-xs h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer flex items-center gap-1.5 flex-1 sm:flex-initial justify-center"
+                            >
+                              <span>Submit Assessment</span>
+                              <span className="text-[10px] opacity-75 font-mono">↵</span>
+                            </Button>
+                          ) : (
+                            <Button
+                              size="sm"
+                              onClick={handleNextStep}
+                              className="text-xs h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer flex items-center gap-1.5 flex-1 sm:flex-initial justify-center"
+                            >
+                              <span>Next Question</span>
+                              <span className="text-[10px] opacity-75 font-mono">↵</span>
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              /* Standard Quiz Card View */
+              <Card className="w-full border border-border shadow-md bg-card text-card-foreground rounded-2xl overflow-hidden animate-in fade-in duration-150">
+                <CardHeader className="py-4 px-6 border-b border-border bg-muted/20">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                    <span className="font-bold text-sm text-primary">
+                      Step {stepHistory.length + 1} of ~{visibleFields.length} (Question #{currentStep + 1})
+                    </span>
+                    <div className="flex items-center gap-2">
+                      {timeLeftSeconds !== null && (
+                        <Badge variant="outline" className={`font-mono text-xs gap-1 font-semibold ${
+                          timeLeftSeconds < 60 ? 'border-destructive text-destructive bg-destructive/10 animate-pulse' : 'border-amber-500/40 text-amber-600 bg-amber-500/10'
+                        }`}>
+                          <Clock className="w-3.5 h-3.5" />
+                          <span>{formatTimerDisplay(timeLeftSeconds)}</span>
+                        </Badge>
+                      )}
+                      {currentField.difficulty && (
+                        <Badge variant="outline" className={`text-xs font-semibold uppercase ${
+                          currentField.difficulty === 'hard'
+                            ? 'border-rose-500/40 text-rose-600 bg-rose-500/10'
+                            : currentField.difficulty === 'medium'
+                            ? 'border-amber-500/40 text-amber-600 bg-amber-500/10'
+                            : 'border-emerald-500/40 text-emerald-600 bg-emerald-500/10'
+                        }`}>
+                          {currentField.difficulty} ({currentField.customPointsOverride ?? (currentField.difficulty === 'hard' ? 20 : currentField.difficulty === 'medium' ? 10 : 5)} pt)
+                        </Badge>
+                      )}
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="icon"
+                        onClick={handleToggleFullscreen}
+                        className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                        title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen Exam'}
+                      >
+                        <Maximize2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                  </div>
+                  <Progress
+                    value={Math.min(
+                      100,
+                      Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, stepHistory.length + 1)) * 100)
+                    )}
+                    className="h-2 mb-2 bg-secondary"
+                  />
+                  <CardTitle className="font-sans font-medium text-lg sm:text-xl tracking-normal text-foreground leading-relaxed">
+                    {currentField.label}
+                    {isCurrentFieldRequired && (
+                      <span className="text-destructive text-red-500 font-bold ml-1.5" title="Mandatory Response">*</span>
+                    )}
+                  </CardTitle>
+                  {isCurrentFieldRequired && (
+                    <Badge variant="outline" className="text-xs font-sans font-medium border-amber-500/40 text-amber-400 bg-amber-500/15 flex items-center gap-1.5 w-fit mt-2">
+                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+                      <span>Mandatory Response</span>
+                    </Badge>
+                  )}
+                </CardHeader>
+
+                <CardContent className="space-y-4 p-6">
+                  {/* Question Illustration / Image */}
+                  {currentField.imageUrl && (
+                    <div className="w-full my-2 rounded-xl overflow-hidden border border-border/80 shadow-xs bg-muted/20">
+                      <img
+                        src={currentField.imageUrl}
+                        alt={currentField.imageCaption || currentField.label}
+                        className="w-full max-h-80 object-contain mx-auto"
+                      />
+                      {currentField.imageCaption && (
+                        <p className="text-xs text-muted-foreground p-2 text-center italic bg-muted/40 border-t border-border/60">
+                          {currentField.imageCaption}
+                        </p>
+                      )}
+                    </div>
+                  )}
+
+                  {currentField.type !== 'video' && currentField.videoUrl && (
+                    <RunnerVideoPlayer
+                      videoUrl={currentField.videoUrl}
+                      videoCaption={currentField.videoCaption}
+                      title={currentField.label}
                     />
-                    {currentField.imageCaption && (
-                      <p className="text-xs text-muted-foreground p-2 text-center italic bg-muted/40 border-t border-border/60">
-                        {currentField.imageCaption}
-                      </p>
+                  )}
+
+                  {/* Prefix Citations */}
+                  {renderCitations(currentField.citations, 'prefix')}
+
+                  {renderFieldInput(currentField, answers[currentField.id], (val) => handleAnswerChange(currentField.id, val))}
+
+                  {/* Suffix Citations */}
+                  {renderCitations(currentField.citations, 'suffix')}
+
+                  <div className="flex justify-between items-center pt-4 border-t border-border">
+                    <div className="flex items-center gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={currentStep === 0}
+                        onClick={handlePreviousStep}
+                        className="text-sm h-9 px-4 font-medium border-border hover:bg-accent cursor-pointer"
+                      >
+                        Previous
+                      </Button>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={handleTestAutoFill}
+                        className="text-xs h-9 px-3.5 font-bold rounded-xl border border-primary/40 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer"
+                        title="Fill valid answer and advance immediately"
+                      >
+                        ⚡ Test Fill &amp; Next
+                      </Button>
+                    </div>
+
+                    {isLastVisibleStep ? (
+                      <Button size="sm" onClick={handleNextStep} className="text-sm h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer">
+                        Submit Assessment &check;
+                      </Button>
+                    ) : (
+                      <Button size="sm" onClick={handleNextStep} className="text-sm h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer">
+                        Next Question &rarr;
+                      </Button>
                     )}
                   </div>
-                )}
-
-                {currentField.type !== 'video' && currentField.videoUrl && (
-                  <RunnerVideoPlayer
-                    videoUrl={currentField.videoUrl}
-                    videoCaption={currentField.videoCaption}
-                    title={currentField.label}
-                  />
-                )}
-
-                {/* Prefix Citations */}
-                {renderCitations(currentField.citations, 'prefix')}
-
-                {renderFieldInput(currentField, answers[currentField.id], (val) => handleAnswerChange(currentField.id, val))}
-
-                {/* Suffix Citations */}
-                {renderCitations(currentField.citations, 'suffix')}
-
-                <div className="flex justify-between items-center pt-4 border-t border-border">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={currentStep === 0}
-                      onClick={handlePreviousStep}
-                      className="text-sm h-9 px-4 font-medium border-border hover:bg-accent cursor-pointer"
-                    >
-                      Previous
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleTestAutoFill}
-                      className="text-xs h-9 px-3.5 font-bold rounded-xl border border-primary/40 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer"
-                      title="Fill valid answer and advance immediately"
-                    >
-                      ⚡ Test Fill &amp; Next
-                    </Button>
-                  </div>
-
-                  {isLastVisibleStep ? (
-                    <Button size="sm" onClick={handleNextStep} className="text-sm h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer">
-                      Submit Assessment &check;
-                    </Button>
-                  ) : (
-                    <Button size="sm" onClick={handleNextStep} className="text-sm h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer">
-                      Next Question &rarr;
-                    </Button>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                </CardContent>
+              </Card>
+            )}
           </main>
         </div>
       ) : (

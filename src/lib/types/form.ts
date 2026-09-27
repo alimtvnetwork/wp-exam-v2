@@ -197,6 +197,24 @@ export interface FormField {
   dropdownOptions?: DropdownOptionItem[];
   dropdownAllowSearch?: boolean;
   notificationTriggers?: NotificationTrigger[];
+  layoutMode?: QuestionLayoutMode;
+  kickerText?: string;
+  actionChecklist?: QuestionActionChecklistItem[];
+  referenceLinks?: QuestionReferenceLinkItem[];
+}
+
+export type QuestionLayoutMode = 'standard' | 'presentation_split';
+
+export interface QuestionActionChecklistItem {
+  id: string;
+  label: string;
+  isRequired?: boolean;
+}
+
+export interface QuestionReferenceLinkItem {
+  id: string;
+  title: string;
+  url: string;
 }
 
 export interface FormSettings {
@@ -212,6 +230,7 @@ export interface FormSettings {
   successMessage?: string;
   notificationTriggers?: NotificationTrigger[];
   emailCustomization?: EmailCustomizationConfig;
+  defaultQuestionLayout?: QuestionLayoutMode;
 }
 
 export interface FormModel {

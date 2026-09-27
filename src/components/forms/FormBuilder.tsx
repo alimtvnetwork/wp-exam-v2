@@ -5,6 +5,7 @@ import {
   FieldType,
   FormType,
   FormAccessType,
+  QuestionLayoutMode,
 } from '@/lib/types/form';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -84,6 +85,7 @@ import {
   Palette,
   Loader2,
   Bell,
+  Columns,
 } from 'lucide-react';
 import {
   DndContext,
@@ -1467,7 +1469,37 @@ export const FormBuilder: React.FC = () => {
                   </div>
                 </div>
 
-                {/* 4. Presentation Theme Selector */}
+                {/* 4. Default Question Layout Selector: Standard vs Presentation Split */}
+                <div className="p-3 rounded-xl border border-border/70 bg-card/60 space-y-2.5">
+                  <div className="flex items-center gap-1.5 text-foreground font-semibold">
+                    <Columns className="w-3.5 h-3.5 text-primary" />
+                    <span>Default Question Layout</span>
+                  </div>
+
+                  <div className="space-y-1">
+                    <Label className="text-xs text-muted-foreground">Select Display Architecture</Label>
+                    <Select
+                      value={settings.defaultQuestionLayout || 'standard'}
+                      onValueChange={(val) => updateSettings({ defaultQuestionLayout: val as QuestionLayoutMode })}
+                    >
+                      <SelectTrigger className="w-full h-9 text-sm bg-background border border-border rounded-xl cursor-pointer">
+                        <SelectValue placeholder="Select Layout Mode" />
+                      </SelectTrigger>
+                      <SelectContent className="bg-popover border-border">
+                        <SelectItem value="standard" className="text-sm py-2 cursor-pointer">
+                          <div className="font-semibold text-foreground">Standard Quiz (Single Card)</div>
+                          <div className="text-xs text-muted-foreground">Traditional vertical question card stack</div>
+                        </SelectItem>
+                        <SelectItem value="presentation_split" className="text-sm py-2 cursor-pointer">
+                          <div className="font-semibold text-foreground">Presentation Split-Screen (Dual Column)</div>
+                          <div className="text-xs text-muted-foreground">Left question &amp; checklist, right interactive answer sheet</div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+
+                {/* 5. Presentation Theme Selector */}
                 <div className="p-3 rounded-xl border border-border/70 bg-card/60 space-y-2.5">
                   <div className="flex items-center gap-1.5 text-foreground font-semibold">
                     <Palette className="w-3.5 h-3.5 text-primary" />

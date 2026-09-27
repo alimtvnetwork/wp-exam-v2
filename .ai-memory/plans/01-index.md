@@ -11,6 +11,8 @@ Master directory of architectural and execution plans.
 
 ## Completed Plans
 
+- [71-presentation-split-layout-and-preview-modes.md](completed/71-presentation-split-layout-and-preview-modes.md): Presentation Split Layout, Question Display Modes & Best UI/UX Preview Architecture (2-column slide presentation runner, dual form/question layout configurators, interactive references & checklist to-dos, real-time preview switcher; 9/9 spec tests, 139/139 total tests passed).
+
 - [64-wpexam-ui-ux-enhancements.md](completed/64-wpexam-ui-ux-enhancements.md): WP Exam UI/UX Comprehensive Redesign & Interactive Enhancement (Poppins/Ubuntu typography, phone country flag selector, mandatory red asterisks, 15 searchable roles, ⚡ Test Fill & Next engine, debug simulator, Green Choice theme & Radix select fix; 86/86 tests passed).
 
 - [62-v2-audit-verification-and-ui-fluidity.md](completed/62-v2-audit-verification-and-ui-fluidity.md): V2 Full Verification, Slug Hierarchy, File Upload Engine, Modern UI & Fluid Theming (74/74 tests passed).
