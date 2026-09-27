@@ -3151,19 +3151,12 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                         : preset === 'agree_disagree'
                         ? ['Agree', 'Disagree']
                         : ['True', 'False'];
-                      return labels.map((val, idx) => {
+                      return labels.map((val) => {
                         const isSelected = field.correctAnswer === val || field.correctAnswers?.includes(val);
                         return (
-                          <Button
+                          <button
                             key={val}
                             type="button"
-                            variant={isSelected ? 'default' : 'outline'}
-                            size="sm"
-                            className={`h-9 min-w-24 px-4 justify-center text-sm font-semibold font-sans transition-all rounded-lg cursor-pointer ${
-                              isSelected
-                                ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs'
-                                : 'border border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground'
-                            }`}
                             onClick={() =>
                               onUpdate(id, {
                                 correctAnswer: val,
@@ -3171,10 +3164,14 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                                 options: labels,
                               })
                             }
+                            className={`h-8 w-24 inline-flex items-center justify-center text-xs font-semibold font-sans rounded-lg border transition-colors cursor-pointer select-none ${
+                              isSelected
+                                ? 'bg-emerald-600 text-white border-emerald-600 shadow-2xs'
+                                : 'border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground'
+                            }`}
                           >
-                            {isSelected && <Check className="w-3.5 h-3.5 mr-1" />}
                             {val}
-                          </Button>
+                          </button>
                         );
                       });
                     })()}
