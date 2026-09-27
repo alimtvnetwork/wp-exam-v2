@@ -604,6 +604,27 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               </SelectContent>
             </Select>
 
+            {/* Direct Layout Mode Toggle: Quiz Card vs Presentation Split */}
+            <button
+              type="button"
+              onClick={() =>
+                onUpdate(id, {
+                  layoutMode: field.layoutMode === 'presentation_split' ? 'standard' : 'presentation_split',
+                })
+              }
+              className={`inline-flex items-center gap-1.5 h-10 px-2.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer shrink-0 ${
+                field.layoutMode === 'presentation_split'
+                  ? 'bg-primary/10 border-primary/40 text-primary hover:bg-primary/20'
+                  : 'bg-card border-border text-muted-foreground hover:text-foreground hover:bg-accent'
+              }`}
+              title="Toggle Question Presentation Mode (Standard Card vs 2-Column Split)"
+            >
+              <Columns className="w-3.5 h-3.5 text-primary" />
+              <span className="hidden md:inline">
+                {field.layoutMode === 'presentation_split' ? 'Split View' : 'Standard'}
+              </span>
+            </button>
+
             {/* Combined Preview & Actions Segmented Control with Crisp High-Contrast Icon */}
             <div className="inline-flex items-center rounded-lg border border-border bg-card shadow-2xs overflow-hidden h-10 shrink-0">
               {/* Preview Toggle Button */}
@@ -902,22 +923,42 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
           <div className="space-y-3">
             {/* Presentation Split Layout Kicker / Eyebrow Header Bar */}
             {field.layoutMode === 'presentation_split' && (
-              <div className="p-2.5 bg-primary/5 rounded-lg border border-primary/20 flex items-center justify-between gap-3 animate-in fade-in duration-150">
-                <div className="flex items-center gap-2 flex-1">
-                  <span className="text-xs font-bold text-primary uppercase tracking-wider font-mono flex items-center gap-1">
-                    <Columns className="w-3.5 h-3.5" />
-                    <span>Eyebrow Kicker:</span>
-                  </span>
-                  <Input
-                    value={field.kickerText || ''}
-                    onChange={(e) => onUpdate(id, { kickerText: e.target.value })}
-                    placeholder="e.g. Question 03 • Architectural Guidelines"
-                    className="h-7 text-xs bg-background flex-1"
-                  />
+              <div className="p-3 bg-primary/5 rounded-xl border border-primary/20 space-y-2 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between gap-3 flex-wrap">
+                  <div className="flex items-center gap-2 flex-1 min-w-[240px]">
+                    <span className="text-xs font-bold text-primary uppercase tracking-wider font-mono flex items-center gap-1 shrink-0">
+                      <Columns className="w-3.5 h-3.5" />
+                      <span>Eyebrow Kicker:</span>
+                    </span>
+                    <Input
+                      value={field.kickerText || ''}
+                      onChange={(e) => onUpdate(id, { kickerText: e.target.value })}
+                      placeholder="e.g. Question 03 • Architectural Guidelines"
+                      className="h-8 text-xs bg-background flex-1"
+                    />
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowCitationsModal(true)}
+                      className="h-8 px-2.5 text-xs font-semibold gap-1.5 border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 cursor-pointer"
+                      title="Manage Reference Resources and Mandatory Checklist To-Dos"
+                    >
+                      <BookOpen className="w-3.5 h-3.5" />
+                      <span>References &amp; To-Do Checklist</span>
+                      {(field.citations?.length || 0) + (field.referenceLinks?.length || 0) + (field.actionChecklist?.length || 0) > 0 && (
+                        <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-primary text-primary-foreground font-mono">
+                          {(field.citations?.length || 0) + (field.referenceLinks?.length || 0) + (field.actionChecklist?.length || 0)}
+                        </Badge>
+                      )}
+                    </Button>
+                    <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30 font-bold shrink-0">
+                      Presentation Mode
+                    </Badge>
+                  </div>
                 </div>
-                <Badge variant="outline" className="text-[10px] bg-primary/10 text-primary border-primary/30 font-bold shrink-0">
-                  Presentation Mode
-                </Badge>
               </div>
             )}
 

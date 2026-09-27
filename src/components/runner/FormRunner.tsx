@@ -707,6 +707,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const [showBlackoutWarning, setShowBlackoutWarning] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [runnerViewMode, setRunnerViewMode] = useState<'default' | 'standard' | 'presentation_split'>('default');
+  const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(true);
 
   const effectiveLayoutMode: QuestionLayoutMode = useMemo(() => {
     return resolveQuestionLayoutMode({
@@ -1503,6 +1504,23 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               <Columns className="w-3.5 h-3.5" />
               <span className="hidden sm:inline">Presentation View</span>
             </Button>
+            {isSequential && (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setIsSidebarVisible(!isSidebarVisible)}
+                className={`h-7 px-2 text-xs font-sans rounded-md transition-all gap-1 cursor-pointer ${
+                  isSidebarVisible
+                    ? 'text-muted-foreground hover:text-foreground'
+                    : 'bg-primary/10 text-primary font-semibold'
+                }`}
+                title={isSidebarVisible ? 'Collapse question sequence for wide view' : 'Show question sequence'}
+              >
+                <ListOrdered className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">{isSidebarVisible ? 'Sidebar' : 'Full Canvas'}</span>
+              </Button>
+            )}
           </div>
         </div>
 
@@ -1780,20 +1798,31 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       {isSequential && currentField ? (
         <div className="flex flex-col lg:flex-row items-start gap-6 w-full">
           {/* Left-Hand Question Sequence & Session Sidebar */}
-          <aside className="w-full lg:w-72 xl:w-80 shrink-0 space-y-4">
-            <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4 sticky top-4">
-              {/* Progress Tracker */}
-              <div className="space-y-2">
-                <div className="flex items-center justify-between text-xs font-sans">
-                  <span className="font-semibold text-foreground">Progress</span>
-                  <span className="font-mono text-primary font-bold">
-                    {Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}%
-                  </span>
-                </div>
-                <Progress
-                  value={Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}
-                  className="h-2 bg-secondary"
-                />
+          {isSidebarVisible ? (
+            <aside className="w-full lg:w-72 xl:w-80 shrink-0 space-y-4 animate-in fade-in duration-150">
+              <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4 sticky top-4">
+                {/* Progress Tracker */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between text-xs font-sans">
+                    <span className="font-semibold text-foreground">Progress</span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="font-mono text-primary font-bold">
+                        {Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}%
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setIsSidebarVisible(false)}
+                        className="text-[10px] text-muted-foreground hover:text-foreground cursor-pointer px-1.5 py-0.5 rounded hover:bg-muted"
+                        title="Hide sequence sidebar for wide presentation view"
+                      >
+                        Hide &times;
+                      </button>
+                    </div>
+                  </div>
+                  <Progress
+                    value={Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}
+                    className="h-2 bg-secondary"
+                  />
                 <div className="text-[11px] text-muted-foreground font-sans flex items-center justify-between">
                   <span>Question {currentStep + 1} of {visibleFields.length}</span>
                   <span>{Object.keys(answers).length} answered</span>
@@ -1877,6 +1906,21 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               </div>
             </div>
           </aside>
+        ) : (
+          <div className="hidden lg:block shrink-0 sticky top-4">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setIsSidebarVisible(true)}
+              className="h-9 px-3 text-xs font-sans font-medium gap-1.5 border-border bg-card hover:bg-primary/10 hover:text-primary rounded-xl shadow-xs transition-all cursor-pointer"
+              title="Show Question Sequence"
+            >
+              <ListOrdered className="w-3.5 h-3.5 text-primary" />
+              <span>Questions ({currentStep + 1}/{visibleFields.length})</span>
+            </Button>
+          </div>
+        )}
 
           {/* Right-Hand Main Question Canvas */}
           <main className="flex-1 min-w-0 w-full">
