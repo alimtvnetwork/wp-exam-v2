@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { useQuizStore } from '../quiz/store/useQuizStore';
 import { auditFormDesign } from '../lib/design-validation-engine';
+import { FormField } from '../lib/types/form';
 
 describe('Spec 12: Header Streamlining, Form Access & Health Score Auditing', () => {
   beforeEach(() => {
@@ -47,7 +48,7 @@ describe('Spec 12: Header Streamlining, Form Access & Health Score Auditing', ()
   });
 
   it('should penalize health score for missing options or questions', () => {
-    const emptyFields: any[] = [];
+    const emptyFields: FormField[] = [];
     const report = auditFormDesign(emptyFields, 'quiz');
 
     expect(report.score).toBeLessThan(100);

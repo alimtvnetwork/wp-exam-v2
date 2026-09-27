@@ -1,5 +1,5 @@
-export type FormType = 'quiz' | 'employee_signup' | 'survey' | 'general_form';
-export type FormAccessType = 'public' | 'authenticated' | 'admin_only';
+export type FormType = 'quiz' | 'employee_signup' | 'survey' | 'general_form' | 'form';
+export type FormAccessType = 'public' | 'authenticated' | 'admin_only' | 'token';
 
 export type FieldType =
   | 'multiple_choice'
@@ -7,6 +7,7 @@ export type FieldType =
   | 'true_false'
   | 'boolean'
   | 'short_answer'
+  | 'text'
   | 'paragraph'
   | 'email'
   | 'phone'
@@ -20,7 +21,9 @@ export type FieldType =
   | 'video'
   | 'list_items'
   | 'section_header'
-  | 'faq';
+  | 'faq'
+  | 'date'
+  | 'scale';
 
 export type RatingIconType = 'star' | 'heart' | 'thumb' | 'smiley' | 'emoji';
 export type RatingScale = 5 | 10 | 20;
@@ -125,7 +128,7 @@ export interface FieldActionTrigger {
 }
 
 export interface FieldConditionRule {
-  parentFieldId: string;
+  parentFieldId?: string;
   operator:
     | 'equals'
     | 'not_equals'
@@ -136,9 +139,12 @@ export interface FieldConditionRule {
     | 'less_than'
     | 'greater_than_or_equal'
     | 'less_than_or_equal';
-  expectedValue: string | number;
-  action: 'show' | 'hide' | 'require' | 'jump_to';
+  expectedValue?: string | number;
+  value?: string | number;
+  action?: 'show' | 'hide' | 'require' | 'jump_to' | 'jump_to_field';
   jumpToFieldId?: string;
+  targetFieldId?: string;
+  fieldId?: string;
 }
 
 export interface FileValidationRule {
@@ -152,9 +158,9 @@ export interface FormField {
   type: FieldType;
   label: string;
   placeholder?: string;
-  isRequired: boolean;
+  isRequired?: boolean;
   options?: string[];
-  correctAnswer?: string;
+  correctAnswer?: string | string[];
   correctAnswers?: string[];
   points?: number;
   group?: string; // Section identifier
@@ -166,9 +172,11 @@ export interface FormField {
   videoUrl?: string;
   videoCaption?: string;
   validationRule?: FieldValidationRule;
+  validationRules?: FieldValidationRule | FieldValidationRule[] | Record<string, unknown>;
   fileValidation?: FileValidationRule;
   triggers?: FieldActionTrigger[];
   conditions?: FieldConditionRule[];
+  branchingRules?: FieldConditionRule[];
   conditionMatch?: 'all' | 'any';
   optionBranching?: Record<string, string>;
   branchTarget?: string;
@@ -180,7 +188,7 @@ export interface FormField {
   subtitle?: string;
   faqItems?: Array<{ question: string; answer: string }>;
   difficulty?: QuestionDifficulty;
-  customPointsOverride?: boolean;
+  customPointsOverride?: boolean | number;
   booleanDisplay?: BooleanDisplayPreset;
   citations?: QuestionCitation[];
   suggestionsPool?: string[];
@@ -220,7 +228,7 @@ export interface QuestionReferenceLinkItem {
 
 export interface FormSettings {
   timeLimitSeconds?: number;
-  timerMode?: 'global' | 'per_question' | 'per_difficulty';
+  timerMode?: 'none' | 'global' | 'per_question' | 'per_difficulty' | 'per_tier';
   perQuestionSeconds?: number;
   difficultyTimers?: { easy: number; medium: number; hard: number };
   difficultyPoints?: { easy: number; medium: number; hard: number };
@@ -237,13 +245,16 @@ export interface FormSettings {
 export interface FormModel {
   id?: number | string;
   title: string;
-  description: string;
+  description?: string;
   formType: FormType;
   formAccess: FormAccessType;
   isSequential: boolean;
   isPublished: boolean;
   settings: FormSettings;
   fields: FormField[];
+  passingScore?: number;
+  hasTimeLimit?: boolean;
+  timeLimitSeconds?: number;
 }
 
 export interface FormSubmissionPayload {

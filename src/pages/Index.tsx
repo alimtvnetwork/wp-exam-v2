@@ -14,7 +14,7 @@ import { BackupManager } from '@/components/admin/backup-manager';
 import { AnalyticsDashboard } from '@/components/admin/analytics-dashboard';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
 import { useAdminAuth } from '@/components/auth/AdminLoginModal';
-import { ThemeSwitcher, useTheme } from '@/lib/theme-context';
+import { ThemeSwitcher, useTheme, AppThemeType } from '@/lib/theme-context';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -27,6 +27,7 @@ import {
   User,
   AlertCircle,
   CheckCircle2,
+  KeyRound,
 } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -184,6 +185,7 @@ export const Index: React.FC = () => {
     clean: 'theme-clean bg-background text-foreground',
     'clean-wide': 'theme-clean-wide bg-background text-foreground',
     'sweet-digs': 'theme-sweet-digs bg-background text-foreground',
+    'green-choice': 'theme-green-choice bg-background text-foreground',
   };
 
   return (

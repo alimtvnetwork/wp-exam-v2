@@ -172,6 +172,7 @@ export function convertGoogleFormSchemaToWpExam(schema: GoogleFormSchema): Googl
       let fieldType: FieldType = 'short_answer';
       let options: string[] | undefined = undefined;
       let correctAnswer: string | string[] | undefined = undefined;
+      let correctAnswersList: string[] | undefined = undefined;
       let validationRule = undefined;
 
       if (q.choiceQuestion) {
@@ -181,6 +182,7 @@ export function convertGoogleFormSchemaToWpExam(schema: GoogleFormSchema): Googl
         if (choiceType === 'CHECKBOX') {
           fieldType = 'multiple_choice';
           correctAnswer = correctAnswers.length > 0 ? correctAnswers : (options[0] ? [options[0]] : undefined);
+          correctAnswersList = correctAnswers.length > 0 ? correctAnswers : (options[0] ? [options[0]] : undefined);
         } else if (choiceType === 'DROP_DOWN') {
           fieldType = 'dropdown';
           correctAnswer = correctAnswers[0] || options[0];
@@ -229,6 +231,7 @@ export function convertGoogleFormSchemaToWpExam(schema: GoogleFormSchema): Googl
         isRequired,
         options,
         correctAnswer,
+        correctAnswers: correctAnswersList,
         points,
         group: currentGroup || undefined,
         validationRule,

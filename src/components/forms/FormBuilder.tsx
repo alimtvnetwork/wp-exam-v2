@@ -86,6 +86,7 @@ import {
   Loader2,
   Bell,
   Columns,
+  LayoutTemplate,
 } from 'lucide-react';
 import {
   DndContext,

@@ -546,13 +546,6 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     }
   }, [storageKey]);
 
-  const totalPossiblePoints = useMemo(() => {
-    return visibleFields.reduce((sum, f) => {
-      const pts = f.customPointsOverride ?? (f.difficulty === 'hard' ? 20 : f.difficulty === 'medium' ? 10 : 5);
-      return sum + pts;
-    }, 0);
-  }, [visibleFields]);
-
   const handleSaveProgress = () => {
     try {
       const sessionData: QuizSessionData = {
@@ -700,6 +693,16 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     () => fields.filter((f) => evaluateFieldVisibility(f, answers, fields)),
     [fields, answers]
   );
+  const totalPossiblePoints = useMemo(() => {
+    return visibleFields.reduce((sum, f) => {
+      const pts = typeof f.customPointsOverride === 'number'
+        ? f.customPointsOverride
+        : typeof f.points === 'number'
+        ? f.points
+        : (f.difficulty === 'hard' ? 20 : f.difficulty === 'medium' ? 10 : 5);
+      return sum + pts;
+    }, 0);
+  }, [visibleFields]);
   const isCurrentFieldRequired = currentField ? evaluateFieldRequired(currentField, answers, fields) : false;
   const nextVisibleIndex = getNextStepIndex(fields, currentStep, answers);
   const isLastVisibleStep = nextVisibleIndex >= fields.length;

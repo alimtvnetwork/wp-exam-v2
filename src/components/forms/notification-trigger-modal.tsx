@@ -115,6 +115,28 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
     phone: '+1 (555) 019-2834',
   });
 
+  // Compute rendered HTML for live preview dock
+  const previewHtml = useMemo(() => {
+    const userVars: Record<string, string | number> = {
+      ...DEFAULT_MOCK_APPLICANT_DATA,
+      form_title: store.title || 'Candidate Evaluation Assessment',
+      candidate_name: mockCandidate.name,
+      job_position: mockCandidate.position,
+      candidate_email: mockCandidate.email,
+      candidate_phone: mockCandidate.phone,
+      asking_salary: mockCandidate.salary,
+    };
+    return generateModularEmailHtml(customization, userVars);
+  }, [customization, store.title, mockCandidate]);
+
+  // Width for multi-screen responsive simulation
+  const previewContainerWidth =
+    viewportMode === 'mobile'
+      ? '360px'
+      : viewportMode === 'tablet'
+      ? '540px'
+      : '100%';
+
   if (!isOpen) {
     return null;
   }
@@ -210,27 +232,6 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
     toast.success(`[Test Dispatch] ${channelName} notification queued for ${dest}`);
   };
 
-  // Compute rendered HTML for live preview dock
-  const previewHtml = useMemo(() => {
-    const userVars: Record<string, string | number> = {
-      ...DEFAULT_MOCK_APPLICANT_DATA,
-      form_title: store.title || 'Candidate Evaluation Assessment',
-      candidate_name: mockCandidate.name,
-      job_position: mockCandidate.position,
-      candidate_email: mockCandidate.email,
-      candidate_phone: mockCandidate.phone,
-      asking_salary: mockCandidate.salary,
-    };
-    return generateModularEmailHtml(customization, userVars);
-  }, [customization, store.title, mockCandidate]);
-
-  // Width for multi-screen responsive simulation
-  const previewContainerWidth =
-    viewportMode === 'mobile'
-      ? '360px'
-      : viewportMode === 'tablet'
-      ? '540px'
-      : '100%';
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-in fade-in duration-150">

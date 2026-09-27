@@ -26,5 +26,12 @@
       "@/*": ["./src/*"]
     }
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": [
+    "src/routes",
+    "src/server.ts",
+    "src/start.ts",
+    "src/router.tsx",
+    "src/routeTree.gen.ts"
+  ]
 }

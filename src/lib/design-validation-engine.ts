@@ -384,6 +384,9 @@ export function applyAutoFixToFields(
         if (updated.options && updated.options.length > 0) {
           updated.correctAnswer =
             updated.type === 'multiple_choice' ? [updated.options[0]] : updated.options[0];
+          if (updated.type === 'multiple_choice') {
+            updated.correctAnswers = [updated.options[0]];
+          }
         }
         break;
 
