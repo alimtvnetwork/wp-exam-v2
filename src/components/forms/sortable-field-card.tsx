@@ -97,12 +97,18 @@ import {
   BookOpen,
   ListOrdered,
   Save,
+  MoreHorizontal,
   Heart,
   ThumbsUp,
   Smile,
   Columns,
   LayoutTemplate,
 } from 'lucide-react';
+import {
+  parseReferenceLinks,
+  SAMPLE_CITATION_FORMATS,
+  CitationFormatType,
+} from '@/lib/citation-link-parser';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
 import { DesignValidationIssue } from '@/lib/design-validation-engine';
 
@@ -159,6 +165,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   const [showSectionInline, setShowSectionInline] = useState(false);
   const [showPointsOverride, setShowPointsOverride] = useState(false);
   const [showCitationsModal, setShowCitationsModal] = useState(false);
+  const [citationModalTab, setCitationModalTab] = useState<'manual' | 'quick_paste'>('manual');
+  const [quickPasteText, setQuickPasteText] = useState('');
+  const [showFormatGuide, setShowFormatGuide] = useState(false);
+  const [activeGuideFormat, setActiveGuideFormat] = useState<CitationFormatType>('double_line');
   const sectionMenuTimerRef = React.useRef<NodeJS.Timeout | null>(null);
 
   const handleSectionMouseEnter = () => {
@@ -227,6 +237,72 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
     }
   };
 
+  const handleCitationFieldChange = (
+    citeIdx: number,
+    key: 'title' | 'url',
+    val: string
+  ) => {
+    const updated = [...(field.citations || [])];
+    const current = updated[citeIdx] || {
+      id: `cite-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+      title: '',
+      position: 'prefix',
+      isRequiredCheck: false,
+    };
+    updated[citeIdx] = { ...current, [key]: val };
+
+    const hasTitle = Boolean(updated[citeIdx].title?.trim());
+    const hasUrl = Boolean(updated[citeIdx].url?.trim());
+    const isLast = citeIdx === updated.length - 1;
+
+    if (isLast) {
+      if (hasTitle) {
+        if (hasUrl) {
+          updated.push({
+            id: `cite-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+            title: '',
+            url: '',
+            position: 'prefix',
+            isRequiredCheck: false,
+          });
+        }
+      }
+    }
+
+    onUpdate(id, { citations: updated });
+  };
+
+  const handleParseAndAppendCitations = () => {
+    const trimmed = quickPasteText.trim();
+    if (!trimmed) {
+      toast.error('Please paste reference link text first');
+      return;
+    }
+
+    const parsed = parseReferenceLinks(trimmed);
+    if (parsed.length === 0) {
+      toast.error('No valid links or citations detected');
+      return;
+    }
+
+    const newCitations: QuestionCitation[] = parsed.map((item, idx) => ({
+      id: item.id || `cite-${Date.now()}-${idx}-${Math.random().toString(36).slice(2, 6)}`,
+      title: item.title,
+      url: item.url,
+      description: item.description,
+      position: 'prefix',
+      isRequiredCheck: false,
+    }));
+
+    const cleanExisting = (field.citations || []).filter(
+      (c) => Boolean(c.title?.trim() || c.url?.trim())
+    );
+    onUpdate(id, { citations: [...cleanExisting, ...newCitations] });
+    setQuickPasteText('');
+    setCitationModalTab('manual');
+    toast.success(`Parsed and added ${newCitations.length} link(s)!`);
+  };
+
   const isChoiceField =
     field.type === 'multiple_choice' ||
     field.type === 'single_choice' ||
@@ -244,10 +320,27 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   const handleSaveQuestion = () => {
     lastSavedSnapshotRef.current = JSON.stringify(field);
     const { saveForm } = useQuizStore.getState();
+
     if (saveForm) {
       saveForm().catch(() => {});
     }
+
     toast.success(`Question #${index + 1} saved successfully!`);
+  };
+
+  const handleDeleteQuestion = () => {
+    onRemove(id);
+
+    toast.success(`Question #${index + 1} deleted`, {
+      action: {
+        label: 'Undo',
+        onClick: () => {
+          useQuizStore.getState().restoreField(id);
+          toast.info('Question restored');
+        },
+      },
+      duration: 6000,
+    });
   };
   const hasAttachedVideo = Boolean(field.videoUrl && field.videoUrl.trim().length > 0);
   const [showVideoConfig, setShowVideoConfig] = useState(Boolean(field.videoUrl));
@@ -980,7 +1073,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 onFocus={() => setIsTitleFocused(true)}
                 onBlur={() => setIsTitleFocused(false)}
                 placeholder=""
-                className="font-sans font-normal text-sm sm:text-base h-11 pl-4 pr-24 w-full bg-background text-foreground shadow-2xs focus-visible:ring-2 focus-visible:ring-primary rounded-lg transition-all"
+                className="font-sans text-base sm:text-[17px] font-semibold h-11 pl-4 pr-24 w-full bg-background text-foreground border-border shadow-2xs focus-visible:ring-2 focus-visible:ring-primary rounded-lg transition-all"
               />
               {/* Floating animated title indicator gliding smoothly between left placeholder and subtle right-hand hint */}
               <label
@@ -988,7 +1081,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 className={`absolute pointer-events-none transition-all duration-300 ease-out select-none flex items-center gap-1 whitespace-nowrap top-1/2 -translate-y-1/2 font-sans ${
                   isTitleFocused || (field.label && field.label.trim().length > 0)
                     ? 'text-xs font-medium text-muted-foreground opacity-85'
-                    : 'text-sm sm:text-base font-medium text-muted-foreground/75 opacity-90'
+                    : 'text-base sm:text-[17px] font-medium text-muted-foreground/75 opacity-90'
                 }`}
                 style={{
                   left: isTitleFocused || (field.label && field.label.trim().length > 0)
@@ -2735,11 +2828,6 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <Label className="text-sm sm:text-base font-medium font-sans text-foreground">
                     Selectable Options & Answers
                   </Label>
-                  {isQuiz && (field.correctAnswers?.length || 0) > 0 && (
-                    <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30 font-medium font-sans px-2.5 py-0.5">
-                      {field.correctAnswers?.length} Correct Answer{(field.correctAnswers?.length || 0) > 1 ? 's' : ''} Configured
-                    </Badge>
-                  )}
                 </div>
 
                 {/* Choice Alignment Options: Left, Center, Right */}
@@ -2822,8 +2910,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     <div key={optIndex} className="flex gap-2.5 items-center">
                       <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono text-sm font-bold shrink-0 transition-colors ${
                         isCorrect
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'bg-muted border-border text-foreground'
+                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700'
+                          : 'bg-muted/60 border-border/70 text-foreground/80'
                       }`}>
                         {String.fromCharCode(65 + optIndex)}
                       </span>
@@ -2843,7 +2931,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                               onUpdate(id, { options: newOpts, dropdownOptions: newDropdownOpts });
                             }}
                             placeholder={`Display Label (e.g. Option ${optIndex + 1})`}
-                            className="text-base h-11 px-3.5 bg-background text-foreground flex-1 font-medium rounded-lg"
+                            className="text-base h-11 px-3.5 bg-background text-foreground/90 flex-1 font-medium rounded-lg"
                           />
                           <Input
                             value={storedValue}
@@ -2856,7 +2944,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                               onUpdate(id, { dropdownOptions: newDropdownOpts });
                             }}
                             placeholder="Stored Value"
-                            className="text-sm h-11 px-3 bg-muted/30 font-mono text-foreground w-36 sm:w-44 rounded-lg shrink-0"
+                            className="text-sm h-11 px-3 bg-muted/30 font-mono text-foreground/90 w-36 sm:w-44 rounded-lg shrink-0"
                             title="Internal stored value"
                           />
                         </div>
@@ -2869,19 +2957,17 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                             onUpdate(id, { options: newOpts });
                           }}
                           placeholder={`Option ${optIndex + 1}`}
-                          className="text-base h-11 px-3.5 bg-background text-foreground flex-1 font-medium rounded-lg"
+                          className="text-base h-11 px-3.5 bg-background text-foreground/90 flex-1 font-medium rounded-lg"
                         />
                       )}
 
                       {isQuiz && (
-                        <Button
+                        <button
                           type="button"
-                          variant={isCorrect ? 'default' : 'outline'}
-                          size="sm"
-                          className={`h-11 w-[148px] shrink-0 text-sm font-medium font-sans transition-all duration-150 rounded-lg flex items-center justify-center gap-2 cursor-pointer ${
+                          className={`h-9 w-9 p-0 flex items-center justify-center rounded-xl shrink-0 transition-colors cursor-pointer border ${
                             isCorrect
-                              ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:text-primary-foreground shadow-xs'
-                              : 'bg-background hover:bg-muted/80 hover:text-foreground text-muted-foreground border-border/80'
+                              ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/50'
+                              : 'bg-background hover:bg-muted border-border/60'
                           }`}
                           onClick={() => {
                             const nextAnswers = isCorrect
@@ -2892,27 +2978,21 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                               correctAnswer: nextAnswers[0] || '',
                             });
                           }}
-                          title={isCorrect ? 'Marked as correct answer (click to deselect)' : 'Click to mark as correct answer'}
+                          title={isCorrect ? 'Correct Answer' : 'Click to mark as correct'}
                         >
                           {isCorrect ? (
-                            <>
-                              <CheckCircle2 className="w-4 h-4 text-primary-foreground" />
-                              <span>Correct Answer</span>
-                            </>
+                            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
                           ) : (
-                            <>
-                              <Circle className="w-4 h-4 text-muted-foreground/60" />
-                              <span>Mark Correct</span>
-                            </>
+                            <Circle className="w-4 h-4 text-muted-foreground/60" />
                           )}
-                        </Button>
+                        </button>
                       )}
 
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="h-11 w-11 shrink-0 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer rounded-lg transition-colors"
+                        className="h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer rounded-xl transition-colors"
                         onClick={() => {
                           const newOpts = field.options?.filter((_, i) => i !== optIndex);
                           const newDropdownOpts = field.dropdownOptions?.filter((_, i) => i !== optIndex);
@@ -3386,55 +3466,11 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
         {/* Card Footer: Bottom toolbar dividing settings cleanly */}
         <CardFooter className="py-3.5 px-5 sm:px-6 border-t border-border/60 bg-muted/10 flex flex-wrap items-center justify-between gap-3 rounded-b-2xl">
-          {/* Low-Resolution Responsive Properties Menu (< 640px) */}
-          <div className="sm:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm" className="h-8 text-xs gap-1.5 border-border bg-card">
-                  <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
-                  <span>Field Settings</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-56 p-3 space-y-3 bg-popover border-border shadow-xl">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-semibold text-foreground">Required</span>
-                  <Switch
-                    checked={field.isRequired}
-                    onCheckedChange={(checked) => onUpdate(id, { isRequired: checked })}
-                    className="data-[state=checked]:bg-primary"
-                  />
-                </div>
-                {isChoiceField && (
-                  <div className="flex items-center justify-between pt-1 border-t border-border/60">
-                    <span className="text-xs font-semibold text-foreground">Allow &quot;Other&quot;</span>
-                    <Switch
-                      checked={Boolean(field.allowOtherOption)}
-                      onCheckedChange={(checked) => onUpdate(id, { allowOtherOption: checked })}
-                      className="data-[state=checked]:bg-primary"
-                    />
-                  </div>
-                )}
-                {isQuiz && (
-                  <div className="space-y-1.5 pt-1 border-t border-border/60">
-                    <span className="text-xs font-semibold text-foreground block">Points Allocation</span>
-                    <Input
-                      type="number"
-                      value={field.points ?? 10}
-                      onChange={(e) => onUpdate(id, { points: Math.max(1, Number(e.target.value) || 1), customPointsOverride: true })}
-                      className="h-8 text-xs font-mono bg-background"
-                      min={1}
-                    />
-                  </div>
-                )}
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {/* Standard Viewport Field Properties (>= 640px) */}
-          <div className="hidden sm:flex items-center gap-4 flex-wrap">
-            {/* Required switch with clear label (text-sm font-semibold) and red asterisk */}
+          {/* Left-hand section: Primary Required switch (always visible) + Responsive Secondary Actions Overflow Dropdown (< 640px) */}
+          <div className="flex items-center gap-3">
+            {/* Required switch with clear label and red asterisk */}
             <div className="flex items-center gap-2">
-              <Label htmlFor={`footer-req-${id}`} className="text-sm font-semibold cursor-pointer flex items-center">
+              <Label htmlFor={`footer-req-${id}`} className="text-sm font-semibold cursor-pointer flex items-center select-none text-foreground">
                 <span>Required</span>
                 {field.isRequired && <span className="text-destructive font-bold ml-1">*</span>}
               </Label>
@@ -3446,6 +3482,120 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               />
             </div>
 
+            {/* Low-Resolution Responsive Actions Overflow Dropdown (< 640px) */}
+            <div className="sm:hidden">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-8 px-2.5 text-xs gap-1.5 border-border bg-card text-muted-foreground hover:text-foreground"
+                    title="More actions and question settings"
+                  >
+                    <MoreHorizontal className="w-3.5 h-3.5" />
+                    <span>More</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="start" className="w-60 p-2 space-y-1.5 bg-popover border-border shadow-xl">
+                  {isChoiceField && (
+                    <div className="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-muted/40 transition-colors">
+                      <span className="text-xs font-medium text-foreground">Allow &quot;Other&quot;</span>
+                      <Switch
+                        checked={Boolean(field.allowOtherOption)}
+                        onCheckedChange={(checked) => onUpdate(id, { allowOtherOption: checked })}
+                        className="data-[state=checked]:bg-primary h-5 w-9"
+                      />
+                    </div>
+                  )}
+
+                  {isQuiz && (
+                    <div className="p-2 bg-muted/30 rounded-lg space-y-1.5 border border-border/50">
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-semibold text-foreground">Points / Tier</span>
+                        <span className="text-[11px] font-mono text-muted-foreground">{field.points ?? 10} pts</span>
+                      </div>
+                      <Select
+                        value={field.customPointsOverride || field.difficulty === 'custom' ? 'custom' : field.difficulty || 'medium'}
+                        onValueChange={(val) => {
+                          if (val === 'custom') {
+                            onUpdate(id, {
+                              difficulty: 'custom',
+                              customPointsOverride: true,
+                              points: field.points || 10,
+                            });
+                          } else {
+                            const diff = val as 'easy' | 'medium' | 'hard';
+                            const defaultPts = diff === 'easy' ? 5 : diff === 'medium' ? 10 : 20;
+                            onUpdate(id, {
+                              difficulty: diff,
+                              customPointsOverride: false,
+                              points: defaultPts,
+                            });
+                          }
+                        }}
+                      >
+                        <SelectTrigger className="h-7 text-xs bg-background">
+                          <SelectValue placeholder="Select Tier" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-popover border-border">
+                          <SelectItem value="easy" className="text-xs">Easy (5 pts)</SelectItem>
+                          <SelectItem value="medium" className="text-xs">Medium (10 pts)</SelectItem>
+                          <SelectItem value="hard" className="text-xs">Hard (20 pts)</SelectItem>
+                          <SelectItem value="custom" className="text-xs font-semibold text-primary">Custom...</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      {(field.customPointsOverride || field.difficulty === 'custom') && (
+                        <div className="flex items-center gap-1.5 pt-0.5">
+                          <Input
+                            type="number"
+                            value={field.points ?? 10}
+                            onChange={(e) => onUpdate(id, { points: Math.max(1, Number(e.target.value) || 1) })}
+                            className="h-7 text-xs font-mono bg-background text-center rounded w-20"
+                            min={1}
+                          />
+                          <span className="text-xs text-muted-foreground">pts</span>
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  <DropdownMenuItem
+                    onClick={() => setShowTriggers(true)}
+                    className="gap-2 text-xs cursor-pointer py-1.5 px-2 rounded-md"
+                  >
+                    <Mail className="w-3.5 h-3.5 text-primary" />
+                    <span>Email Alert Trigger</span>
+                    {activeTriggers.length > 0 && (
+                      <Badge variant="secondary" className="ml-auto text-[10px] px-1 py-0 h-4">
+                        {activeTriggers.length}
+                      </Badge>
+                    )}
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator className="my-1 border-border/60" />
+
+                  <DropdownMenuItem
+                    onClick={() => onDuplicate(id)}
+                    className="gap-2 text-xs cursor-pointer py-1.5 px-2 rounded-md text-foreground hover:text-primary"
+                  >
+                    <Copy className="w-3.5 h-3.5 text-primary" />
+                    <span>Duplicate Question</span>
+                  </DropdownMenuItem>
+
+                  <DropdownMenuItem
+                    onClick={handleDeleteQuestion}
+                    className="gap-2 text-xs cursor-pointer py-1.5 px-2 rounded-md text-destructive hover:bg-destructive/10 focus:text-destructive focus:bg-destructive/10"
+                  >
+                    <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                    <span>Delete Question</span>
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
+          </div>
+
+          {/* Standard Viewport Field Properties (>= 640px) */}
+          <div className="hidden sm:flex items-center gap-4 flex-wrap">
             {/* Difficulty Tiers & Points Allocation via Dropdown with Conditional Custom Input */}
             {isQuiz && (
               <div className="flex items-center gap-2 border-l border-border/50 pl-3 sm:pl-4">
@@ -3551,58 +3701,64 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             </Button>
           </div>
 
-          {/* Combined Action Buttons: [Delete - Red on LEFT] | [Duplicate - Blue in CENTER] | [Save - Green on RIGHT] */}
-          <div className="inline-flex items-center rounded-lg border border-border bg-card shadow-2xs overflow-hidden h-9 ml-auto shrink-0">
-            {/* Delete Button Segment (LEFT - Destructive Red) */}
-            <button
-              type="button"
-              onClick={() => {
-                onRemove(id);
-                toast.success(`Question #${index + 1} deleted`, {
-                  action: {
-                    label: 'Undo',
-                    onClick: () => {
-                      useQuizStore.getState().restoreField(id);
-                      toast.info('Question restored');
-                    },
-                  },
-                  duration: 6000,
-                });
-              }}
-              className="inline-flex items-center justify-center h-full px-2.5 text-destructive hover:bg-destructive/10 transition-colors cursor-pointer group"
-              title="Delete Question"
-            >
-              <Trash2 className="w-4 h-4 text-destructive group-hover:scale-110 transition-transform" />
-            </button>
+          {/* Right Action Buttons */}
+          <div className="flex items-center gap-2 ml-auto shrink-0">
+            {/* Standard Viewport Action Buttons: [Delete] | [Duplicate] | [Save] (>= 640px) */}
+            <div className="hidden sm:inline-flex items-center rounded-lg border border-border bg-card shadow-2xs overflow-hidden h-9">
+              {/* Delete Button Segment (LEFT - Destructive Red) */}
+              <button
+                type="button"
+                onClick={handleDeleteQuestion}
+                className="inline-flex items-center justify-center h-full px-2.5 text-destructive hover:bg-destructive/10 transition-colors cursor-pointer group"
+                title="Delete Question"
+              >
+                <Trash2 className="w-4 h-4 text-destructive group-hover:scale-110 transition-transform" />
+              </button>
 
-            {/* Subtle Divider */}
-            <div className="w-px h-5 bg-border shrink-0" />
+              {/* Subtle Divider */}
+              <div className="w-px h-5 bg-border shrink-0" />
 
-            {/* Duplicate Button Segment (CENTER - Primary Blue) */}
-            <button
-              type="button"
-              onClick={() => onDuplicate(id)}
-              className="inline-flex items-center justify-center h-full px-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer group"
-              title="Duplicate Question"
-            >
-              <Copy className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
-            </button>
+              {/* Duplicate Button Segment (CENTER - Primary Blue) */}
+              <button
+                type="button"
+                onClick={() => onDuplicate(id)}
+                className="inline-flex items-center justify-center h-full px-2.5 text-foreground hover:bg-primary/10 hover:text-primary transition-colors cursor-pointer group"
+                title="Duplicate Question"
+              >
+                <Copy className="w-4 h-4 text-primary group-hover:scale-110 transition-transform" />
+              </button>
 
-            {/* Subtle Divider */}
-            <div className="w-px h-5 bg-border shrink-0" />
+              {/* Subtle Divider */}
+              <div className="w-px h-5 bg-border shrink-0" />
 
-            {/* Save Question Button Segment (RIGHT - Emerald Green) */}
+              {/* Save Question Button Segment (RIGHT - Emerald Green) */}
+              <button
+                type="button"
+                onClick={handleSaveQuestion}
+                className={`inline-flex items-center justify-center h-full px-2.5 transition-colors cursor-pointer group ${
+                  isQuestionDirty
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-medium'
+                    : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 opacity-70'
+                }`}
+                title={isQuestionDirty ? 'Save changes to this question' : 'Question is saved'}
+              >
+                <Save className={`w-4 h-4 ${isQuestionDirty ? 'text-white' : 'text-emerald-500'}`} />
+              </button>
+            </div>
+
+            {/* Mobile / Compact Viewport Save Button (< 640px) */}
             <button
               type="button"
               onClick={handleSaveQuestion}
-              className={`inline-flex items-center justify-center h-full px-2.5 transition-colors cursor-pointer group ${
+              className={`inline-flex sm:hidden items-center justify-center h-8 px-2.5 rounded-lg border text-xs gap-1.5 transition-colors cursor-pointer ${
                 isQuestionDirty
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-medium'
-                  : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 opacity-70'
+                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-medium border-emerald-600'
+                  : 'text-muted-foreground hover:text-foreground bg-card border-border/80'
               }`}
               title={isQuestionDirty ? 'Save changes to this question' : 'Question is saved'}
             >
-              <Save className={`w-4 h-4 ${isQuestionDirty ? 'text-white' : 'text-emerald-500'}`} />
+              <Save className={`w-3.5 h-3.5 ${isQuestionDirty ? 'text-white' : 'text-emerald-500'}`} />
+              <span>{isQuestionDirty ? 'Save' : 'Saved'}</span>
             </button>
           </div>
         </CardFooter>
@@ -3667,127 +3823,276 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
       {/* Citations, Reference Links & Actionable To-Dos Modal */}
       <Dialog open={showCitationsModal} onOpenChange={setShowCitationsModal}>
-        <DialogContent className="sm:max-w-[620px] bg-card border border-border shadow-xl">
+        <DialogContent className="max-w-2xl sm:max-w-3xl bg-card border border-border shadow-2xl p-6">
           <DialogHeader>
             <DialogTitle className="text-base font-bold flex items-center gap-2 text-foreground">
               <BookOpen className="w-4 h-4 text-primary" />
-              <span>Citations, Reference Links & To-Dos</span>
+              <span>Citations, Reference Links &amp; To-Dos</span>
             </DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
               Attach technical references, guideline links, or mandatory checklist to-dos for Question #{index + 1}.
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-3 py-2 max-h-[60vh] overflow-y-auto">
-            {(!field.citations || field.citations.length === 0) ? (
-              <div className="p-4 rounded-xl border border-dashed border-border text-center text-xs text-muted-foreground">
-                No citations or to-dos added yet. Click &quot;Add Item&quot; below.
-              </div>
-            ) : (
-              field.citations.map((cite, citeIdx) => (
-                <div key={cite.id} className="p-3 bg-muted/20 rounded-xl border border-border/80 space-y-2.5">
-                  <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold font-mono text-primary">Item #{citeIdx + 1}</span>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        const updated = field.citations?.filter((c) => c.id !== cite.id);
-                        onUpdate(id, { citations: updated });
-                      }}
-                      className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                    >
-                      <X className="w-3.5 h-3.5" />
-                    </Button>
-                  </div>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <div>
-                      <Label className="text-xs text-muted-foreground block mb-1">Title / Action Item</Label>
-                      <Input
-                        value={cite.title}
-                        onChange={(e) => {
-                          const updated = [...(field.citations || [])];
-                          updated[citeIdx] = { ...cite, title: e.target.value };
-                          onUpdate(id, { citations: updated });
-                        }}
-                        placeholder="e.g. Read RFC 7519 or Clone repository"
-                        className="text-xs h-8 bg-background"
-                      />
-                    </div>
-                    <div>
-                      <Label className="text-xs text-muted-foreground block mb-1">Reference URL (Optional)</Label>
-                      <Input
-                        value={cite.url || ''}
-                        onChange={(e) => {
-                          const updated = [...(field.citations || [])];
-                          updated[citeIdx] = { ...cite, url: e.target.value };
-                          onUpdate(id, { citations: updated });
-                        }}
-                        placeholder="https://example.com/spec"
-                        className="text-xs h-8 font-mono bg-background"
-                      />
-                    </div>
-                  </div>
-                  <div className="flex items-center justify-between flex-wrap gap-2 pt-1 text-xs">
-                    <div className="flex items-center gap-2">
-                      <span className="text-muted-foreground">Position:</span>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          const updated = [...(field.citations || [])];
-                          updated[citeIdx] = { ...cite, position: cite.position === 'prefix' ? 'suffix' : 'prefix' };
-                          onUpdate(id, { citations: updated });
-                        }}
-                        className="px-2 py-0.5 rounded border border-border bg-background capitalize font-medium text-foreground hover:bg-muted"
-                      >
-                        {cite.position} Question
-                      </button>
-                    </div>
-                    <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground">
-                      <input
-                        type="checkbox"
-                        checked={Boolean(cite.isRequiredCheck)}
-                        onChange={(e) => {
-                          const updated = [...(field.citations || [])];
-                          updated[citeIdx] = { ...cite, isRequiredCheck: e.target.checked };
-                          onUpdate(id, { citations: updated });
-                        }}
-                        className="rounded border-border"
-                      />
-                      <span>Mandatory checklist to-do (&quot;I have done it&quot;)</span>
-                    </label>
-                  </div>
-                </div>
-              ))
-            )}
+          {/* Navigation Sub-Tabs */}
+          <div className="flex items-center justify-between border-b border-border pb-2 gap-2 flex-wrap">
+            <div className="flex items-center gap-1.5 bg-muted/50 p-0.5 rounded-lg border border-border">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setCitationModalTab('manual')}
+                className={`h-7 px-3 text-xs font-sans rounded-md transition-all gap-1.5 ${
+                  citationModalTab === 'manual'
+                    ? 'bg-background text-foreground font-semibold shadow-2xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5 text-primary" />
+                <span>Manual Items ({field.citations?.length || 0})</span>
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => setCitationModalTab('quick_paste')}
+                className={`h-7 px-3 text-xs font-sans rounded-md transition-all gap-1.5 ${
+                  citationModalTab === 'quick_paste'
+                    ? 'bg-primary text-primary-foreground font-semibold shadow-2xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                <span>Quick Paste (5 Formats)</span>
+              </Button>
+            </div>
 
             <Button
               type="button"
               variant="outline"
               size="sm"
-              onClick={() => {
-                const newItem: QuestionCitation = {
-                  id: `cite-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-                  title: '',
-                  position: 'prefix',
-                  isRequiredCheck: false,
-                };
-                onUpdate(id, { citations: [...(field.citations || []), newItem] });
-              }}
-              className="w-full text-xs h-8 border-dashed border-primary/40 text-primary hover:bg-primary/10 gap-1.5"
+              onClick={() => setShowFormatGuide(!showFormatGuide)}
+              className={`h-7 px-2.5 text-xs font-sans gap-1.5 border-border ${
+                showFormatGuide ? 'bg-primary/10 text-primary border-primary/40 font-semibold' : 'text-muted-foreground'
+              }`}
             >
-              <Plus className="w-3.5 h-3.5" /> Add Citation or To-Do
+              <HelpCircle className="w-3.5 h-3.5 text-primary" />
+              <span>Format Guide &amp; Examples</span>
             </Button>
           </div>
 
-          <DialogFooter>
+          {/* Format Guide & Examples Toggle Panel */}
+          {showFormatGuide && (
+            <div className="p-3.5 rounded-xl border border-primary/30 bg-primary/5 space-y-3 animate-in fade-in duration-150">
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold font-sans text-primary flex items-center gap-1.5">
+                  <Code className="w-3.5 h-3.5" />
+                  <span>Supported Citation Formats (5 Engine Formats)</span>
+                </span>
+                <span className="text-[10px] text-muted-foreground font-mono">Auto-detected on paste</span>
+              </div>
+
+              <div className="flex items-center gap-1 flex-wrap">
+                {SAMPLE_CITATION_FORMATS.map((fmt) => (
+                  <Button
+                    key={fmt.id}
+                    type="button"
+                    variant={activeGuideFormat === fmt.id ? 'default' : 'outline'}
+                    size="sm"
+                    onClick={() => setActiveGuideFormat(fmt.id)}
+                    className="h-6 text-[11px] font-sans px-2"
+                  >
+                    {fmt.label}
+                  </Button>
+                ))}
+              </div>
+
+              {(() => {
+                const sample = SAMPLE_CITATION_FORMATS.find((f) => f.id === activeGuideFormat) || SAMPLE_CITATION_FORMATS[0];
+                return (
+                  <div className="space-y-2 bg-background/90 p-3 rounded-lg border border-border">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-xs font-semibold text-foreground">{sample.label}</span>
+                      <div className="flex items-center gap-1.5">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            setQuickPasteText(sample.sampleText);
+                            setCitationModalTab('quick_paste');
+                            toast.info(`Loaded ${sample.label} into Quick Paste`);
+                          }}
+                          className="h-6 px-2 text-[10px] font-sans gap-1 border-primary/30 text-primary hover:bg-primary/10"
+                        >
+                          <Sparkles className="w-3 h-3" />
+                          <span>Use in Quick Paste</span>
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            navigator.clipboard.writeText(sample.sampleText);
+                            toast.success(`${sample.label} sample copied!`);
+                          }}
+                          className="h-6 px-2 text-[10px] font-sans gap-1 text-muted-foreground hover:text-foreground"
+                        >
+                          <Copy className="w-3 h-3" />
+                          <span>Copy</span>
+                        </Button>
+                      </div>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground">{sample.description}</p>
+                    <pre className="p-2.5 rounded-md bg-muted/60 text-[11px] font-mono whitespace-pre-wrap text-foreground border border-border/60 max-h-32 overflow-y-auto">
+                      {sample.sampleText}
+                    </pre>
+                  </div>
+                );
+              })()}
+            </div>
+          )}
+
+          {/* Quick Paste (5 Formats) Section */}
+          {citationModalTab === 'quick_paste' ? (
+            <div className="space-y-3 py-2">
+              <div className="space-y-1.5">
+                <Label className="text-xs font-semibold text-foreground">
+                  Paste Links or Citations (Any Format)
+                </Label>
+                <Textarea
+                  value={quickPasteText}
+                  onChange={(e) => setQuickPasteText(e.target.value)}
+                  placeholder="Paste links in ANY of the 5 supported formats:&#10;• Double-line: Title on line 1, URL on line 2&#10;• Colon-separated: Specification Name: https://...&#10;• Markdown links: [RFC 7519](https://tools.ietf.org/html/rfc7519)&#10;• Raw URLs: https://example.com/spec&#10;• JSON array: [{ &quot;title&quot;: &quot;...&quot;, &quot;url&quot;: &quot;...&quot; }]"
+                  className="min-h-[160px] font-mono text-xs bg-background leading-relaxed"
+                />
+              </div>
+
+              <div className="flex items-center justify-between gap-2 pt-1">
+                <span className="text-[11px] text-muted-foreground font-sans">
+                  The parser will auto-extract domain titles for raw URLs and append all links.
+                </span>
+                <Button
+                  type="button"
+                  variant="default"
+                  size="sm"
+                  onClick={handleParseAndAppendCitations}
+                  className="text-xs h-8 gap-1.5 font-semibold"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>Parse &amp; Add Links</span>
+                </Button>
+              </div>
+            </div>
+          ) : (
+            /* Manual Item List Section with Auto-expanding row */
+            <div className="space-y-3 py-2 max-h-[55vh] overflow-y-auto pr-1">
+              {(!field.citations || field.citations.length === 0) ? (
+                <div className="p-6 rounded-xl border border-dashed border-border text-center space-y-2">
+                  <BookOpen className="w-6 h-6 text-muted-foreground mx-auto" />
+                  <p className="text-xs text-muted-foreground">
+                    No citations or to-dos added yet. Use &quot;Quick Paste&quot; above or click &quot;Add Item&quot; below.
+                  </p>
+                </div>
+              ) : (
+                field.citations.map((cite, citeIdx) => (
+                  <div key={cite.id} className="p-3 bg-muted/20 rounded-xl border border-border/80 space-y-2.5">
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="font-sans text-xs font-semibold text-muted-foreground">Item #{citeIdx + 1}</span>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          const updated = field.citations?.filter((c) => c.id !== cite.id);
+                          onUpdate(id, { citations: updated });
+                        }}
+                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive cursor-pointer"
+                        title="Delete Item"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs text-muted-foreground block mb-1">Title / Action Item</Label>
+                        <Input
+                          value={cite.title}
+                          onChange={(e) => handleCitationFieldChange(citeIdx, 'title', e.target.value)}
+                          placeholder="e.g. Read RFC 7519 or Clone repository"
+                          className="text-xs h-8 bg-background"
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs text-muted-foreground block mb-1">Reference URL (Optional)</Label>
+                        <Input
+                          value={cite.url || ''}
+                          onChange={(e) => handleCitationFieldChange(citeIdx, 'url', e.target.value)}
+                          placeholder="https://example.com/spec"
+                          className="text-xs h-8 font-mono bg-background"
+                        />
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between flex-wrap gap-2 pt-1 text-xs">
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">Position:</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = [...(field.citations || [])];
+                            updated[citeIdx] = { ...cite, position: cite.position === 'prefix' ? 'suffix' : 'prefix' };
+                            onUpdate(id, { citations: updated });
+                          }}
+                          className="px-2 py-0.5 rounded border border-border bg-background capitalize font-medium text-foreground hover:bg-muted cursor-pointer"
+                        >
+                          {cite.position} Question
+                        </button>
+                      </div>
+                      <label className="flex items-center gap-1.5 cursor-pointer text-muted-foreground hover:text-foreground">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(cite.isRequiredCheck)}
+                          onChange={(e) => {
+                            const updated = [...(field.citations || [])];
+                            updated[citeIdx] = { ...cite, isRequiredCheck: e.target.checked };
+                            onUpdate(id, { citations: updated });
+                          }}
+                          className="rounded border-border accent-primary cursor-pointer"
+                        />
+                        <span>Mandatory checklist to-do (&quot;I have done it&quot;)</span>
+                      </label>
+                    </div>
+                  </div>
+                ))
+              )}
+
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const newItem: QuestionCitation = {
+                    id: `cite-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                    title: '',
+                    position: 'prefix',
+                    isRequiredCheck: false,
+                  };
+                  onUpdate(id, { citations: [...(field.citations || []), newItem] });
+                }}
+                className="w-full text-xs h-8 border-dashed border-primary/40 text-primary hover:bg-primary/10 gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" /> Add Citation or To-Do
+              </Button>
+            </div>
+          )}
+
+          <DialogFooter className="border-t border-border pt-3">
             <Button
               type="button"
               variant="default"
               size="sm"
               onClick={() => setShowCitationsModal(false)}
-              className="text-xs"
+              className="text-xs px-4"
             >
               Done
             </Button>

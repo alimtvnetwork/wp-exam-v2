@@ -48,6 +48,7 @@ TypeScript-specific coding standards, enum definitions, and type safety enforcem
 | 10 | [10-log-level-enum.md](./11-log-level-enum.md) | Enum | Log level enum definition (Debug, Info, Warn, Error, Fatal) |
 | 11 | [11-eslint-enforcement.md](./12-eslint-enforcement.md) | Enforcement | ESLint rule mapping + SonarQube integration |
 | 12 | [12-discriminated-union-patterns.md](./13-discriminated-union-patterns.md) | Patterns | Discriminated union & action type patterns — no inline types, PascalCase enums |
+| 16 | [16-multi-format-citation-and-link-extraction.md](./16-multi-format-citation-and-link-extraction.md) | Standard | Multi-format citation and reference link extraction pattern (5 formats) |
 | 97 | [97-acceptance-criteria.md](./97-acceptance-criteria.md) | Testing | Acceptance criteria |
 | 98 | [98-changelog.md](./98-changelog.md) | Meta | Changelog |
 

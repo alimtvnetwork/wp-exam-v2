@@ -159,3 +159,37 @@ export function verifyChecklistCompletion(params: ChecklistVerificationParams): 
     missingMandatoryLabels: missingLabels,
   };
 }
+
+export interface CheckQuestionLockedParams {
+  isSequential: boolean;
+  targetIndex: number;
+  currentStep: number;
+  fieldIds: string[];
+  answers: Record<string, unknown>;
+}
+
+export function isQuestionLockedForNavigation(params: CheckQuestionLockedParams): boolean {
+  if (!params.isSequential) {
+    return false;
+  }
+
+  const isCurrentOrPast = params.targetIndex <= params.currentStep;
+  if (isCurrentOrPast) {
+    return false;
+  }
+
+  for (let i = 0; i < params.targetIndex; i++) {
+    const fid = params.fieldIds[i];
+    if (fid) {
+      const val = params.answers[fid];
+      const hasVal = val !== undefined && val !== '';
+      const isArr = Array.isArray(val);
+      const isAns = isArr ? val.length > 0 : hasVal;
+      if (!isAns) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}

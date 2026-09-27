@@ -61,6 +61,8 @@ import {
   RotateCcw,
   Columns,
   LayoutTemplate,
+  Lock,
+  Menu,
 } from 'lucide-react';
 import { PhoneWithCountrySelect } from '@/components/ui/phone-input';
 import { MultilineListItemsInput } from '@/components/forms/multiline-list-items-input';
@@ -85,6 +87,7 @@ import {
   extractQuestionReferences,
   extractQuestionChecklist,
   verifyChecklistCompletion,
+  isQuestionLockedForNavigation,
 } from '@/lib/presentation-layout';
 
 interface FormRunnerProps {
@@ -1100,7 +1103,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           }
         }
 
-        if (isSequential) {
+        const isStepMode = Boolean(isSequential || effectiveLayoutMode === 'presentation_split');
+        if (isStepMode) {
           handleNextStep();
         }
       }
@@ -1111,7 +1115,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     return () => {
       window.removeEventListener('keydown', handleGlobalKeyDown);
     };
-  }, [isSubmitted, isSequential, handleNextStep]);
+  }, [isSubmitted, isSequential, effectiveLayoutMode, handleNextStep]);
 
   const handleSubmit = () => {
     const finalName = guestName.trim() || session.respondentName || 'Anonymous Candidate';
@@ -1419,7 +1423,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
         color: currentTheme?.colors?.textPrimary || '#0F172A',
       }}
     >
-      <div className={`space-y-5 mx-auto ${activeThemeId === 'clean-wide' ? 'max-w-7xl' : 'max-w-6xl'}`}>
+      <div className={`space-y-5 mx-auto ${effectiveLayoutMode === 'presentation_split' ? 'w-full max-w-[98vw] px-2 sm:px-4' : activeThemeId === 'clean-wide' ? 'max-w-7xl' : 'max-w-6xl'}`}>
         {/* Streamlined Single-Line Project Selector, Slug & Actions Bar */}
       <div 
         className="p-2.5 sm:px-4 border border-border bg-card text-card-foreground rounded-xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors"
@@ -1461,16 +1465,18 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             </Select>
           </div>
 
-          {/* Active Canonical Slug Indicator */}
-          <div 
-            className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-border bg-background text-xs font-mono shadow-2xs shrink-0"
+          {/* Compact Copy Link Button (Replaces wide URL banner per UX requirement) */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleCopyProjectLink}
+            className="h-8 px-2.5 text-xs font-medium font-sans gap-1.5 border-border bg-background text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/40 shadow-2xs transition-all cursor-pointer rounded-lg shrink-0"
+            title="Copy Direct Canonical Link to Clipboard"
           >
-            <span className="w-2 h-2 rounded-full bg-primary animate-pulse shrink-0" />
-            <span className="text-muted-foreground">{isPreviewRoute ? '/preview/' : '/f/'}</span>
-            <span className="font-semibold text-primary truncate max-w-[130px] sm:max-w-[180px]">
-              {selectedProjectId === 'custom-active' ? (quizStore.slug || 'custom-form') : selectedProjectId}
-            </span>
-          </div>
+            <Copy className="w-3.5 h-3.5 text-primary" />
+            <span>Copy Link</span>
+          </Button>
 
           {/* Real-time Preview Mode Switcher (Quiz View vs Presentation View) */}
           <div className="flex items-center gap-1 bg-muted/60 p-0.5 rounded-lg border border-border shrink-0">
@@ -1510,7 +1516,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               <Columns className="w-3.5 h-3.5" />
               <span>Presentation Slide</span>
             </Button>
-            {isSequential && (
+            {(isSequential || effectiveLayoutMode === 'presentation_split') && (
               <Button
                 type="button"
                 variant="ghost"
@@ -1523,8 +1529,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 }`}
                 title={isSidebarVisible ? 'Collapse question sequence for wide view' : 'Show question sequence'}
               >
-                <ListOrdered className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">{isSidebarVisible ? 'Sidebar' : 'Full Canvas'}</span>
+                <Menu className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Questions</span>
               </Button>
             )}
           </div>
@@ -1563,136 +1569,125 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             </Select>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={handleCopyProjectLink}
-            className="h-8 w-8 rounded-lg border border-border bg-card text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/40 shadow-xs transition-all cursor-pointer group shrink-0"
-            title="Copy Direct Canonical URL to Clipboard"
-          >
-            <Share2 className="w-3.5 h-3.5 text-primary group-hover:scale-110 transition-transform" />
-          </Button>
+          {/* Grouped Action Pill: [ ⚡ Auto | 🛠️ Debug | ✕ Exit ] */}
+          <div className="flex items-center h-8 bg-muted/60 p-0.5 rounded-lg border border-border divide-x divide-border shrink-0">
+            <button
+              type="button"
+              onClick={handleAutoFill}
+              className="h-7 px-2.5 text-xs font-medium font-sans flex items-center gap-1 text-foreground hover:text-primary hover:bg-background/80 rounded-l-md transition-all cursor-pointer"
+              title="Auto-fill form fields with sample test data"
+            >
+              <Zap className="w-3.5 h-3.5 text-amber-500" />
+              <span>Auto</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsDebugMode(!isDebugMode)}
+              className={`h-7 px-2.5 text-xs font-medium font-sans flex items-center gap-1 transition-all cursor-pointer ${
+                isDebugMode
+                  ? 'bg-amber-600 text-white font-semibold'
+                  : 'text-foreground hover:text-amber-600 hover:bg-background/80'
+              }`}
+              title="Toggle Debug Simulator & Step Jumper"
+            >
+              <Bug className="w-3.5 h-3.5 text-amber-500" />
+              <span>Debug</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (onClose) {
+                  onClose();
+                } else {
+                  navigate('/');
+                }
+              }}
+              className="h-7 px-2.5 text-xs font-medium font-sans flex items-center gap-1 text-muted-foreground hover:text-destructive hover:bg-background/80 rounded-r-md transition-all cursor-pointer"
+              title="Exit form runner and return to portal"
+            >
+              <X className="w-3.5 h-3.5" />
+              <span>Exit</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleAutoFill}
-            className="text-xs h-8 px-2.5 gap-1.5 font-medium font-sans border border-border bg-card text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/40 shadow-xs transition-all cursor-pointer group rounded-lg shrink-0 whitespace-nowrap"
-            title="Auto-fill form fields with sample test data"
-          >
-            <Zap className="w-3.5 h-3.5 text-amber-500 group-hover:scale-110 transition-transform" />
-            <span>Auto Fill</span>
-          </Button>
-
-          <Button
-            type="button"
-            variant={isDebugMode ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setIsDebugMode(!isDebugMode)}
-            className={`text-xs h-8 px-2.5 gap-1 font-medium font-sans border shadow-xs transition-all cursor-pointer rounded-lg shrink-0 whitespace-nowrap ${
-              isDebugMode
-                ? 'bg-amber-600 hover:bg-amber-700 text-white border-amber-600'
-                : 'border-border bg-card text-foreground hover:bg-amber-500/10 hover:text-amber-600 hover:border-amber-500/40'
-            }`}
-            title="Toggle Debug Simulator & Step Jumper"
-          >
-            <Bug className="w-3.5 h-3.5 text-amber-500" />
-            <span>Debug</span>
-          </Button>
-
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => {
-              if (onClose) {
-                onClose();
+      {/* Hero Model: Assessment Introduction & Overview (Omitted in Presentation Slide Mode to maximize canvas) */}
+      {effectiveLayoutMode !== 'presentation_split' && (
+        <>
+          <QuizHeroSection
+            title={activeForm.title || 'Candidate Assessment'}
+            description={activeForm.description}
+            questionCount={visibleFields.length}
+            totalPoints={totalPossiblePoints}
+            passingScore={activeForm.passingScore || 70}
+            isTimed={Boolean(activeForm.hasTimeLimit || activeForm.timeLimitSeconds)}
+            timeLimitSeconds={activeForm.timeLimitSeconds}
+            hasSavedSession={Boolean(savedSession)}
+            savedTimeAgo={lastSavedTime || undefined}
+            currentStep={currentStep}
+            onStartOrResume={() => {
+              if (savedSession) {
+                handleResumeSession();
               } else {
-                navigate('/');
+                setCurrentStep(0);
               }
             }}
-            className="text-xs h-8 px-2.5 border border-border bg-card text-foreground hover:bg-accent hover:text-foreground cursor-pointer font-medium font-sans transition-all group rounded-lg gap-1 shrink-0 whitespace-nowrap"
-            title="Exit form runner and return to portal"
-          >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Exit</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Hero Model: Assessment Introduction & Overview */}
-      <QuizHeroSection
-        title={activeForm.title || 'Candidate Assessment'}
-        description={activeForm.description}
-        questionCount={visibleFields.length}
-        totalPoints={totalPossiblePoints}
-        passingScore={activeForm.passingScore || 70}
-        isTimed={Boolean(activeForm.hasTimeLimit || activeForm.timeLimitSeconds)}
-        timeLimitSeconds={activeForm.timeLimitSeconds}
-        hasSavedSession={Boolean(savedSession)}
-        savedTimeAgo={lastSavedTime || undefined}
-        currentStep={currentStep}
-        onStartOrResume={() => {
-          if (savedSession) {
-            handleResumeSession();
-          } else {
-            setCurrentStep(0);
-          }
-        }}
-        onSaveProgress={handleSaveProgress}
-      />
-
-      {/* Candidate Role & Access Bar */}
-      <div 
-        className="p-3.5 border border-border bg-card text-card-foreground rounded-2xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 transition-colors"
-      >
-        <div className="flex items-center gap-2.5 flex-wrap">
-          {session.isAuthenticated ? (
-            <>
-              <Badge className="bg-primary text-primary-foreground text-xs font-semibold px-2.5 py-0.5">
-                ✓ Verified Respondent
-              </Badge>
-              <span className="text-sm font-semibold text-foreground">{session.respondentEmail}</span>
-              <Badge variant="outline" className="text-xs uppercase font-mono border-primary text-primary font-bold">{session.role}</Badge>
-            </>
-          ) : (
-            <>
-              <Badge variant="secondary" className="text-xs font-semibold bg-muted text-foreground px-2.5 py-0.5 font-bold">
-                Candidate Guest
-              </Badge>
-              <span className="text-sm text-muted-foreground font-medium">Unauthenticated Respondent</span>
-            </>
-          )}
-        </div>
-
-        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-          <Input
-            placeholder="Invite Access Token..."
-            value={tokenInput}
-            onChange={(e) => setTokenInput(e.target.value)}
-            className="h-9 text-sm w-48 font-mono bg-background border border-border text-foreground rounded-lg"
+            onSaveProgress={handleSaveProgress}
           />
-          <Button 
-            size="sm" 
-            variant="outline" 
-            className="h-9 px-4 text-sm font-bold border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer rounded-lg shadow-xs" 
-            onClick={handleVerifyToken}
+
+          {/* Candidate Role & Access Bar */}
+          <div
+            className="p-3.5 border border-border bg-card text-card-foreground rounded-2xl shadow-xs flex flex-col sm:flex-row items-center justify-between gap-3 transition-colors"
           >
-            Verify
-          </Button>
-          {session.isAuthenticated && (
-            <Button
-              size="sm"
-              variant="ghost"
-              className="h-9 px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg cursor-pointer"
-              onClick={examStore.clearSession}
-            >
-              Sign Out
-            </Button>
-          )}
-        </div>
-      </div>
+            <div className="flex items-center gap-2.5 flex-wrap">
+              {session.isAuthenticated ? (
+                <>
+                  <Badge className="bg-primary text-primary-foreground text-xs font-semibold px-2.5 py-0.5">
+                    ✓ Verified Respondent
+                  </Badge>
+                  <span className="text-sm font-semibold text-foreground">{session.respondentEmail}</span>
+                  <Badge variant="outline" className="text-xs uppercase font-mono border-primary text-primary font-bold">{session.role}</Badge>
+                </>
+              ) : (
+                <>
+                  <Badge variant="secondary" className="text-xs font-semibold bg-muted text-foreground px-2.5 py-0.5 font-bold">
+                    Candidate Guest
+                  </Badge>
+                  <span className="text-sm text-muted-foreground font-medium">Unauthenticated Respondent</span>
+                </>
+              )}
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+              <Input
+                placeholder="Invite Access Token..."
+                value={tokenInput}
+                onChange={(e) => setTokenInput(e.target.value)}
+                className="h-9 text-sm w-48 font-mono bg-background border border-border text-foreground rounded-lg"
+              />
+              <Button
+                size="sm"
+                variant="outline"
+                className="h-9 px-4 text-sm font-bold border-primary text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer rounded-lg shadow-xs"
+                onClick={handleVerifyToken}
+              >
+                Verify
+              </Button>
+              {session.isAuthenticated && (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-9 px-3 text-sm text-muted-foreground hover:text-foreground hover:bg-accent rounded-lg cursor-pointer"
+                  onClick={examStore.clearSession}
+                >
+                  Sign Out
+                </Button>
+              )}
+            </div>
+          </div>
+        </>
+      )}
 
       {authMessage && (
         <div className="p-2.5 rounded-lg bg-primary/10 border border-primary/20 text-xs text-primary font-semibold text-center">
@@ -1801,7 +1796,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       )}
 
       {/* Sequential Wizard Runner with Left-Hand Sequence Navigator */}
-      {isSequential && currentField ? (
+      {(isSequential || effectiveLayoutMode === 'presentation_split') && currentField ? (
         <div className="flex flex-col lg:flex-row items-start gap-6 w-full">
           {/* Left-Hand Question Sequence & Session Sidebar */}
           {isSidebarVisible ? (
@@ -1810,7 +1805,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 {/* Progress Tracker */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between text-xs font-sans">
-                    <span className="font-semibold text-foreground">Progress</span>
+                    <span className="font-semibold text-foreground">Questions ({visibleFields.length})</span>
                     <div className="flex items-center gap-1.5">
                       <span className="font-mono text-primary font-bold">
                         {Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}%
@@ -1819,7 +1814,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                         type="button"
                         onClick={() => setIsSidebarVisible(false)}
                         className="text-[10px] text-muted-foreground hover:text-foreground cursor-pointer px-1.5 py-0.5 rounded hover:bg-muted"
-                        title="Hide sequence sidebar for wide presentation view"
+                        title="Hide sequence sidebar"
                       >
                         Hide &times;
                       </button>
@@ -1835,7 +1830,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 </div>
               </div>
 
-              {/* Question Sequence List */}
+              {/* Question Sequence List with Navigation & Sequential Locking */}
               <div className="space-y-1.5 max-h-[380px] overflow-y-auto pr-1">
                 <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-1 mb-1">
                   Questions Sequence
@@ -1844,6 +1839,13 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   const isCurrent = currentStep === idx;
                   const isAnswered = answers[f.id] !== undefined && answers[f.id] !== '' && (Array.isArray(answers[f.id]) ? (answers[f.id] as unknown[]).length > 0 : true);
                   const isNewGroup = Boolean(f.group && (idx === 0 || visibleFields[idx - 1]?.group !== f.group));
+                  const isLocked = isQuestionLockedForNavigation({
+                    isSequential: Boolean(activeForm.isSequential),
+                    targetIndex: idx,
+                    currentStep,
+                    fieldIds: visibleFields.map((fieldItem) => fieldItem.id),
+                    answers,
+                  });
 
                   return (
                     <React.Fragment key={f.id}>
@@ -1853,35 +1855,52 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                           <span>{f.group}</span>
                         </div>
                       ) : null}
-                      <button
-                        type="button"
-                        onClick={() => setCurrentStep(idx)}
-                        className={`w-full text-left px-3 py-2 rounded-xl text-xs font-sans transition-all flex items-center justify-between gap-2 cursor-pointer ${
-                          isCurrent
-                            ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                            : isAnswered
-                            ? 'bg-muted/40 hover:bg-muted text-foreground border border-border/60'
-                            : 'hover:bg-muted/30 text-muted-foreground border border-transparent'
-                        }`}
-                      >
-                        <div className="flex items-center gap-2 truncate">
-                          <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono shrink-0 ${
+                      {isLocked ? (
+                        <button
+                          type="button"
+                          onClick={() => toast.info(`Complete Question #${currentStep + 1} before advancing to #${idx + 1}`)}
+                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-sans transition-all flex items-center justify-between gap-2 cursor-not-allowed opacity-50 bg-muted/20 border border-transparent text-muted-foreground"
+                          title="Locked: Complete previous questions first"
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono shrink-0 bg-muted text-muted-foreground">
+                              {idx + 1}
+                            </span>
+                            <span className="truncate">{f.label || `Question #${idx + 1}`}</span>
+                          </div>
+                          <Lock className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
+                        </button>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setCurrentStep(idx)}
+                          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-sans transition-all flex items-center justify-between gap-2 cursor-pointer ${
                             isCurrent
-                              ? 'bg-primary-foreground text-primary font-bold'
+                              ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
                               : isAnswered
-                              ? 'bg-emerald-500/20 text-emerald-600 font-bold'
-                              : 'bg-muted text-muted-foreground'
-                          }`}>
-                            {idx + 1}
-                          </span>
-                          <span className="truncate">{f.label || `Question #${idx + 1}`}</span>
-                        </div>
-                        {isAnswered ? (
-                          <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? 'text-primary-foreground' : 'text-emerald-500'}`} />
-                        ) : (
-                          <Circle className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? 'text-primary-foreground/60' : 'text-muted-foreground/40'}`} />
-                        )}
-                      </button>
+                              ? 'bg-muted/40 hover:bg-muted text-foreground border border-border/60'
+                              : 'hover:bg-muted/30 text-muted-foreground border border-transparent'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 truncate">
+                            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono shrink-0 ${
+                              isCurrent
+                                ? 'bg-primary-foreground text-primary font-bold'
+                                : isAnswered
+                                ? 'bg-emerald-500/20 text-emerald-600 font-bold'
+                                : 'bg-muted text-muted-foreground'
+                            }`}>
+                              {idx + 1}
+                            </span>
+                            <span className="truncate">{f.label || `Question #${idx + 1}`}</span>
+                          </div>
+                          {isAnswered ? (
+                            <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? 'text-primary-foreground' : 'text-emerald-500'}`} />
+                          ) : (
+                            <Circle className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? 'text-primary-foreground/60' : 'text-muted-foreground/40'}`} />
+                          )}
+                        </button>
+                      )}
                     </React.Fragment>
                   );
                 })}
@@ -1913,7 +1932,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             </div>
           </aside>
         ) : (
-          <div className="hidden lg:block shrink-0 sticky top-4">
+          <div className="shrink-0 sticky top-4">
             <Button
               type="button"
               variant="outline"
@@ -1922,7 +1941,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               className="h-9 px-3 text-xs font-sans font-medium gap-1.5 border-border bg-card hover:bg-primary/10 hover:text-primary rounded-xl shadow-xs transition-all cursor-pointer"
               title="Show Question Sequence"
             >
-              <ListOrdered className="w-3.5 h-3.5 text-primary" />
+              <Menu className="w-3.5 h-3.5 text-primary" />
               <span>Questions ({currentStep + 1}/{visibleFields.length})</span>
             </Button>
           </div>
@@ -1932,18 +1951,13 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           <main className="flex-1 min-w-0 w-full">
             {effectiveLayoutMode === 'presentation_split' ? (
               /* Presentation-Grade 2-Column Split Question Canvas */
-              <div className="w-full bg-card border border-border rounded-3xl p-6 sm:p-8 shadow-md space-y-8 animate-in fade-in duration-150">
+              <div className="w-full bg-card border border-border rounded-3xl p-6 sm:p-8 lg:p-10 shadow-md space-y-8 animate-in fade-in duration-150">
                 {/* Top Meta Bar */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground pb-4 border-b border-border/80">
                   <div className="flex items-center gap-2 flex-wrap">
                     <Badge variant="outline" className="px-3 py-1 rounded-full text-xs font-mono font-semibold border-primary/40 text-primary bg-primary/10 tracking-wide">
                       {currentField.kickerText || `Question #${currentStep + 1} • ${currentField.group || activeForm.title}`}
                     </Badge>
-                    {isCurrentFieldRequired && (
-                      <Badge variant="outline" className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold border-amber-500/40 text-amber-500 bg-amber-500/10">
-                        Mandatory Response
-                      </Badge>
-                    )}
                     {currentField.difficulty && (
                       <Badge variant="outline" className={`px-2 py-0.5 rounded-full text-[11px] uppercase font-mono ${
                         currentField.difficulty === 'hard'
@@ -1979,21 +1993,30 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   </div>
                 </div>
 
-                {/* 2-Column Presentation Grid */}
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-                  {/* Left Column: Narrative, Question, References & Action Checklist */}
-                  <div className="lg:col-span-6 xl:col-span-7 space-y-6">
+                {/* 2-Column Presentation Grid (50% / 50% on Desktop) */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 items-start">
+                  {/* Left Column: Eyebrow, Large Title, Description, References & Action Checklist */}
+                  <div className="w-full space-y-6">
+                    {/* Eyebrow Kicker Badge */}
+                    <div className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
+                      <span className="w-2 h-2 rounded-full bg-primary" />
+                      <span>{currentField.kickerText || `Question ${currentStep + 1} of ${visibleFields.length}`}</span>
+                      {currentField.group && (
+                        <span className="text-muted-foreground font-normal">• {currentField.group}</span>
+                      )}
+                    </div>
+
                     {/* Big Ubuntu Question Headline */}
                     <div className="space-y-2">
-                      <h2 className="font-heading font-bold text-2xl sm:text-3xl text-foreground leading-snug tracking-tight">
+                      <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-4xl text-foreground leading-tight tracking-tight">
                         {currentField.label}
                         {isCurrentFieldRequired && (
-                          <span className="text-destructive text-red-500 font-bold ml-1.5" title="Mandatory Response">*</span>
+                          <span className="text-destructive text-red-500 font-bold ml-1.5" title="Required question">*</span>
                         )}
                       </h2>
 
                       {currentField.description && (
-                        <div className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-wrap pt-1">
+                        <div className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-wrap mt-2">
                           {currentField.description}
                         </div>
                       )}
@@ -2028,7 +2051,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
                     {/* Reference Resources & Links */}
                     {referenceItems.length > 0 && (
-                      <div className="space-y-2.5 pt-2">
+                      <div className="space-y-3 pt-2">
                         <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                           <BookOpen className="w-3.5 h-3.5 text-primary" />
                           <span>Reference Resources &amp; Specifications</span>
@@ -2040,7 +2063,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                               href={ref.url}
                               target="_blank"
                               rel="noopener noreferrer"
-                              className="p-3 rounded-xl border border-border bg-background hover:bg-primary/5 hover:border-primary/40 text-foreground transition-all group flex items-start justify-between gap-2 shadow-2xs"
+                              className="p-3 rounded-xl border border-border bg-card hover:bg-primary/5 hover:border-primary/40 text-foreground transition-all group flex items-start justify-between gap-2 shadow-2xs"
                             >
                               <div className="min-w-0 flex-1">
                                 <div className="text-xs sm:text-sm font-semibold group-hover:text-primary transition-colors truncate">
@@ -2059,7 +2082,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
                     {/* Mandatory Action Checklist ("Must-Do Before Answering") */}
                     {checklistItems.length > 0 && (
-                      <div className="space-y-2.5 pt-2">
+                      <div className="space-y-3 pt-2">
                         <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
                           <span className="flex items-center gap-1.5">
                             <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
@@ -2108,16 +2131,16 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     {renderCitations(currentField.citations, 'suffix')}
                   </div>
 
-                  {/* Right Column: Interactive Response Container & Advance Actions */}
-                  <div className="lg:col-span-6 xl:col-span-5 space-y-5">
-                    <div className="bg-card/90 backdrop-blur-md border border-border rounded-2xl p-5 sm:p-6 shadow-sm space-y-5">
+                  {/* Right Column: Elevated Fluid Answer Card */}
+                  <div className="w-full space-y-5">
+                    <div className="bg-card border border-border/80 rounded-2xl p-6 sm:p-8 shadow-lg space-y-6">
                       <div className="flex items-center justify-between pb-3 border-b border-border/70">
                         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                           <Sparkles className="w-3.5 h-3.5 text-primary" />
                           <span>Candidate Response</span>
                         </span>
                         <span className="text-[11px] font-mono text-muted-foreground">
-                          Step {currentStep + 1} of {visibleFields.length}
+                          Question {currentStep + 1} of {visibleFields.length}
                         </span>
                       </div>
 
@@ -2127,7 +2150,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                       </div>
 
                       {/* Navigation & Advance Footer */}
-                      <div className="pt-4 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
+                      <div className="pt-5 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
                         <Button
                           variant="outline"
                           size="sm"
@@ -2157,7 +2180,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                               className="text-xs h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer flex items-center gap-1.5 flex-1 sm:flex-initial justify-center"
                             >
                               <span>Submit Assessment</span>
-                              <span className="text-[10px] opacity-75 font-mono">↵</span>
+                              <span className="text-[10px] opacity-75 font-mono">Enter ↵</span>
                             </Button>
                           ) : (
                             <Button
@@ -2166,7 +2189,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                               className="text-xs h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer flex items-center gap-1.5 flex-1 sm:flex-initial justify-center"
                             >
                               <span>Next Question</span>
-                              <span className="text-[10px] opacity-75 font-mono">↵</span>
+                              <span className="text-[10px] opacity-75 font-mono">Enter ↵</span>
                             </Button>
                           )}
                         </div>

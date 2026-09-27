@@ -62,6 +62,7 @@ App-specific specification content for the WP Exam plugin. This engine provides 
 | 15 | [15-card-actions-dropdown-rating-and-email-triggers.md](./15-card-actions-dropdown-rating-and-email-triggers.md) | Card Actions, Enhanced Dropdowns, Multi-Mode Rating & Notification Triggers | Complete |
 | 16 | [16-email-templates-multi-theme-and-screen-verification.md](./16-email-templates-multi-theme-and-screen-verification.md) | Email Template Studio, Multi-Theme Palettes & Multi-Screen Verification | Complete |
 | 17 | [17-presentation-split-layout-and-preview-modes.md](./17-presentation-split-layout-and-preview-modes.md) | Presentation Split Layout, Question Display Modes & Best UI/UX Preview Architecture | Complete |
+| 18 | [18-presentation-ui-ux-and-links-parser.md](./18-presentation-ui-ux-and-links-parser.md) | Presentation UI/UX, Multi-Format Citation Links Parser & Advanced Email Trigger Engine | In Progress |
 
 ---
 

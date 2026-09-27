@@ -87,6 +87,7 @@ import {
   Bell,
   Columns,
   LayoutTemplate,
+  Link2,
 } from 'lucide-react';
 import {
   DndContext,
@@ -406,282 +407,180 @@ export const FormBuilder: React.FC = () => {
 
   return (
     <div className="w-full px-3 sm:px-6 pt-1 pb-6 space-y-3.5">
-      {/* Top Action Bar with Integrated Single-Line Live URL, HoverCard Health & Icon Actions */}
+      {/* Top Action Bar: Ultra-Compact Single-Line Controls */}
       <div className="flex items-center justify-between gap-2 p-2 sm:px-3 bg-card rounded-xl border border-border/80 shadow-xs w-full overflow-x-auto">
-        {/* Left Side: Single-Line Navigation, Title, Slug Chip & Access Badge */}
+        {/* Left Side: Single-Line Navigation, Title, Compact Slug Control & Icon Access */}
         <div className="flex items-center gap-2 min-w-0 shrink-0">
           <Button
             type="button"
             variant="ghost"
             size="icon"
             onClick={() => window.history.back()}
-            className="h-9 w-9 rounded-xl border border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground transition-all shadow-xs shrink-0 cursor-pointer"
+            className="h-8 w-8 rounded-lg border border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground transition-all shadow-xs shrink-0 cursor-pointer"
             title="Back to Admin Dashboard"
           >
-            <ArrowLeft className="w-5 h-5 text-foreground" />
+            <ArrowLeft className="w-4 h-4 text-foreground" />
           </Button>
 
-          <h1 className="text-base sm:text-lg font-bold tracking-tight text-foreground whitespace-nowrap">
+          <h1 className="text-sm sm:text-base font-bold tracking-tight text-foreground whitespace-nowrap">
             Form <span className="text-primary">Builder</span>
           </h1>
 
-          {/* De-cluttered Compact Slug Chip with Popover Editor & 1-Click Copy */}
-          <div className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-xl bg-muted/50 border border-border/80 font-mono text-xs text-muted-foreground shadow-2xs shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse shrink-0" />
-            <Popover>
-              <PopoverTrigger asChild>
-                <button
-                  type="button"
-                  className="text-foreground hover:text-primary font-semibold transition-colors cursor-pointer truncate max-w-[120px] sm:max-w-[180px]"
-                  title="Click to edit form URL slug"
-                >
-                  /f/{activeSlug}
-                </button>
-              </PopoverTrigger>
-              <PopoverContent
-                align="start"
-                className="w-80 p-3.5 space-y-3 rounded-xl border border-border bg-popover shadow-xl"
+          {/* Compact Slug Control with Link Icon Button & Popover Editor */}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-8 gap-1.5 px-2.5 rounded-lg border-border text-xs font-mono shrink-0 cursor-pointer hover:border-primary/40"
+                title="Form URL link and slug editor (click to edit)"
               >
-                <div className="space-y-1">
-                  <h4 className="font-semibold text-sm text-foreground">Edit Form URL Slug</h4>
-                  <p className="text-xs text-muted-foreground">Customize public path for this assessment form</p>
-                </div>
-                <div className="flex items-center gap-1.5">
-                  <span className="text-xs font-mono text-muted-foreground">/f/</span>
-                  <Input
-                    value={slug || ''}
-                    onChange={(e) => setSlug(e.target.value)}
-                    placeholder="custom-slug"
-                    className="h-9 text-xs font-mono rounded-lg"
-                  />
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      const hasTitle = Boolean(title && title.trim().length > 0);
-                      if (!hasTitle) {
-                        toast.error('Enter form title first');
-
-                        return;
-                      }
-                      const auto = title.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
-                      setSlug(auto);
-                      toast.success(`Slug auto-generated: "${auto}"`);
-                    }}
-                    className="h-9 px-2.5 shrink-0 rounded-lg"
-                    title="Auto-generate from title"
-                  >
-                    <Wand2 className="w-4 h-4" />
-                  </Button>
-                </div>
-                <div className="flex items-center justify-between pt-1 border-t border-border/60">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsSlugModalOpen(true)}
-                    className="h-8 px-2 text-xs text-muted-foreground hover:text-foreground gap-1.5"
-                  >
-                    <Globe className="w-3.5 h-3.5" />
-                    <span>Advanced Manager</span>
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={handleCopyLiveUrl}
-                    className="h-8 px-2.5 text-xs gap-1.5"
-                  >
-                    <Copy className="w-3.5 h-3.5" />
-                    <span>Copy URL</span>
-                  </Button>
-                </div>
-              </PopoverContent>
-            </Popover>
-            <button
-              type="button"
-              onClick={handleCopyLiveUrl}
-              className="p-1 hover:text-primary text-muted-foreground transition-colors rounded hover:bg-accent cursor-pointer ml-0.5"
-              title="Copy Public Form URL to clipboard"
+                <Link2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                <span className="text-foreground font-semibold truncate max-w-[100px] hidden sm:inline">/{activeSlug}</span>
+                <Copy
+                  className="w-3 h-3 text-muted-foreground hover:text-primary transition-colors ml-0.5 shrink-0"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleCopyLiveUrl();
+                  }}
+                  title="Copy Live URL"
+                />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent
+              align="start"
+              className="w-80 p-3.5 space-y-3 rounded-xl border border-border bg-popover shadow-xl text-xs"
             >
-              <Copy className="w-3.5 h-3.5" />
-            </button>
-          </div>
+              <div className="space-y-1">
+                <h4 className="font-semibold text-sm text-foreground">Edit Form URL Slug</h4>
+                <p className="text-xs text-muted-foreground">Customize public path for this assessment form</p>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <span className="text-xs font-mono text-muted-foreground">/f/</span>
+                <Input
+                  value={slug || ''}
+                  onChange={(e) => setSlug(e.target.value)}
+                  placeholder="custom-slug"
+                  className="h-8 text-xs font-mono rounded-lg"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    const hasTitle = Boolean(title && title.trim().length > 0);
+                    if (!hasTitle) {
+                      toast.error('Enter form title first');
+                      return;
+                    }
+                    const auto = title.toLowerCase().trim().replace(/[^\w\s-]/g, '').replace(/[\s_-]+/g, '-').replace(/^-+|-+$/g, '');
+                    setSlug(auto);
+                    toast.success(`Slug auto-generated: "${auto}"`);
+                  }}
+                  className="h-8 px-2 shrink-0 rounded-lg"
+                  title="Auto-generate from title"
+                >
+                  <Wand2 className="w-3.5 h-3.5" />
+                </Button>
+              </div>
+              <div className="flex items-center justify-between pt-1 border-t border-border/60">
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setIsSlugModalOpen(true)}
+                  className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground gap-1.5"
+                >
+                  <Globe className="w-3 h-3" />
+                  <span>Advanced Manager</span>
+                </Button>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handleCopyLiveUrl}
+                  className="h-7 px-2 text-[11px] gap-1.5"
+                >
+                  <Copy className="w-3 h-3" />
+                  <span>Copy URL</span>
+                </Button>
+              </div>
+            </PopoverContent>
+          </Popover>
 
-          {/* Compact Public / Access Badge */}
+          {/* Compact Form Access Icon Badge */}
           <Badge
             variant="outline"
             onClick={() => window.open(`/f/${activeSlug}`, '_blank')}
-            className="text-[11px] h-6 px-2 font-medium border-primary/30 text-primary bg-primary/5 capitalize shrink-0 cursor-pointer hover:bg-primary/10 transition-colors"
-            title="Access Policy (click to view live public URL)"
+            className="h-8 px-2 font-medium border-primary/30 text-primary bg-primary/5 shrink-0 cursor-pointer hover:bg-primary/10 transition-colors gap-1 text-xs"
+            title={`Access Policy: ${formAccess} (click to view live public URL)`}
           >
-            {formAccess === 'public' ? 'Public' : formAccess === 'token' ? 'Token' : 'Invite'}
+            {formAccess === 'public' ? (
+              <Globe className="w-3.5 h-3.5 text-primary" />
+            ) : (
+              <ShieldCheck className="w-3.5 h-3.5 text-primary" />
+            )}
           </Badge>
+
+          {/* Compact Format Selector: Standard vs Slide */}
+          <div className="hidden sm:inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5 h-8 shrink-0 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => {
+                updateSettings({ defaultQuestionLayout: 'standard' });
+                toast.info('Default format set to Standard Quiz');
+              }}
+              className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                settings.defaultQuestionLayout !== 'presentation_split'
+                  ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Set default format to Standard Quiz"
+            >
+              <LayoutTemplate className="w-3 h-3 text-primary" />
+              <span>Standard</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                updateSettings({ defaultQuestionLayout: 'presentation_split' });
+                toast.success('Default format set to Presentation Slide');
+              }}
+              className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                settings.defaultQuestionLayout === 'presentation_split'
+                  ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Set default format to Presentation Slide (2-Column Split)"
+            >
+              <Columns className="w-3 h-3" />
+              <span>Slide</span>
+            </button>
+          </div>
         </div>
 
-        {/* Right Side: Compact Aligned Action Controls with Icon-Only Actions */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Health Score Minimal Badge (Grade A+ or Score) with Rich HoverCard */}
-          <HoverCard openDelay={100} closeDelay={150}>
-            <HoverCardTrigger asChild>
-              <button
-                type="button"
-                onClick={() => {
-                  setInspectorTab('audit');
-                  setIsDesignPanelOpen(true);
-                }}
-                className="inline-flex items-center gap-1.5 h-9 px-2.5 rounded-xl font-mono font-bold text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer shrink-0"
-                title="Form Health Score (hover for diagnostic breakdown, click for audit dock)"
-              >
-                <Shield className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                <span>{designReport.grade || 'A+'}</span>
-              </button>
-            </HoverCardTrigger>
-            <HoverCardContent
-              align="end"
-              className="w-80 p-3.5 space-y-3 rounded-xl border border-border bg-popover text-popover-foreground shadow-xl text-xs"
-            >
-              <div className="flex items-center justify-between border-b border-border/60 pb-2">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-emerald-500" />
-                  <span className="font-bold text-sm text-foreground">Form Health Audit</span>
-                </div>
-                <Badge variant="outline" className="font-mono font-bold text-xs bg-primary/10 text-primary border-primary/20">
-                  Grade {designReport.grade} ({designReport.score}%)
-                </Badge>
-              </div>
-
-              <div className="space-y-1.5 text-muted-foreground">
-                <div className="flex justify-between">
-                  <span>Audit Diagnostics:</span>
-                  <span className="font-semibold text-foreground">{designReport.issues?.length || 0} issues detected</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Questions Configured:</span>
-                  <span className="font-semibold text-foreground">{fields.length} questions</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Mandatory Fields:</span>
-                  <span className="font-semibold text-foreground">{requiredCount} required</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Grading Allocation:</span>
-                  <span className="font-semibold text-foreground">{totalPoints} total points</span>
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-border/60 flex items-center justify-between">
-                <span className="text-[11px] text-muted-foreground">Click badge or button to open audit dock</span>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="default"
-                  onClick={() => {
-                    setInspectorTab('audit');
-                    setIsDesignPanelOpen(true);
-                  }}
-                  className="h-7 text-xs px-2.5 rounded-lg"
-                >
-                  Open Full Audit
-                </Button>
-              </div>
-            </HoverCardContent>
-          </HoverCard>
-
-          {/* Compact Share Icon Button */}
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={handleCopyLiveUrl}
-            className="h-9 w-9 bg-card border border-border text-foreground hover:bg-accent hover:text-primary hover:border-primary/40 shadow-xs rounded-xl cursor-pointer shrink-0 transition-all group"
-            title="Share & Copy Candidate URL"
-          >
-            <Share2 className="w-4 h-4 text-foreground group-hover:text-primary transition-colors" />
-          </Button>
-
+        {/* Right Side: Quick Action Cluster with Compact Tools Dropdown & Save */}
+        <div className="flex items-center gap-1.5 shrink-0">
           {/* Quick Notification Triggers & Templates Button */}
           <Button
             type="button"
             variant="outline"
             size="icon"
             onClick={() => setIsNotificationModalOpen(true)}
-            className="h-9 w-9 bg-card border border-border text-foreground hover:bg-accent hover:text-primary hover:border-primary/40 shadow-xs rounded-xl cursor-pointer shrink-0 transition-all group"
+            className="h-8 w-8 bg-card border border-border text-foreground hover:bg-accent hover:text-primary hover:border-primary/40 shadow-xs rounded-lg cursor-pointer shrink-0 transition-all group"
             title="Configure Automated Notification Triggers & Email Templates"
           >
-            <Bell className="w-4 h-4 text-foreground group-hover:text-primary transition-colors" />
+            <Bell className="w-3.5 h-3.5 text-foreground group-hover:text-primary transition-colors" />
           </Button>
 
-          {/* Trash Recovery Ledger Popover */}
-          {trashFields && trashFields.length > 0 && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="text-xs h-9 px-2.5 gap-1.5 bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20 shadow-xs rounded-xl font-semibold cursor-pointer shrink-0 transition-all animate-in fade-in duration-150"
-                  title={`${trashFields.length} deleted question(s) in trash. Click to restore.`}
-                >
-                  <Trash2 className="w-3.5 h-3.5 shrink-0" />
-                  <span>Trash ({trashFields.length})</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 p-3 space-y-2.5 rounded-xl border border-border bg-popover shadow-xl text-xs">
-                <div className="flex items-center justify-between border-b border-border/60 pb-2">
-                  <div className="flex items-center gap-1.5 font-bold text-foreground">
-                    <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                    <span>Deleted Questions Ledger</span>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearTrash}
-                    className="h-6 px-1.5 text-[11px] text-muted-foreground hover:text-destructive"
-                  >
-                    Clear All
-                  </Button>
-                </div>
-                <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                  {trashFields.map((item) => (
-                    <div
-                      key={item.field.id}
-                      className="p-2 rounded-lg border border-border/70 bg-card flex items-center justify-between gap-2"
-                    >
-                      <div className="min-w-0">
-                        <div className="font-semibold truncate text-foreground">{item.field.label || 'Untitled Question'}</div>
-                        <div className="text-[10px] text-muted-foreground capitalize">
-                          {item.field.type.replace(/_/g, ' ')} • Deleted {new Date(item.deletedAt).toLocaleTimeString()}
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          restoreField(item.field.id);
-                          toast.success(`Restored "${item.field.label || 'question'}"`);
-                        }}
-                        className="h-6 px-2 text-[11px] border-primary/40 text-primary hover:bg-primary/10 shrink-0 font-semibold"
-                      >
-                        Restore
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
-
-          {/* Unified Tools ▾ Dropdown Menu */}
+          {/* Unified Compact Tools Dropdown Menu */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
                 size="sm"
-                className="text-xs h-9 px-2.5 gap-1.5 bg-card border border-border text-foreground hover:bg-accent hover:text-primary hover:border-primary/40 shadow-xs transition-all duration-150 rounded-xl font-semibold cursor-pointer shrink-0 group"
+                className="text-xs h-8 px-2 gap-1.5 bg-card border border-border text-foreground hover:bg-accent hover:text-primary hover:border-primary/40 shadow-xs transition-all duration-150 rounded-lg font-semibold cursor-pointer shrink-0 group"
                 title="Open secondary builder tools and integrations"
               >
                 <Wand2 className="w-3.5 h-3.5 text-primary group-hover:text-primary transition-colors" />
@@ -695,6 +594,22 @@ export const FormBuilder: React.FC = () => {
               </DropdownMenuLabel>
 
               <DropdownMenuItem
+                onClick={() => {
+                  setInspectorTab('audit');
+                  setIsDesignPanelOpen(true);
+                }}
+                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary border border-transparent hover:border-primary/20 transition-colors"
+              >
+                <div className="w-7 h-7 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center shrink-0">
+                  <Shield className="w-3.5 h-3.5" />
+                </div>
+                <div>
+                  <div className="font-semibold text-foreground">Form Health Audit</div>
+                  <div className="text-sm text-muted-foreground">Grade {designReport.grade || 'A+'} ({designReport.score}%)</div>
+                </div>
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
                 onClick={() => setIsNotificationModalOpen(true)}
                 className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary border border-transparent hover:border-primary/20 transition-colors"
               >
@@ -703,7 +618,7 @@ export const FormBuilder: React.FC = () => {
                 </div>
                 <div>
                   <div className="font-semibold text-foreground">Email &amp; Notification Studio</div>
-                  <div className="text-sm text-muted-foreground">Themes, section templates &amp; triggers</div>
+                  <div className="text-sm text-muted-foreground">Themes, presets &amp; cascading stages</div>
                 </div>
               </DropdownMenuItem>
 
@@ -754,56 +669,20 @@ export const FormBuilder: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          {/* Format Architecture: Standard Quiz vs Presentation Slide */}
-          <div className="hidden sm:inline-flex items-center rounded-xl border border-border bg-muted/40 p-0.5 h-9 shrink-0 shadow-2xs">
-            <button
-              type="button"
-              onClick={() => {
-                updateSettings({ defaultQuestionLayout: 'standard' });
-                toast.info('Default format set to Standard Quiz');
-              }}
-              className={`inline-flex items-center gap-1.5 h-full px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                settings.defaultQuestionLayout !== 'presentation_split'
-                  ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              title="Set default format to Standard Quiz"
-            >
-              <LayoutTemplate className="w-3.5 h-3.5 text-primary" />
-              <span>Standard Quiz</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                updateSettings({ defaultQuestionLayout: 'presentation_split' });
-                toast.success('Default format set to Presentation Slide');
-              }}
-              className={`inline-flex items-center gap-1.5 h-full px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
-                settings.defaultQuestionLayout === 'presentation_split'
-                  ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              title="Set default format to Presentation Slide (2-Column Split)"
-            >
-              <Columns className="w-3.5 h-3.5" />
-              <span>Presentation Slide</span>
-            </button>
-          </div>
-
           {/* Combined Preview & Save Segmented Control */}
-          <div className="inline-flex items-center rounded-xl border border-primary/40 bg-card shadow-xs hover:shadow-md transition-all duration-150 overflow-hidden h-9 shrink-0">
+          <div className="inline-flex items-center rounded-lg border border-primary/40 bg-card shadow-xs hover:shadow-md transition-all duration-150 overflow-hidden h-8 shrink-0">
             {/* Live Preview Segment */}
             <button
               type="button"
               onClick={() => window.open('/preview/' + activeSlug + '?test=true', '_blank')}
-              className="inline-flex items-center justify-center h-full px-3 bg-card text-foreground hover:bg-accent hover:text-primary transition-colors cursor-pointer group"
+              className="inline-flex items-center justify-center h-full px-2.5 bg-card text-foreground hover:bg-accent hover:text-primary transition-colors cursor-pointer group"
               title="Preview interactive form in a new tab"
             >
-              <Eye className="w-4 h-4 stroke-[2.2] text-foreground group-hover:text-primary transition-colors" />
+              <Eye className="w-3.5 h-3.5 stroke-[2.2] text-foreground group-hover:text-primary transition-colors" />
             </button>
 
             {/* Subtle Divider */}
-            <div className="w-px h-5 bg-border shrink-0" />
+            <div className="w-px h-4 bg-border shrink-0" />
 
             {/* Save Form Segment */}
             <button
@@ -813,9 +692,159 @@ export const FormBuilder: React.FC = () => {
               className="inline-flex items-center justify-center h-full px-3 bg-primary text-primary-foreground hover:bg-primary/90 font-bold transition-colors cursor-pointer disabled:opacity-50"
               title={isSaving ? 'Saving Form...' : 'Save Form (Ctrl+S)'}
             >
-              {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+              {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
             </button>
           </div>
+        </div>
+      </div>
+
+      {/* Compact Secondary Utility Bar: Health Audit, Stats, Share & Trash */}
+      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 bg-muted/30 border border-border/70 rounded-xl text-xs">
+        <div className="flex items-center gap-2">
+          {/* Health Score Pill with HoverCard */}
+          <HoverCard openDelay={100} closeDelay={150}>
+            <HoverCardTrigger asChild>
+              <button
+                type="button"
+                onClick={() => {
+                  setInspectorTab('audit');
+                  setIsDesignPanelOpen(true);
+                }}
+                className="inline-flex items-center gap-1.5 h-7 px-2 rounded-lg font-mono font-bold text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer shrink-0"
+                title="Form Health Score (hover for details, click for full audit dock)"
+              >
+                <Shield className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                <span>Health: {designReport.grade || 'A+'} ({designReport.score}%)</span>
+              </button>
+            </HoverCardTrigger>
+            <HoverCardContent
+              align="start"
+              className="w-80 p-3.5 space-y-3 rounded-xl border border-border bg-popover text-popover-foreground shadow-xl text-xs"
+            >
+              <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                <div className="flex items-center gap-2">
+                  <Shield className="w-4 h-4 text-emerald-500" />
+                  <span className="font-bold text-sm text-foreground">Form Health Audit</span>
+                </div>
+                <Badge variant="outline" className="font-mono font-bold text-xs bg-primary/10 text-primary border-primary/20">
+                  Grade {designReport.grade} ({designReport.score}%)
+                </Badge>
+              </div>
+              <div className="space-y-1.5 text-muted-foreground">
+                <div className="flex justify-between">
+                  <span>Audit Diagnostics:</span>
+                  <span className="font-semibold text-foreground">{designReport.issues?.length || 0} issues</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Questions Configured:</span>
+                  <span className="font-semibold text-foreground">{fields.length} questions</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>Grading Allocation:</span>
+                  <span className="font-semibold text-foreground">{totalPoints} total points</span>
+                </div>
+              </div>
+              <div className="pt-2 border-t border-border/60 flex items-center justify-between">
+                <span className="text-[11px] text-muted-foreground">Click for audit details</span>
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={() => {
+                    setInspectorTab('audit');
+                    setIsDesignPanelOpen(true);
+                  }}
+                  className="h-6 text-xs px-2 rounded-md"
+                >
+                  Open Audit Dock
+                </Button>
+              </div>
+            </HoverCardContent>
+          </HoverCard>
+
+          <div className="hidden sm:flex items-center gap-2 font-mono text-[11px] text-muted-foreground">
+            <span>{fields.length} questions</span>
+            <span>&bull;</span>
+            <span>{totalPoints} pts</span>
+            <span>&bull;</span>
+            <span>{requiredCount} required</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1.5">
+          {/* Trash Recovery Ledger */}
+          {trashFields && trashFields.length > 0 && (
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="text-[11px] h-7 px-2 gap-1 bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20 rounded-lg font-semibold cursor-pointer shrink-0"
+                  title={`${trashFields.length} deleted question(s) in trash`}
+                >
+                  <Trash2 className="w-3 h-3 shrink-0" />
+                  <span>Trash ({trashFields.length})</span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent align="end" className="w-80 p-3 space-y-2.5 rounded-xl border border-border bg-popover shadow-xl text-xs">
+                <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                  <div className="flex items-center gap-1.5 font-bold text-foreground">
+                    <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                    <span>Deleted Questions Ledger</span>
+                  </div>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={clearTrash}
+                    className="h-6 px-1.5 text-[11px] text-muted-foreground hover:text-destructive"
+                  >
+                    Clear All
+                  </Button>
+                </div>
+                <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                  {trashFields.map((item) => (
+                    <div
+                      key={item.field.id}
+                      className="p-2 rounded-lg border border-border/70 bg-card flex items-center justify-between gap-2"
+                    >
+                      <div className="min-w-0">
+                        <div className="font-semibold truncate text-foreground">{item.field.label || 'Untitled Question'}</div>
+                        <div className="text-[10px] text-muted-foreground capitalize">
+                          {item.field.type.replace(/_/g, ' ')} • Deleted {new Date(item.deletedAt).toLocaleTimeString()}
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        onClick={() => {
+                          restoreField(item.field.id);
+                          toast.success(`Restored "${item.field.label || 'question'}"`);
+                        }}
+                        className="h-6 px-2 text-[11px] border-primary/40 text-primary hover:bg-primary/10 shrink-0 font-semibold"
+                      >
+                        Restore
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </PopoverContent>
+            </Popover>
+          )}
+
+          {/* Share Button */}
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            onClick={handleCopyLiveUrl}
+            className="h-7 px-2 text-[11px] gap-1 text-muted-foreground hover:text-foreground"
+            title="Share & Copy Live URL"
+          >
+            <Share2 className="w-3 h-3" />
+            <span className="hidden sm:inline">Share</span>
+          </Button>
         </div>
       </div>
 
