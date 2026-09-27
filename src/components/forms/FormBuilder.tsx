@@ -636,49 +636,33 @@ export const FormBuilder: React.FC = () => {
           )}
         </div>
 
-        {/* Right Side: Quick Action Cluster: Preview & Save (Tools/Bell moved to secondary bar per UX redesign) */}
-        <div className="flex items-center gap-1.5 shrink-0">
-          {/* Combined Preview & Save Segmented Control */}
-          <div className="inline-flex items-center rounded-lg border border-primary/40 bg-card shadow-xs hover:shadow-md transition-all duration-150 overflow-hidden h-8 shrink-0">
-            {/* Live Preview Segment */}
-            <button
-              type="button"
-              onClick={() => setIsRunnerPreviewModalOpen(true)}
-              className="inline-flex items-center justify-center gap-1.5 h-full px-2.5 bg-card text-foreground hover:bg-accent hover:text-primary transition-colors cursor-pointer text-xs font-medium group"
-              title="Open interactive assessment preview modal"
-            >
-              <Eye className="w-3.5 h-3.5 stroke-[2.2] text-foreground group-hover:text-primary transition-colors" />
-              <span className="hidden sm:inline font-semibold">Preview</span>
-            </button>
+        {/* Right Side: Quick Action Cluster: Preview & Save */}
+        <div className="flex items-center gap-2 shrink-0">
+          {/* Live Preview Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsRunnerPreviewModalOpen(true)}
+            className="h-8 px-3 gap-1.5 border border-border bg-card text-foreground hover:bg-accent hover:text-foreground font-semibold shadow-xs cursor-pointer text-xs transition-colors"
+            title="Open interactive assessment preview modal"
+          >
+            <Eye className="w-3.5 h-3.5 text-foreground" />
+            <span className="hidden sm:inline">Preview</span>
+          </Button>
 
-            {/* Subtle Divider */}
-            <div className="w-px h-4 bg-border shrink-0" />
-
-            {/* Open in New Window Button */}
-            <button
-              type="button"
-              onClick={() => window.open('/preview/' + activeSlug + '?test=true', '_blank')}
-              className="inline-flex items-center justify-center h-full px-2 bg-card text-foreground hover:bg-accent hover:text-primary transition-colors cursor-pointer"
-              title="Open full preview in a separate browser tab"
-            >
-              <ExternalLink className="w-3 h-3 text-muted-foreground hover:text-primary transition-colors" />
-            </button>
-
-            {/* Subtle Divider */}
-            <div className="w-px h-4 bg-border shrink-0" />
-
-            {/* Save Form Segment */}
-            <button
-              type="button"
-              onClick={handleSave}
-              disabled={isSaving}
-              className="inline-flex items-center justify-center gap-1.5 h-full px-3 bg-primary text-primary-foreground hover:bg-primary/90 font-bold transition-colors cursor-pointer disabled:opacity-50 text-xs"
-              title={isSaving ? 'Saving Form...' : 'Save Form (Ctrl+S)'}
-            >
-              {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-              <span className="hidden sm:inline">Save</span>
-            </button>
-          </div>
+          {/* Save Form Button */}
+          <Button
+            type="button"
+            size="sm"
+            onClick={handleSave}
+            disabled={isSaving}
+            className="h-8 px-3.5 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-xs cursor-pointer text-xs disabled:opacity-50 transition-colors"
+            title={isSaving ? 'Saving Form...' : 'Save Form (Ctrl+S)'}
+          >
+            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+            <span className="hidden sm:inline">Save</span>
+          </Button>
         </div>
       </div>
 
