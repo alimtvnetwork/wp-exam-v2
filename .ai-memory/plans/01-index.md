@@ -79,7 +79,9 @@ Master directory of architectural and execution plans.
 
 Compact registry of the last 20 tasks and milestone plans:
 
-1. **Task 68:** [Quiz Preview Redesign Validation, Sidebar Grouping & Cross-Theme Completeness](completed/68-preview-quiz-redesign-validation-and-enhancement.md) — 2-column layout, left-hand sequence sidebar with section grouping, Hero model, session persistence, Poppins typography, and complete cross-theme HSL tokens.
+1. **Task 70:** [Email Template Studio, 6 Theme Palettes, Modular Section Controls & Multi-Screen Verification](completed/70-email-templates-multi-theme-and-screen-verification.md) — 3-tab NotificationTriggerModal, 6 themes, modular section toggles, desktop/tablet/mobile viewport switchers, zero PII sanitized template.
+2. **Task 69:** [Card Actions, Enhanced Dropdowns, Multi-Mode Rating & Notification Triggers](completed/69-card-actions-dropdown-rating-and-email-triggers.md) — Delete-Left / Duplicate-Center / Save-Right layout, store trash ledger with Toast undo, sequenced searchable dropdowns with custom "Other" typing, multi-mode rating with feelings emojis and reviews.
+3. **Task 68:** [Quiz Preview Redesign Validation, Sidebar Grouping & Cross-Theme Completeness](completed/68-preview-quiz-redesign-validation-and-enhancement.md) — 2-column layout, left-hand sequence sidebar with section grouping, Hero model, session persistence, Poppins typography, and complete cross-theme HSL tokens.
 2. **Task 67:** [Quiz Preview Redesign: Hero Model, Sequence Sidebar & Session Persistence](completed/67-preview-quiz-redesign-hero-sidebar-session.md) — Hero model integration, responsive sequence navigator, session save and dual resume, anti-collision header, and dark purple theme synchronization.
 3. **Task 66:** [Question Card Redesign, Floating Placeholders & Exam Intelligence](completed/66-question-card-redesign.md) — Per-question save with dirty state, rating scales, vertical context inputs, and title opacity.
 4. **Task 64:** [WP Exam UI/UX Comprehensive Redesign & Interactive Enhancement](completed/64-wpexam-ui-ux-enhancements.md) — Emerald Eco-Luxury theme, typography standards, and dropdown fixes.
