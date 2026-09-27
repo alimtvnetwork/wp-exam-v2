@@ -259,21 +259,36 @@ const CascadingLayerCard: React.FC<CascadingLayerCardProps> = ({
             </button>
           </div>
           {isVariableRecipient ? (
-            <Select
-              value={layer.to}
-              onValueChange={(val) => onUpdate({ to: val })}
-            >
-              <SelectTrigger className="h-8 text-xs bg-background">
-                <SelectValue placeholder="Select Form Variable" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableFieldVars.map((v) => (
-                  <SelectItem key={v.variable} value={v.variable} className="text-xs">
-                    {v.label}
+            <div className="space-y-1.5">
+              <Select
+                value={availableFieldVars.some(v => v.variable === layer.to) ? layer.to : '__custom__'}
+                onValueChange={(val) => {
+                  if (val !== '__custom__') {
+                    onUpdate({ to: val });
+                  }
+                }}
+              >
+                <SelectTrigger className="h-8 text-xs bg-background">
+                  <SelectValue placeholder="Select Form Variable" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableFieldVars.map((v) => (
+                    <SelectItem key={v.variable} value={v.variable} className="text-xs">
+                      {v.label}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="__custom__" className="text-xs font-semibold text-primary">
+                    Custom Field Variable...
                   </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                </SelectContent>
+              </Select>
+              <Input
+                value={layer.to}
+                onChange={(e) => onUpdate({ to: e.target.value })}
+                placeholder="e.g. {{manager_email}} or {{field_email}}"
+                className="h-7 text-xs font-mono bg-background"
+              />
+            </div>
           ) : (
             <Input
               value={layer.to}
@@ -344,29 +359,14 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
       return currentTriggers.map((t) => ({
         ...t,
         recipientType: t.to && t.to.startsWith('{{') ? 'variable' : 'custom',
-        isEnabled: true,
+        isEnabled: t.isEnabled ?? true,
       }));
     }
-    return [
-      {
-        id: 'trigger-email-1',
-        channel: 'email',
-        event: 'on_form_submit',
-        to: '{{candidate_email}}',
-        recipientType: 'variable',
-        fromName: 'WP Exam Admissions',
-        fromEmail: 'notifications@example.org',
-        replyTo: 'careers@example.org',
-        subject: 'Submission Received: {{form_title}} - {{candidate_name}}',
-        colorPalette: '#16a34a',
-        isEnabled: true,
-        layers: [],
-      },
-    ];
+    return [];
   });
 
   const [selectedTriggerId, setSelectedTriggerId] = useState<string>(
-    triggers[0]?.id || 'trigger-email-1'
+    triggers[0]?.id || ''
   );
 
   const [activeTab, setActiveTab] = useState<'triggers' | 'designer' | 'preview'>('triggers');
@@ -851,6 +851,74 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
                     </div>
                   )}
                 </div>
+              ) : triggers.length === 0 ? (
+                /* Empty Rules Decision Screen */
+                <div className="p-6 sm:p-10 max-w-4xl mx-auto space-y-6 flex-1 flex flex-col justify-center">
+                  <div className="text-center space-y-2">
+                    <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center mx-auto shadow-xs">
+                      <Mail className="w-6 h-6" />
+                    </div>
+                    <h3 className="text-lg font-bold font-heading text-foreground">Configure Email &amp; Notification Delivery</h3>
+                    <p className="text-xs text-muted-foreground max-w-lg mx-auto">
+                      Email notifications are disabled by default for this assessment. What notification rule setup are you looking for?
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Card 1: Presets */}
+                    <Card
+                      onClick={() => setRuleMode('presets')}
+                      className="p-5 border-2 border-border/80 hover:border-primary/60 bg-card rounded-2xl shadow-xs hover:shadow-md transition-all cursor-pointer space-y-3 group"
+                    >
+                      <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center group-hover:scale-105 transition-transform">
+                        <BookmarkCheck className="w-5 h-5" />
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="font-bold text-sm text-foreground flex items-center gap-1.5">
+                          <span>Use Existing Rule Preset</span>
+                          <ArrowRight className="w-4 h-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-0.5 transition-all" />
+                        </h4>
+                        <p className="text-xs text-muted-foreground">
+                          Choose from system templates (Candidate Auto-Acknowledgment, High Scorer Alerts) or your saved company rule presets.
+                        </p>
+                      </div>
+                    </Card>
+
+                    {/* Card 2: Create Custom */}
+                    <Card className="p-5 border-2 border-border/80 bg-card rounded-2xl shadow-xs space-y-3">
+                      <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-600 flex items-center justify-center">
+                        <PlusCircle className="w-5 h-5" />
+                      </div>
+                      <div className="space-y-1">
+                        <h4 className="font-bold text-sm text-foreground">Create New Custom Rule</h4>
+                        <p className="text-xs text-muted-foreground">
+                          Build a custom multi-layer notification flow with dynamic form field variables and cascading dispatches.
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 pt-1 flex-wrap">
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => handleAddTrigger('email')}
+                          className="h-8 text-xs gap-1.5 bg-primary text-primary-foreground font-semibold"
+                        >
+                          <Mail className="w-3.5 h-3.5" />
+                          <span>+ Email Rule</span>
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleAddTrigger('whatsapp')}
+                          className="h-8 text-xs gap-1.5 border-emerald-500/30 text-emerald-600 hover:bg-emerald-500/10 font-semibold"
+                        >
+                          <MessageSquare className="w-3.5 h-3.5" />
+                          <span>+ WhatsApp</span>
+                        </Button>
+                      </div>
+                    </Card>
+                  </div>
+                </div>
               ) : (
                 /* View 2: Create / Active Trigger Configuration */
                 <div className="grid grid-cols-1 lg:grid-cols-12 flex-1">
@@ -1112,23 +1180,38 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
                                     Recipient To <span className="text-destructive">*</span>
                                   </Label>
                                   {isVariableRecipient ? (
-                                    <Select
-                                      value={activeTrigger.to}
-                                      onValueChange={(val) =>
-                                        handleUpdateActiveTrigger({ to: val, recipientType: 'variable' })
-                                      }
-                                    >
-                                      <SelectTrigger className="h-9 text-xs bg-background">
-                                        <SelectValue placeholder="Choose Form Field Variable" />
-                                      </SelectTrigger>
-                                      <SelectContent>
-                                        {availableFieldVars.map((item) => (
-                                          <SelectItem key={item.variable} value={item.variable} className="text-xs">
-                                            {item.label}
+                                    <div className="space-y-1.5">
+                                      <Select
+                                        value={availableFieldVars.some(v => v.variable === activeTrigger.to) ? activeTrigger.to : '__custom__'}
+                                        onValueChange={(val) => {
+                                          if (val !== '__custom__') {
+                                            handleUpdateActiveTrigger({ to: val, recipientType: 'variable' });
+                                          }
+                                        }}
+                                      >
+                                        <SelectTrigger className="h-9 text-xs bg-background">
+                                          <SelectValue placeholder="Choose Form Field Variable" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                          {availableFieldVars.map((item) => (
+                                            <SelectItem key={item.variable} value={item.variable} className="text-xs">
+                                              {item.label}
+                                            </SelectItem>
+                                          ))}
+                                          <SelectItem value="__custom__" className="text-xs font-semibold text-primary">
+                                            Custom Field Name / Token...
                                           </SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
+                                        </SelectContent>
+                                      </Select>
+                                      <Input
+                                        value={activeTrigger.to}
+                                        onChange={(e) =>
+                                          handleUpdateActiveTrigger({ to: e.target.value, recipientType: 'variable' })
+                                        }
+                                        placeholder="Type form variable token, e.g. {{candidate_email}} or {{field_email}}"
+                                        className="h-8 text-xs font-mono bg-background"
+                                      />
+                                    </div>
                                   ) : (
                                     <Input
                                       value={activeTrigger.to}

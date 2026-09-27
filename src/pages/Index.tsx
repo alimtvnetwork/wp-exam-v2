@@ -307,7 +307,7 @@ export const Index: React.FC = () => {
             )}
 
             {activeTab === 'runner' && (
-              <div className="max-w-4xl mx-auto py-2">
+              <div className="w-full max-w-7xl mx-auto py-1 px-1 sm:px-2">
                 <FormRunner
                   form={{
                     title: store.title,

@@ -724,6 +724,36 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               </button>
             </div>
 
+            {/* Answer Placement for Presentation Slide mode */}
+            {field.layoutMode === 'presentation_split' && (
+              <div className="hidden md:inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5 h-10 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => onUpdate(id, { answerPlacement: 'right' })}
+                  className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                    (field.answerPlacement || 'right') !== 'left'
+                      ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Place candidate choices/answers on the right column"
+                >
+                  <span>Answers Right</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onUpdate(id, { answerPlacement: 'left' })}
+                  className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                    field.answerPlacement === 'left'
+                      ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                  title="Place candidate choices/answers on the left column"
+                >
+                  <span>Answers Left</span>
+                </button>
+              </div>
+            )}
+
             {/* Combined Preview & Actions Segmented Control with Crisp High-Contrast Icon */}
             <div className="inline-flex items-center rounded-lg border border-border bg-card shadow-2xs overflow-hidden h-10 shrink-0">
               {/* Preview Toggle Button */}
@@ -1098,7 +1128,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 onFocus={() => setIsTitleFocused(true)}
                 onBlur={() => setIsTitleFocused(false)}
                 placeholder=""
-                className="font-sans text-base sm:text-[17px] font-semibold h-11 pl-4 pr-24 w-full bg-background text-foreground border-border shadow-2xs focus-visible:ring-2 focus-visible:ring-primary rounded-lg transition-all"
+                className="font-sans text-[0.95rem] sm:text-base font-semibold h-10 pl-3.5 pr-24 w-full bg-background text-foreground border-border shadow-2xs focus-visible:ring-2 focus-visible:ring-primary rounded-lg transition-all"
               />
               {/* Floating animated title indicator gliding smoothly between left placeholder and subtle right-hand hint */}
               <label
@@ -1106,7 +1136,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 className={`absolute pointer-events-none transition-all duration-300 ease-out select-none flex items-center gap-1 whitespace-nowrap top-1/2 -translate-y-1/2 font-sans ${
                   isTitleFocused || (field.label && field.label.trim().length > 0)
                     ? 'text-xs font-medium text-muted-foreground opacity-85'
-                    : 'text-base sm:text-[17px] font-medium text-muted-foreground/75 opacity-90'
+                    : 'text-[0.95rem] sm:text-base font-medium text-muted-foreground/75 opacity-90'
                 }`}
                 style={{
                   left: isTitleFocused || (field.label && field.label.trim().length > 0)
@@ -2768,70 +2798,6 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             </div>
           )}
 
-          {/* Triggers & Notification Drawer */}
-          {showTriggers && (
-            <div className="p-4 bg-purple-950/20 rounded-xl border border-purple-500/30 space-y-3">
-              <div className="flex items-center justify-between border-b border-purple-500/30 pb-2">
-                <span className="text-xs font-bold text-purple-300 flex items-center gap-1.5">
-                  <BellRing className="w-4 h-4" /> Field Action & Notification Triggers
-                </span>
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-purple-200">Alert managers or webhooks</span>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    className="h-6 px-1.5 text-xs text-purple-300 hover:text-white hover:bg-purple-500/20"
-                    onClick={() => setShowTriggers(false)}
-                  >
-                    Close ✕
-                  </Button>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                {activeTriggers.map((trig) => (
-                  <div key={trig.id} className="p-2.5 bg-background/70 rounded-lg border border-border flex items-center justify-between gap-3">
-                    <div className="flex items-center gap-2 text-xs">
-                      {trig.type === 'email_alert' ? <Mail className="w-3.5 h-3.5 text-sky-400" /> : <Phone className="w-3.5 h-3.5 text-emerald-400" />}
-                      <span className="font-semibold">{trig.type === 'email_alert' ? 'Email Notification' : 'WhatsApp Webhook'}</span>
-                      <span className="font-mono text-muted-foreground text-xs">&rarr; {trig.target}</span>
-                    </div>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="sm"
-                      className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive"
-                      onClick={() => handleRemoveTrigger(trig.id)}
-                    >
-                      ×
-                    </Button>
-                  </div>
-                ))}
-              </div>
-
-              <div className="flex gap-2 pt-1">
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleAddTrigger('email_alert')}
-                  className="h-7 text-xs border-purple-500/30 text-purple-300 hover:bg-purple-500/10"
-                >
-                  <Mail className="w-3 h-3 mr-1" /> + Email Trigger
-                </Button>
-                <Button
-                  type="button"
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleAddTrigger('whatsapp_webhook')}
-                  className="h-7 text-xs border-emerald-500/30 text-emerald-300 hover:bg-emerald-500/10"
-                >
-                  <Phone className="w-3 h-3 mr-1" /> + WhatsApp Webhook
-                </Button>
-              </div>
-            </div>
-          )}
 
           {/* Conditional Branching Drawer */}
           {showConditions && (
@@ -2949,10 +2915,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
                   return (
                     <div key={optIndex} className="flex gap-2.5 items-center">
-                      <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-mono text-sm font-bold shrink-0 transition-colors ${
+                      <span className={`w-10 h-10 rounded-lg border flex items-center justify-center font-mono text-sm font-bold shrink-0 transition-colors ${
                         isCorrect
-                          ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 dark:text-emerald-400 border-emerald-300 dark:border-emerald-700'
-                          : 'bg-muted/60 border-border/70 text-foreground/80'
+                          ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/80 font-bold'
+                          : 'bg-muted/50 border-border/70 text-foreground/80'
                       }`}>
                         {String.fromCharCode(65 + optIndex)}
                       </span>
@@ -2972,7 +2938,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                               onUpdate(id, { options: newOpts, dropdownOptions: newDropdownOpts });
                             }}
                             placeholder={`Display Label (e.g. Option ${optIndex + 1})`}
-                            className="text-base h-11 px-3.5 bg-background text-foreground/90 flex-1 font-medium rounded-lg"
+                            className="text-base h-10 px-3.5 bg-background text-foreground flex-1 font-medium rounded-lg border border-border"
                           />
                           <Input
                             value={storedValue}
@@ -2985,7 +2951,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                               onUpdate(id, { dropdownOptions: newDropdownOpts });
                             }}
                             placeholder="Stored Value"
-                            className="text-sm h-11 px-3 bg-muted/30 font-mono text-foreground/90 w-36 sm:w-44 rounded-lg shrink-0"
+                            className="text-sm h-10 px-3 bg-muted/30 font-mono text-foreground w-36 sm:w-44 rounded-lg shrink-0 border border-border"
                             title="Internal stored value"
                           />
                         </div>
@@ -2998,17 +2964,17 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                             onUpdate(id, { options: newOpts });
                           }}
                           placeholder={`Option ${optIndex + 1}`}
-                          className="text-base h-11 px-3.5 bg-background text-foreground/90 flex-1 font-medium rounded-lg"
+                          className="text-base h-10 px-3.5 bg-background text-foreground flex-1 font-medium rounded-lg border border-border"
                         />
                       )}
 
                       {isQuiz && (
                         <button
                           type="button"
-                          className={`h-9 w-9 p-0 flex items-center justify-center rounded-xl shrink-0 transition-colors cursor-pointer border ${
+                          className={`w-10 h-10 p-0 flex items-center justify-center rounded-lg shrink-0 transition-all cursor-pointer border ${
                             isCorrect
-                              ? 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-700 hover:bg-emerald-100 dark:hover:bg-emerald-900/50'
-                              : 'bg-background hover:bg-muted border-border/60'
+                              ? 'bg-emerald-500/15 border-emerald-500/80 text-emerald-600 dark:text-emerald-400 font-bold hover:bg-emerald-500/25'
+                              : 'bg-background hover:bg-muted border-border/70 text-muted-foreground/40 hover:text-foreground'
                           }`}
                           onClick={() => {
                             const nextAnswers = isCorrect
@@ -3022,9 +2988,9 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                           title={isCorrect ? 'Correct Answer' : 'Click to mark as correct'}
                         >
                           {isCorrect ? (
-                            <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                            <Check className="w-5 h-5 stroke-[2.5]" />
                           ) : (
-                            <Circle className="w-4 h-4 text-muted-foreground/60" />
+                            <Check className="w-4 h-4 opacity-40 hover:opacity-100" />
                           )}
                         </button>
                       )}
@@ -3033,7 +2999,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                         type="button"
                         variant="ghost"
                         size="sm"
-                        className="h-9 w-9 shrink-0 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer rounded-xl transition-colors"
+                        className="w-10 h-10 shrink-0 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer rounded-lg transition-colors border border-transparent hover:border-destructive/20 flex items-center justify-center"
                         onClick={() => {
                           const newOpts = field.options?.filter((_, i) => i !== optIndex);
                           const newDropdownOpts = field.dropdownOptions?.filter((_, i) => i !== optIndex);
@@ -3048,19 +3014,22 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 })}
 
                 {field.allowOtherOption && (
-                  <div className="flex gap-2.5 items-center p-3 rounded-lg bg-muted/30 border border-dashed border-border text-sm text-muted-foreground">
-                    <span className="w-8 h-8 rounded-lg bg-muted border border-border flex items-center justify-center font-mono text-sm text-muted-foreground font-bold shrink-0">
+                  <div className="flex gap-2.5 items-center">
+                    <span className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center font-mono text-sm text-muted-foreground font-bold shrink-0">
                       {String.fromCharCode(65 + (field.options?.length || 0))}
                     </span>
-                    <span className="italic flex-1 font-medium">Other... (Candidate enters custom text)</span>
+                    <div className="h-10 px-3.5 bg-muted/20 border border-dashed border-border rounded-lg flex-1 flex items-center text-sm text-muted-foreground">
+                      <span className="italic font-medium">Other... (Candidate enters custom text)</span>
+                    </div>
                     <Button
                       type="button"
                       variant="ghost"
                       size="sm"
-                      className="h-9 px-3 text-sm text-muted-foreground hover:text-destructive cursor-pointer"
+                      className="w-10 h-10 shrink-0 p-0 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer rounded-lg transition-colors border border-transparent hover:border-destructive/20 flex items-center justify-center"
                       onClick={() => onUpdate(id, { allowOtherOption: false })}
+                      title="Remove Other option"
                     >
-                      Remove
+                      <X className="w-4 h-4" />
                     </Button>
                   </div>
                 )}
@@ -3994,17 +3963,35 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             /* Manual Item List Section with Auto-expanding row */
             <div className="space-y-3 py-2 max-h-[55vh] overflow-y-auto pr-1">
               {(!field.citations || field.citations.length === 0) ? (
-                <div className="p-6 rounded-xl border border-dashed border-border text-center space-y-2">
+                <div className="p-6 rounded-xl border border-dashed border-border text-center space-y-3">
                   <BookOpen className="w-6 h-6 text-muted-foreground mx-auto" />
                   <p className="text-xs text-muted-foreground">
-                    No citations or to-dos added yet. Use &quot;Quick Paste&quot; above or click &quot;Add Item&quot; below.
+                    No citations or to-dos added yet. Click below to start or use &quot;Quick Paste&quot; above.
                   </p>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      const initialItem: QuestionCitation = {
+                        id: `cite-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
+                        title: '',
+                        url: '',
+                        position: 'prefix',
+                        isRequiredCheck: false,
+                      };
+                      onUpdate(id, { citations: [initialItem] });
+                    }}
+                    className="text-xs h-8 border-primary/40 text-primary hover:bg-primary/10 gap-1.5"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Start Adding Citations</span>
+                  </Button>
                 </div>
               ) : (
                 field.citations.map((cite, citeIdx) => (
                   <div key={cite.id} className="p-3 bg-muted/20 rounded-xl border border-border/80 space-y-2.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="font-sans text-xs font-semibold text-muted-foreground">Item #{citeIdx + 1}</span>
+                    <div className="flex items-center gap-2">
                       <Button
                         type="button"
                         variant="ghost"
@@ -4013,11 +4000,12 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                           const updated = field.citations?.filter((c) => c.id !== cite.id);
                           onUpdate(id, { citations: updated });
                         }}
-                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive cursor-pointer"
+                        className="h-6 w-6 p-0 text-muted-foreground hover:text-destructive cursor-pointer rounded-md hover:bg-destructive/10 shrink-0"
                         title="Delete Item"
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                       </Button>
+                      <span className="font-sans text-xs font-semibold text-muted-foreground">Item #{citeIdx + 1}</span>
                     </div>
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                       <div>
@@ -4071,24 +4059,6 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   </div>
                 ))
               )}
-
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  const newItem: QuestionCitation = {
-                    id: `cite-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
-                    title: '',
-                    position: 'prefix',
-                    isRequiredCheck: false,
-                  };
-                  onUpdate(id, { citations: [...(field.citations || []), newItem] });
-                }}
-                className="w-full text-xs h-8 border-dashed border-primary/40 text-primary hover:bg-primary/10 gap-1.5 cursor-pointer"
-              >
-                <Plus className="w-3.5 h-3.5" /> Add Citation or To-Do
-              </Button>
             </div>
           )}
 
@@ -4097,7 +4067,11 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               type="button"
               variant="default"
               size="sm"
-              onClick={() => setShowCitationsModal(false)}
+              onClick={() => {
+                const cleaned = (field.citations || []).filter((c) => Boolean(c.title?.trim() || c.url?.trim()));
+                onUpdate(id, { citations: cleaned });
+                setShowCitationsModal(false);
+              }}
               className="text-xs px-4"
             >
               Done

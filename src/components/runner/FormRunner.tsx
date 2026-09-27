@@ -404,7 +404,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     isSequential: quizStore.isSequential,
     isPublished: true,
     settings: quizStore.settings,
-    fields: quizStore.fields,
+    fields: quizStore.fields && quizStore.fields.length > 0 ? quizStore.fields : (PRESET_PROJECTS['intern-programmer']?.fields || []),
   }), [quizStore]);
 
   // Determine active project from URL, initial form, or store
@@ -413,7 +413,27 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       return 'custom-active';
     }
 
+    if (isPreviewRoute) {
+      return 'custom-active';
+    }
+
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const isTestOrPreview = Boolean(params.get('preview') || params.get('test'));
+      if (isTestOrPreview) {
+        return 'custom-active';
+      }
+
+      const urlProject = params.get('project');
+      if (urlProject && PRESET_PROJECTS[urlProject]) {
+        return urlProject;
+      }
+    }
+
     if (routeSlug) {
+      if (routeSlug === quizStore.slug || routeSlug === 'custom-form' || routeSlug === 'custom-active') {
+        return 'custom-active';
+      }
       if (PRESET_PROJECTS[routeSlug]) {
         return routeSlug;
       }
@@ -421,20 +441,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       return 'custom-active';
     }
 
-    if (typeof window !== 'undefined') {
-      const params = new URLSearchParams(window.location.search);
-      const urlProject = params.get('project');
-
-      if (urlProject && PRESET_PROJECTS[urlProject]) {
-        return urlProject;
-      }
-
-      if (params.get('preview') || isPreviewRoute) {
-        return 'custom-active';
-      }
-    }
-
-    if (isPreviewRoute || quizStore.fields.length > 0) {
+    if (quizStore.fields.length > 0) {
       return 'custom-active';
     }
 
@@ -2256,15 +2263,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   <CardTitle className="font-sans font-medium text-lg sm:text-xl tracking-normal text-foreground leading-relaxed">
                     {currentField.label}
                     {isCurrentFieldRequired && (
-                      <span className="text-destructive text-red-500 font-bold ml-1.5" title="Mandatory Response">*</span>
+                      <span className="text-destructive text-red-500 font-bold ml-1.5" title="Required">*</span>
                     )}
                   </CardTitle>
-                  {isCurrentFieldRequired && (
-                    <Badge variant="outline" className="text-xs font-sans font-medium border-amber-500/40 text-amber-400 bg-amber-500/15 flex items-center gap-1.5 w-fit mt-2">
-                      <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
-                      <span>Mandatory Response</span>
-                    </Badge>
-                  )}
                 </CardHeader>
 
                 <CardContent className="space-y-4 p-6">
@@ -2405,7 +2406,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                       <span className="text-foreground">
                         {idx + 1}. {f.label}
                         {isFieldRequired && (
-                          <span className="text-destructive text-red-500 font-bold ml-1.5" title="Mandatory Response">*</span>
+                          <span className="text-destructive text-red-500 font-bold ml-1.5" title="Required">*</span>
                         )}
                       </span>
                       <div className="flex items-center gap-1.5 shrink-0">
@@ -2830,7 +2831,7 @@ const RunnerDropdownSelect: React.FC<RunnerDropdownSelectProps> = ({ field, valu
                   className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between transition-colors cursor-pointer ${
                     isSelected
                       ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                      : 'hover:bg-primary/10 hover:text-primary text-foreground'
+                      : 'hover:bg-muted hover:text-foreground text-foreground'
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
@@ -2857,7 +2858,7 @@ const RunnerDropdownSelect: React.FC<RunnerDropdownSelectProps> = ({ field, valu
                 className={`w-full text-left px-3 py-2 rounded-lg text-sm flex items-center justify-between transition-colors cursor-pointer border-t border-border/40 mt-1 pt-1.5 ${
                   isOtherSelected
                     ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                    : 'hover:bg-primary/10 hover:text-primary text-foreground'
+                    : 'hover:bg-muted hover:text-foreground text-foreground'
                 }`}
               >
                 <div className="flex items-center gap-2.5 min-w-0">
@@ -3252,7 +3253,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
           {options.map((opt, optIndex) => (
             <label
               key={opt}
-              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary hover:bg-primary/10 hover:shadow-xs ${
+              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${
                 selectedOpts.includes(opt)
                   ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
                   : 'border-border/80 bg-card text-foreground'
@@ -3279,7 +3280,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary hover:bg-primary/10 hover:shadow-xs ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${
                   hasOther
                     ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
                     : 'border-border/80 bg-card text-foreground'
@@ -3342,7 +3343,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                           e.stopPropagation();
                           handleOtherChange(sug);
                         }}
-                        className="text-xs px-3 py-1 rounded-full border border-border/80 bg-background text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary transition-all font-medium cursor-pointer shadow-2xs"
+                        className="text-xs px-3 py-1 rounded-full border border-border/80 bg-background text-foreground hover:bg-muted hover:border-foreground/40 hover:text-foreground transition-all font-medium cursor-pointer shadow-2xs"
                         title={`Fill Other with "${sug}"`}
                       >
                         + {sug}
@@ -3390,7 +3391,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary hover:bg-primary/10 hover:shadow-xs ${alignClass} ${
+                className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${alignClass} ${
                   isSelected
                     ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
                     : 'border-border/80 bg-card text-foreground'
@@ -3441,7 +3442,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
           {options.map((opt, optIndex) => (
             <label
               key={opt}
-              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary hover:bg-primary/10 hover:shadow-xs ${
+              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${
                 strValue === opt
                   ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
                   : 'border-border/80 bg-card text-foreground'
@@ -3468,7 +3469,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-primary hover:bg-primary/10 hover:shadow-xs ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${
                   hasOther
                     ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
                     : 'border-border/80 bg-card text-foreground'
@@ -3519,7 +3520,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                           e.stopPropagation();
                           onChange(otherPrefix + sug);
                         }}
-                        className="text-xs px-3 py-1 rounded-full border border-border/80 bg-background text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary transition-all font-medium cursor-pointer shadow-2xs"
+                        className="text-xs px-3 py-1 rounded-full border border-border/80 bg-background text-foreground hover:bg-muted hover:border-foreground/40 hover:text-foreground transition-all font-medium cursor-pointer shadow-2xs"
                         title={`Fill Other with "${sug}"`}
                       >
                         + {sug}

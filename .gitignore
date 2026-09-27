@@ -45,6 +45,7 @@ tmp/
 .ai-memory/temp/
 .ai-memory/cicd/
 *.tsbuildinfo
+.gitmap/
 
 # Python cache
 __pycache__/

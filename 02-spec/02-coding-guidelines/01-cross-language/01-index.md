@@ -136,11 +136,12 @@ Consolidated reference, audit logs, contradiction checks.
 | 23 | `23-solid-principles.md` | Architecture |
 | 16a | `16-static-analysis/01-index.md` | Enforcement |
 | 28 | `28-slug-conventions.md` | Naming |
+| 31 | `31-universal-citation-link-parsing.md` | Ingestion |
 | 97 | `97-acceptance-criteria.md` | Meta |
 | 98 | `98-changelog.md` | Meta |
 | 99 | `99-consistency-report.md` | Meta |
 
-**Total:** 29 files (25 spec files + 1 overview + 3 meta)
+**Total:** 30 files (26 spec files + 1 overview + 3 meta)
 
 ---
 

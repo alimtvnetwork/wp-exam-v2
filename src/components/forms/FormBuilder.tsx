@@ -20,6 +20,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   DropdownMenu,
@@ -140,6 +146,7 @@ export const FormBuilder: React.FC = () => {
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
   const [isSlugModalOpen, setIsSlugModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
+  const [isRunnerPreviewModalOpen, setIsRunnerPreviewModalOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
   const [outlineFilter, setOutlineFilter] = useState<string>('');
@@ -523,23 +530,23 @@ export const FormBuilder: React.FC = () => {
             )}
           </Badge>
 
-          {/* Compact Format Selector: Standard vs Slide */}
+          {/* Compact Format Selector: Quiz Format vs Presentation Slide */}
           <div className="hidden sm:inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5 h-8 shrink-0 shadow-2xs">
             <button
               type="button"
               onClick={() => {
                 updateSettings({ defaultQuestionLayout: 'standard' });
-                toast.info('Default format set to Standard Quiz');
+                toast.info('Default format set to Quiz Format');
               }}
-              className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 h-full px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                 settings.defaultQuestionLayout !== 'presentation_split'
                   ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
-              title="Set default format to Standard Quiz"
+              title="Set default format to Quiz Format (Standard Card)"
             >
-              <LayoutTemplate className="w-3 h-3 text-primary" />
-              <span>Standard</span>
+              <LayoutTemplate className="w-3.5 h-3.5 text-primary" />
+              <span>Quiz Format</span>
             </button>
             <button
               type="button"
@@ -547,15 +554,15 @@ export const FormBuilder: React.FC = () => {
                 updateSettings({ defaultQuestionLayout: 'presentation_split' });
                 toast.success('Default format set to Presentation Slide');
               }}
-              className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+              className={`inline-flex items-center gap-1.5 h-full px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                 settings.defaultQuestionLayout === 'presentation_split'
                   ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
               title="Set default format to Presentation Slide (2-Column Split)"
             >
-              <Columns className="w-3 h-3" />
-              <span>Slide</span>
+              <Columns className="w-3.5 h-3.5" />
+              <span>Presentation Slide</span>
             </button>
           </div>
 
@@ -596,125 +603,32 @@ export const FormBuilder: React.FC = () => {
           )}
         </div>
 
-        {/* Right Side: Quick Action Cluster with Compact Tools Dropdown & Save */}
+        {/* Right Side: Quick Action Cluster: Preview & Save (Tools/Bell moved to secondary bar per UX redesign) */}
         <div className="flex items-center gap-1.5 shrink-0">
-          {/* Quick Notification Triggers & Templates Button */}
-          <Button
-            type="button"
-            variant="outline"
-            size="icon"
-            onClick={() => setIsNotificationModalOpen(true)}
-            className="h-8 w-8 bg-card border border-border text-foreground hover:bg-accent hover:text-primary hover:border-primary/40 shadow-xs rounded-lg cursor-pointer shrink-0 transition-all group"
-            title="Configure Automated Notification Triggers & Email Templates"
-          >
-            <Bell className="w-3.5 h-3.5 text-foreground group-hover:text-primary transition-colors" />
-          </Button>
-
-          {/* Unified Compact Tools Dropdown Menu */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                variant="outline"
-                size="sm"
-                className="text-xs h-8 px-2 gap-1.5 bg-card border border-border text-foreground hover:bg-accent hover:text-primary hover:border-primary/40 shadow-xs transition-all duration-150 rounded-lg font-semibold cursor-pointer shrink-0 group"
-                title="Open secondary builder tools and integrations"
-              >
-                <Wand2 className="w-3.5 h-3.5 text-primary group-hover:text-primary transition-colors" />
-                <span>Tools</span>
-                <ChevronDown className="w-3 h-3 text-muted-foreground group-hover:text-primary transition-colors" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-64 bg-popover border border-border shadow-xl p-1 text-sm">
-              <DropdownMenuLabel className="text-sm font-semibold text-muted-foreground uppercase tracking-wider px-2 py-1">
-                Integrations & Tools
-              </DropdownMenuLabel>
-
-              <DropdownMenuItem
-                onClick={() => {
-                  setInspectorTab('audit');
-                  setIsDesignPanelOpen(true);
-                }}
-                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary border border-transparent hover:border-primary/20 transition-colors"
-              >
-                <div className="w-7 h-7 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                  <Shield className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="font-semibold text-foreground">Form Health Audit</div>
-                  <div className="text-sm text-muted-foreground">Grade {designReport.grade || 'A+'} ({designReport.score}%)</div>
-                </div>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                onClick={() => setIsNotificationModalOpen(true)}
-                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary border border-transparent hover:border-primary/20 transition-colors"
-              >
-                <div className="w-7 h-7 rounded-md bg-indigo-500/10 text-indigo-500 border border-indigo-500/20 flex items-center justify-center shrink-0">
-                  <Bell className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="font-semibold text-foreground">Email &amp; Notification Studio</div>
-                  <div className="text-sm text-muted-foreground">Themes, presets &amp; cascading stages</div>
-                </div>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                onClick={() => setIsGoogleModalOpen(true)}
-                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary border border-transparent hover:border-primary/20 transition-colors"
-              >
-                <div className="w-7 h-7 rounded-md bg-emerald-500/10 text-emerald-500 border border-emerald-500/20 flex items-center justify-center shrink-0">
-                  <FileSpreadsheet className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="font-semibold text-foreground">Import Google Form</div>
-                  <div className="text-sm text-muted-foreground">Import fields, auth & customize logic</div>
-                </div>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                onClick={() => setIsFlowModalOpen(true)}
-                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary border border-transparent hover:border-primary/20 transition-colors"
-              >
-                <div className="w-7 h-7 rounded-md bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
-                  <GitBranch className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="font-semibold text-foreground">Branching Flow & DAG</div>
-                  <div className="text-sm text-muted-foreground">Visual graph & path simulation</div>
-                </div>
-              </DropdownMenuItem>
-
-              <DropdownMenuItem
-                onClick={() => setIsJsonModalOpen(true)}
-                className="gap-2.5 p-2 rounded-md cursor-pointer hover:bg-primary/10 hover:text-primary focus:bg-primary/10 focus:text-primary border border-transparent hover:border-primary/20 transition-colors"
-              >
-                <div className="w-7 h-7 rounded-md bg-amber-500/10 text-amber-500 border border-amber-500/20 flex items-center justify-center shrink-0">
-                  <FileJson className="w-3.5 h-3.5" />
-                </div>
-                <div>
-                  <div className="font-semibold text-foreground">JSON Schema Studio</div>
-                  <div className="text-sm text-muted-foreground">Export, backup or edit raw JSON</div>
-                </div>
-              </DropdownMenuItem>
-
-              <DropdownMenuSeparator className="my-1 bg-border/60" />
-
-              <div className="p-1">
-                <AiSectionAssistant section="builder" title="AI Section Studio" />
-              </div>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
           {/* Combined Preview & Save Segmented Control */}
           <div className="inline-flex items-center rounded-lg border border-primary/40 bg-card shadow-xs hover:shadow-md transition-all duration-150 overflow-hidden h-8 shrink-0">
             {/* Live Preview Segment */}
             <button
               type="button"
-              onClick={() => window.open('/preview/' + activeSlug + '?test=true', '_blank')}
-              className="inline-flex items-center justify-center h-full px-2.5 bg-card text-foreground hover:bg-accent hover:text-primary transition-colors cursor-pointer group"
-              title="Preview interactive form in a new tab"
+              onClick={() => setIsRunnerPreviewModalOpen(true)}
+              className="inline-flex items-center justify-center gap-1.5 h-full px-2.5 bg-card text-foreground hover:bg-accent hover:text-primary transition-colors cursor-pointer text-xs font-medium group"
+              title="Open interactive assessment preview modal"
             >
               <Eye className="w-3.5 h-3.5 stroke-[2.2] text-foreground group-hover:text-primary transition-colors" />
+              <span className="hidden sm:inline font-semibold">Preview</span>
+            </button>
+
+            {/* Subtle Divider */}
+            <div className="w-px h-4 bg-border shrink-0" />
+
+            {/* Open in New Window Button */}
+            <button
+              type="button"
+              onClick={() => window.open('/preview/' + activeSlug + '?test=true', '_blank')}
+              className="inline-flex items-center justify-center h-full px-2 bg-card text-foreground hover:bg-accent hover:text-primary transition-colors cursor-pointer"
+              title="Open full preview in a separate browser tab"
+            >
+              <ExternalLink className="w-3 h-3 text-muted-foreground hover:text-primary transition-colors" />
             </button>
 
             {/* Subtle Divider */}
@@ -725,10 +639,11 @@ export const FormBuilder: React.FC = () => {
               type="button"
               onClick={handleSave}
               disabled={isSaving}
-              className="inline-flex items-center justify-center h-full px-3 bg-primary text-primary-foreground hover:bg-primary/90 font-bold transition-colors cursor-pointer disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-1.5 h-full px-3 bg-primary text-primary-foreground hover:bg-primary/90 font-bold transition-colors cursor-pointer disabled:opacity-50 text-xs"
               title={isSaving ? 'Saving Form...' : 'Save Form (Ctrl+S)'}
             >
               {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+              <span className="hidden sm:inline">Save</span>
             </button>
           </div>
         </div>
@@ -807,6 +722,75 @@ export const FormBuilder: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-1.5">
+          {/* Notification Triggers Studio Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsNotificationModalOpen(true)}
+            className="h-7 px-2.5 text-[11px] gap-1.5 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0 font-medium"
+            title="Configure Email & Webhook Triggers"
+          >
+            <Bell className="w-3.5 h-3.5 text-primary" />
+            <span className="hidden sm:inline">Triggers</span>
+            {settings?.notificationTriggers && settings.notificationTriggers.length > 0 && (
+              <Badge variant="secondary" className="h-4 px-1 text-[10px] font-bold bg-primary/15 text-primary">
+                {settings.notificationTriggers.length}
+              </Badge>
+            )}
+          </Button>
+
+          {/* Tools Menu Dropdown */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="h-7 px-2.5 text-[11px] gap-1.5 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0 font-medium"
+                title="Builder Utility Tools"
+              >
+                <Wand2 className="w-3.5 h-3.5 text-primary" />
+                <span className="hidden sm:inline">Tools</span>
+                <ChevronDown className="w-3 h-3 text-muted-foreground" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-56 bg-popover border border-border shadow-xl p-1 text-xs">
+              <DropdownMenuItem
+                onClick={() => setIsJsonModalOpen(true)}
+                className="gap-2 cursor-pointer py-1.5"
+              >
+                <FileJson className="w-3.5 h-3.5 text-primary" />
+                <span>JSON Import / Export</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setIsGoogleModalOpen(true)}
+                className="gap-2 cursor-pointer py-1.5"
+              >
+                <FileSpreadsheet className="w-3.5 h-3.5 text-primary" />
+                <span>Import Google Forms</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setIsFlowModalOpen(true)}
+                className="gap-2 cursor-pointer py-1.5"
+              >
+                <GitBranch className="w-3.5 h-3.5 text-primary" />
+                <span>Visual Branching Flow</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="my-1 border-border/60" />
+              <DropdownMenuItem
+                onClick={() => {
+                  setInspectorTab('audit');
+                  setIsDesignPanelOpen(true);
+                }}
+                className="gap-2 cursor-pointer py-1.5"
+              >
+                <Shield className="w-3.5 h-3.5 text-emerald-500" />
+                <span>Form Health &amp; Audit Dock</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
           {/* Trash Recovery Ledger */}
           {trashFields && trashFields.length > 0 && (
             <Popover>
@@ -1694,6 +1678,43 @@ export const FormBuilder: React.FC = () => {
         isOpen={isNotificationModalOpen}
         onClose={() => setIsNotificationModalOpen(false)}
       />
+
+      {/* Instant Interactive Live Runner Preview Modal (Zero Popup Blocking) */}
+      <Dialog open={isRunnerPreviewModalOpen} onOpenChange={setIsRunnerPreviewModalOpen}>
+        <DialogContent className="max-w-[96vw] w-full h-[94vh] p-0 flex flex-col bg-background border-border shadow-2xl rounded-2xl overflow-hidden">
+          <DialogHeader className="px-5 py-3 border-b border-border/70 flex flex-row items-center justify-between shrink-0 bg-muted/20">
+            <div className="flex items-center gap-2.5">
+              <Eye className="w-4 h-4 text-primary" />
+              <DialogTitle className="text-sm font-bold font-heading text-foreground">
+                Live Assessment Preview &bull; {title || 'Untitled Assessment'}
+              </DialogTitle>
+              <Badge variant="outline" className="text-[10px] font-mono bg-primary/10 text-primary border-primary/20">
+                Interactive Test Mode
+              </Badge>
+            </div>
+            <div className="flex items-center gap-2 pr-6">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => window.open('/preview/' + activeSlug + '?test=true', '_blank')}
+                className="h-7 text-xs px-2.5 gap-1.5 border-border hover:bg-accent"
+                title="Open in separate browser window"
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
+                <span className="hidden sm:inline">New Tab</span>
+              </Button>
+            </div>
+          </DialogHeader>
+          <div className="flex-1 min-h-0 overflow-y-auto p-2 sm:p-4 bg-background">
+            <FormRunner
+              slug={activeSlug}
+              isPreviewRoute={true}
+              onBack={() => setIsRunnerPreviewModalOpen(false)}
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
