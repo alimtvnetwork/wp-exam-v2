@@ -753,6 +753,42 @@ export const FormBuilder: React.FC = () => {
             </DropdownMenuContent>
           </DropdownMenu>
 
+          {/* Format Architecture: Standard Quiz vs Presentation Slide */}
+          <div className="hidden sm:inline-flex items-center rounded-xl border border-border bg-muted/40 p-0.5 h-9 shrink-0 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => {
+                updateSettings({ defaultQuestionLayout: 'standard' });
+                toast.info('Default format set to Standard Quiz');
+              }}
+              className={`inline-flex items-center gap-1.5 h-full px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                settings.defaultQuestionLayout !== 'presentation_split'
+                  ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Set default format to Standard Quiz"
+            >
+              <LayoutTemplate className="w-3.5 h-3.5 text-primary" />
+              <span>Standard Quiz</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                updateSettings({ defaultQuestionLayout: 'presentation_split' });
+                toast.success('Default format set to Presentation Slide');
+              }}
+              className={`inline-flex items-center gap-1.5 h-full px-2.5 rounded-lg text-xs font-semibold transition-all cursor-pointer ${
+                settings.defaultQuestionLayout === 'presentation_split'
+                  ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Set default format to Presentation Slide (2-Column Split)"
+            >
+              <Columns className="w-3.5 h-3.5" />
+              <span>Presentation Slide</span>
+            </button>
+          </div>
+
           {/* Combined Preview & Save Segmented Control */}
           <div className="inline-flex items-center rounded-xl border border-primary/40 bg-card shadow-xs hover:shadow-md transition-all duration-150 overflow-hidden h-9 shrink-0">
             {/* Live Preview Segment */}

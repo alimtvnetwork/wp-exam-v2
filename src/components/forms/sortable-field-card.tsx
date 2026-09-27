@@ -604,26 +604,35 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               </SelectContent>
             </Select>
 
-            {/* Direct Layout Mode Toggle: Quiz Card vs Presentation Split */}
-            <button
-              type="button"
-              onClick={() =>
-                onUpdate(id, {
-                  layoutMode: field.layoutMode === 'presentation_split' ? 'standard' : 'presentation_split',
-                })
-              }
-              className={`inline-flex items-center gap-1.5 h-10 px-2.5 rounded-lg border text-xs font-semibold transition-all cursor-pointer shrink-0 ${
-                field.layoutMode === 'presentation_split'
-                  ? 'bg-primary/10 border-primary/40 text-primary hover:bg-primary/20'
-                  : 'bg-card border-border text-muted-foreground hover:text-foreground hover:bg-accent'
-              }`}
-              title="Toggle Question Presentation Mode (Standard Card vs 2-Column Split)"
-            >
-              <Columns className="w-3.5 h-3.5 text-primary" />
-              <span className="hidden md:inline">
-                {field.layoutMode === 'presentation_split' ? 'Split View' : 'Standard'}
-              </span>
-            </button>
+            {/* Direct Layout Mode Toggle: Quiz Format vs Presentation Slide */}
+            <div className="inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5 h-10 shrink-0">
+              <button
+                type="button"
+                onClick={() => onUpdate(id, { layoutMode: 'standard' })}
+                className={`inline-flex items-center gap-1.5 h-full px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                  field.layoutMode !== 'presentation_split'
+                    ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Display question in Standard Quiz format"
+              >
+                <LayoutTemplate className="w-3.5 h-3.5 text-primary" />
+                <span>Quiz Format</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onUpdate(id, { layoutMode: 'presentation_split' })}
+                className={`inline-flex items-center gap-1.5 h-full px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                  field.layoutMode === 'presentation_split'
+                    ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+                title="Display question in 2-Column Presentation Slide format"
+              >
+                <Columns className="w-3.5 h-3.5" />
+                <span>Presentation Slide</span>
+              </button>
+            </div>
 
             {/* Combined Preview & Actions Segmented Control with Crisp High-Contrast Icon */}
             <div className="inline-flex items-center rounded-lg border border-border bg-card shadow-2xs overflow-hidden h-10 shrink-0">
@@ -2867,12 +2876,12 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                       {isQuiz && (
                         <Button
                           type="button"
-                          variant="outline"
+                          variant={isCorrect ? 'default' : 'outline'}
                           size="sm"
-                          className={`h-11 px-4 shrink-0 text-sm font-medium font-sans transition-all duration-150 rounded-lg flex items-center gap-2 cursor-pointer ${
+                          className={`h-11 w-[148px] shrink-0 text-sm font-medium font-sans transition-all duration-150 rounded-lg flex items-center justify-center gap-2 cursor-pointer ${
                             isCorrect
-                              ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90 shadow-xs'
-                              : 'bg-background hover:bg-primary/10 hover:border-primary/50 hover:text-primary text-muted-foreground border-border/80'
+                              ? 'bg-primary text-primary-foreground border-primary hover:bg-primary/90 hover:text-primary-foreground shadow-xs'
+                              : 'bg-background hover:bg-muted/80 hover:text-foreground text-muted-foreground border-border/80'
                           }`}
                           onClick={() => {
                             const nextAnswers = isCorrect

@@ -460,11 +460,14 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   // Synchronize active theme attribute, HSL variables, and background to root document and body
   useEffect(() => {
     const nextT = getTheme(activeThemeId);
+    if (!nextT || !nextT.colors) {
+      return;
+    }
     const root = document.documentElement;
     root.setAttribute('data-theme', nextT.id);
     document.body.setAttribute('data-theme', nextT.id);
-    root.style.backgroundColor = nextT.colors.background;
-    document.body.style.backgroundColor = nextT.colors.background;
+    root.style.backgroundColor = nextT.colors.background || '#FFFFFF';
+    document.body.style.backgroundColor = nextT.colors.background || '#FFFFFF';
 
     // Propagate all CSS variables to documentElement so Radix UI portals, popovers, and dialogs inherit them
     const vars = getThemeCssVariables(nextT);
@@ -1409,8 +1412,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       }`}
       style={{
         ...themeVars,
-        backgroundColor: currentTheme.colors.background,
-        color: currentTheme.colors.textPrimary,
+        backgroundColor: currentTheme?.colors?.background || '#FFFFFF',
+        color: currentTheme?.colors?.textPrimary || '#0F172A',
       }}
     >
       <div className={`space-y-5 mx-auto ${activeThemeId === 'clean-wide' ? 'max-w-7xl' : 'max-w-6xl'}`}>
@@ -1484,7 +1487,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               title="Standard Quiz Card View"
             >
               <LayoutTemplate className="w-3.5 h-3.5 text-primary" />
-              <span className="hidden sm:inline">Quiz View</span>
+              <span>Quiz Format</span>
             </Button>
             <Button
               type="button"
@@ -1492,17 +1495,17 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               size="sm"
               onClick={() => {
                 setRunnerViewMode('presentation_split');
-                toast.info('Switched to 2-Column Presentation Split View');
+                toast.info('Switched to Presentation Slide format');
               }}
               className={`h-7 px-2.5 text-xs font-sans rounded-md transition-all gap-1.5 cursor-pointer ${
                 effectiveLayoutMode === 'presentation_split'
                   ? 'bg-primary text-primary-foreground font-semibold shadow-2xs'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
-              title="2-Column Presentation Split View"
+              title="2-Column Presentation Slide format"
             >
               <Columns className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Presentation View</span>
+              <span>Presentation Slide</span>
             </Button>
             {isSequential && (
               <Button

@@ -380,26 +380,37 @@ export const THEME_ALIASES: Record<string, string> = {
 
 export const DEFAULT_THEME_ID = 'green-choice';
 
-export function getTheme(id: string): ThemeDefinition {
+export function getTheme(id?: string): ThemeDefinition {
+  if (!id) {
+    return THEME_PRESETS['green-choice'] || Object.values(THEME_PRESETS)[0];
+  }
   const normalizedId = THEME_ALIASES[id] || id;
-  const hasPreset = Boolean(THEME_PRESETS[normalizedId]);
+  const preset = THEME_PRESETS[normalizedId];
+  if (preset) {
+    return preset;
+  }
 
-  return hasPreset ? THEME_PRESETS[normalizedId] : THEME_PRESETS['green-choice'];
+  return THEME_PRESETS['green-choice'] || Object.values(THEME_PRESETS)[0];
 }
 
-export function getThemeCssVariables(theme: ThemeDefinition): Record<string, string> {
+export function getThemeCssVariables(theme?: ThemeDefinition): Record<string, string> {
+  const safeTheme = theme || getTheme();
+  if (!safeTheme || !safeTheme.colors) {
+    return {};
+  }
+
   return {
-    '--wp-exam-bg': theme.colors.background,
-    '--wp-exam-card': theme.colors.cardBg,
-    '--wp-exam-card-border': theme.colors.cardBorder,
-    '--wp-exam-card-hover': theme.colors.cardHover,
-    '--wp-exam-primary': theme.colors.primary,
-    '--wp-exam-primary-text': theme.colors.primaryText,
-    '--wp-exam-highlight': theme.colors.highlightWord,
-    '--wp-exam-text-primary': theme.colors.textPrimary,
-    '--wp-exam-text-secondary': theme.colors.textSecondary,
-    '--wp-exam-progress-bar': theme.colors.progressBar,
-    '--wp-exam-badge-bg': theme.colors.badgeBg,
-    ...(theme.hslValues || {}),
+    '--wp-exam-bg': safeTheme.colors.background || '#FFFFFF',
+    '--wp-exam-card': safeTheme.colors.cardBg || '#FFFFFF',
+    '--wp-exam-card-border': safeTheme.colors.cardBorder || '#E2E8F0',
+    '--wp-exam-card-hover': safeTheme.colors.cardHover || '#F8FAFC',
+    '--wp-exam-primary': safeTheme.colors.primary || '#16A34A',
+    '--wp-exam-primary-text': safeTheme.colors.primaryText || '#FFFFFF',
+    '--wp-exam-highlight': safeTheme.colors.highlightWord || '#16A34A',
+    '--wp-exam-text-primary': safeTheme.colors.textPrimary || '#0F172A',
+    '--wp-exam-text-secondary': safeTheme.colors.textSecondary || '#64748B',
+    '--wp-exam-progress-bar': safeTheme.colors.progressBar || '#16A34A',
+    '--wp-exam-badge-bg': safeTheme.colors.badgeBg || '#DCFCE7',
+    ...(safeTheme.hslValues || {}),
   };
 }
