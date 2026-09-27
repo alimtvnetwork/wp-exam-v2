@@ -215,6 +215,7 @@ export interface QuestionReferenceLinkItem {
   id: string;
   title: string;
   url: string;
+  description?: string;
 }
 
 export interface FormSettings {
