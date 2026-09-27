@@ -182,7 +182,7 @@
 [data-theme="purple"],
 .theme-letterly,
 [data-theme="letterly"] {
-  --primary: 248 98% 63%;
+  --primary: 247 98% 63%;
   --primary-foreground: 0 0% 100%;
   --background: 246 35% 9%;
   --foreground: 0 0% 100%;
@@ -551,7 +551,6 @@
 .slide-btn:hover .slide-btn__text {
   transform: translateY(-100%);
 }
-
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
   height: 6px;

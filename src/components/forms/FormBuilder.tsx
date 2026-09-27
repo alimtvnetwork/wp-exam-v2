@@ -467,17 +467,17 @@ export const FormBuilder: React.FC = () => {
           </h1>
 
           {/* Compact Slug Control with Link Icon Button & Popover Editor */}
+          {/* Compact Slug Control with Link Icon Button & Popover Editor */}
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-8 gap-1.5 px-2.5 rounded-lg border-border text-xs font-mono shrink-0 cursor-pointer hover:border-primary/40"
+                className="h-8 gap-1 px-2 rounded-lg border-border text-xs font-mono shrink-0 cursor-pointer hover:border-primary/40 bg-card"
                 title="Form URL link and slug editor (click to edit)"
               >
                 <Link2 className="w-3.5 h-3.5 text-primary shrink-0" />
-                <span className="text-foreground font-semibold truncate max-w-[100px] hidden sm:inline">/{activeSlug}</span>
                 <Copy
                   className="w-3 h-3 text-muted-foreground hover:text-primary transition-colors ml-0.5 shrink-0"
                   onClick={(e) => {
@@ -549,11 +549,13 @@ export const FormBuilder: React.FC = () => {
             </PopoverContent>
           </Popover>
 
-          {/* Compact Form Access Icon Badge */}
-          <Badge
+          {/* Compact Form Access Icon Button */}
+          <Button
+            type="button"
             variant="outline"
+            size="sm"
             onClick={() => window.open(`/f/${activeSlug}`, '_blank')}
-            className="h-8 px-2 font-medium border-primary/30 text-primary bg-primary/5 shrink-0 cursor-pointer hover:bg-primary/10 transition-colors gap-1 text-xs"
+            className="h-8 w-8 p-0 border border-primary/30 text-primary bg-primary/5 hover:bg-primary/10 rounded-lg shrink-0 cursor-pointer transition-colors"
             title={`Access Policy: ${formAccess} (click to view live public URL)`}
           >
             {formAccess === 'public' ? (
@@ -561,10 +563,10 @@ export const FormBuilder: React.FC = () => {
             ) : (
               <ShieldCheck className="w-3.5 h-3.5 text-primary" />
             )}
-          </Badge>
+          </Button>
 
           {/* Compact Format Selector: Quiz Format vs Presentation Slide */}
-          <div className="hidden sm:inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5 h-8 shrink-0 shadow-2xs">
+          <div className="inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5 h-8 shrink-0 shadow-2xs">
             <button
               type="button"
               onClick={() => {
@@ -579,7 +581,7 @@ export const FormBuilder: React.FC = () => {
               title="Set default format to Quiz Format (Standard Card)"
             >
               <LayoutTemplate className="w-3.5 h-3.5 text-primary" />
-              <span>Quiz Format</span>
+              <span>Quiz</span>
             </button>
             <button
               type="button"
@@ -595,7 +597,7 @@ export const FormBuilder: React.FC = () => {
               title="Set default format to Presentation Slide (2-Column Split)"
             >
               <Columns className="w-3.5 h-3.5" />
-              <span>Presentation Slide</span>
+              <span>Slide</span>
             </button>
           </div>
 
@@ -636,273 +638,27 @@ export const FormBuilder: React.FC = () => {
           )}
         </div>
 
-        {/* Right Side: Quick Action Cluster: Preview & Save */}
-        <div className="flex items-center gap-2 shrink-0">
-          {/* Live Preview Button */}
-          <Button
+        {/* Right Side: Combined Compact Preview & Save Segmented Control */}
+        <div className="inline-flex items-center rounded-lg border border-border bg-card p-0.5 h-8 shrink-0 shadow-2xs divide-x divide-border">
+          <button
             type="button"
-            variant="outline"
-            size="sm"
             onClick={() => setIsRunnerPreviewModalOpen(true)}
-            className="h-8 px-3 gap-1.5 border border-border bg-card text-foreground hover:bg-accent hover:text-foreground font-semibold shadow-xs cursor-pointer text-xs transition-colors"
+            className="inline-flex items-center gap-1.5 h-full px-2.5 rounded-l-md text-xs font-semibold text-foreground hover:bg-accent transition-all cursor-pointer"
             title="Open interactive assessment preview modal"
           >
-            <Eye className="w-3.5 h-3.5 text-foreground" />
+            <Eye className="w-3.5 h-3.5 text-primary" />
             <span className="hidden sm:inline">Preview</span>
-          </Button>
-
-          {/* Save Form Button */}
-          <Button
+          </button>
+          <button
             type="button"
-            size="sm"
             onClick={handleSave}
             disabled={isSaving}
-            className="h-8 px-3.5 gap-1.5 bg-primary text-primary-foreground hover:bg-primary/90 font-bold shadow-xs cursor-pointer text-xs disabled:opacity-50 transition-colors"
+            className="inline-flex items-center gap-1.5 h-full px-3 rounded-r-md text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer disabled:opacity-50"
             title={isSaving ? 'Saving Form...' : 'Save Form (Ctrl+S)'}
           >
             {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            <span className="hidden sm:inline">Save</span>
-          </Button>
-        </div>
-      </div>
-
-      {/* Compact Secondary Utility Bar: Health Audit, Stats, Share & Trash */}
-      <div className="flex flex-wrap items-center justify-between gap-2 px-3 py-1.5 bg-muted/30 border border-border/70 rounded-xl text-xs">
-        <div className="flex items-center gap-2">
-          {/* Health Score Pill with HoverCard */}
-          <HoverCard openDelay={100} closeDelay={150}>
-            <HoverCardTrigger asChild>
-              <button
-                type="button"
-                onClick={() => {
-                  setInspectorTab('audit');
-                  setIsDesignPanelOpen(true);
-                }}
-                className="inline-flex items-center gap-1.5 h-7 px-2 rounded-lg font-mono font-bold text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer shrink-0"
-                title="Form Health Score (hover for details, click for full audit dock)"
-              >
-                <Shield className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                <span>Health: {designReport.grade || 'A+'} ({designReport.score}%)</span>
-              </button>
-            </HoverCardTrigger>
-            <HoverCardContent
-              align="start"
-              className="w-80 p-3.5 space-y-3 rounded-xl border border-border bg-popover text-popover-foreground shadow-xl text-xs"
-            >
-              <div className="flex items-center justify-between border-b border-border/60 pb-2">
-                <div className="flex items-center gap-2">
-                  <Shield className="w-4 h-4 text-emerald-500" />
-                  <span className="font-bold text-sm text-foreground">Form Health Audit</span>
-                </div>
-                <Badge variant="outline" className="font-mono font-bold text-xs bg-primary/10 text-primary border-primary/20">
-                  Grade {designReport.grade} ({designReport.score}%)
-                </Badge>
-              </div>
-              <div className="space-y-1.5 text-muted-foreground">
-                <div className="flex justify-between">
-                  <span>Audit Diagnostics:</span>
-                  <span className="font-semibold text-foreground">{designReport.issues?.length || 0} issues</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Questions Configured:</span>
-                  <span className="font-semibold text-foreground">{fields.length} questions</span>
-                </div>
-                <div className="flex justify-between">
-                  <span>Grading Allocation:</span>
-                  <span className="font-semibold text-foreground">{totalPoints} total points</span>
-                </div>
-              </div>
-              <div className="pt-2 border-t border-border/60 flex items-center justify-between">
-                <span className="text-[11px] text-muted-foreground">Click for audit details</span>
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={() => {
-                    setInspectorTab('audit');
-                    setIsDesignPanelOpen(true);
-                  }}
-                  className="h-6 text-xs px-2 rounded-md"
-                >
-                  Open Audit Dock
-                </Button>
-              </div>
-            </HoverCardContent>
-          </HoverCard>
-
-          <div className="hidden sm:flex items-center gap-2 font-mono text-[11px] text-muted-foreground">
-            <span>{fields.length} questions</span>
-            <span>&bull;</span>
-            <span>{totalPoints} pts</span>
-            <span>&bull;</span>
-            <span>{requiredCount} required</span>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-1.5">
-          {/* Centralized Quiz Configuration Studio Button */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setIsCentralConfigOpen(true)}
-            className="h-7 px-2.5 text-[11px] gap-1.5 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0 font-medium text-foreground"
-            title="Open Centralized Quiz Configuration Studio"
-          >
-            <Settings className="w-3.5 h-3.5 text-primary" />
-            <span className="hidden sm:inline">Quiz Config</span>
-          </Button>
-
-          {/* Notification Triggers Studio Button */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => setIsNotificationModalOpen(true)}
-            className="h-7 px-2.5 text-[11px] gap-1.5 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0 font-medium"
-            title="Configure Email & Webhook Triggers"
-          >
-            <Bell className="w-3.5 h-3.5 text-primary" />
-            <span className="hidden sm:inline">Triggers</span>
-            {settings?.notificationTriggers && settings.notificationTriggers.length > 0 && (
-              <Badge variant="secondary" className="h-4 px-1 text-[10px] font-bold bg-primary/15 text-primary">
-                {settings.notificationTriggers.length}
-              </Badge>
-            )}
-          </Button>
-
-          {/* Tools Menu Dropdown */}
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-7 px-2.5 text-[11px] gap-1.5 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0 font-medium"
-                title="Builder Utility Tools"
-              >
-                <Wand2 className="w-3.5 h-3.5 text-primary" />
-                <span className="hidden sm:inline">Tools</span>
-                <ChevronDown className="w-3 h-3 text-muted-foreground" />
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56 bg-popover border border-border shadow-xl p-1 text-xs">
-              <DropdownMenuItem
-                onClick={() => setIsCentralConfigOpen(true)}
-                className="gap-2 cursor-pointer py-1.5 font-semibold text-foreground"
-              >
-                <Settings className="w-3.5 h-3.5 text-primary" />
-                <span>Centralized Quiz Config</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="my-1 border-border/60" />
-              <DropdownMenuItem
-                onClick={() => setIsJsonModalOpen(true)}
-                className="gap-2 cursor-pointer py-1.5"
-              >
-                <FileJson className="w-3.5 h-3.5 text-primary" />
-                <span>JSON Import / Export</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setIsGoogleModalOpen(true)}
-                className="gap-2 cursor-pointer py-1.5"
-              >
-                <FileSpreadsheet className="w-3.5 h-3.5 text-primary" />
-                <span>Import Google Forms</span>
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onClick={() => setIsFlowModalOpen(true)}
-                className="gap-2 cursor-pointer py-1.5"
-              >
-                <GitBranch className="w-3.5 h-3.5 text-primary" />
-                <span>Visual Branching Flow</span>
-              </DropdownMenuItem>
-              <DropdownMenuSeparator className="my-1 border-border/60" />
-              <DropdownMenuItem
-                onClick={() => {
-                  setInspectorTab('audit');
-                  setIsDesignPanelOpen(true);
-                }}
-                className="gap-2 cursor-pointer py-1.5"
-              >
-                <Shield className="w-3.5 h-3.5 text-emerald-500" />
-                <span>Form Health &amp; Audit Dock</span>
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-
-          {/* Trash Recovery Ledger */}
-          {trashFields && trashFields.length > 0 && (
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="text-[11px] h-7 px-2 gap-1 bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20 rounded-lg font-semibold cursor-pointer shrink-0"
-                  title={`${trashFields.length} deleted question(s) in trash`}
-                >
-                  <Trash2 className="w-3 h-3 shrink-0" />
-                  <span>Trash ({trashFields.length})</span>
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent align="end" className="w-80 p-3 space-y-2.5 rounded-xl border border-border bg-popover shadow-xl text-xs">
-                <div className="flex items-center justify-between border-b border-border/60 pb-2">
-                  <div className="flex items-center gap-1.5 font-bold text-foreground">
-                    <Trash2 className="w-3.5 h-3.5 text-destructive" />
-                    <span>Deleted Questions Ledger</span>
-                  </div>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={clearTrash}
-                    className="h-6 px-1.5 text-[11px] text-muted-foreground hover:text-destructive"
-                  >
-                    Clear All
-                  </Button>
-                </div>
-                <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
-                  {trashFields.map((item) => (
-                    <div
-                      key={item.field.id}
-                      className="p-2 rounded-lg border border-border/70 bg-card flex items-center justify-between gap-2"
-                    >
-                      <div className="min-w-0">
-                        <div className="font-semibold truncate text-foreground">{item.field.label || 'Untitled Question'}</div>
-                        <div className="text-[10px] text-muted-foreground capitalize">
-                          {item.field.type.replace(/_/g, ' ')} • Deleted {new Date(item.deletedAt).toLocaleTimeString()}
-                        </div>
-                      </div>
-                      <Button
-                        type="button"
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          restoreField(item.field.id);
-                          toast.success(`Restored "${item.field.label || 'question'}"`);
-                        }}
-                        className="h-6 px-2 text-[11px] border-primary/40 text-primary hover:bg-primary/10 shrink-0 font-semibold"
-                      >
-                        Restore
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              </PopoverContent>
-            </Popover>
-          )}
-
-          {/* Share Button */}
-          <Button
-            type="button"
-            variant="ghost"
-            size="sm"
-            onClick={handleCopyLiveUrl}
-            className="h-7 px-2 text-[11px] gap-1 text-muted-foreground hover:text-foreground"
-            title="Share & Copy Live URL"
-          >
-            <Share2 className="w-3 h-3" />
-            <span className="hidden sm:inline">Share</span>
-          </Button>
+            <span>Save</span>
+          </button>
         </div>
       </div>
 
@@ -921,25 +677,254 @@ export const FormBuilder: React.FC = () => {
             {/* Top Accent Ribbon (Dynamic Theme Tint) */}
             <div className="h-2.5 bg-gradient-to-r from-primary via-primary/80 to-primary/60 w-full" />
 
-            <CardContent className="p-6 sm:p-7 space-y-4">
-              {/* Form Title & Description */}
-              <div className="space-y-2">
+            <CardContent className="p-5 sm:p-6 space-y-4">
+              {/* Form Title & Compact Utility Action Bar (Health, Config, Triggers, Tools, Share) */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Untitled Assessment Form"
-                  className="w-full text-2xl font-bold bg-transparent border-0 border-b border-border/40 hover:border-border focus:border-primary focus:outline-none transition-colors px-1 py-1 text-foreground placeholder:text-muted-foreground/40"
+                  className="flex-1 text-xl sm:text-2xl font-bold bg-transparent border-0 border-b border-border/40 hover:border-border focus:border-primary focus:outline-none transition-colors px-1 py-1 text-foreground placeholder:text-muted-foreground/40 min-w-0"
                 />
 
-                <textarea
-                  value={description}
-                  onChange={(e) => setDescription(e.target.value)}
-                  placeholder="Form description..."
-                  rows={2}
-                  className="w-full text-sm text-muted-foreground bg-transparent border-0 border-b border-border/30 hover:border-border focus:border-primary focus:outline-none transition-colors px-1 py-1 resize-none placeholder:text-muted-foreground/40"
-                />
+                {/* Compact Utility Controls Cluster: Health, Config, Triggers, Tools, Share */}
+                <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
+                  {/* Health Score Pill with HoverCard */}
+                  <HoverCard openDelay={100} closeDelay={150}>
+                    <HoverCardTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInspectorTab('audit');
+                          setIsDesignPanelOpen(true);
+                        }}
+                        className="inline-flex items-center gap-1.5 h-7 px-2 rounded-lg font-mono font-bold text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer shrink-0"
+                        title="Form Health Score (hover for details, click for full audit dock)"
+                      >
+                        <Shield className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span>Health: {designReport.grade || 'A+'} ({designReport.score}%)</span>
+                      </button>
+                    </HoverCardTrigger>
+                    <HoverCardContent
+                      align="end"
+                      className="w-80 p-3.5 space-y-3 rounded-xl border border-border bg-popover text-popover-foreground shadow-xl text-xs"
+                    >
+                      <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                        <div className="flex items-center gap-2">
+                          <Shield className="w-4 h-4 text-emerald-500" />
+                          <span className="font-bold text-sm text-foreground">Form Health Audit</span>
+                        </div>
+                        <Badge variant="outline" className="font-mono font-bold text-xs bg-primary/10 text-primary border-primary/20">
+                          Grade {designReport.grade} ({designReport.score}%)
+                        </Badge>
+                      </div>
+                      <div className="space-y-1.5 text-muted-foreground">
+                        <div className="flex justify-between">
+                          <span>Audit Diagnostics:</span>
+                          <span className="font-semibold text-foreground">{designReport.issues?.length || 0} issues</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Questions Configured:</span>
+                          <span className="font-semibold text-foreground">{fields.length} questions</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Grading Allocation:</span>
+                          <span className="font-semibold text-foreground">{totalPoints} total points</span>
+                        </div>
+                      </div>
+                      <div className="pt-2 border-t border-border/60 flex items-center justify-between">
+                        <span className="text-[11px] text-muted-foreground">Click for audit details</span>
+                        <Button
+                          type="button"
+                          size="sm"
+                          onClick={() => {
+                            setInspectorTab('audit');
+                            setIsDesignPanelOpen(true);
+                          }}
+                          className="h-6 text-xs px-2 rounded-md"
+                        >
+                          Open Audit Dock
+                        </Button>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
+
+                  {/* Centralized Quiz Configuration Studio Button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsCentralConfigOpen(true)}
+                    className="h-7 px-2 text-xs gap-1.5 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0 font-medium text-foreground"
+                    title="Open Centralized Quiz Configuration Studio"
+                  >
+                    <Settings className="w-3.5 h-3.5 text-primary" />
+                    <span className="hidden sm:inline">Quiz Config</span>
+                  </Button>
+
+                  {/* Notification Triggers Studio Button */}
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsNotificationModalOpen(true)}
+                    className="h-7 px-2 text-xs gap-1.5 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0 font-medium"
+                    title="Configure Email & Webhook Triggers"
+                  >
+                    <Bell className="w-3.5 h-3.5 text-primary" />
+                    <span className="hidden sm:inline">Triggers</span>
+                    {settings?.notificationTriggers && settings.notificationTriggers.length > 0 && (
+                      <Badge variant="secondary" className="h-4 px-1 text-[10px] font-bold bg-primary/15 text-primary">
+                        {settings.notificationTriggers.length}
+                      </Badge>
+                    )}
+                  </Button>
+
+                  {/* Tools Menu Dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-7 px-2 text-xs gap-1 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0 font-medium"
+                        title="Builder Utility Tools"
+                      >
+                        <Wand2 className="w-3.5 h-3.5 text-primary" />
+                        <span className="hidden sm:inline">Tools</span>
+                        <ChevronDown className="w-3 h-3 text-muted-foreground" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end" className="w-56 bg-popover border border-border shadow-xl p-1 text-xs">
+                      <DropdownMenuItem
+                        onClick={() => setIsCentralConfigOpen(true)}
+                        className="gap-2 cursor-pointer py-1.5 font-semibold text-foreground"
+                      >
+                        <Settings className="w-3.5 h-3.5 text-primary" />
+                        <span>Centralized Quiz Config</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="my-1 border-border/60" />
+                      <DropdownMenuItem
+                        onClick={() => setIsJsonModalOpen(true)}
+                        className="gap-2 cursor-pointer py-1.5"
+                      >
+                        <FileJson className="w-3.5 h-3.5 text-primary" />
+                        <span>JSON Import / Export</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setIsGoogleModalOpen(true)}
+                        className="gap-2 cursor-pointer py-1.5"
+                      >
+                        <FileSpreadsheet className="w-3.5 h-3.5 text-primary" />
+                        <span>Import Google Forms</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setIsFlowModalOpen(true)}
+                        className="gap-2 cursor-pointer py-1.5"
+                      >
+                        <GitBranch className="w-3.5 h-3.5 text-primary" />
+                        <span>Visual Branching Flow</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="my-1 border-border/60" />
+                      <DropdownMenuItem
+                        onClick={() => {
+                          setInspectorTab('audit');
+                          setIsDesignPanelOpen(true);
+                        }}
+                        className="gap-2 cursor-pointer py-1.5"
+                      >
+                        <Shield className="w-3.5 h-3.5 text-emerald-500" />
+                        <span>Form Health &amp; Audit Dock</span>
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+
+                  {/* Trash Recovery Ledger */}
+                  {trashFields && trashFields.length > 0 && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="text-[11px] h-7 px-2 gap-1 bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20 rounded-lg font-semibold cursor-pointer shrink-0"
+                          title={`${trashFields.length} deleted question(s) in trash`}
+                        >
+                          <Trash2 className="w-3 h-3 shrink-0" />
+                          <span>Trash ({trashFields.length})</span>
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent align="end" className="w-80 p-3 space-y-2.5 rounded-xl border border-border bg-popover shadow-xl text-xs">
+                        <div className="flex items-center justify-between border-b border-border/60 pb-2">
+                          <div className="flex items-center gap-1.5 font-bold text-foreground">
+                            <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                            <span>Deleted Questions Ledger</span>
+                          </div>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={clearTrash}
+                            className="h-6 px-1.5 text-[11px] text-muted-foreground hover:text-destructive"
+                          >
+                            Clear All
+                          </Button>
+                        </div>
+                        <div className="space-y-1.5 max-h-56 overflow-y-auto pr-1">
+                          {trashFields.map((item) => (
+                            <div
+                              key={item.field.id}
+                              className="p-2 rounded-lg border border-border/70 bg-card flex items-center justify-between gap-2"
+                            >
+                              <div className="min-w-0">
+                                <div className="font-semibold truncate text-foreground">{item.field.label || 'Untitled Question'}</div>
+                                <div className="text-[10px] text-muted-foreground capitalize">
+                                  {item.field.type.replace(/_/g, ' ')} • Deleted {new Date(item.deletedAt).toLocaleTimeString()}
+                                </div>
+                              </div>
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  restoreField(item.field.id);
+                                  toast.success(`Restored "${item.field.label || 'question'}"`);
+                                }}
+                                className="h-6 px-2 text-[11px] border-primary/40 text-primary hover:bg-primary/10 shrink-0 font-semibold"
+                              >
+                                Restore
+                              </Button>
+                            </div>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
+
+                  {/* Share Button */}
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    onClick={handleCopyLiveUrl}
+                    className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
+                    title="Share & Copy Live URL"
+                  >
+                    <Share2 className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Share</span>
+                  </Button>
+                </div>
               </div>
+
+              {/* Form Description */}
+              <textarea
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Form description..."
+                rows={2}
+                className="w-full text-sm text-muted-foreground bg-transparent border-0 border-b border-border/30 hover:border-border focus:border-primary focus:outline-none transition-colors px-1 py-1 resize-none placeholder:text-muted-foreground/40"
+              />
 
               {/* Status and Configuration Pill Row */}
               <div className="pt-2 border-t border-border/60 flex flex-wrap items-center justify-between gap-3 text-sm">
