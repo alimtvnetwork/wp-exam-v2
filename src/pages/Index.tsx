@@ -213,7 +213,7 @@ export const Index: React.FC = () => {
             variant="ghost"
             size="sm"
             onClick={() => navigate('/')}
-            className="text-sm h-7 px-2 gap-1.5 text-muted-foreground hover:text-primary hover:bg-muted"
+            className="text-sm h-7 px-2 gap-1.5 text-muted-foreground hover:text-primary hover:bg-accent/50 cursor-pointer"
             title="Visit Public Candidate Portal"
           >
             <ExternalLink className="w-3.5 h-3.5" />
@@ -240,7 +240,7 @@ export const Index: React.FC = () => {
             variant="ghost"
             size="sm"
             onClick={logout}
-            className="text-sm h-7 px-2 gap-1 text-muted-foreground hover:text-destructive hover:bg-muted"
+            className="text-sm h-7 px-2 gap-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
             title="Log Out"
           >
             <LogOut className="w-3.5 h-3.5" />

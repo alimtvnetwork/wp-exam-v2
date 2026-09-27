@@ -81,7 +81,7 @@ const SelectContent = React.forwardRef<
         {isItemAligned && <SelectScrollUpButton />}
         <SelectPrimitive.Viewport
           className={cn(
-            "p-1",
+            "p-1 no-scrollbar overflow-y-auto",
             isPopper &&
               "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
           )}

@@ -76,9 +76,9 @@ export const LandingPage: React.FC = () => {
               size="sm"
               variant="outline"
               onClick={handleAdminClick}
-              className="text-xs h-9 px-3.5 border-border hover:bg-muted gap-1.5 font-bold rounded-xl"
+              className="text-xs h-9 px-3.5 border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground gap-1.5 font-bold rounded-xl shadow-xs cursor-pointer transition-all"
             >
-              <Lock className="w-3.5 h-3.5" />
+              <Lock className="w-3.5 h-3.5 text-foreground" />
               <span>{isAuthenticated ? 'Admin Console' : 'Admin Login'}</span>
             </Button>
           </div>
@@ -119,7 +119,7 @@ export const LandingPage: React.FC = () => {
               size="lg"
               variant="outline"
               onClick={() => navigate('/admin?tab=builder')}
-              className="border-border bg-card hover:bg-muted text-foreground text-sm h-11 px-6 gap-2"
+              className="border-border bg-card hover:bg-accent hover:text-accent-foreground text-foreground text-sm h-11 px-6 gap-2"
             >
               <Layers className="w-4 h-4 text-primary" />
               <span>Open Form Builder</span>
@@ -129,7 +129,7 @@ export const LandingPage: React.FC = () => {
               size="lg"
               variant="outline"
               onClick={() => navigate('/runner')}
-              className="border-border bg-card hover:bg-muted text-foreground text-sm h-11 px-6 gap-2"
+              className="border-border bg-card hover:bg-accent hover:text-accent-foreground text-foreground text-sm h-11 px-6 gap-2"
             >
               <Zap className="w-4 h-4 text-sky-400" />
               <span>Live Preview</span>

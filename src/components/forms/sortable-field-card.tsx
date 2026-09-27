@@ -597,11 +597,11 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 className={`h-8 px-2.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs ${
                   isQuestionDirty
                     ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-xs ring-2 ring-emerald-500/20'
-                    : 'bg-background border-border text-muted-foreground/60 hover:text-foreground opacity-60'
+                    : 'bg-card border-border text-foreground hover:bg-accent hover:text-accent-foreground'
                 }`}
                 title={isQuestionDirty ? 'Save changes to this question' : 'Question is saved'}
               >
-                <Save className="w-3.5 h-3.5" />
+                <Save className={`w-3.5 h-3.5 ${isQuestionDirty ? 'text-white' : 'text-emerald-500'}`} />
                 <span>Save</span>
               </button>
 
@@ -695,18 +695,18 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             </Select>
 
             {/* Direct Layout Mode Toggle: Quiz Format vs Presentation Slide */}
-            <div className="inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5 h-10 shrink-0">
+            <div className="inline-flex items-center rounded-lg border border-border bg-card p-0.5 h-10 shrink-0 shadow-2xs">
               <button
                 type="button"
                 onClick={() => onUpdate(id, { layoutMode: 'standard' })}
                 className={`inline-flex items-center gap-1.5 h-full px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                   field.layoutMode !== 'presentation_split'
-                    ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-primary text-primary-foreground shadow-xs font-bold'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
                 }`}
                 title="Display question in Standard Quiz format"
               >
-                <LayoutTemplate className="w-3.5 h-3.5 text-primary" />
+                <LayoutTemplate className="w-3.5 h-3.5" />
                 <span>Quiz Format</span>
               </button>
               <button
@@ -714,8 +714,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 onClick={() => onUpdate(id, { layoutMode: 'presentation_split' })}
                 className={`inline-flex items-center gap-1.5 h-full px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                   field.layoutMode === 'presentation_split'
-                    ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
-                    : 'text-muted-foreground hover:text-foreground'
+                    ? 'bg-primary text-primary-foreground shadow-xs font-bold'
+                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
                 }`}
                 title="Display question in 2-Column Presentation Slide format"
               >
@@ -3155,12 +3155,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                             type="button"
                             variant={isSelected ? 'default' : 'outline'}
                             size="sm"
-                            className={`h-9 min-w-24 px-4 justify-center text-sm font-medium font-sans transition-all rounded-lg cursor-pointer ${
+                            className={`h-9 min-w-24 px-4 justify-center text-sm font-semibold font-sans transition-all rounded-lg cursor-pointer ${
                               isSelected
-                                ? idx === 0
-                                  ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs'
-                                  : 'bg-rose-600 text-white hover:bg-rose-700 shadow-xs'
-                                : 'text-foreground bg-background hover:bg-muted'
+                                ? 'bg-emerald-600 text-white hover:bg-emerald-700 shadow-xs'
+                                : 'border border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground'
                             }`}
                             onClick={() =>
                               onUpdate(id, {
@@ -3597,7 +3595,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             {isQuiz && (
               <div className="flex items-center gap-2 border-l border-border/50 pl-3 sm:pl-4">
                 <Label htmlFor={`footer-tier-${id}`} className="text-sm font-semibold text-foreground whitespace-nowrap">
-                  Type:
+                  Difficulty:
                 </Label>
                 <Select
                   value={field.customPointsOverride || field.difficulty === 'custom' ? 'custom' : field.difficulty || 'medium'}
@@ -3619,7 +3617,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     }
                   }}
                 >
-                  <SelectTrigger id={`footer-tier-${id}`} className="h-8 text-xs font-medium w-36 bg-background border-border shadow-2xs">
+                  <SelectTrigger id={`footer-tier-${id}`} className="h-8 text-xs font-medium w-40 sm:w-44 bg-card text-foreground border-border shadow-2xs">
                     <SelectValue placeholder="Select Tier" />
                   </SelectTrigger>
                   <SelectContent className="bg-popover border-border">
@@ -3638,7 +3636,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                       type="number"
                       value={field.points ?? 10}
                       onChange={(e) => onUpdate(id, { points: Math.max(1, Number(e.target.value) || 1) })}
-                      className="w-16 h-8 text-xs font-mono bg-background text-center rounded-lg shadow-2xs"
+                      className="w-16 h-8 text-xs font-mono bg-card text-foreground border border-border text-center rounded-lg shadow-2xs font-semibold"
                       min={1}
                       title="Enter custom points"
                     />
