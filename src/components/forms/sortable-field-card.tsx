@@ -154,6 +154,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
     zIndex: isDragging ? 50 : 1,
   };
 
+  const quizSettings = useQuizStore((s) => s.settings);
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [showConditions, setShowConditions] = useState(false);
   const [showLivePreview, setShowLivePreview] = useState(false);
@@ -1846,7 +1847,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   )}
 
                   {(() => {
-                    const preset = field.booleanDisplay || 'true_false';
+                    const preset = field.booleanDisplay || quizSettings?.defaultBooleanPreset || 'true_false';
+                    const effectiveAlignment = field.choiceAlignment || quizSettings?.defaultAlignment || 'center';
                     const labels = preset === 'yes_no'
                       ? ['Yes', 'No']
                       : preset === 'enable_disable'
@@ -1857,9 +1859,9 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
                     return (
                       <div className={`grid grid-cols-2 gap-3 max-w-sm ${
-                        field.choiceAlignment === 'center'
+                        effectiveAlignment === 'center'
                           ? 'mx-auto'
-                          : field.choiceAlignment === 'right'
+                          : effectiveAlignment === 'right'
                           ? 'ml-auto'
                           : ''
                       }`}>
@@ -2842,7 +2844,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <span className="text-xs font-medium font-sans text-muted-foreground">Alignment:</span>
                   <div className="flex items-center rounded-lg border border-border bg-background p-0.5 shadow-2xs">
                     {(['left', 'center', 'right'] as const).map((align) => {
-                      const isSelected = (field.choiceAlignment || 'left') === align;
+                      const effectiveAlignment = field.choiceAlignment || quizSettings?.defaultAlignment || 'center';
+                      const isSelected = effectiveAlignment === align;
                       return (
                         <button
                           key={align}
@@ -3081,7 +3084,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     Boolean Display Preset
                   </Label>
                   <Select
-                    value={field.booleanDisplay || 'true_false'}
+                    value={field.booleanDisplay || quizSettings?.defaultBooleanPreset || 'true_false'}
                     onValueChange={(val: BooleanDisplayPreset) => {
                       const labels = val === 'yes_no'
                         ? ['Yes', 'No']
@@ -3114,7 +3117,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <span className="text-xs font-medium font-sans text-muted-foreground">Alignment:</span>
                   <div className="flex items-center rounded-lg border border-border bg-background p-0.5 shadow-2xs">
                     {(['left', 'center', 'right'] as const).map((align) => {
-                      const isSelected = (field.choiceAlignment || 'left') === align;
+                      const effectiveAlignment = field.choiceAlignment || quizSettings?.defaultAlignment || 'center';
+                      const isSelected = effectiveAlignment === align;
                       return (
                         <button
                           key={align}
@@ -3139,7 +3143,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   <Label className="text-sm font-medium font-sans text-foreground">Correct Answer:</Label>
                   <div className="flex gap-2">
                     {(() => {
-                      const preset = field.booleanDisplay || 'true_false';
+                      const preset = field.booleanDisplay || quizSettings?.defaultBooleanPreset || 'true_false';
                       const labels = preset === 'yes_no'
                         ? ['Yes', 'No']
                         : preset === 'enable_disable'

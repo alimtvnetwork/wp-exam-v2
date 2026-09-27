@@ -244,6 +244,15 @@ export interface FormSettings {
   emailCustomization?: EmailCustomizationConfig;
   defaultQuestionLayout?: QuestionLayoutMode;
   defaultAnswerPlacement?: AnswerPlacementMode;
+  defaultBooleanPreset?: BooleanDisplayPreset;
+  defaultAlignment?: 'left' | 'center' | 'right';
+  defaultDifficulty?: QuestionDifficulty;
+  defaultPoints?: number;
+  defaultAllowOtherOption?: boolean;
+  shuffleQuestions?: boolean;
+  shuffleOptions?: boolean;
+  showFeedbackImmediately?: boolean;
+  theme?: string;
 }
 
 export interface FormModel {

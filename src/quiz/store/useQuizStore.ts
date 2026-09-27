@@ -1,7 +1,26 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-import { FormField, FormModel, FormType, FormAccessType, FormSettings } from '@/lib/types/form';
+import {
+  FormField,
+  FormModel,
+  FormType,
+  FormAccessType,
+  FormSettings,
+  QuestionDifficulty,
+  BooleanDisplayPreset,
+  QuestionLayoutMode,
+} from '@/lib/types/form';
 import { executeQuery } from '@/lib/query-wrapper';
+
+export interface BatchApplyConfigOptions {
+  points?: number;
+  difficulty?: QuestionDifficulty;
+  choiceAlignment?: 'left' | 'center' | 'right';
+  booleanDisplay?: BooleanDisplayPreset;
+  isRequired?: boolean;
+  allowOtherOption?: boolean;
+  questionLayout?: QuestionLayoutMode;
+}
 
 export function generateSlug(text: string): string {
   return text
@@ -38,6 +57,7 @@ interface QuizState {
   setIsSequential: (isSequential: boolean) => void;
   setIsPublished: (isPublished: boolean) => void;
   updateSettings: (settings: Partial<FormSettings>) => void;
+  batchApplyConfig: (options: BatchApplyConfigOptions) => void;
 
   addField: (field: FormField) => void;
   updateField: (id: string, field: Partial<FormField>) => void;
@@ -59,8 +79,19 @@ interface QuizState {
 
 const initialSettings: FormSettings = {
   timeLimitSeconds: 600,
+  timerMode: 'global',
   passingScore: 70,
   successMessage: 'Thank you! Your response has been recorded.',
+  defaultQuestionsRequired: true,
+  defaultDifficulty: 'medium',
+  defaultPoints: 10,
+  defaultBooleanPreset: 'true_false',
+  defaultAlignment: 'center',
+  defaultAllowOtherOption: false,
+  defaultQuestionLayout: 'standard',
+  defaultAnswerPlacement: 'right',
+  shuffleQuestions: false,
+  shuffleOptions: false,
 };
 
 const defaultFields: FormField[] = [
@@ -120,6 +151,63 @@ export const useQuizStore = create<QuizState>()(
     set((state) => ({
       settings: { ...state.settings, ...settingsUpdate },
     })),
+
+  batchApplyConfig: (options) =>
+    set((state) => {
+      const updatedFields = state.fields.map((f) => {
+        const updates: Partial<FormField> = {};
+        const isExcluded = f.type === 'video' || f.type === 'link';
+
+        if (!isExcluded && options.points !== undefined) {
+          updates.points = options.points;
+        }
+
+        if (options.difficulty !== undefined) {
+          updates.difficulty = options.difficulty;
+        }
+
+        if (options.choiceAlignment !== undefined) {
+          updates.choiceAlignment = options.choiceAlignment;
+        }
+
+        if (!isExcluded && options.isRequired !== undefined) {
+          updates.isRequired = options.isRequired;
+        }
+
+        const isChoice = f.type === 'multiple_choice' || f.type === 'single_choice';
+        if (isChoice && options.allowOtherOption !== undefined) {
+          updates.allowOtherOption = options.allowOtherOption;
+        }
+
+        if (options.questionLayout !== undefined) {
+          updates.questionLayout = options.questionLayout;
+        }
+
+        const isBinary = f.type === 'boolean' || f.type === 'true_false';
+        if (isBinary && options.booleanDisplay !== undefined) {
+          updates.booleanDisplay = options.booleanDisplay;
+          const labels =
+            options.booleanDisplay === 'yes_no'
+              ? ['Yes', 'No']
+              : options.booleanDisplay === 'enable_disable'
+              ? ['Enable', 'Disable']
+              : options.booleanDisplay === 'agree_disagree'
+              ? ['Agree', 'Disagree']
+              : ['True', 'False'];
+          updates.options = labels;
+
+          const hasValidAnswer = Boolean(f.correctAnswer && labels.includes(f.correctAnswer));
+          if (!hasValidAnswer) {
+            updates.correctAnswer = labels[0];
+            updates.correctAnswers = [labels[0]];
+          }
+        }
+
+        return { ...f, ...updates };
+      });
+
+      return { fields: updatedFields, questions: updatedFields };
+    }),
 
   addField: (field) =>
     set((state) => {

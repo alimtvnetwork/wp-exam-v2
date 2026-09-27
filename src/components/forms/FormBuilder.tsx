@@ -55,6 +55,7 @@ import { AiSectionAssistant } from './ai-section-assistant';
 import { BranchingFlowModal } from './branching-flow-modal';
 import { SlugManagementModal } from './slug-management-modal';
 import { NotificationTriggerModal } from './notification-trigger-modal';
+import { CentralQuizConfigModal } from './central-quiz-config-modal';
 import { SortableFieldCard } from './sortable-field-card';
 import { FieldPalette } from './field-palette';
 import { toast } from 'sonner';
@@ -147,6 +148,7 @@ export const FormBuilder: React.FC = () => {
   const [isSlugModalOpen, setIsSlugModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [isRunnerPreviewModalOpen, setIsRunnerPreviewModalOpen] = useState(false);
+  const [isCentralConfigOpen, setIsCentralConfigOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
   const [outlineFilter, setOutlineFilter] = useState<string>('');
@@ -331,21 +333,52 @@ export const FormBuilder: React.FC = () => {
       isMandatory = Boolean(settings.defaultQuestionsRequired);
     }
 
+    const defaultDiff = settings.defaultDifficulty || 'medium';
+    let defaultPts = isMedia ? 0 : 10;
+    if (!isMedia) {
+      if (settings.defaultPoints !== undefined) {
+        defaultPts = settings.defaultPoints;
+      } else if (defaultDiff === 'easy') {
+        defaultPts = 5;
+      } else if (defaultDiff === 'medium') {
+        defaultPts = 10;
+      } else if (defaultDiff === 'hard') {
+        defaultPts = 20;
+      }
+    }
+
+    const booleanPreset = settings.defaultBooleanPreset || 'true_false';
+    const booleanLabels =
+      booleanPreset === 'yes_no'
+        ? ['Yes', 'No']
+        : booleanPreset === 'enable_disable'
+        ? ['Enable', 'Disable']
+        : booleanPreset === 'agree_disagree'
+        ? ['Agree', 'Disagree']
+        : ['True', 'False'];
+
+    const isBinaryType = type === 'true_false' || type === 'boolean';
+
     addField({
       id: newId,
       type,
       label: defaults[type]?.label || 'New Question',
       placeholder: defaults[type]?.placeholder || '',
       isRequired: isMandatory,
-      difficulty: 'medium',
-      options: defaults[type]?.options,
-      correctAnswer: defaults[type]?.correctAnswer,
+      difficulty: defaultDiff,
+      options: isBinaryType ? booleanLabels : defaults[type]?.options,
+      correctAnswer: isBinaryType ? booleanLabels[0] : defaults[type]?.correctAnswer,
+      correctAnswers: isBinaryType ? [booleanLabels[0]] : undefined,
+      booleanDisplay: isBinaryType ? booleanPreset : undefined,
+      choiceAlignment: settings.defaultAlignment || 'center',
+      allowOtherOption: Boolean(settings.defaultAllowOtherOption),
+      questionLayout: settings.defaultQuestionLayout || 'standard',
       url: defaults[type]?.url,
       linkText: defaults[type]?.linkText,
       videoUrl: defaults[type]?.videoUrl,
       videoCaption: defaults[type]?.videoCaption,
       validationRule: defaults[type]?.validationRule,
-      points: isMedia ? 0 : 10,
+      points: defaultPts,
     });
 
     toast.success(`Added ${type.replace('_', ' ')} question`);
@@ -722,6 +755,19 @@ export const FormBuilder: React.FC = () => {
         </div>
 
         <div className="flex items-center gap-1.5">
+          {/* Centralized Quiz Configuration Studio Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsCentralConfigOpen(true)}
+            className="h-7 px-2.5 text-[11px] gap-1.5 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0 font-medium text-foreground"
+            title="Open Centralized Quiz Configuration Studio"
+          >
+            <Settings className="w-3.5 h-3.5 text-primary" />
+            <span className="hidden sm:inline">Quiz Config</span>
+          </Button>
+
           {/* Notification Triggers Studio Button */}
           <Button
             type="button"
@@ -756,6 +802,14 @@ export const FormBuilder: React.FC = () => {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-56 bg-popover border border-border shadow-xl p-1 text-xs">
+              <DropdownMenuItem
+                onClick={() => setIsCentralConfigOpen(true)}
+                className="gap-2 cursor-pointer py-1.5 font-semibold text-foreground"
+              >
+                <Settings className="w-3.5 h-3.5 text-primary" />
+                <span>Centralized Quiz Config</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator className="my-1 border-border/60" />
               <DropdownMenuItem
                 onClick={() => setIsJsonModalOpen(true)}
                 className="gap-2 cursor-pointer py-1.5"
@@ -1677,6 +1731,12 @@ export const FormBuilder: React.FC = () => {
       <NotificationTriggerModal
         isOpen={isNotificationModalOpen}
         onClose={() => setIsNotificationModalOpen(false)}
+      />
+
+      {/* Centralized Quiz Configuration & Inheritance Studio Modal */}
+      <CentralQuizConfigModal
+        isOpen={isCentralConfigOpen}
+        onClose={() => setIsCentralConfigOpen(false)}
       />
 
       {/* Instant Interactive Live Runner Preview Modal (Zero Popup Blocking) */}
