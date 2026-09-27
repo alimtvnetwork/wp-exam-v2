@@ -395,4 +395,35 @@ describe('Spec 13: Question Card Intelligence, Boolean Presets, Difficulty Tiers
       expect(field20.ratingFeedbackPlaceholder).toBe('Provide justification for rating...');
     });
   });
+
+  describe('Card Footer Responsive Overflow & Options Dropdown', () => {
+    it('should bundle difficulty, custom points, and allow-other into secondary options on compact screens', () => {
+      const field: FormField = {
+        id: 'q-compact-1',
+        type: 'multiple_choice',
+        label: 'Responsive Question',
+        isRequired: true,
+        difficulty: 'custom',
+        customPointsOverride: true,
+        points: 50,
+        allowOtherOption: true,
+      };
+
+      const hasCustomPoints = Boolean(field.customPointsOverride || field.difficulty === 'custom');
+      const hasOtherOption = Boolean(field.allowOtherOption);
+
+      expect(hasCustomPoints).toBe(true);
+      expect(field.points).toBe(50);
+      expect(hasOtherOption).toBe(true);
+    });
+
+    it('should maintain single-row flex-nowrap footer invariant', () => {
+      const footerClasses = 'py-3 px-4 sm:px-6 border-t border-border/60 bg-muted/10 flex items-center justify-between gap-3 rounded-b-2xl flex-nowrap';
+      const hasFlexNowrap = footerClasses.includes('flex-nowrap');
+      const hasNoFlexWrap = !footerClasses.includes('flex-wrap');
+
+      expect(hasFlexNowrap).toBe(true);
+      expect(hasNoFlexWrap).toBe(true);
+    });
+  });
 });

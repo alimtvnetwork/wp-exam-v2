@@ -3473,8 +3473,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
         </CardContent>
 
         {/* Card Footer: Bottom toolbar dividing settings cleanly */}
-        <CardFooter className="py-3.5 px-5 sm:px-6 border-t border-border/60 bg-muted/10 flex flex-wrap items-center justify-between gap-3 rounded-b-2xl">
-          {/* Left-hand section: Primary Required switch (always visible) + Responsive Secondary Actions Overflow Dropdown (< 640px) */}
+        <CardFooter className="py-3 px-4 sm:px-6 border-t border-border/60 bg-muted/10 flex items-center justify-between gap-3 rounded-b-2xl flex-nowrap">
+          {/* Left-hand section: Primary Required switch (always visible) + Responsive Secondary Actions Overflow Dropdown */}
           <div className="flex items-center gap-3">
             {/* Required switch with clear label and red asterisk */}
             <div className="flex items-center gap-2">
@@ -3490,21 +3490,22 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               />
             </div>
 
-            {/* Responsive Actions Overflow Dropdown (visible when space is reduced: < 1024px) */}
-            <div className="lg:hidden">
+            {/* Responsive Actions Overflow Dropdown (visible when space is reduced: < 1536px / 2xl) */}
+            <div className="2xl:hidden">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button
                     variant="outline"
                     size="sm"
-                    className="h-8 px-2.5 text-xs gap-1.5 border-border bg-card text-muted-foreground hover:text-foreground cursor-pointer shadow-2xs"
-                    title="More actions and question settings"
+                    className="h-8 px-2.5 text-xs gap-1.5 border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground font-semibold shadow-2xs cursor-pointer"
+                    title="Question options, points allocation, and settings"
                   >
-                    <MoreHorizontal className="w-3.5 h-3.5" />
+                    <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
                     <span>Options</span>
+                    <ChevronDown className="w-3 h-3 text-muted-foreground" />
                   </Button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="start" className="w-64 p-2 space-y-1.5 bg-popover border-border shadow-xl">
+                <DropdownMenuContent align="start" className="w-64 p-2.5 space-y-2 bg-popover border-border shadow-xl">
                   {isChoiceField && (
                     <div className="flex items-center justify-between px-2 py-1.5 rounded-md hover:bg-muted/40 transition-colors">
                       <span className="text-xs font-medium text-foreground">Allow &quot;Other&quot;</span>
@@ -3517,10 +3518,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   )}
 
                   {isQuiz && (
-                    <div className="p-2 bg-muted/30 rounded-lg space-y-1.5 border border-border/50">
+                    <div className="p-2.5 bg-muted/30 rounded-lg space-y-2 border border-border/50">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-semibold text-foreground">Points / Tier</span>
-                        <span className="text-[11px] font-mono text-muted-foreground">{field.points ?? 10} pts</span>
+                        <span className="text-xs font-semibold text-foreground">Difficulty &amp; Points</span>
+                        <span className="text-xs font-mono font-medium text-primary">{field.points ?? 10} pts</span>
                       </div>
                       <Select
                         value={field.customPointsOverride || field.difficulty === 'custom' ? 'custom' : field.difficulty || 'medium'}
@@ -3542,7 +3543,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                           }
                         }}
                       >
-                        <SelectTrigger className="h-7 text-xs bg-background">
+                        <SelectTrigger className="h-8 text-xs bg-background text-foreground border-border">
                           <SelectValue placeholder="Select Tier" />
                         </SelectTrigger>
                         <SelectContent className="bg-popover border-border">
@@ -3558,12 +3559,30 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                             type="number"
                             value={field.points ?? 10}
                             onChange={(e) => onUpdate(id, { points: Math.max(1, Number(e.target.value) || 1) })}
-                            className="h-7 text-xs font-mono bg-background text-center rounded w-20"
+                            className="h-8 text-xs font-mono bg-background text-foreground text-center rounded border-border w-24 font-semibold"
                             min={1}
                           />
-                          <span className="text-xs text-muted-foreground">pts</span>
+                          <span className="text-xs text-muted-foreground font-medium">pts</span>
                         </div>
                       )}
+                    </div>
+                  )}
+
+                  {activeRules.length > 0 && (
+                    <div className="flex items-center justify-between px-2 py-1 text-xs">
+                      <span className="text-muted-foreground">Branching Rules:</span>
+                      <Badge variant="outline" className="text-xs bg-amber-500/10 text-amber-500 border-amber-500/30">
+                        {activeRules.length} Rule{activeRules.length > 1 ? 's' : ''}
+                      </Badge>
+                    </div>
+                  )}
+
+                  {isFileUploadField && (
+                    <div className="flex items-center justify-between px-2 py-1 text-xs">
+                      <span className="text-muted-foreground">File Limit:</span>
+                      <Badge variant="outline" className="text-xs bg-purple-500/10 text-purple-400 border-purple-500/30">
+                        Max {field.fileValidation?.maxSizeMb || 10}MB
+                      </Badge>
                     </div>
                   )}
 
@@ -3589,8 +3608,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             </div>
           </div>
 
-          {/* Standard Viewport Field Properties (>= 1024px) */}
-          <div className="hidden lg:flex items-center gap-4 flex-wrap">
+          {/* Standard Viewport Field Properties (only when ultra wide: >= 1536px) */}
+          <div className="hidden 2xl:flex items-center gap-4 flex-nowrap">
             {/* Difficulty Tiers & Points Allocation via Dropdown with Conditional Custom Input */}
             {isQuiz && (
               <div className="flex items-center gap-2 border-l border-border/50 pl-3 sm:pl-4">
@@ -3649,7 +3668,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             {/* Allow "Other" toggle (text-sm) */}
             {isChoiceField && (
               <div className="flex items-center gap-2 border-l border-border/50 pl-4">
-                <Label htmlFor={`footer-other-${id}`} className="text-sm font-semibold cursor-pointer">
+                <Label htmlFor={`footer-other-${id}`} className="text-sm font-semibold cursor-pointer text-foreground">
                   Allow &quot;Other&quot;
                 </Label>
                 <Switch
