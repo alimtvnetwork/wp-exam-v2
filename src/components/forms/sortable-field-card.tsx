@@ -3412,6 +3412,28 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 Max {field.fileValidation?.maxSizeMb || 10}MB
               </Badge>
             )}
+
+            {/* Quick Question Email & Webhook Alert Trigger Button */}
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => setShowTriggers(!showTriggers)}
+              className={`h-8 px-2.5 text-xs gap-1.5 rounded-lg border transition-all cursor-pointer ${
+                showTriggers
+                  ? 'bg-primary/10 border-primary text-primary font-semibold'
+                  : 'border-border/80 text-muted-foreground hover:text-foreground hover:border-primary/40'
+              }`}
+              title="Configure Question Email & Webhook Triggers"
+            >
+              <Mail className="w-3.5 h-3.5 text-primary" />
+              <span>Email Alert</span>
+              {activeTriggers.length > 0 && (
+                <span className="w-4 h-4 rounded-full bg-primary text-primary-foreground text-[10px] font-bold flex items-center justify-center ml-0.5">
+                  {activeTriggers.length}
+                </span>
+              )}
+            </Button>
           </div>
 
           {/* Combined Action Buttons: [Delete - Red on LEFT] | [Duplicate - Blue in CENTER] | [Save - Green on RIGHT] */}

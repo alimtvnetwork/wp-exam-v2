@@ -13,9 +13,14 @@ import {
   Copy,
   Sparkles,
   Smartphone,
+  Tablet,
+  Monitor,
   CheckCircle2,
   X,
   RefreshCw,
+  LayoutTemplate,
+  Sliders,
+  Layers,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -23,32 +28,28 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { Switch } from '@/components/ui/switch';
 import { toast } from 'sonner';
 import {
   NotificationTrigger,
   NotificationChannel,
   NotificationTriggerEvent,
+  EmailThemeType,
+  EmailCustomizationConfig,
+  EmailSectionVisibility,
 } from '@/lib/types/form';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
 import {
-  DEFAULT_EMAIL_TEMPLATE,
+  EMAIL_THEMES,
+  DEFAULT_EMAIL_SECTIONS,
   DEFAULT_MOCK_APPLICANT_DATA,
-  interpolateEmailTemplate,
+  generateModularEmailHtml,
 } from '@/lib/templates/email-template';
 
 interface NotificationTriggerModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
-const COLOR_PRESETS = [
-  { name: 'Emerald Choice', hex: '#16a34a' },
-  { name: 'Deep Navy', hex: '#0b1220' },
-  { name: 'Royal Blue', hex: '#2563eb' },
-  { name: 'Modern Purple', hex: '#7c3aed' },
-  { name: 'Sunset Amber', hex: '#ea580c' },
-  { name: 'Crimson Rose', hex: '#e11d48' },
-];
 
 export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> = ({
   isOpen,
@@ -57,12 +58,12 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
   const store = useQuizStore();
   const formSettings = store.settings || {};
   const currentTriggers = formSettings.notificationTriggers || [];
+  const currentCustomization = formSettings.emailCustomization;
 
   const [triggers, setTriggers] = useState<NotificationTrigger[]>(() => {
     if (currentTriggers.length > 0) {
       return currentTriggers;
     }
-    // Default initial email trigger
     return [
       {
         id: 'trigger-email-1',
@@ -81,7 +82,28 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
   const [selectedTriggerId, setSelectedTriggerId] = useState<string>(
     triggers[0]?.id || 'trigger-email-1'
   );
-  const [activeTab, setActiveTab] = useState<'config' | 'preview'>('config');
+
+  const [activeTab, setActiveTab] = useState<'triggers' | 'designer' | 'preview'>('triggers');
+
+  // Multi-Screen viewport toggle state
+  const [viewportMode, setViewportMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+
+  // Email customization state
+  const [customization, setCustomization] = useState<EmailCustomizationConfig>(() => ({
+    theme: currentCustomization?.theme || 'emerald',
+    primaryColor: currentCustomization?.primaryColor || '#16a34a',
+    companyName: currentCustomization?.companyName || 'WP Exam Systems',
+    headerBannerText:
+      currentCustomization?.headerBannerText ||
+      'WP Exam System — Official Assessment Submission',
+    footerNoteText:
+      currentCustomization?.footerNoteText ||
+      'Submission recorded securely via WP Exam Application Engine.',
+    sections: {
+      ...DEFAULT_EMAIL_SECTIONS,
+      ...(currentCustomization?.sections || {}),
+    },
+  }));
 
   // Preview mock applicant overrides
   const [mockCandidate, setMockCandidate] = useState({
@@ -90,6 +112,7 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
     email: 'alex.morgan@example.org',
     salary: '$6,500 / month',
     score: 85,
+    phone: '+1 (555) 019-2834',
   });
 
   if (!isOpen) {
@@ -119,7 +142,7 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
       fromName: 'WP Exam Admissions',
       fromEmail: 'notifications@example.org',
       subject: `New Notification: {{form_title}}`,
-      colorPalette: '#16a34a',
+      colorPalette: customization.primaryColor || '#16a34a',
     };
     const nextList = [...triggers, newTrigger];
     setTriggers(nextList);
@@ -136,9 +159,45 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
     toast.info('Trigger removed.');
   };
 
-  const handleSave = () => {
-    store.updateSettings({ notificationTriggers: triggers });
-    toast.success('Notification triggers saved successfully!');
+  const handleUpdateCustomization = (patch: Partial<EmailCustomizationConfig>) => {
+    setCustomization((prev) => ({
+      ...prev,
+      ...patch,
+      sections: {
+        ...prev.sections,
+        ...(patch.sections || {}),
+      },
+    }));
+  };
+
+  const handleToggleSection = (sectionKey: keyof EmailSectionVisibility) => {
+    setCustomization((prev) => ({
+      ...prev,
+      sections: {
+        ...prev.sections,
+        [sectionKey]: !prev.sections[sectionKey],
+      },
+    }));
+  };
+
+  const handleThemeChange = (themeKey: EmailThemeType) => {
+    const pal = EMAIL_THEMES[themeKey];
+    handleUpdateCustomization({
+      theme: themeKey,
+      primaryColor: pal.primaryColor,
+    });
+    if (activeTrigger) {
+      handleUpdateActiveTrigger({ colorPalette: pal.primaryColor });
+    }
+    toast.success(`Switched email template theme to "${pal.name}".`);
+  };
+
+  const handleSaveAll = () => {
+    store.updateSettings({
+      notificationTriggers: triggers,
+      emailCustomization: customization,
+    });
+    toast.success('Notification triggers and email templates saved!');
     onClose();
   };
 
@@ -153,18 +212,25 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
 
   // Compute rendered HTML for live preview dock
   const previewHtml = useMemo(() => {
-    const template = activeTrigger?.templateHtml || DEFAULT_EMAIL_TEMPLATE;
-    const vars: Record<string, string | number> = {
+    const userVars: Record<string, string | number> = {
       ...DEFAULT_MOCK_APPLICANT_DATA,
       form_title: store.title || 'Candidate Evaluation Assessment',
       candidate_name: mockCandidate.name,
       job_position: mockCandidate.position,
       candidate_email: mockCandidate.email,
+      candidate_phone: mockCandidate.phone,
       asking_salary: mockCandidate.salary,
-      primary_color: activeTrigger?.colorPalette || '#16a34a',
     };
-    return interpolateEmailTemplate(template, vars);
-  }, [activeTrigger, store.title, mockCandidate]);
+    return generateModularEmailHtml(customization, userVars);
+  }, [customization, store.title, mockCandidate]);
+
+  // Width for multi-screen responsive simulation
+  const previewContainerWidth =
+    viewportMode === 'mobile'
+      ? '360px'
+      : viewportMode === 'tablet'
+      ? '540px'
+      : '100%';
 
   return (
     <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-5 overflow-y-auto animate-in fade-in duration-150">
@@ -173,17 +239,17 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
         <CardHeader className="px-5 py-4 border-b border-border/80 flex flex-row items-center justify-between space-y-0 bg-muted/20">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shadow-xs">
-              <Bell className="w-5 h-5" />
+              <Mail className="w-5 h-5" />
             </div>
             <div>
               <CardTitle className="text-lg font-bold font-heading text-foreground flex items-center gap-2">
-                Notification Triggers &amp; Template Studio
+                Email Template Studio &amp; Notification Triggers
                 <Badge variant="outline" className="text-xs bg-primary/10 text-primary border-primary/30">
-                  Spec 15
+                  Spec 16
                 </Badge>
               </CardTitle>
               <CardDescription className="text-xs text-muted-foreground">
-                Configure automated multi-channel alerts (Email, WhatsApp, Telegram) with zero-PII templates.
+                Customize email themes, section layouts, and multi-channel alerts (Email, WhatsApp, Telegram).
               </CardDescription>
             </div>
           </div>
@@ -192,14 +258,26 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
             <div className="inline-flex items-center p-0.5 rounded-lg border border-border bg-background shadow-xs text-xs">
               <button
                 type="button"
-                onClick={() => setActiveTab('config')}
+                onClick={() => setActiveTab('triggers')}
                 className={`px-3 py-1 rounded-md font-medium transition-all ${
-                  activeTab === 'config'
+                  activeTab === 'triggers'
                     ? 'bg-primary text-primary-foreground font-semibold shadow-2xs'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
-                Configuration
+                Triggers &amp; Routing
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveTab('designer')}
+                className={`px-3 py-1 rounded-md font-medium transition-all flex items-center gap-1.5 ${
+                  activeTab === 'designer'
+                    ? 'bg-primary text-primary-foreground font-semibold shadow-2xs'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <LayoutTemplate className="w-3.5 h-3.5" />
+                <span>Email Designer</span>
               </button>
               <button
                 type="button"
@@ -211,7 +289,7 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
                 }`}
               >
                 <Eye className="w-3.5 h-3.5" />
-                <span>Live Email Preview</span>
+                <span>Multi-Screen Preview</span>
               </button>
             </div>
 
@@ -228,7 +306,7 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
 
         {/* Content Body */}
         <CardContent className="p-0 flex-1 min-h-0 overflow-y-auto">
-          {activeTab === 'config' ? (
+          {activeTab === 'triggers' && (
             <div className="grid grid-cols-1 lg:grid-cols-12 min-h-[520px]">
               {/* Left Sidebar: Triggers List & Channel Adders */}
               <div className="lg:col-span-4 border-r border-border/80 p-4 space-y-4 bg-muted/10">
@@ -298,7 +376,7 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
                             </div>
                             <div className="text-[11px] text-muted-foreground flex items-center gap-1.5 capitalize">
                               <span>{trig.channel}</span>
-                              <span>•</span>
+                              <span>&bull;</span>
                               <span>{trig.event.replace(/_/g, ' ')}</span>
                             </div>
                           </div>
@@ -489,44 +567,6 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
                             />
                           </div>
                         </div>
-
-                        {/* Brand Theme / Primary Palette Hex */}
-                        <div className="space-y-2 pt-2 border-t border-border/80">
-                          <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                            <Palette className="w-3.5 h-3.5 text-primary" />
-                            <span>Template Primary Accent Color</span>
-                          </Label>
-                          <div className="flex flex-wrap items-center gap-2">
-                            {COLOR_PRESETS.map((preset) => {
-                              const isCur = (activeTrigger.colorPalette || '#16a34a') === preset.hex;
-                              return (
-                                <button
-                                  key={preset.hex}
-                                  type="button"
-                                  onClick={() => handleUpdateActiveTrigger({ colorPalette: preset.hex })}
-                                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium border transition-all cursor-pointer ${
-                                    isCur
-                                      ? 'border-foreground shadow-xs ring-1 ring-foreground/20 font-bold'
-                                      : 'border-border/80 hover:border-primary/50'
-                                  }`}
-                                >
-                                  <span
-                                    className="w-3 h-3 rounded-full shrink-0 shadow-2xs"
-                                    style={{ backgroundColor: preset.hex }}
-                                  />
-                                  <span>{preset.name}</span>
-                                </button>
-                              );
-                            })}
-                            <Input
-                              type="text"
-                              value={activeTrigger.colorPalette || '#16a34a'}
-                              onChange={(e) => handleUpdateActiveTrigger({ colorPalette: e.target.value })}
-                              className="h-7 w-24 text-xs font-mono px-2"
-                              placeholder="#16a34a"
-                            />
-                          </div>
-                        </div>
                       </div>
                     ) : (
                       /* WhatsApp & Telegram configuration */
@@ -569,63 +609,259 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
                 )}
               </div>
             </div>
-          ) : (
-            /* Live Email Preview Dock */
-            <div className="p-4 space-y-4">
-              {/* Preview Dock Toolbar */}
-              <div className="p-3 bg-muted/20 border border-border/80 rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs">
-                <div className="flex flex-wrap items-center gap-3">
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-muted-foreground font-medium">Candidate:</span>
+          )}
+
+          {/* TAB 2: Email Template Designer */}
+          {activeTab === 'designer' && (
+            <div className="p-6 space-y-6">
+              {/* Theme Palette Picker (6 Themes) */}
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <Palette className="w-4 h-4 text-primary" />
+                      <span>Email Template Theme Palette</span>
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      Select one of 6 professionally calibrated visual themes for candidate email communications.
+                    </p>
+                  </div>
+                  <Badge variant="outline" className="text-xs capitalize font-semibold">
+                    Current: {EMAIL_THEMES[customization.theme]?.name}
+                  </Badge>
+                </div>
+
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                  {(Object.keys(EMAIL_THEMES) as EmailThemeType[]).map((themeKey) => {
+                    const pal = EMAIL_THEMES[themeKey];
+                    const isSelected = customization.theme === themeKey;
+
+                    return (
+                      <div
+                        key={themeKey}
+                        onClick={() => handleThemeChange(themeKey)}
+                        className={`p-3 rounded-xl border transition-all cursor-pointer flex flex-col gap-2 ${
+                          isSelected
+                            ? 'border-primary ring-2 ring-primary/40 bg-primary/5 shadow-xs'
+                            : 'border-border/80 bg-card hover:border-primary/40 hover:bg-accent/40'
+                        }`}
+                      >
+                        <div className="flex items-center justify-between">
+                          <span
+                            className="w-5 h-5 rounded-full shadow-2xs border border-white"
+                            style={{ backgroundColor: pal.primaryColor }}
+                          />
+                          {isSelected && <Check className="w-3.5 h-3.5 text-primary" />}
+                        </div>
+                        <div className="font-semibold text-xs text-foreground">{pal.name}</div>
+                        <div className="text-[10px] text-muted-foreground font-mono">{pal.primaryColor}</div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Header & Branding Controls */}
+              <div className="p-4 rounded-xl border border-border/80 bg-muted/10 space-y-4">
+                <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+                  <Sliders className="w-3.5 h-3.5 text-primary" />
+                  <span>Branding &amp; Header Content</span>
+                </h4>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-foreground">Company / Organization</Label>
                     <Input
-                      value={mockCandidate.name}
-                      onChange={(e) => setMockCandidate({ ...mockCandidate, name: e.target.value })}
-                      className="h-7 w-32 text-xs"
+                      value={customization.companyName || ''}
+                      onChange={(e) => handleUpdateCustomization({ companyName: e.target.value })}
+                      placeholder="WP Exam Systems"
+                      className="h-8 text-xs bg-background"
                     />
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-muted-foreground font-medium">Position:</span>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-foreground">Header Banner Text</Label>
                     <Input
-                      value={mockCandidate.position}
-                      onChange={(e) => setMockCandidate({ ...mockCandidate, position: e.target.value })}
-                      className="h-7 w-44 text-xs"
+                      value={customization.headerBannerText || ''}
+                      onChange={(e) => handleUpdateCustomization({ headerBannerText: e.target.value })}
+                      placeholder="Official Submission Received"
+                      className="h-8 text-xs bg-background"
                     />
                   </div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-muted-foreground font-medium">Asking Salary:</span>
+
+                  <div className="space-y-1.5">
+                    <Label className="text-xs font-semibold text-foreground">Footer Disclaimers</Label>
                     <Input
-                      value={mockCandidate.salary}
-                      onChange={(e) => setMockCandidate({ ...mockCandidate, salary: e.target.value })}
-                      className="h-7 w-28 text-xs"
+                      value={customization.footerNoteText || ''}
+                      onChange={(e) => handleUpdateCustomization({ footerNoteText: e.target.value })}
+                      placeholder="Captured by WP Exam Engine"
+                      className="h-8 text-xs bg-background"
                     />
                   </div>
                 </div>
+              </div>
 
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
-                    Zero PII Ingested
-                  </Badge>
+              {/* Modular Section Visibility Toggles */}
+              <div className="p-4 rounded-xl border border-border/80 bg-card space-y-4">
+                <div>
+                  <h4 className="text-xs font-bold text-foreground uppercase tracking-wider flex items-center gap-2">
+                    <Layers className="w-3.5 h-3.5 text-primary" />
+                    <span>Modular Email Sections (Toggle Inclusion)</span>
+                  </h4>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    Choose which sections are printed and included in the candidate's email report.
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                  <div className="p-3 rounded-lg border border-border/70 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-xs text-foreground">Section 1: Applicant Details</div>
+                      <div className="text-[10px] text-muted-foreground">Name, role, email, phone, country</div>
+                    </div>
+                    <Switch
+                      checked={customization.sections.showApplicantDetails}
+                      onCheckedChange={() => handleToggleSection('showApplicantDetails')}
+                    />
+                  </div>
+
+                  <div className="p-3 rounded-lg border border-border/70 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-xs text-foreground">Section 2: Profiles &amp; Work Links</div>
+                      <div className="text-[10px] text-muted-foreground">GitHub, LinkedIn, Portfolio, CV link</div>
+                    </div>
+                    <Switch
+                      checked={customization.sections.showProfilesAndLinks}
+                      onCheckedChange={() => handleToggleSection('showProfilesAndLinks')}
+                    />
+                  </div>
+
+                  <div className="p-3 rounded-lg border border-border/70 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-xs text-foreground">Section 3: Workstation &amp; Setup</div>
+                      <div className="text-[10px] text-muted-foreground">Degree, remote compatibility, specs</div>
+                    </div>
+                    <Switch
+                      checked={customization.sections.showQualifications}
+                      onCheckedChange={() => handleToggleSection('showQualifications')}
+                    />
+                  </div>
+
+                  <div className="p-3 rounded-lg border border-border/70 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-xs text-foreground">Section 4: Technical Statement</div>
+                      <div className="text-[10px] text-muted-foreground">Approach narrative, candidate intro</div>
+                    </div>
+                    <Switch
+                      checked={customization.sections.showTechnicalStatement}
+                      onCheckedChange={() => handleToggleSection('showTechnicalStatement')}
+                    />
+                  </div>
+
+                  <div className="p-3 rounded-lg border border-border/70 flex items-center justify-between gap-3">
+                    <div>
+                      <div className="font-semibold text-xs text-foreground">Section 5: Compensation</div>
+                      <div className="text-[10px] text-muted-foreground">Current salary, asking salary, hours</div>
+                    </div>
+                    <Switch
+                      checked={customization.sections.showCompensation}
+                      onCheckedChange={() => handleToggleSection('showCompensation')}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* TAB 3: Multi-Screen Live Preview */}
+          {activeTab === 'preview' && (
+            <div className="p-4 space-y-4">
+              {/* Preview Dock Toolbar */}
+              <div className="p-3 bg-muted/20 border border-border/80 rounded-xl flex flex-wrap items-center justify-between gap-3 text-xs">
+                {/* Viewport Screen Width Selector */}
+                <div className="flex items-center gap-1.5 p-1 bg-background rounded-lg border border-border shadow-xs">
+                  <button
+                    type="button"
+                    onClick={() => setViewportMode('desktop')}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                      viewportMode === 'desktop'
+                        ? 'bg-primary text-primary-foreground font-bold shadow-2xs'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Monitor className="w-3.5 h-3.5" />
+                    <span>Desktop (680px)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewportMode('tablet')}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                      viewportMode === 'tablet'
+                        ? 'bg-primary text-primary-foreground font-bold shadow-2xs'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Tablet className="w-3.5 h-3.5" />
+                    <span>Tablet (540px)</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewportMode('mobile')}
+                    className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-medium transition-all ${
+                      viewportMode === 'mobile'
+                        ? 'bg-primary text-primary-foreground font-bold shadow-2xs'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Smartphone className="w-3.5 h-3.5" />
+                    <span>Mobile (360px)</span>
+                  </button>
+                </div>
+
+                {/* Candidate Mock Data Controls */}
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="flex items-center gap-1">
+                    <span className="text-muted-foreground">Applicant:</span>
+                    <Input
+                      value={mockCandidate.name}
+                      onChange={(e) => setMockCandidate({ ...mockCandidate, name: e.target.value })}
+                      className="h-7 w-28 text-xs bg-background"
+                    />
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <span className="text-muted-foreground">Salary:</span>
+                    <Input
+                      value={mockCandidate.salary}
+                      onChange={(e) => setMockCandidate({ ...mockCandidate, salary: e.target.value })}
+                      className="h-7 w-24 text-xs bg-background"
+                    />
+                  </div>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
                     onClick={handleSendTestNotification}
-                    className="h-7 px-2.5 text-xs gap-1.5 text-foreground hover:text-primary"
+                    className="h-7 px-2.5 text-xs gap-1 text-foreground hover:text-primary"
                   >
-                    <Send className="w-3.5 h-3.5 text-primary" />
-                    <span>Send Test Dispatch</span>
+                    <Send className="w-3 h-3 text-primary" />
+                    <span>Test Send</span>
                   </Button>
                 </div>
               </div>
 
-              {/* Sandboxed Iframe Container */}
-              <div className="w-full border border-border rounded-xl bg-white shadow-sm overflow-hidden h-[540px]">
-                <iframe
-                  title="Sanitized Email Template Live Preview"
-                  srcDoc={previewHtml}
-                  className="w-full h-full border-0"
-                  sandbox="allow-same-origin"
-                />
+              {/* Sandboxed Responsive Preview Dock */}
+              <div className="w-full flex justify-center bg-muted/40 p-4 rounded-xl border border-border/80 overflow-x-auto min-h-[520px]">
+                <div
+                  className="bg-white rounded-xl shadow-lg border border-border overflow-hidden transition-all duration-200"
+                  style={{ width: previewContainerWidth, height: '520px' }}
+                >
+                  <iframe
+                    title="Sanitized Email Template Multi-Screen Preview"
+                    srcDoc={previewHtml}
+                    className="w-full h-full border-0"
+                    sandbox="allow-same-origin"
+                  />
+                </div>
               </div>
             </div>
           )}
@@ -634,15 +870,17 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
         {/* Footer */}
         <div className="px-5 py-3.5 border-t border-border/80 bg-muted/20 flex items-center justify-between">
           <div className="text-xs text-muted-foreground">
-            Changes apply to form triggers when saved.
+            {activeTab === 'designer'
+              ? 'Changes immediately update the live email preview dock.'
+              : 'Configured triggers and template customizations persist to form settings.'}
           </div>
           <div className="flex items-center gap-2">
             <Button variant="outline" size="sm" onClick={onClose} className="h-8 text-xs">
               Cancel
             </Button>
-            <Button size="sm" onClick={handleSave} className="h-8 text-xs bg-primary hover:bg-primary/90 font-semibold gap-1.5">
+            <Button size="sm" onClick={handleSaveAll} className="h-8 text-xs bg-primary hover:bg-primary/90 font-semibold gap-1.5">
               <Check className="w-3.5 h-3.5" />
-              <span>Save Triggers</span>
+              <span>Save Changes</span>
             </Button>
           </div>
         </div>

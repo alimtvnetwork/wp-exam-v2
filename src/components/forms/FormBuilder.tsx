@@ -699,8 +699,8 @@ export const FormBuilder: React.FC = () => {
                   <Bell className="w-3.5 h-3.5" />
                 </div>
                 <div>
-                  <div className="font-semibold text-foreground">Notification Triggers</div>
-                  <div className="text-sm text-muted-foreground">Email, WhatsApp & Telegram alerts</div>
+                  <div className="font-semibold text-foreground">Email &amp; Notification Studio</div>
+                  <div className="text-sm text-muted-foreground">Themes, section templates &amp; triggers</div>
                 </div>
               </DropdownMenuItem>
 

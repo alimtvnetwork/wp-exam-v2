@@ -60,6 +60,7 @@ App-specific specification content for the WP Exam plugin. This engine provides 
 | 13 | [13-question-card-and-exam-intelligence.md](./13-question-card-and-exam-intelligence.md) | Question Card Redesign, Floating Placeholders, Boolean Presets, Difficulty Tiers, Citations & Timers | Complete |
 | 14 | [14-preview-quiz-redesign-hero-sidebar-session.md](./14-preview-quiz-redesign-hero-sidebar-session.md) | Quiz Preview Redesign, Hero Model, Sequence Sidebar, Session Persistence & Anti-Collision | Complete |
 | 15 | [15-card-actions-dropdown-rating-and-email-triggers.md](./15-card-actions-dropdown-rating-and-email-triggers.md) | Card Actions, Enhanced Dropdowns, Multi-Mode Rating & Notification Triggers | Complete |
+| 16 | [16-email-templates-multi-theme-and-screen-verification.md](./16-email-templates-multi-theme-and-screen-verification.md) | Email Template Studio, Multi-Theme Palettes & Multi-Screen Verification | Complete |
 
 ---
 

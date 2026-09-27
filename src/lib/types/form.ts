@@ -52,6 +52,25 @@ export interface NotificationTrigger {
   conditionScoreMax?: number;
 }
 
+export type EmailThemeType = 'emerald' | 'navy' | 'blue' | 'purple' | 'amber' | 'slate';
+
+export interface EmailSectionVisibility {
+  showApplicantDetails: boolean;
+  showProfilesAndLinks: boolean;
+  showQualifications: boolean;
+  showTechnicalStatement: boolean;
+  showCompensation: boolean;
+}
+
+export interface EmailCustomizationConfig {
+  theme: EmailThemeType;
+  primaryColor?: string;
+  companyName?: string;
+  headerBannerText?: string;
+  footerNoteText?: string;
+  sections: EmailSectionVisibility;
+}
+
 export type BooleanDisplayPreset = 'true_false' | 'yes_no' | 'enable_disable' | 'agree_disagree';
 export type QuestionDifficulty = 'easy' | 'medium' | 'hard' | 'custom';
 export type CitationPosition = 'prefix' | 'suffix';
@@ -192,6 +211,7 @@ export interface FormSettings {
   notificationEmail?: string;
   successMessage?: string;
   notificationTriggers?: NotificationTrigger[];
+  emailCustomization?: EmailCustomizationConfig;
 }
 
 export interface FormModel {
