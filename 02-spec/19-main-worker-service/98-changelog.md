@@ -1,3 +1,9 @@
+## v0.3.8 — 2026-10-01 (Synchronize V6 prompts, SQLite task manager, skills, and coding guidelines)
+
+**Scope:** Version bump. Synchronize V6 prompts, SQLite task manager, skills, and coding guidelines.
+
+---
+
 ## v0.2.0 — 2026-09-24 (Enterprise Google Forms builder, dynamic theming, and focus quiz editor)
 
 **Scope:** Version bump. Enterprise Google Forms builder, dynamic theming, and focus quiz editor.
