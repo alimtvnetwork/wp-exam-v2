@@ -1677,6 +1677,15 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     </>
   );
 
+  const isHeroAndAccessBarVisible = useMemo(() => {
+    if (effectiveLayoutMode === 'presentation_split') return false;
+    if (isPreviewRoute) return false;
+    if (isCandidateOrPreview) return false;
+    if (isSequential && currentStep > 0) return false;
+    if (Object.keys(answers).length > 0) return false;
+    return true;
+  }, [effectiveLayoutMode, isPreviewRoute, isCandidateOrPreview, isSequential, currentStep, answers]);
+
   return (
     <div
       className={`min-h-screen w-full transition-colors duration-300 font-sans theme-${activeThemeId} ${
@@ -1690,7 +1699,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
         color: currentTheme?.colors?.textPrimary || '#0F172A',
       }}
     >
-      <div className={`space-y-5 mx-auto ${effectiveLayoutMode === 'presentation_split' ? 'w-full max-w-[98vw] px-2 sm:px-4' : activeThemeId === 'clean-wide' ? 'max-w-7xl' : 'max-w-6xl'}`}>
+      <div className={`space-y-5 mx-auto ${effectiveLayoutMode === 'presentation_split' ? 'w-full max-w-[1400px] px-2 sm:px-4' : activeThemeId === 'clean-wide' ? 'max-w-7xl' : 'max-w-6xl'}`}>
         {/* Streamlined Single-Line Project Selector, Slug & Actions Bar */}
       <div
         className="p-2.5 sm:px-4 border border-border bg-card text-card-foreground rounded-xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors"
@@ -1737,8 +1746,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               <span className="font-heading font-bold text-sm sm:text-base text-foreground truncate min-w-0">
                 {activeForm.title || 'Candidate Assessment'}
               </span>
-              {isPreviewRoute ? null : (
-                <Badge variant="outline" className="text-[11px] font-mono border-border text-foreground bg-card shrink-0">
+              {!isCandidateOrPreview && (
+                <Badge variant="outline" className="text-[11px] font-mono border-border text-foreground bg-muted/40 shrink-0">
                   Official Assessment
                 </Badge>
               )}
@@ -1847,50 +1856,62 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           {/* Grouped Action Pill: [ ⚡ Auto | 🛠️ Debug | ✕ Exit ] (Hidden in candidate or preview mode) */}
           {isDevActionPillVisible && (
             <div className="flex items-center h-8 bg-muted/60 p-0.5 rounded-lg border border-border divide-x divide-border shrink-0">
-              <button
-                type="button"
-                onClick={handleAutoFill}
-                className="h-7 px-2.5 text-xs font-medium font-sans flex items-center gap-1 text-foreground hover:text-primary hover:bg-background/80 rounded-l-md transition-all cursor-pointer"
-                title="Auto-fill form fields with sample test data"
-              >
-                <Zap className="w-3.5 h-3.5 text-amber-500" />
-                <span>Auto</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => setIsDebugMode(!isDebugMode)}
-                className={`h-7 px-2.5 text-xs font-medium font-sans flex items-center gap-1 transition-all cursor-pointer ${
-                  isDebugMode
-                    ? 'bg-amber-600 text-white font-semibold'
-                    : 'text-foreground hover:text-amber-600 hover:bg-background/80'
-                }`}
-                title="Toggle Debug Simulator & Step Jumper"
-              >
-                <Bug className="w-3.5 h-3.5 text-amber-500" />
-                <span>Debug</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  if (onClose) {
-                    onClose();
-                  } else {
-                    navigate('/');
-                  }
-                }}
-                className="h-7 px-2.5 text-xs font-medium font-sans flex items-center gap-1 text-muted-foreground hover:text-destructive hover:bg-background/80 rounded-r-md transition-all cursor-pointer"
-                title="Exit form runner and return to portal"
-              >
-                <X className="w-3.5 h-3.5" />
-                <span>Exit</span>
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={handleAutoFill}
+                    className="h-7 px-2.5 text-xs font-medium font-sans flex items-center gap-1 text-foreground hover:text-primary hover:bg-background/80 rounded-l-md transition-all cursor-pointer"
+                  >
+                    <Zap className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Auto</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Auto-fill form fields with sample test data</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => setIsDebugMode(!isDebugMode)}
+                    className={`h-7 px-2.5 text-xs font-medium font-sans flex items-center gap-1 transition-all cursor-pointer ${
+                      isDebugMode
+                        ? 'bg-amber-600 text-white font-semibold'
+                        : 'text-foreground hover:text-amber-600 hover:bg-background/80'
+                    }`}
+                  >
+                    <Bug className="w-3.5 h-3.5 text-amber-500" />
+                    <span>Debug</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Toggle Debug Simulator & Step Jumper</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (onClose) {
+                        onClose();
+                      } else {
+                        navigate('/');
+                      }
+                    }}
+                    className="h-7 px-2.5 text-xs font-medium font-sans flex items-center gap-1 text-muted-foreground hover:text-destructive hover:bg-background/80 rounded-r-md transition-all cursor-pointer"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                    <span>Exit</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Exit form runner and return to portal</TooltipContent>
+              </Tooltip>
             </div>
           )}
         </div>
       </div>
 
-      {/* Hero Model: Assessment Introduction & Overview (Omitted in Presentation Slide Mode to maximize canvas) */}
-      {effectiveLayoutMode !== 'presentation_split' && (
+      {/* Hero Model: Assessment Introduction & Overview (Omitted during active questions and in preview mode) */}
+      {isHeroAndAccessBarVisible && (
         <>
           <QuizHeroSection
             title={activeForm.title || 'Candidate Assessment'}
@@ -2091,17 +2112,21 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               </>
             ) : (
               <div className="fixed bottom-6 left-6 z-40">
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setIsSidebarVisible(true)}
-                  className="h-10 px-4 text-xs font-sans font-medium gap-2 border-border bg-card/90 backdrop-blur-md text-foreground hover:bg-accent rounded-full shadow-lg transition-all cursor-pointer hover:scale-105"
-                  title="Show Question Sequence HUD"
-                >
-                  <Menu className="w-4 h-4 text-foreground" />
-                  <span>Questions ({currentStep + 1}/{visibleFields.length})</span>
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setIsSidebarVisible(true)}
+                      className="h-10 px-4 text-xs font-sans font-medium gap-2 border-border bg-card/90 backdrop-blur-md text-foreground hover:bg-accent rounded-full shadow-lg transition-all cursor-pointer hover:scale-105"
+                    >
+                      <Menu className="w-4 h-4 text-foreground" />
+                      <span>Questions ({currentStep + 1}/{visibleFields.length})</span>
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent>Show Question Sequence HUD</TooltipContent>
+                </Tooltip>
               </div>
             )
           ) : isSidebarVisible ? (
@@ -2112,17 +2137,21 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             </aside>
           ) : (
             <div className="shrink-0 sticky top-4">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setIsSidebarVisible(true)}
-                className="h-9 px-3 text-xs font-sans font-medium gap-1.5 border-border bg-card text-foreground hover:bg-accent rounded-xl shadow-xs transition-all cursor-pointer"
-                title="Show Question Sequence"
-              >
-                <Menu className="w-3.5 h-3.5 text-foreground" />
-                <span>Questions ({currentStep + 1}/{visibleFields.length})</span>
-              </Button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setIsSidebarVisible(true)}
+                    className="h-9 px-3 text-xs font-sans font-medium gap-1.5 border-border bg-card text-foreground hover:bg-accent rounded-xl shadow-xs transition-all cursor-pointer"
+                  >
+                    <Menu className="w-3.5 h-3.5 text-foreground" />
+                    <span>Questions ({currentStep + 1}/{visibleFields.length})</span>
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Show Question Sequence</TooltipContent>
+              </Tooltip>
             </div>
           )}
 
@@ -2190,7 +2219,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 {/* Top Meta Bar */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground pb-4 border-b border-border/80">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className="px-3 py-1 rounded-full text-xs font-mono font-semibold border-border text-foreground bg-card tracking-wide">
+                    <Badge variant="outline" className="px-3 py-1 rounded-full text-xs font-mono font-semibold border-border text-foreground bg-muted/60 dark:bg-white/10 dark:text-white dark:border-indigo-400/40 tracking-wide shadow-2xs">
                       {currentField.kickerText || `Question #${currentStep + 1} • ${currentField.group || activeForm.title}`}
                     </Badge>
                     {currentField.difficulty && (
@@ -2215,16 +2244,21 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                         <span>{formatTimerDisplay(timeLeftSeconds)}</span>
                       </Badge>
                     )}
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      onClick={handleToggleFullscreen}
-                      className="h-7 w-7 text-muted-foreground hover:text-foreground"
-                      title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen Exam'}
-                    >
-                      <Maximize2 className="w-3.5 h-3.5" />
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          onClick={handleToggleFullscreen}
+                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                          aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen Exam'}
+                        >
+                          <Maximize2 className="w-3.5 h-3.5" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen Exam'}</TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
 
@@ -2288,16 +2322,20 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                         </Button>
 
                         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                          <Button
-                            type="button"
-                            variant="outline"
-                            size="sm"
-                            onClick={handleTestAutoFill}
-                            className="text-xs h-9 px-3 font-semibold rounded-lg border border-border bg-card text-foreground hover:bg-accent transition-all cursor-pointer"
-                            title="Fill valid answer and advance"
-                          >
-                            ⚡ Auto Fill
-                          </Button>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleTestAutoFill}
+                                className="text-xs h-9 px-3 font-semibold rounded-lg border border-border bg-card text-foreground hover:bg-accent transition-all cursor-pointer"
+                              >
+                                ⚡ Auto Fill
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Fill valid answer and advance</TooltipContent>
+                          </Tooltip>
 
                           {isLastVisibleStep ? (
                             <Button
@@ -3251,7 +3289,7 @@ function renderFieldInput(
 ) {
   const strValue = typeof value === 'string' ? value : '';
   const choiceMotionClass = isPresentationSlide
-    ? 'slide-up-anim presentation-option-card hover:translate-x-2'
+    ? 'slide-up-anim presentation-option-card'
     : 'transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs';
 
   switch (field.type) {
@@ -3406,8 +3444,8 @@ function renderFieldInput(
                 key={opt}
                 className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${staggerClass} ${
                   isSelected
-                    ? 'border-primary bg-card text-foreground font-semibold shadow-xs ring-1 ring-border'
-                    : 'border-border/80 bg-card text-foreground'
+                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30'
+                    : 'border-border/80 bg-card text-foreground hover:bg-muted/50 hover:border-border'
                 }`}
               >
                 <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
@@ -3437,8 +3475,8 @@ function renderFieldInput(
               <label
                 className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
                   hasOther
-                    ? 'border-primary bg-card text-foreground font-semibold shadow-xs ring-1 ring-border'
-                    : 'border-border/80 bg-card text-foreground'
+                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30'
+                    : 'border-border/80 bg-card text-foreground hover:bg-muted/50 hover:border-border'
                 }`}
               >
                 <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-sans text-xs font-semibold shrink-0 transition-colors ${
@@ -3553,8 +3591,8 @@ function renderFieldInput(
                 key={opt}
                 className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${staggerClass} ${alignClass} ${
                   isSelected
-                    ? 'border-primary bg-card text-foreground font-semibold shadow-xs ring-1 ring-border'
-                    : 'border-border/80 bg-card text-foreground'
+                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30'
+                    : 'border-border/80 bg-card text-foreground hover:bg-muted/50 hover:border-border'
                 }`}
               >
                 <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
@@ -3611,8 +3649,8 @@ function renderFieldInput(
                 key={opt}
                 className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${staggerClass} ${
                   isSelected
-                    ? 'border-primary bg-card text-foreground font-semibold shadow-xs ring-1 ring-border'
-                    : 'border-border/80 bg-card text-foreground'
+                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30'
+                    : 'border-border/80 bg-card text-foreground hover:bg-muted/50 hover:border-border'
                 }`}
               >
                 <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
@@ -3642,8 +3680,8 @@ function renderFieldInput(
               <label
                 className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
                   hasOther
-                    ? 'border-primary bg-card text-foreground font-semibold shadow-xs ring-1 ring-border'
-                    : 'border-border/80 bg-card text-foreground'
+                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30'
+                    : 'border-border/80 bg-card text-foreground hover:bg-muted/50 hover:border-border'
                 }`}
               >
                 <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-sans text-xs font-semibold shrink-0 transition-colors ${

@@ -163,7 +163,7 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     colorClass: 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20',
   },
 
-  // Page Elements (Elementor-Style)
+  // Layout Category
   {
     type: 'section_header',
     label: 'Section Header / Title',
@@ -224,7 +224,7 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
     { id: 'choice', label: 'Choice', count: PALETTE_OPTIONS.filter((o) => o.category === 'choice').length, icon: CheckSquare },
     { id: 'text', label: 'Text', count: PALETTE_OPTIONS.filter((o) => o.category === 'text').length, icon: Type },
     { id: 'media', label: 'Media', count: PALETTE_OPTIONS.filter((o) => o.category === 'media').length, icon: Video },
-    { id: 'layout', label: 'Page Elements', count: PALETTE_OPTIONS.filter((o) => o.category === 'layout').length, icon: Heading },
+    { id: 'layout', label: 'Layout', count: PALETTE_OPTIONS.filter((o) => o.category === 'layout').length, icon: Heading },
   ] as const;
 
   const content = (
@@ -250,10 +250,11 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
         )}
       </div>
 
-      {/* Segmented Category Filter Pills */}
-      <div className="flex flex-nowrap items-center gap-1 p-0.5 bg-muted/40 rounded-lg border border-border/60 min-w-0">
+      {/* Segmented Category Filter Pills (Compact Icon Pills with Accessible Tooltips & Safe Overflow) */}
+      <div className="flex flex-nowrap items-center gap-1 p-1 bg-muted/40 rounded-lg border border-border/60 min-w-0 overflow-x-auto no-scrollbar">
         {categories.map((cat) => {
           const CategoryIcon = cat.icon;
+          const isSelected = selectedCategory === cat.id;
 
           return (
             <Tooltip key={cat.id}>
@@ -262,17 +263,21 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
                   type="button"
                   onClick={() => setSelectedCategory(cat.id)}
                   aria-label={`${cat.label} (${cat.count})`}
-                  className={`flex-1 min-w-0 text-xs py-1 px-1 sm:px-1.5 rounded-md transition-all font-medium text-center flex items-center justify-center gap-1 cursor-pointer ${
-                    selectedCategory === cat.id
-                      ? 'bg-background text-foreground font-semibold shadow-2xs'
-                      : 'text-muted-foreground hover:text-foreground'
+                  className={`flex-1 min-w-0 text-xs py-1.5 px-1.5 rounded-md transition-all font-medium text-center flex items-center justify-center gap-1 cursor-pointer shrink-0 ${
+                    isSelected
+                      ? 'bg-background text-foreground font-semibold shadow-xs'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                   }`}
                 >
                   <CategoryIcon className="w-3.5 h-3.5 shrink-0" />
-                  <span className="hidden 2xl:inline text-[11px] truncate">{cat.label}</span>
+                  <span className={`text-[11px] truncate ${isEmbedded ? 'hidden 2xl:inline-block' : 'hidden sm:inline-block'}`}>
+                    {cat.label}
+                  </span>
                 </button>
               </TooltipTrigger>
-              <TooltipContent>{cat.label} ({cat.count})</TooltipContent>
+              <TooltipContent side="top">
+                {cat.label} ({cat.count})
+              </TooltipContent>
             </Tooltip>
           );
         })}

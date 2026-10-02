@@ -599,7 +599,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 </button>
               )}
 
-              {/* Standardized h-8 Dirty-State Save Button */}
+              {/* Compact Dirty-State Save Button */}
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button
@@ -615,7 +615,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     <Save className={`w-3.5 h-3.5 ${isQuestionDirty ? 'text-white' : 'text-emerald-500'}`} />
                   </button>
                 </TooltipTrigger>
-                <TooltipContent>Save Question</TooltipContent>
+                <TooltipContent>{isQuestionDirty ? 'Save Question (Unsaved Changes)' : 'Question is Saved'}</TooltipContent>
               </Tooltip>
 
               {field.group && (
@@ -2027,9 +2027,9 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                               : 'bg-card border-border hover:bg-accent/40 text-foreground'
                           }`}
                         >
-                          <div className={`flex items-center gap-2 ${isRight ? 'flex-row-reverse' : ''}`}>
-                            <span className="font-mono text-muted-foreground">{String.fromCharCode(65 + i)}.</span>
-                            <span>{opt}</span>
+                          <div className={`flex items-center gap-2 min-w-0 ${isRight ? 'flex-row-reverse' : ''}`}>
+                            <span className="font-mono text-muted-foreground shrink-0">{String.fromCharCode(65 + i)}.</span>
+                            <span className="truncate">{opt}</span>
                           </div>
                           <div
                             className={`w-4 h-4 rounded border flex items-center justify-center shrink-0 ${
@@ -2986,7 +2986,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                               onUpdate(id, { options: newOpts, dropdownOptions: newDropdownOpts });
                             }}
                             placeholder={`Display Label (e.g. Option ${optIndex + 1})`}
-                            className="text-sm sm:text-base h-10 px-3.5 bg-background text-foreground flex-1 font-medium rounded-lg border border-border shadow-2xs"
+                            className="text-sm sm:text-base h-10 px-3.5 bg-background text-foreground flex-1 min-w-0 font-medium rounded-lg border border-border shadow-2xs"
                           />
                           <Input
                             value={storedValue}
@@ -3012,7 +3012,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                             onUpdate(id, { options: newOpts });
                           }}
                           placeholder={`Option ${optIndex + 1}`}
-                          className="text-sm sm:text-base h-10 px-3.5 bg-background text-foreground flex-1 font-medium rounded-lg border border-border shadow-2xs"
+                          className="text-sm sm:text-base h-10 px-3.5 bg-background text-foreground flex-1 min-w-0 font-medium rounded-lg border border-border shadow-2xs"
                         />
                       )}
 
@@ -3739,65 +3739,57 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
             )}
           </div>
 
-          {/* Right Action Buttons */}
-          <div className="flex items-center gap-2 ml-auto shrink-0">
-            {/* Standard Viewport Action Buttons: [Delete] | [Duplicate] | [Save] (>= 640px) */}
-            <div className="hidden sm:inline-flex items-center rounded-lg border border-border bg-card shadow-2xs overflow-hidden h-9">
-              {/* Delete Button Segment (LEFT - Destructive Red) */}
-              <button
-                type="button"
-                onClick={handleDeleteQuestion}
-                className="inline-flex items-center justify-center h-full px-2.5 text-destructive hover:bg-destructive/10 transition-colors cursor-pointer group"
-                title="Delete Question"
-              >
-                <Trash2 className="w-4 h-4 text-destructive group-hover:scale-110 transition-transform" />
-              </button>
+          {/* Right Action Buttons: Standardized Modern Icon Buttons with Radix Tooltips */}
+          <div className="flex items-center gap-1.5 ml-auto shrink-0">
+            {/* Delete Question Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={handleDeleteQuestion}
+                  className="h-8 w-8 rounded-lg border border-border/80 bg-card inline-flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 hover:border-destructive/30 transition-colors cursor-pointer"
+                  aria-label="Delete Question"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Delete Question</TooltipContent>
+            </Tooltip>
 
-              {/* Subtle Divider */}
-              <div className="w-px h-5 bg-border shrink-0" />
+            {/* Duplicate Question Button */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() => onDuplicate(id)}
+                  className="h-8 w-8 rounded-lg border border-border/80 bg-card inline-flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-accent transition-colors cursor-pointer"
+                  aria-label="Duplicate Question"
+                >
+                  <Copy className="w-3.5 h-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>Duplicate Question</TooltipContent>
+            </Tooltip>
 
-              {/* Duplicate Button Segment (CENTER - Primary Blue) */}
-              <button
-                type="button"
-                onClick={() => onDuplicate(id)}
-                className="inline-flex items-center justify-center h-full px-2.5 text-foreground hover:bg-accent hover:text-foreground transition-colors cursor-pointer group"
-                title="Duplicate Question"
-              >
-                <Copy className="w-4 h-4 text-foreground group-hover:scale-110 transition-transform" />
-              </button>
-
-              {/* Subtle Divider */}
-              <div className="w-px h-5 bg-border shrink-0" />
-
-              {/* Save Question Button Segment (RIGHT - Emerald Green) */}
-              <button
-                type="button"
-                onClick={handleSaveQuestion}
-                className={`inline-flex items-center justify-center h-full px-2.5 transition-colors cursor-pointer group ${
-                  isQuestionDirty
-                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-medium'
-                    : 'text-muted-foreground/60 hover:text-foreground hover:bg-muted/30 opacity-70'
-                }`}
-                title={isQuestionDirty ? 'Save changes to this question' : 'Question is saved'}
-              >
-                <Save className={`w-4 h-4 ${isQuestionDirty ? 'text-white' : 'text-emerald-500'}`} />
-              </button>
-            </div>
-
-            {/* Mobile / Compact Viewport Save Button (< 640px) */}
-            <button
-              type="button"
-              onClick={handleSaveQuestion}
-              className={`inline-flex sm:hidden items-center justify-center h-8 px-2.5 rounded-lg border text-xs gap-1.5 transition-colors cursor-pointer ${
-                isQuestionDirty
-                  ? 'bg-emerald-600 hover:bg-emerald-700 text-white font-medium border-emerald-600'
-                  : 'text-muted-foreground hover:text-foreground bg-card border-border/80'
-              }`}
-              title={isQuestionDirty ? 'Save changes to this question' : 'Question is saved'}
-            >
-              <Save className={`w-3.5 h-3.5 ${isQuestionDirty ? 'text-white' : 'text-emerald-500'}`} />
-              <span>{isQuestionDirty ? 'Save' : 'Saved'}</span>
-            </button>
+            {/* Save Question Button with Dynamic Dirty State */}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={handleSaveQuestion}
+                  className={`h-8 px-2.5 rounded-lg border text-xs font-semibold inline-flex items-center justify-center gap-1.5 transition-all cursor-pointer ${
+                    isQuestionDirty
+                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-xs ring-2 ring-emerald-500/20'
+                      : 'bg-card border-border/80 text-muted-foreground hover:text-foreground hover:bg-accent'
+                  }`}
+                  aria-label="Save Question"
+                >
+                  <Save className={`w-3.5 h-3.5 ${isQuestionDirty ? 'text-white' : 'text-emerald-500'}`} />
+                  <span className="font-mono">{isQuestionDirty ? 'Save' : 'Saved'}</span>
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{isQuestionDirty ? 'Save changes to this question' : 'Question is up to date'}</TooltipContent>
+            </Tooltip>
           </div>
         </CardFooter>
       </Card>

@@ -43,6 +43,7 @@ import { useTheme, THEME_CONFIGS, ORDERED_THEME_KEYS, AppThemeType } from '@/lib
 import { JsonModal } from './json-modal';
 import { GoogleFormsImportModal } from './google-forms-import-modal';
 import { DesignValidationPanel, DesignValidationSidebarView } from './design-validation-panel';
+import onboardingQuizLogo from '@/assets/onboarding-quiz-logo.svg';
 import { auditFormDesign, DesignHealthReport } from '@/lib/design-validation-engine';
 import { AiSectionAssistant } from './ai-section-assistant';
 import { BranchingFlowModal } from './branching-flow-modal';
@@ -475,8 +476,14 @@ export const FormBuilder: React.FC = () => {
             <ArrowLeft className="w-4 h-4 text-foreground" />
           </Button>
 
+          <img
+            src={onboardingQuizLogo}
+            alt="Onboarding Quiz"
+            className="w-7 h-7 rounded-md shrink-0 shadow-2xs ring-1 ring-border/40"
+          />
+
           <h1 className="text-sm sm:text-base font-bold tracking-tight text-foreground whitespace-nowrap">
-            Form <span className="text-primary">Builder</span>
+            Onboarding Quiz <span className="text-primary font-semibold text-xs ml-0.5">Builder</span>
           </h1>
 
           {/* Compact Slug Control with Link Icon Button & Popover Editor */}
@@ -700,8 +707,8 @@ export const FormBuilder: React.FC = () => {
         <div className="lg:col-span-8 space-y-5">
           {/* Prominent Google Forms Header Card */}
           <Card className="border border-border/80 bg-card shadow-md rounded-2xl overflow-hidden animate-sweet-fade-in">
-            {/* Top Accent Ribbon (Dynamic Theme Tint) */}
-            <div className="h-0.5 bg-gradient-to-r from-primary via-primary/80 to-primary/60 w-full" />
+            {/* Top Accent Ribbon (Refined Hairline Border) */}
+            <div className="h-px bg-gradient-to-r from-primary/60 via-primary/30 to-transparent w-full" />
 
             <CardContent className="p-5 sm:p-6 space-y-4">
               {/* Form Title & Config menu */}
@@ -985,21 +992,24 @@ export const FormBuilder: React.FC = () => {
 
                   return (
                     <React.Fragment key={field.id}>
-                      {/* Visual Google Forms Section Header Banner */}
+                      {/* Visual Google Forms Section Header Banner (Card Elevation with Refined Top Accent & Section Shadow) */}
                       {isFirstInGroup && (
-                        <div className="flex items-center justify-between p-3 rounded-lg bg-primary/5 border border-primary/20 shadow-xs">
-                          <div className="flex items-center gap-2">
-                            <Layers className="w-4 h-4 text-primary" />
-                            <span className="text-sm font-bold uppercase tracking-wider text-primary">
-                              Section: {field.group}
-                            </span>
+                        <div className="flex items-center justify-between p-3.5 rounded-xl bg-card border border-border/80 border-t-2 border-t-primary/70 shadow-md transition-all mb-1">
+                          <div className="flex items-center gap-2.5">
+                            <div className="w-7 h-7 rounded-lg bg-primary/10 flex items-center justify-center text-primary">
+                              <Layers className="w-4 h-4" />
+                            </div>
+                            <div>
+                              <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground font-semibold block">Section</span>
+                              <span className="text-sm font-bold text-foreground">{field.group}</span>
+                            </div>
                           </div>
                           <div className="flex items-center gap-2">
                             <Button
                               type="button"
                               variant="ghost"
                               size="sm"
-                              className="text-primary hover:bg-primary/10 gap-1 font-mono font-medium"
+                              className="h-8 text-xs text-muted-foreground hover:text-foreground hover:bg-muted gap-1.5 font-medium rounded-lg"
                               onClick={() => {
                                 const sectionFields = fields.filter((f) => f.group === field.group);
                                 const jsonStr = JSON.stringify(sectionFields, null, 2);
@@ -1008,11 +1018,11 @@ export const FormBuilder: React.FC = () => {
                               }}
                               title="Export all questions in this section as JSON"
                             >
-                              <FileJson className="w-3 h-3" />
+                              <FileJson className="w-3.5 h-3.5 text-primary" />
                               <span>Export Section JSON</span>
                             </Button>
-                            <Badge variant="outline" className="text-sm bg-background">
-                              Section
+                            <Badge variant="outline" className="text-xs px-2 py-0.5 bg-muted/50 border-border font-medium">
+                              {fields.filter((f) => f.group === field.group).length} Questions
                             </Badge>
                           </div>
                         </div>
@@ -1090,21 +1100,23 @@ export const FormBuilder: React.FC = () => {
                       <TabsTrigger
                         value="palette"
                         aria-label="Fields"
-                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center font-semibold transition-all cursor-pointer"
+                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer text-xs"
                       >
-                        <Layers className="w-4 h-4 text-primary" />
+                        <Layers className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span className="hidden sm:inline-block text-[11px] truncate">Fields</span>
                       </TabsTrigger>
                     </TooltipTrigger>
-                    <TooltipContent>Fields</TooltipContent>
+                    <TooltipContent>Fields ({fields.length})</TooltipContent>
                   </Tooltip>
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <TabsTrigger
                         value="outline"
                         aria-label={`Outline (${fields.length})`}
-                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center font-semibold transition-all cursor-pointer"
+                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer text-xs"
                       >
-                        <ListOrdered className="w-4 h-4 text-primary" />
+                        <ListOrdered className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span className="hidden sm:inline-block text-[11px] truncate">Outline</span>
                       </TabsTrigger>
                     </TooltipTrigger>
                     <TooltipContent>Outline ({fields.length})</TooltipContent>
@@ -1114,9 +1126,10 @@ export const FormBuilder: React.FC = () => {
                       <TabsTrigger
                         value="audit"
                         aria-label={`Audit (${designReport.grade})`}
-                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center font-semibold transition-all cursor-pointer"
+                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer text-xs"
                       >
-                        <ShieldCheck className="w-4 h-4 text-primary" />
+                        <ShieldCheck className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span className="hidden sm:inline-block text-[11px] truncate">Audit</span>
                       </TabsTrigger>
                     </TooltipTrigger>
                     <TooltipContent>Audit ({designReport.grade})</TooltipContent>
@@ -1126,9 +1139,10 @@ export const FormBuilder: React.FC = () => {
                       <TabsTrigger
                         value="settings"
                         aria-label="Config"
-                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center font-semibold transition-all cursor-pointer"
+                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer text-xs"
                       >
-                        <Settings className="w-4 h-4 text-primary" />
+                        <Settings className="w-3.5 h-3.5 text-primary shrink-0" />
+                        <span className="hidden sm:inline-block text-[11px] truncate">Config</span>
                       </TabsTrigger>
                     </TooltipTrigger>
                     <TooltipContent>Config</TooltipContent>
