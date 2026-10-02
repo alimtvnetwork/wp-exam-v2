@@ -17,6 +17,57 @@
     box-shadow: 0 0 0 8px hsl(var(--primary) / 0);
   }
 }
+/* Smooth Upward Soft Slide for Presentation Cards */
+@keyframes slideInUpSoft {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 20px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+/* Base Presentation Option Slide-In Class */
+.slide-up-anim {
+  animation: slideInUpSoft 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  will-change: transform, opacity;
+}
+
+/* Staggered Delay Deliberation for Multi-Choice Candidate Cards */
+.stagger-1 { animation-delay: 0.06s; }
+.stagger-2 { animation-delay: 0.12s; }
+.stagger-3 { animation-delay: 0.18s; }
+.stagger-4 { animation-delay: 0.24s; }
+.stagger-5 { animation-delay: 0.30s; }
+.stagger-6 { animation-delay: 0.36s; }
+
+/* Presentation Option Card Motion */
+.presentation-option-card {
+  transition: transform 180ms cubic-bezier(0.2, 0, 0, 1),
+              box-shadow 180ms ease,
+              border-color 180ms ease,
+              background-color 180ms ease;
+  will-change: transform;
+}
+
+.presentation-option-card:hover {
+  transform: translate3d(8px, 0, 0);
+}
+
+/* Accessibility: Respect Reduced Motion */
+@media (prefers-reduced-motion: reduce) {
+  .slide-up-anim,
+  .presentation-option-card,
+  .animate-card-entrance {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transform: none !important;
+  }
+}
+
 .animate-card-entrance {
   animation: cardEntrance 0.35s ease-out forwards;
   will-change: transform, opacity;
@@ -83,7 +134,7 @@
   --destructive-foreground: 0 0% 100%;
   --border: 240 24% 21%;
   --input: 240 24% 21%;
-  --ring: 40 43% 92%;
+  --ring: 47 78% 59%;
   --radius: 0.75rem;
   --wp-exam-bg: #0A0A14;
   --wp-exam-card: #141424;
@@ -225,7 +276,7 @@
 [data-theme="purple"],
 .theme-letterly,
 [data-theme="letterly"] {
-  --primary: 247 98% 63%;
+  --primary: 248 98% 63%;
   --primary-foreground: 0 0% 100%;
   --background: 246 35% 9%;
   --foreground: 0 0% 100%;
@@ -233,21 +284,21 @@
   --card-foreground: 0 0% 100%;
   --popover: 245 36% 14%;
   --popover-foreground: 0 0% 100%;
-  --secondary: 246 32% 20%;
+  --secondary: 246 32% 19%;
   --secondary-foreground: 0 0% 100%;
-  --muted: 246 32% 18%;
-  --muted-foreground: 215 20% 75%;
-  --accent: 246 32% 22%;
+  --muted: 246 32% 19%;
+  --muted-foreground: 240 15% 75%;
+  --accent: 246 32% 24%;
   --accent-foreground: 0 0% 100%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
-  --border: 246 34% 24%;
-  --input: 246 34% 24%;
+  --border: 246 34% 28%;
+  --input: 246 34% 28%;
   --ring: 248 98% 63%;
   --radius: 0.75rem;
   --wp-exam-bg: #0F0E1E;
   --wp-exam-card: #18162F;
-  --wp-exam-card-border: #2C2852;
+  --wp-exam-card-border: #3A3568;
   --wp-exam-card-hover: #232043;
   --wp-exam-card-active-border: #6366F1;
   --wp-exam-card-active-bg: #28235A;
@@ -257,7 +308,7 @@
   --wp-exam-text-primary: #FFFFFF;
   --wp-exam-text-secondary: #94A3B8;
   --wp-exam-progress-bar: #5C45FD;
-  --wp-exam-badge-bg: rgba(92, 69, 253, 0.2);
+  --wp-exam-badge-bg: rgba(92, 69, 253, 0.25);
   background-color: var(--wp-exam-bg);
   color: var(--wp-exam-text-primary);
   color-scheme: dark;

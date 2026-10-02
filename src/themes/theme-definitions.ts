@@ -35,7 +35,7 @@ export const THEME_PRESETS: Record<string, ThemeDefinition> = {
     colors: {
       background: '#0F0E1E',
       cardBg: '#18162F',
-      cardBorder: '#2C2852',
+      cardBorder: '#3A3568',
       cardHover: '#232043',
       cardActiveBorder: '#6366F1',
       cardActiveBg: '#28235A',
@@ -45,14 +45,14 @@ export const THEME_PRESETS: Record<string, ThemeDefinition> = {
       textPrimary: '#FFFFFF',
       textSecondary: '#94A3B8',
       progressBar: '#5C45FD',
-      badgeBg: '#2D285A',
+      badgeBg: 'rgba(92, 69, 253, 0.25)',
     },
   },
 
   'riseup-asia': {
     id: 'riseup-asia',
-    name: 'Riseup',
-    description: 'Riseup signature brand — cream controls on midnight navy, gold only as the choice mark.',
+    name: 'RiseUp (Gold & Navy)',
+    description: 'RiseUp signature brand — cream controls on midnight navy, gold only as the choice mark.',
     appearance: 'dark',
     colors: {
       background: '#0A0A14',
@@ -219,6 +219,8 @@ export const THEME_ALIASES: Record<string, string> = {
   emerald: 'sweet-digs',
   'green-choice': 'green-choice',
   green: 'green-choice',
+  'navy-gold': 'vscode-navy-gold',
+  'vscode-navy-gold': 'vscode-navy-gold',
 };
 
 export const DEFAULT_THEME_ID = 'green-choice';

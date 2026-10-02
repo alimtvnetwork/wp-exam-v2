@@ -20,7 +20,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
-import onboardingQuizMark from '@/assets/onboarding-quiz-mark.svg';
+import onboardingQuizLogo from '@/assets/onboarding-quiz-logo.svg';
 
 export type AdminTab =
   | 'builder'
@@ -185,7 +185,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
           className="flex items-center gap-2.5 cursor-pointer group min-w-0"
         >
           <img
-            src={onboardingQuizMark}
+            src={onboardingQuizLogo}
             alt=""
             title="Onboarding Quiz"
             className="w-8 h-8 rounded-lg shrink-0"
@@ -306,7 +306,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
           </button>
         ) : (
           <div className="flex items-center justify-between px-2 py-1 text-xs text-muted-foreground">
-            <span className="font-mono text-xs">WP Admin UI v2.5</span>
+            <span className="font-mono text-xs">Onboarding Quiz v2.5</span>
             <button
               type="button"
               onClick={onToggleCollapse}

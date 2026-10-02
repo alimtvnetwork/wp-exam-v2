@@ -262,7 +262,7 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
                   type="button"
                   onClick={() => setSelectedCategory(cat.id)}
                   aria-label={`${cat.label} (${cat.count})`}
-                  className={`flex-1 min-w-0 text-xs py-1 px-1 rounded-md transition-all font-medium text-center flex items-center justify-center ${
+                  className={`flex-1 min-w-0 text-xs py-1 px-1 rounded-md transition-all font-medium text-center flex items-center justify-center cursor-pointer ${
                     selectedCategory === cat.id
                       ? 'bg-background text-foreground font-semibold shadow-2xs'
                       : 'text-muted-foreground hover:text-foreground'
@@ -310,31 +310,26 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
                 type="button"
                 onClick={() => onAddField(opt.type)}
                 title={`${opt.label}: ${opt.description}`}
-                className="flex items-center justify-between p-2 rounded-xl border border-border bg-card hover:bg-accent/60 hover:border-primary/50 transition-colors text-left group shadow-2xs hover:shadow-xs cursor-pointer"
+                className="flex items-center justify-between p-2 rounded-xl border border-border bg-card hover:bg-accent/60 hover:border-primary/50 transition-colors text-left group shadow-2xs hover:shadow-xs cursor-pointer min-w-0 w-full"
               >
-                <div className="flex items-center gap-2.5 min-w-0 flex-1 mr-2">
+                <div className="flex items-start gap-2.5 min-w-0 flex-1 mr-2">
                   <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${opt.colorClass} group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors duration-150`}
+                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${opt.colorClass} group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors duration-150 mt-0.5`}
                   >
                     <IconComp className="w-4 h-4 transition-colors" />
                   </div>
 
-                  <div className="overflow-hidden min-w-0 flex-1">
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors truncate">
-                        {opt.label}
-                      </span>
-                      <span className="text-xs uppercase tracking-wider text-muted-foreground font-mono opacity-60 shrink-0">
-                        {opt.category}
-                      </span>
-                    </div>
-                    <p className="text-xs text-muted-foreground truncate leading-tight mt-0.5">
+                  <div className="min-w-0 flex-1">
+                    <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors leading-tight block">
+                      {opt.label}
+                    </span>
+                    <p className="text-[11px] text-muted-foreground leading-snug mt-0.5 line-clamp-2">
                       {opt.description}
                     </p>
                   </div>
                 </div>
 
-                <div className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
+                <div className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 self-center">
                   <div className="w-6 h-6 rounded-md bg-primary text-primary-foreground flex items-center justify-center text-xs shadow-2xs">
                     <Plus className="w-3.5 h-3.5" />
                   </div>

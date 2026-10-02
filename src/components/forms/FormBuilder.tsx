@@ -725,15 +725,15 @@ export const FormBuilder: React.FC = () => {
                             variant="outline"
                             size="sm"
                             aria-label="Config"
-                            className="h-7 w-7 p-0 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0"
+                            className="h-8 w-8 p-0 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0"
                           >
-                            <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
+                            <SlidersHorizontal className="w-4 h-4 text-primary" />
                           </Button>
                         </DropdownMenuTrigger>
                       </TooltipTrigger>
                       <TooltipContent>Config</TooltipContent>
                     </Tooltip>
-                    <DropdownMenuContent align="end" className="w-56 bg-popover border border-border shadow-xl p-1 text-xs">
+                    <DropdownMenuContent align="end" className="w-60 bg-popover border border-border shadow-xl p-1 text-xs">
                       <DropdownMenuItem
                         onClick={() => {
                           setInspectorTab('audit');
@@ -807,7 +807,7 @@ export const FormBuilder: React.FC = () => {
                               variant="outline"
                               size="sm"
                               aria-label={`Trash (${trashFields.length})`}
-                              className="h-7 w-7 p-0 bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20 rounded-lg cursor-pointer shrink-0"
+                              className="h-8 w-8 p-0 bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20 rounded-lg cursor-pointer shrink-0"
                             >
                               <Trash2 className="w-3.5 h-3.5 shrink-0" />
                             </Button>

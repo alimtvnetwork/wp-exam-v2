@@ -156,8 +156,8 @@ export const THEME_PRESETS: Record<string, ThemeDefinition> = {
 
   'riseup-asia': {
     id: 'riseup-asia',
-    name: 'Riseup (Bright Gold & Navy)',
-    description: 'Riseup signature brand — vivid amber gold on midnight navy with cream typography.',
+    name: 'RiseUp (Gold & Navy)',
+    description: 'RiseUp signature brand — cream controls on midnight navy, gold only as the choice mark.',
     appearance: 'dark',
     colors: {
       background: '#0A0A14',
@@ -185,7 +185,7 @@ export const THEME_PRESETS: Record<string, ThemeDefinition> = {
       '--popover-foreground': '40 100% 92%',
       '--border': '240 24% 21%',
       '--input': '240 24% 21%',
-      '--ring': '40 43% 92%',
+      '--ring': '47 78% 59%',
       '--accent': '246 32% 19%',
       '--accent-foreground': '0 0% 100%',
       '--secondary': '246 32% 19%',
@@ -203,7 +203,7 @@ export const THEME_PRESETS: Record<string, ThemeDefinition> = {
     colors: {
       background: '#0F0E1E',
       cardBg: '#18162F',
-      cardBorder: '#2C2852',
+      cardBorder: '#3A3568',
       cardHover: '#232043',
       cardActiveBorder: '#6366F1',
       cardActiveBg: '#28235A',
@@ -213,7 +213,7 @@ export const THEME_PRESETS: Record<string, ThemeDefinition> = {
       textPrimary: '#FFFFFF',
       textSecondary: '#94A3B8',
       progressBar: '#5C45FD',
-      badgeBg: '#2D285A',
+      badgeBg: 'rgba(92, 69, 253, 0.25)',
     },
     hslValues: {
       '--primary': '248 98% 63%',
@@ -224,15 +224,15 @@ export const THEME_PRESETS: Record<string, ThemeDefinition> = {
       '--card-foreground': '0 0% 100%',
       '--popover': '245 36% 14%',
       '--popover-foreground': '0 0% 100%',
-      '--border': '246 34% 24%',
-      '--input': '246 34% 24%',
+      '--border': '246 34% 28%',
+      '--input': '246 34% 28%',
       '--ring': '248 98% 63%',
-      '--accent': '247 100% 74%',
-      '--accent-foreground': '244 36% 9%',
+      '--accent': '246 32% 24%',
+      '--accent-foreground': '0 0% 100%',
       '--secondary': '246 32% 19%',
       '--secondary-foreground': '0 0% 100%',
       '--muted': '246 32% 19%',
-      '--muted-foreground': '215 16% 65%',
+      '--muted-foreground': '240 15% 75%',
     },
   },
 
@@ -417,6 +417,8 @@ export const THEME_ALIASES: Record<string, string> = {
   emerald: 'sweet-digs',
   'green-choice': 'green-choice',
   green: 'green-choice',
+  'navy-gold': 'vscode-navy-gold',
+  'vscode-navy-gold': 'vscode-navy-gold',
 };
 
 export const DEFAULT_THEME_ID = 'green-choice';

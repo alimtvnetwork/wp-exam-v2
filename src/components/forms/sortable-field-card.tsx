@@ -37,6 +37,11 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -533,20 +538,20 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
         }`}
       >
         {/* Card Header: Drag Handle + Question # on left, Field Type Select on right */}
-        <CardHeader className="py-3.5 px-5 sm:px-6 flex flex-row items-center justify-between border-b border-border/60 bg-muted/15 space-y-0 gap-3 rounded-t-2xl">
-          <div className="flex items-center gap-2.5 flex-wrap">
+        <CardHeader className="py-2.5 px-4 sm:px-5 flex flex-row items-center justify-between border-b border-border/60 bg-muted/15 space-y-0 gap-2 rounded-t-2xl">
+          <div className="flex items-center gap-2 flex-wrap min-w-0">
             {/* Dedicated Drag Handle */}
             <div
               {...attributes}
               {...listeners}
-              className="cursor-grab active:cursor-grabbing p-1.5 rounded-md hover:bg-primary/10 hover:text-primary text-muted-foreground transition-colors"
+              className="cursor-grab active:cursor-grabbing p-1.5 rounded-md hover:bg-primary/10 hover:text-primary text-muted-foreground transition-colors shrink-0"
               title="Drag to reposition question"
             >
               <GripVertical className="w-4 h-4" />
             </div>
 
             {/* Interactive Question Index (Click or Double-Click to Directly Type Order Index) */}
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2">
               {isEditingIndex ? (
                 <div className="flex items-center gap-1">
                   <span className="text-xs font-mono font-bold text-primary">#</span>
@@ -585,7 +590,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   type="button"
                   onClick={() => setIsEditingIndex(true)}
                   onDoubleClick={() => setIsEditingIndex(true)}
-                  className="font-mono text-sm px-3 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 font-bold shrink-0 flex items-center gap-1 hover:bg-primary/20 hover:border-primary/40 cursor-pointer transition-all shadow-2xs group"
+                  className="font-mono text-xs px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 font-bold shrink-0 flex items-center gap-1 hover:bg-primary/20 hover:border-primary/40 cursor-pointer transition-all shadow-2xs group"
                   title="Click or double-click to type new order index"
                 >
                   <span>#{index + 1}</span>
@@ -593,23 +598,28 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 </button>
               )}
 
-              {/* Per-Question Quick Save Button at Top of Component */}
-              <button
-                type="button"
-                onClick={handleSaveQuestion}
-                className={`h-8 w-8 p-0 rounded-lg border text-xs font-semibold inline-flex items-center justify-center transition-all cursor-pointer shadow-2xs ${
-                  isQuestionDirty
-                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-xs ring-2 ring-emerald-500/20'
-                    : 'bg-card border-border text-foreground hover:bg-accent hover:text-accent-foreground'
-                }`}
-                title="Save"
-              >
-                <Save className={`w-3.5 h-3.5 ${isQuestionDirty ? 'text-white' : 'text-emerald-500'}`} />
-              </button>
+              {/* Standardized h-8 Dirty-State Save Button */}
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={handleSaveQuestion}
+                    className={`h-8 w-8 p-0 rounded-lg border text-xs font-semibold inline-flex items-center justify-center transition-all cursor-pointer shrink-0 ${
+                      isQuestionDirty
+                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-xs ring-2 ring-emerald-500/20'
+                        : 'bg-card border-border text-foreground hover:bg-accent hover:text-accent-foreground'
+                    }`}
+                    aria-label="Save Question"
+                  >
+                    <Save className={`w-3.5 h-3.5 ${isQuestionDirty ? 'text-white' : 'text-emerald-500'}`} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Save Question</TooltipContent>
+              </Tooltip>
 
               {field.group && (
-                <span className="text-xs px-2.5 py-1 rounded-md bg-muted text-foreground border border-border/80 font-medium flex items-center gap-1.5 shrink-0">
-                  <Layers className="w-3.5 h-3.5 text-primary" /> {field.group}
+                <span className="text-xs px-2 py-0.5 rounded-md bg-muted text-foreground border border-border/80 font-medium flex items-center gap-1 shrink-0">
+                  <Layers className="w-3 h-3 text-primary" /> {field.group}
                 </span>
               )}
 
@@ -630,8 +640,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
           </div>
 
           {/* Action Toolbar: Field Type Selector on Right + Preview & Actions */}
-          <div className="flex items-center gap-2 min-w-0 flex-wrap justify-end">
-            {/* Field Type Selector (~195px, text-sm font-semibold) */}
+          <div className="flex items-center gap-1.5 shrink-0 justify-end">
+            {/* Field Type Selector (~195px, text-xs font-semibold) */}
             <Select
               value={
                 field.type === 'true_false'
@@ -674,123 +684,153 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 }
               }}
             >
-              <SelectTrigger className="h-10 text-sm bg-background text-foreground border border-input rounded-lg font-semibold min-w-0 w-[9rem] max-w-full sm:w-[11rem] shrink overflow-hidden [&>span]:min-w-0 [&>span]:truncate shadow-2xs cursor-pointer">
+              <SelectTrigger className="h-8 text-xs bg-background text-foreground border border-input rounded-lg font-semibold min-w-0 w-[9rem] sm:w-[11rem] shrink overflow-hidden [&>span]:min-w-0 [&>span]:truncate shadow-2xs cursor-pointer">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border max-h-72">
-                <SelectItem value="multiple_choice" className="text-sm py-2 cursor-pointer font-medium">Multiple Choice</SelectItem>
-                <SelectItem value="single_choice" className="text-sm py-2 cursor-pointer font-medium">Single Choice</SelectItem>
-                <SelectItem value="boolean" className="text-sm py-2 cursor-pointer font-medium">Boolean</SelectItem>
-                <SelectItem value="dropdown" className="text-sm py-2 cursor-pointer font-medium">Dropdown Select</SelectItem>
-                <SelectItem value="list_items" className="text-sm py-2 cursor-pointer font-medium">List of Items / Links</SelectItem>
-                <SelectItem value="rating" className="text-sm py-2 cursor-pointer font-medium">Rating</SelectItem>
-                <SelectItem value="rating_feedback" className="text-sm py-2 cursor-pointer font-medium">Rating with Feedback</SelectItem>
-                <SelectItem value="short_answer" className="text-sm py-2 cursor-pointer font-medium">Short Answer</SelectItem>
-                <SelectItem value="paragraph" className="text-sm py-2 cursor-pointer font-medium">Paragraph Text</SelectItem>
-                <SelectItem value="email" className="text-sm py-2 cursor-pointer font-medium">Email Address</SelectItem>
-                <SelectItem value="phone" className="text-sm py-2 cursor-pointer font-medium">WhatsApp / Phone</SelectItem>
-                <SelectItem value="regex_text" className="text-sm py-2 cursor-pointer font-medium">Regex</SelectItem>
-                <SelectItem value="link" className="text-sm py-2 cursor-pointer font-medium">Link</SelectItem>
-                <SelectItem value="file_upload" className="text-sm py-2 cursor-pointer font-medium">File Upload</SelectItem>
-                <SelectItem value="video" className="text-sm py-2 cursor-pointer font-medium">Video</SelectItem>
+                <SelectItem value="multiple_choice" className="text-xs py-1.5 cursor-pointer font-medium">Multiple Choice</SelectItem>
+                <SelectItem value="single_choice" className="text-xs py-1.5 cursor-pointer font-medium">Single Choice</SelectItem>
+                <SelectItem value="boolean" className="text-xs py-1.5 cursor-pointer font-medium">Boolean</SelectItem>
+                <SelectItem value="dropdown" className="text-xs py-1.5 cursor-pointer font-medium">Dropdown Select</SelectItem>
+                <SelectItem value="list_items" className="text-xs py-1.5 cursor-pointer font-medium">List of Items / Links</SelectItem>
+                <SelectItem value="rating" className="text-xs py-1.5 cursor-pointer font-medium">Rating</SelectItem>
+                <SelectItem value="rating_feedback" className="text-xs py-1.5 cursor-pointer font-medium">Rating with Feedback</SelectItem>
+                <SelectItem value="short_answer" className="text-xs py-1.5 cursor-pointer font-medium">Short Answer</SelectItem>
+                <SelectItem value="paragraph" className="text-xs py-1.5 cursor-pointer font-medium">Paragraph Text</SelectItem>
+                <SelectItem value="email" className="text-xs py-1.5 cursor-pointer font-medium">Email Address</SelectItem>
+                <SelectItem value="phone" className="text-xs py-1.5 cursor-pointer font-medium">WhatsApp / Phone</SelectItem>
+                <SelectItem value="regex_text" className="text-xs py-1.5 cursor-pointer font-medium">Regex</SelectItem>
+                <SelectItem value="link" className="text-xs py-1.5 cursor-pointer font-medium">Link</SelectItem>
+                <SelectItem value="file_upload" className="text-xs py-1.5 cursor-pointer font-medium">File Upload</SelectItem>
+                <SelectItem value="video" className="text-xs py-1.5 cursor-pointer font-medium">Video</SelectItem>
               </SelectContent>
             </Select>
 
             {/* Direct Layout Mode Toggle: Quiz Format vs Presentation Slide */}
-            <div className="inline-flex items-center rounded-lg border border-border bg-card p-0.5 h-10 shrink-0 shadow-2xs">
-              <button
-                type="button"
-                onClick={() => onUpdate(id, { layoutMode: 'standard' })}
-                className={`inline-flex items-center justify-center h-full w-8 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                  field.layoutMode !== 'presentation_split'
-                    ? 'bg-primary text-primary-foreground shadow-xs font-bold'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
-                }`}
-                title="Display question in Standard Quiz format"
-              >
-                <LayoutTemplate className="w-3.5 h-3.5" />
-              </button>
-              <button
-                type="button"
-                onClick={() => onUpdate(id, { layoutMode: 'presentation_split' })}
-                className={`inline-flex items-center justify-center h-full w-8 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                  field.layoutMode === 'presentation_split'
-                    ? 'bg-primary text-primary-foreground shadow-xs font-bold'
-                    : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
-                }`}
-                title="Display question in 2-Column Presentation Slide format"
-              >
-                <Columns className="w-3.5 h-3.5" />
-              </button>
+            <div className="inline-flex items-center rounded-lg border border-border bg-card p-0.5 h-8 shrink-0 shadow-2xs">
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => onUpdate(id, { layoutMode: 'standard' })}
+                    className={`inline-flex items-center justify-center h-full w-7 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                      field.layoutMode !== 'presentation_split'
+                        ? 'bg-primary text-primary-foreground shadow-xs font-bold'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
+                    }`}
+                    aria-label="Quiz Format"
+                  >
+                    <LayoutTemplate className="w-3.5 h-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Quiz Format</TooltipContent>
+              </Tooltip>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => onUpdate(id, { layoutMode: 'presentation_split' })}
+                    className={`inline-flex items-center justify-center h-full w-7 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                      field.layoutMode === 'presentation_split'
+                        ? 'bg-primary text-primary-foreground shadow-xs font-bold'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
+                    }`}
+                    aria-label="Presentation Slide"
+                  >
+                    <Columns className="w-3.5 h-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Presentation Slide</TooltipContent>
+              </Tooltip>
             </div>
 
             {/* Answer Placement for Presentation Slide mode */}
             {field.layoutMode === 'presentation_split' && (
-              <div className="hidden md:inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5 h-10 shrink-0">
-                <button
-                  type="button"
-                  onClick={() => onUpdate(id, { answerPlacement: 'right' })}
-                  className={`inline-flex items-center justify-center h-full w-8 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                    (field.answerPlacement || 'right') !== 'left'
-                      ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                  title="Place candidate choices/answers on the right column"
-                >
-                  <PanelRight className="w-3.5 h-3.5" />
-                </button>
-                <button
-                  type="button"
-                  onClick={() => onUpdate(id, { answerPlacement: 'left' })}
-                  className={`inline-flex items-center justify-center h-full w-8 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                    field.answerPlacement === 'left'
-                      ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
-                      : 'text-muted-foreground hover:text-foreground'
-                  }`}
-                  title="Place candidate choices/answers on the left column"
-                >
-                  <PanelLeft className="w-3.5 h-3.5" />
-                </button>
+              <div className="hidden md:inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5 h-8 shrink-0">
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={() => onUpdate(id, { answerPlacement: 'right' })}
+                      className={`inline-flex items-center justify-center h-full w-7 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                        (field.answerPlacement || 'right') !== 'left'
+                          ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                      aria-label="Answers Right"
+                    >
+                      <PanelRight className="w-3.5 h-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Answers Right</TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={() => onUpdate(id, { answerPlacement: 'left' })}
+                      className={`inline-flex items-center justify-center h-full w-7 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                        field.answerPlacement === 'left'
+                          ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                      aria-label="Answers Left"
+                    >
+                      <PanelLeft className="w-3.5 h-3.5" />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>Answers Left</TooltipContent>
+                </Tooltip>
               </div>
             )}
 
             {/* Combined Preview & Actions Segmented Control with Crisp High-Contrast Icon */}
-            <div className="inline-flex items-center rounded-lg border border-border bg-card shadow-2xs overflow-hidden h-10 shrink-0">
+            <div className="inline-flex items-center rounded-lg border border-border bg-card shadow-2xs overflow-hidden h-8 shrink-0">
               {/* Preview Toggle Button */}
-              <button
-                type="button"
-                onClick={() => setShowLivePreview(!showLivePreview)}
-                className={`inline-flex items-center justify-center h-full w-10 text-sm font-semibold transition-all cursor-pointer ${
-                  showLivePreview
-                    ? 'bg-primary text-primary-foreground shadow-inner'
-                    : 'text-foreground hover:bg-accent/80 hover:text-foreground'
-                }`}
-                title="Preview"
-              >
-                <Eye className={`w-4 h-4 stroke-[2.2] ${showLivePreview ? 'text-primary-foreground' : 'text-foreground'}`} />
-              </button>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => setShowLivePreview(!showLivePreview)}
+                    className={`inline-flex items-center justify-center h-full w-8 text-xs font-semibold transition-all cursor-pointer ${
+                      showLivePreview
+                        ? 'bg-primary text-primary-foreground shadow-inner'
+                        : 'text-foreground hover:bg-accent/80 hover:text-foreground'
+                    }`}
+                    aria-label="Preview"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>Preview</TooltipContent>
+              </Tooltip>
 
               {/* Vertical Divider */}
-              <div className="w-px h-5 bg-border shrink-0" />
+              <div className="w-px h-4 bg-border shrink-0" />
 
               {/* Actions Dropdown Trigger */}
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <button
-                    type="button"
-                    className={`relative inline-flex items-center justify-center h-full w-10 text-sm font-semibold transition-all cursor-pointer ${
-                      showAdvanced || showTriggers || showConditions
-                        ? 'bg-primary/10 text-primary hover:bg-primary/20'
-                        : 'text-foreground hover:bg-accent/80 hover:text-foreground'
-                    }`}
-                    title="Actions"
-                  >
-                    <SlidersHorizontal className="w-4 h-4 stroke-[2] text-foreground" />
-                    {(showAdvanced || showTriggers || showConditions) && (
-                      <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
-                    )}
-                  </button>
-                </DropdownMenuTrigger>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        className={`relative inline-flex items-center justify-center h-full w-8 text-xs font-semibold transition-all cursor-pointer ${
+                          showAdvanced || showTriggers || showConditions
+                            ? 'bg-primary/10 text-primary hover:bg-primary/20'
+                            : 'text-foreground hover:bg-accent/80 hover:text-foreground'
+                        }`}
+                        aria-label="Actions"
+                      >
+                        <SlidersHorizontal className="w-3.5 h-3.5" />
+                        {(showAdvanced || showTriggers || showConditions) && (
+                          <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
+                        )}
+                      </button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <TooltipContent>Actions</TooltipContent>
+                </Tooltip>
                 <DropdownMenuContent align="end" className="w-56 p-1 bg-popover border border-border shadow-lg">
                   {/* Quick toggle item for Live Preview inside the menu as well */}
                   <DropdownMenuItem
