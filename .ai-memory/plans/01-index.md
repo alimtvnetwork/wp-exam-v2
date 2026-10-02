@@ -4,6 +4,7 @@ Master directory of architectural and execution plans.
 
 ## Pending Plans
 
+- [74-onboarding-quiz-presentation-ui.md](pending/74-onboarding-quiz-presentation-ui.md): Onboarding Quiz logo, collapsed builder config menu, thin green accent, full presentation preview, and restrained Riseup / navy themes.
 - [02-slides-system-overhaul.md](pending/02-slides-system-overhaul.md): Full slides deck UI and system overhaul.
 - [04-guideline-prompt-and-installer-upgrade.md](pending/04-guideline-prompt-and-installer-upgrade.md): Guideline prompt and installer enhancements.
 - [09-update-prompts-and-release.md](pending/09-update-prompts-and-release.md): Update prompts and release lifecycle (deferred under WOR policy).
