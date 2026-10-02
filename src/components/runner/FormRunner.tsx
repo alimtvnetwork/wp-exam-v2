@@ -528,6 +528,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [stepHistory, setStepHistory] = useState<number[]>([]);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
+  const [isExamStarted, setIsExamStarted] = useState(false);
   const [guestName, setGuestName] = useState(session.respondentName || '');
   const [guestEmail, setGuestEmail] = useState(session.respondentEmail || '');
   const [tokenInput, setTokenInput] = useState(session.token || '');
@@ -621,6 +622,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   };
 
   const handleResumeSession = () => {
+    setIsExamStarted(true);
     if (savedSession) {
       if (savedSession.answers) {
         setAnswers(savedSession.answers);
@@ -1053,6 +1055,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       : newProjectId;
 
     setSelectedProjectId(newProjectId);
+    setIsExamStarted(false);
     setCurrentStep(0);
     setStepHistory([]);
     setAnswers({});
@@ -1681,10 +1684,11 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     if (effectiveLayoutMode === 'presentation_split') return false;
     if (isPreviewRoute) return false;
     if (isCandidateOrPreview) return false;
+    if (isExamStarted) return false;
     if (isSequential && currentStep > 0) return false;
     if (Object.keys(answers).length > 0) return false;
     return true;
-  }, [effectiveLayoutMode, isPreviewRoute, isCandidateOrPreview, isSequential, currentStep, answers]);
+  }, [effectiveLayoutMode, isPreviewRoute, isCandidateOrPreview, isExamStarted, isSequential, currentStep, answers]);
 
   return (
     <div
@@ -1925,6 +1929,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             savedTimeAgo={lastSavedTime || undefined}
             currentStep={currentStep}
             onStartOrResume={() => {
+              setIsExamStarted(true);
               if (savedSession) {
                 handleResumeSession();
               } else {
