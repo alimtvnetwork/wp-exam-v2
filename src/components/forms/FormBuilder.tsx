@@ -724,14 +724,14 @@ export const FormBuilder: React.FC = () => {
                             type="button"
                             variant="outline"
                             size="sm"
-                            aria-label="Config"
+                            aria-label="Configuration & Tools"
                             className="h-8 w-8 p-0 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0"
                           >
                             <SlidersHorizontal className="w-4 h-4 text-primary" />
                           </Button>
                         </DropdownMenuTrigger>
                       </TooltipTrigger>
-                      <TooltipContent>Config</TooltipContent>
+                      <TooltipContent>Configuration & Tools</TooltipContent>
                     </Tooltip>
                     <DropdownMenuContent align="end" className="w-60 bg-popover border border-border shadow-xl p-1 text-xs">
                       <DropdownMenuItem
@@ -742,7 +742,7 @@ export const FormBuilder: React.FC = () => {
                         className="gap-2 cursor-pointer py-1.5"
                       >
                         <Shield className="w-3.5 h-3.5 text-emerald-500" />
-                        <span>Health: {designReport.grade || 'A+'} ({designReport.score}%)</span>
+                        <span>Health Score: {designReport.grade || 'A+'} ({designReport.score}%)</span>
                       </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setIsCentralConfigOpen(true)}
@@ -791,7 +791,7 @@ export const FormBuilder: React.FC = () => {
                         className="gap-2 cursor-pointer py-1.5"
                       >
                         <Share2 className="w-3.5 h-3.5 text-primary" />
-                        <span>Share</span>
+                        <span>Share / Copy Live URL</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>

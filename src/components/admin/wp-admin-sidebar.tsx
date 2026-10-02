@@ -186,9 +186,9 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
         >
           <img
             src={onboardingQuizLogo}
-            alt=""
+            alt="Onboarding Quiz"
             title="Onboarding Quiz"
-            className="w-8 h-8 rounded-lg shrink-0"
+            className="w-8 h-8 rounded-lg shrink-0 shadow-xs ring-1 ring-border/50"
           />
 
           {!isCollapsed && (

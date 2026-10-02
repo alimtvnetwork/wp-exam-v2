@@ -62,6 +62,7 @@ import {
   Eye,
   Lock,
   Menu,
+  Lightbulb,
 } from 'lucide-react';
 import { PhoneWithCountrySelect } from '@/components/ui/phone-input';
 import { MultilineListItemsInput } from '@/components/forms/multiline-list-items-input';
@@ -822,6 +823,37 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const hasFieldDescription = typeof currentField?.description === 'string' && currentField.description.length > 0;
   const hasPlaceholderHint = typeof currentField?.placeholder === 'string' && currentField.placeholder.length > 0;
 
+  const dualChoices = useMemo(() => {
+    if (!currentField) return null;
+    if (currentField.type === 'boolean') {
+      const preset = currentField.booleanDisplay;
+      if (currentField.options && currentField.options.length === 2) {
+        return currentField.options;
+      }
+      switch (preset) {
+        case 'yes_no':
+          return ['Yes', 'No'];
+        case 'enable_disable':
+          return ['Enable', 'Disable'];
+        case 'agree_disagree':
+          return ['Agree', 'Disagree'];
+        case 'true_false':
+        default:
+          return ['True', 'False'];
+      }
+    }
+    if (Array.isArray(currentField.options) && currentField.options.length === 2) {
+      return currentField.options;
+    }
+    if (currentField.optionBranching) {
+      const keys = Object.keys(currentField.optionBranching);
+      if (keys.length === 2) {
+        return keys;
+      }
+    }
+    return null;
+  }, [currentField]);
+
   const checklistItems = useMemo(() => {
     return extractQuestionChecklist({ field: currentField });
   }, [currentField]);
@@ -1508,6 +1540,143 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     );
   }
 
+  const renderSidebarInner = () => (
+    <>
+      {/* Progress Tracker */}
+      <div className="space-y-2 shrink-0">
+        <div className="flex items-center justify-between text-xs font-sans">
+          <span className="font-semibold text-foreground">Questions ({visibleFields.length})</span>
+          <div className="flex items-center gap-1.5">
+            <span className="font-mono text-foreground font-bold">
+              {Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}%
+            </span>
+            <button
+              type="button"
+              onClick={() => setIsSidebarVisible(false)}
+              className="text-[10px] text-muted-foreground hover:text-foreground cursor-pointer px-1.5 py-0.5 rounded hover:bg-muted"
+              title="Hide sequence sidebar"
+            >
+              Hide &times;
+            </button>
+          </div>
+        </div>
+        <Progress
+          value={Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}
+          className="h-2 bg-secondary"
+        />
+        <div className="text-[11px] text-muted-foreground font-sans flex items-center justify-between">
+          <span>Question {currentStep + 1} of {visibleFields.length}</span>
+          <span>{Object.keys(answers).length} answered</span>
+        </div>
+      </div>
+
+      {/* Question Sequence List with Navigation & Sequential Locking */}
+      <div className="space-y-1.5 max-h-[380px] overflow-y-auto pr-1 flex-1 custom-scrollbar">
+        <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-1 mb-1">
+          Questions Sequence
+        </div>
+        {visibleFields.map((f, idx) => {
+          const isCurrent = currentStep === idx;
+          const isAnswered = answers[f.id] !== undefined && answers[f.id] !== '' && (Array.isArray(answers[f.id]) ? (answers[f.id] as unknown[]).length > 0 : true);
+          const isNewGroup = Boolean(f.group && (idx === 0 || visibleFields[idx - 1]?.group !== f.group));
+          const isLocked = isQuestionLockedForNavigation({
+            isSequential: Boolean(activeForm.isSequential),
+            targetIndex: idx,
+            currentStep,
+            fieldIds: visibleFields.map((fieldItem) => fieldItem.id),
+            answers,
+          });
+
+          return (
+            <React.Fragment key={f.id}>
+              {isNewGroup ? (
+                <div className="pt-2 pb-0.5 text-[10px] font-semibold text-foreground uppercase tracking-wider px-1 flex items-center gap-1.5">
+                  <Layers className="w-3 h-3 text-foreground" />
+                  <span>{f.group}</span>
+                </div>
+              ) : null}
+              {isLocked ? (
+                <button
+                  type="button"
+                  onClick={() => toast.info(`Complete Question #${currentStep + 1} before advancing to #${idx + 1}`)}
+                  className="w-full text-left px-3 py-2 rounded-xl text-xs font-sans transition-all flex items-center justify-between gap-2 cursor-not-allowed opacity-50 bg-muted/20 border border-transparent text-muted-foreground"
+                  title="Locked: Complete previous questions first"
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono shrink-0 bg-muted text-muted-foreground">
+                      {idx + 1}
+                    </span>
+                    <span className="truncate">{f.label || `Question #${idx + 1}`}</span>
+                  </div>
+                  <Lock className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
+                </button>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setCurrentStep(idx);
+                    if (effectiveLayoutMode === 'presentation_split') {
+                      setIsSidebarVisible(false);
+                    }
+                  }}
+                  className={`w-full text-left px-3 py-2 rounded-xl text-xs font-sans transition-all flex items-center justify-between gap-2 cursor-pointer ${
+                    isCurrent
+                      ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
+                      : isAnswered
+                      ? 'bg-muted/40 hover:bg-muted text-foreground border border-border/60'
+                      : 'hover:bg-muted/30 text-muted-foreground border border-transparent'
+                  }`}
+                >
+                  <div className="flex items-center gap-2 truncate">
+                    <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono shrink-0 ${
+                      isCurrent
+                        ? 'bg-primary-foreground text-primary font-bold'
+                        : isAnswered
+                        ? 'bg-emerald-500/20 text-emerald-600 font-bold'
+                        : 'bg-muted text-muted-foreground'
+                    }`}>
+                      {idx + 1}
+                    </span>
+                    <span className="truncate">{f.label || `Question #${idx + 1}`}</span>
+                  </div>
+                  {isAnswered ? (
+                    <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? 'text-primary-foreground' : 'text-emerald-500'}`} />
+                  ) : (
+                    <Circle className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? 'text-primary-foreground/60' : 'text-muted-foreground/40'}`} />
+                  )}
+                </button>
+              )}
+            </React.Fragment>
+          );
+        })}
+      </div>
+
+      {/* Sidebar Session & Fullscreen Actions */}
+      <div className="pt-3 border-t border-border flex flex-col gap-2 shrink-0">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={handleSaveProgress}
+          className="w-full h-8 text-xs font-medium font-sans justify-center gap-1.5 border-border bg-background hover:bg-primary/10 hover:text-primary rounded-lg transition-all cursor-pointer"
+        >
+          <Save className="w-3.5 h-3.5 text-primary" />
+          <span>Save as Session</span>
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          onClick={handleToggleFullscreen}
+          className="w-full h-8 text-xs font-sans text-muted-foreground hover:text-foreground justify-center gap-1.5 rounded-lg transition-all cursor-pointer"
+        >
+          {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
+          <span>{isFullscreen ? 'Exit Full Screen' : 'Full Screen Canvas'}</span>
+        </Button>
+      </div>
+    </>
+  );
+
   return (
     <div
       className={`min-h-screen w-full transition-colors duration-300 font-sans theme-${activeThemeId} ${
@@ -1905,158 +2074,60 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
       {/* Sequential Wizard Runner with Left-Hand Sequence Navigator */}
       {(isSequential || effectiveLayoutMode === 'presentation_split') && currentField ? (
-        <div className="flex flex-col lg:flex-row items-start gap-6 w-full">
-          {/* Left-Hand Question Sequence & Session Sidebar */}
-          {isSidebarVisible ? (
-            <aside className="w-full lg:w-72 xl:w-80 shrink-0 space-y-4 animate-in fade-in duration-150">
-              <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4 sticky top-4">
-                {/* Progress Tracker */}
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs font-sans">
-                    <span className="font-semibold text-foreground">Questions ({visibleFields.length})</span>
-                    <div className="flex items-center gap-1.5">
-                      <span className="font-mono text-foreground font-bold">
-                        {Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}%
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => setIsSidebarVisible(false)}
-                        className="text-[10px] text-muted-foreground hover:text-foreground cursor-pointer px-1.5 py-0.5 rounded hover:bg-muted"
-                        title="Hide sequence sidebar"
-                      >
-                        Hide &times;
-                      </button>
-                    </div>
+        <div className={effectiveLayoutMode === 'presentation_split' ? 'w-full relative' : 'flex flex-col lg:flex-row items-start gap-6 w-full'}>
+          {/* Question Sequence Sidebar: Floating HUD overlay in presentation mode, docked in standard mode */}
+          {effectiveLayoutMode === 'presentation_split' ? (
+            isSidebarVisible ? (
+              <>
+                <div
+                  className="fixed inset-0 z-40 bg-black/40 backdrop-blur-xs transition-opacity animate-in fade-in duration-150"
+                  onClick={() => setIsSidebarVisible(false)}
+                />
+                <aside className="fixed top-16 left-4 z-50 w-72 sm:w-80 max-h-[calc(100dvh-5rem)] bg-card/95 backdrop-blur-md border border-border rounded-2xl shadow-2xl p-4 overflow-hidden animate-in fade-in slide-in-from-left-4 duration-200">
+                  <div className="space-y-4 flex flex-col h-full max-h-[calc(100dvh-7rem)] overflow-hidden">
+                    {renderSidebarInner()}
                   </div>
-                  <Progress
-                    value={Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}
-                    className="h-2 bg-secondary"
-                  />
-                <div className="text-[11px] text-muted-foreground font-sans flex items-center justify-between">
-                  <span>Question {currentStep + 1} of {visibleFields.length}</span>
-                  <span>{Object.keys(answers).length} answered</span>
-                </div>
-              </div>
-
-              {/* Question Sequence List with Navigation & Sequential Locking */}
-              <div className="space-y-1.5 max-h-[380px] overflow-y-auto pr-1">
-                <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-1 mb-1">
-                  Questions Sequence
-                </div>
-                {visibleFields.map((f, idx) => {
-                  const isCurrent = currentStep === idx;
-                  const isAnswered = answers[f.id] !== undefined && answers[f.id] !== '' && (Array.isArray(answers[f.id]) ? (answers[f.id] as unknown[]).length > 0 : true);
-                  const isNewGroup = Boolean(f.group && (idx === 0 || visibleFields[idx - 1]?.group !== f.group));
-                  const isLocked = isQuestionLockedForNavigation({
-                    isSequential: Boolean(activeForm.isSequential),
-                    targetIndex: idx,
-                    currentStep,
-                    fieldIds: visibleFields.map((fieldItem) => fieldItem.id),
-                    answers,
-                  });
-
-                  return (
-                    <React.Fragment key={f.id}>
-                      {isNewGroup ? (
-                        <div className="pt-2 pb-0.5 text-[10px] font-semibold text-foreground uppercase tracking-wider px-1 flex items-center gap-1.5">
-                          <Layers className="w-3 h-3 text-foreground" />
-                          <span>{f.group}</span>
-                        </div>
-                      ) : null}
-                      {isLocked ? (
-                        <button
-                          type="button"
-                          onClick={() => toast.info(`Complete Question #${currentStep + 1} before advancing to #${idx + 1}`)}
-                          className="w-full text-left px-3 py-2 rounded-xl text-xs font-sans transition-all flex items-center justify-between gap-2 cursor-not-allowed opacity-50 bg-muted/20 border border-transparent text-muted-foreground"
-                          title="Locked: Complete previous questions first"
-                        >
-                          <div className="flex items-center gap-2 truncate">
-                            <span className="w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono shrink-0 bg-muted text-muted-foreground">
-                              {idx + 1}
-                            </span>
-                            <span className="truncate">{f.label || `Question #${idx + 1}`}</span>
-                          </div>
-                          <Lock className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
-                        </button>
-                      ) : (
-                        <button
-                          type="button"
-                          onClick={() => setCurrentStep(idx)}
-                          className={`w-full text-left px-3 py-2 rounded-xl text-xs font-sans transition-all flex items-center justify-between gap-2 cursor-pointer ${
-                            isCurrent
-                              ? 'bg-primary text-primary-foreground font-semibold shadow-xs'
-                              : isAnswered
-                              ? 'bg-muted/40 hover:bg-muted text-foreground border border-border/60'
-                              : 'hover:bg-muted/30 text-muted-foreground border border-transparent'
-                          }`}
-                        >
-                          <div className="flex items-center gap-2 truncate">
-                            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-mono shrink-0 ${
-                              isCurrent
-                                ? 'bg-primary-foreground text-primary font-bold'
-                                : isAnswered
-                                ? 'bg-emerald-500/20 text-emerald-600 font-bold'
-                                : 'bg-muted text-muted-foreground'
-                            }`}>
-                              {idx + 1}
-                            </span>
-                            <span className="truncate">{f.label || `Question #${idx + 1}`}</span>
-                          </div>
-                          {isAnswered ? (
-                            <CheckCircle2 className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? 'text-primary-foreground' : 'text-emerald-500'}`} />
-                          ) : (
-                            <Circle className={`w-3.5 h-3.5 shrink-0 ${isCurrent ? 'text-primary-foreground/60' : 'text-muted-foreground/40'}`} />
-                          )}
-                        </button>
-                      )}
-                    </React.Fragment>
-                  );
-                })}
-              </div>
-
-              {/* Sidebar Session & Fullscreen Actions */}
-              <div className="pt-3 border-t border-border flex flex-col gap-2">
+                </aside>
+              </>
+            ) : (
+              <div className="fixed bottom-6 left-6 z-40">
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
-                  onClick={handleSaveProgress}
-                  className="w-full h-8 text-xs font-medium font-sans justify-center gap-1.5 border-border bg-background hover:bg-primary/10 hover:text-primary rounded-lg transition-all cursor-pointer"
+                  onClick={() => setIsSidebarVisible(true)}
+                  className="h-10 px-4 text-xs font-sans font-medium gap-2 border-border bg-card/90 backdrop-blur-md text-foreground hover:bg-accent rounded-full shadow-lg transition-all cursor-pointer hover:scale-105"
+                  title="Show Question Sequence HUD"
                 >
-                  <Save className="w-3.5 h-3.5 text-primary" />
-                  <span>Save as Session</span>
-                </Button>
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  onClick={handleToggleFullscreen}
-                  className="w-full h-8 text-xs font-sans text-muted-foreground hover:text-foreground justify-center gap-1.5 rounded-lg transition-all cursor-pointer"
-                >
-                  {isFullscreen ? <Minimize2 className="w-3.5 h-3.5" /> : <Maximize2 className="w-3.5 h-3.5" />}
-                  <span>{isFullscreen ? 'Exit Full Screen' : 'Full Screen Canvas'}</span>
+                  <Menu className="w-4 h-4 text-foreground" />
+                  <span>Questions ({currentStep + 1}/{visibleFields.length})</span>
                 </Button>
               </div>
+            )
+          ) : isSidebarVisible ? (
+            <aside className="w-full lg:w-72 xl:w-80 shrink-0 space-y-4 animate-in fade-in duration-150">
+              <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4 sticky top-4">
+                {renderSidebarInner()}
+              </div>
+            </aside>
+          ) : (
+            <div className="shrink-0 sticky top-4">
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={() => setIsSidebarVisible(true)}
+                className="h-9 px-3 text-xs font-sans font-medium gap-1.5 border-border bg-card text-foreground hover:bg-accent rounded-xl shadow-xs transition-all cursor-pointer"
+                title="Show Question Sequence"
+              >
+                <Menu className="w-3.5 h-3.5 text-foreground" />
+                <span>Questions ({currentStep + 1}/{visibleFields.length})</span>
+              </Button>
             </div>
-          </aside>
-        ) : (
-          <div className="shrink-0 sticky top-4">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => setIsSidebarVisible(true)}
-              className="h-9 px-3 text-xs font-sans font-medium gap-1.5 border-border bg-card text-foreground hover:bg-accent rounded-xl shadow-xs transition-all cursor-pointer"
-              title="Show Question Sequence"
-            >
-              <Menu className="w-3.5 h-3.5 text-foreground" />
-              <span>Questions ({currentStep + 1}/{visibleFields.length})</span>
-            </Button>
-          </div>
-        )}
+          )}
 
           {/* Right-Hand Main Question Canvas */}
-          <main className="flex-1 min-w-0 w-full">
+          <main className={effectiveLayoutMode === 'presentation_split' ? 'w-full' : 'flex-1 min-w-0 w-full'}>
             {effectiveLayoutMode === 'presentation_split' ? (
               /* Presentation-Grade 2-Column Split Question Canvas */
               <div
@@ -2064,12 +2135,55 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 className="w-full min-h-[calc(100dvh-5.5rem)] bg-card border border-border rounded-3xl p-6 sm:p-8 lg:p-10 shadow-md space-y-8 animate-card-entrance"
               >
                 {hasSlideVideo ? (
-                  <div className="w-full">
-                    <RunnerVideoPlayer
-                      videoUrl={currentField.videoUrl}
-                      videoCaption={currentField.videoCaption}
-                      title={currentField.label}
-                    />
+                  <div className="space-y-4">
+                    <div className="max-w-3xl mx-auto w-full max-h-[380px] aspect-video rounded-2xl overflow-hidden border border-border shadow-lg bg-black/80">
+                      <RunnerVideoPlayer
+                        videoUrl={currentField.videoUrl}
+                        videoCaption={currentField.videoCaption}
+                        title={currentField.label}
+                        bare
+                      />
+                    </div>
+                    {currentField.videoCaption && (
+                      <p className="text-xs text-muted-foreground italic text-center px-1 flex items-center justify-center gap-1.5">
+                        <span>ℹ️</span>
+                        <span>{currentField.videoCaption}</span>
+                      </p>
+                    )}
+                    {dualChoices ? (
+                      <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2 max-w-xl mx-auto w-full">
+                        {dualChoices.map((choice, cIdx) => {
+                          const isSelected = answers[currentField.id] === choice ||
+                            (Array.isArray(answers[currentField.id]) && (answers[currentField.id] as string[]).includes(choice)) ||
+                            (typeof answers[currentField.id] === 'string' && (answers[currentField.id] as string).toLowerCase() === choice.toLowerCase());
+
+                          return (
+                            <Button
+                              key={choice}
+                              type="button"
+                              size="lg"
+                              variant={isSelected ? 'default' : 'outline'}
+                              onClick={() => handleAnswerChange(currentField.id, choice)}
+                              className={`flex-1 w-full sm:w-auto h-12 px-6 rounded-xl font-heading font-semibold text-base transition-all duration-200 flex items-center justify-center gap-2.5 shadow-sm hover:translate-x-1 cursor-pointer ${
+                                isSelected
+                                  ? 'bg-primary text-primary-foreground border-primary shadow-md ring-2 ring-primary/30'
+                                  : 'border-border bg-card text-foreground hover:bg-muted/70 hover:border-foreground/30'
+                              }`}
+                            >
+                              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-mono font-bold shrink-0 ${
+                                isSelected
+                                  ? 'bg-primary-foreground text-primary'
+                                  : 'bg-muted text-muted-foreground'
+                              }`}>
+                                {isSelected ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : String.fromCharCode(65 + cIdx)}
+                              </span>
+                              <span className="truncate">{choice}</span>
+                              {isSelected && <CheckCircle2 className="w-4 h-4 ml-auto sm:ml-1 text-primary-foreground shrink-0" />}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    ) : null}
                   </div>
                 ) : null}
 
@@ -2117,24 +2231,28 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 {/* 2-Column Presentation Grid (50% / 50% on Desktop) */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 items-start">
                   <div className={`w-full ${effectiveAnswerPlacement === 'left' ? 'lg:order-2' : 'lg:order-1'}`}>
-                    <div className="space-y-3">
+                    <div className="space-y-4">
                       <h2 className="font-heading font-bold text-4xl lg:text-5xl text-foreground leading-tight tracking-tight">
                         {currentField.label}
                         {isCurrentFieldRequired ? (
                           <span className="text-destructive font-bold ml-1.5" title="Required question">*</span>
                         ) : null}
                       </h2>
-                      {hasFieldSubtitle ? (
-                        <p className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed line-clamp-2">
+                      {currentField.subtitle ? (
+                        <p className="font-sans text-base lg:text-lg text-foreground/85 leading-relaxed font-normal">
                           {currentField.subtitle}
                         </p>
-                      ) : hasFieldDescription ? (
-                        <p className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed line-clamp-2">
+                      ) : null}
+                      {currentField.description ? (
+                        <p className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-line border-l-2 border-border pl-3.5 py-0.5">
                           {currentField.description}
                         </p>
                       ) : null}
-                      {hasPlaceholderHint ? (
-                        <p className="text-sm text-muted-foreground">{currentField.placeholder}</p>
+                      {currentField.placeholder ? (
+                        <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-muted/60 border border-border text-foreground text-xs sm:text-sm font-sans font-medium">
+                          <Lightbulb className="w-4 h-4 text-primary shrink-0" />
+                          <span>{currentField.placeholder}</span>
+                        </div>
                       ) : null}
                     </div>
                   </div>
@@ -2674,13 +2792,14 @@ export const RunnerVideoPlayer: React.FC<{
   videoUrl?: string;
   videoCaption?: string;
   title?: string;
-}> = ({ videoUrl, videoCaption, title }) => {
+  bare?: boolean;
+}> = ({ videoUrl, videoCaption, title, bare }) => {
   const embedInfo = parseVideoEmbedUrl(videoUrl);
   const hasEmbed = Boolean(embedInfo && embedInfo.embedUrl);
 
   if (!hasEmbed) {
     return (
-      <div className="w-full aspect-video rounded-xl border-2 border-dashed border-border/80 flex flex-col items-center justify-center p-6 text-center bg-muted/20">
+      <div className={`w-full aspect-video ${bare ? 'h-full' : 'rounded-xl border-2 border-dashed border-border/80'} flex flex-col items-center justify-center p-6 text-center bg-muted/20`}>
         <Film className="w-9 h-9 text-muted-foreground/50 mb-2" />
         <p className="text-xs font-semibold text-foreground">Video Stream Unavailable</p>
         <p className="text-xs text-muted-foreground mt-1">
@@ -2691,6 +2810,26 @@ export const RunnerVideoPlayer: React.FC<{
   }
 
   const isDirectVideo = Boolean(embedInfo && embedInfo.isDirectVideo);
+
+  if (bare) {
+    return isDirectVideo ? (
+      <video
+        controls
+        className="w-full h-full object-contain"
+        src={embedInfo ? embedInfo.embedUrl : ''}
+      >
+        Your browser does not support HTML5 video playback.
+      </video>
+    ) : (
+      <iframe
+        className="w-full h-full border-0"
+        src={embedInfo ? embedInfo.embedUrl : ''}
+        title={title || 'Assessment Video Stream'}
+        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+        allowFullScreen
+      />
+    );
+  }
 
   return (
     <div className="space-y-2">
@@ -3112,7 +3251,7 @@ function renderFieldInput(
 ) {
   const strValue = typeof value === 'string' ? value : '';
   const choiceMotionClass = isPresentationSlide
-    ? 'opacity-[0.92] hover:opacity-100 hover:translate-x-2 transition-[transform,opacity] duration-[180ms]'
+    ? 'slide-up-anim presentation-option-card hover:translate-x-2'
     : 'transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs';
 
   switch (field.type) {
@@ -3260,11 +3399,12 @@ function renderFieldInput(
         <div className="space-y-2">
           {options.map((opt, optIndex) => {
             const isSelected = selectedOpts.includes(opt);
+            const staggerClass = isPresentationSlide ? `stagger-${Math.min(optIndex + 1, 6)}` : '';
 
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${staggerClass} ${
                   isSelected
                     ? 'border-primary bg-card text-foreground font-semibold shadow-xs ring-1 ring-border'
                     : 'border-border/80 bg-card text-foreground'
@@ -3295,7 +3435,7 @@ function renderFieldInput(
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
                   hasOther
                     ? 'border-primary bg-card text-foreground font-semibold shadow-xs ring-1 ring-border'
                     : 'border-border/80 bg-card text-foreground'
@@ -3406,11 +3546,12 @@ function renderFieldInput(
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           {options.map((opt, optIndex) => {
             const isSelected = strValue.toLowerCase() === opt.toLowerCase();
+            const staggerClass = isPresentationSlide ? `stagger-${Math.min(optIndex + 1, 6)}` : '';
 
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${alignClass} ${
+                className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${staggerClass} ${alignClass} ${
                   isSelected
                     ? 'border-primary bg-card text-foreground font-semibold shadow-xs ring-1 ring-border'
                     : 'border-border/80 bg-card text-foreground'
@@ -3463,11 +3604,12 @@ function renderFieldInput(
         <div className="space-y-2">
           {options.map((opt, optIndex) => {
             const isSelected = strValue === opt;
+            const staggerClass = isPresentationSlide ? `stagger-${Math.min(optIndex + 1, 6)}` : '';
 
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${staggerClass} ${
                   isSelected
                     ? 'border-primary bg-card text-foreground font-semibold shadow-xs ring-1 ring-border'
                     : 'border-border/80 bg-card text-foreground'
@@ -3498,7 +3640,7 @@ function renderFieldInput(
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
                   hasOther
                     ? 'border-primary bg-card text-foreground font-semibold shadow-xs ring-1 ring-border'
                     : 'border-border/80 bg-card text-foreground'

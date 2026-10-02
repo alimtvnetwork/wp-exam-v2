@@ -262,13 +262,14 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
                   type="button"
                   onClick={() => setSelectedCategory(cat.id)}
                   aria-label={`${cat.label} (${cat.count})`}
-                  className={`flex-1 min-w-0 text-xs py-1 px-1 rounded-md transition-all font-medium text-center flex items-center justify-center cursor-pointer ${
+                  className={`flex-1 min-w-0 text-xs py-1 px-1 sm:px-1.5 rounded-md transition-all font-medium text-center flex items-center justify-center gap-1 cursor-pointer ${
                     selectedCategory === cat.id
                       ? 'bg-background text-foreground font-semibold shadow-2xs'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
-                  <CategoryIcon className="w-3.5 h-3.5" />
+                  <CategoryIcon className="w-3.5 h-3.5 shrink-0" />
+                  <span className="hidden 2xl:inline text-[11px] truncate">{cat.label}</span>
                 </button>
               </TooltipTrigger>
               <TooltipContent>{cat.label} ({cat.count})</TooltipContent>
@@ -320,10 +321,10 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors leading-tight block">
+                    <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors leading-tight block truncate">
                       {opt.label}
                     </span>
-                    <p className="text-[11px] text-muted-foreground leading-snug mt-0.5 line-clamp-2">
+                    <p className="text-[11px] text-muted-foreground leading-snug mt-0.5 line-clamp-2 break-words">
                       {opt.description}
                     </p>
                   </div>

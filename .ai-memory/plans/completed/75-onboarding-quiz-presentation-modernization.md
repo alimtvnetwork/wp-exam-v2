@@ -1,6 +1,13 @@
-# Master Plan: 75-onboarding-quiz-presentation-modernization
+# Completed Plan: 75-onboarding-quiz-presentation-modernization
 
-## User Request (Verbatim)
+- **Status**: COMPLETED
+- **Spec**: [02-spec/21-app/75-onboarding-quiz-presentation-modernization/01-architecture-spec.md](../../../02-spec/21-app/75-onboarding-quiz-presentation-modernization/01-architecture-spec.md)
+- **Companion Spec**: [02-spec/21-app/75-onboarding-quiz-presentation-modernization/02-component-spec.md](../../../02-spec/21-app/75-onboarding-quiz-presentation-modernization/02-component-spec.md)
+- **Decisions**: [.ai-memory/memory/learned/20-onboarding-quiz-ui-presentation-modernization.md](../../memory/learned/20-onboarding-quiz-ui-presentation-modernization.md)
+
+---
+
+## 1. User Request (Verbatim)
 
 ```text
 Preview Issues
@@ -32,34 +39,30 @@ Must follow and spawn agent using
 @[.agents/skills/execute-parent-task-with-n-steps-v6]
 ```
 
-## User Uploaded Reference Media
+---
 
-![Builder Green Excess & Broken Palette](assets/screenshots/75-builder-green-excess-and-broken-palette.png)
-![Preview Purple Contrast Clash](assets/screenshots/75-preview-purple-contrast-clash.png)
-![Builder Crowded Config Toolbar](assets/screenshots/75-builder-crowded-config-toolbar.png)
-![Builder Crowded Toolbar Zoom](assets/screenshots/75-builder-crowded-toolbar-zoom.png)
-![Preview RiseUp Yellow Contrast](assets/screenshots/75-preview-riseup-yellow-contrast.png)
+## 2. Architecture & Subtask Execution Evidence
 
-## Architecture & Subtask Decomposition
+| Task Code | Subtask Title | Assigned Role | Status | Evidence |
+|---|---|---|---|---|
+| Task-01 | Builder Chrome, Ribbon Restraint & Field Palette Modernization | Worker 01 | DONE | PASS Onboarding Quiz logo modern gradient accents, restrained FormBuilder ribbon, unified config dropdown, unclipped field palette, and complete question action icons (Save, Duplicate, Delete, Preview, Reorder) verified and applied |
+| Task-02 | White Presentation Split Mode, CSS3 Animations & Contrast Theming | Worker 02 | DONE | PASS Verified CSS3 animations (slideInUpSoft, stagger-1..6, presentation-option-card hover translation) and high-contrast theming in theme.css; confirmed RiseUp (Gold & Navy) and VS Code Navy Gold in themes.ts and theme-definitions.ts; implemented Lightbulb guidance chip, dual-choice video route controls, and uncompressed floating HUD sidebar in FormRunner.tsx |
 
-### Wave 1: Specification Authoring (Phase 1 Spec Step via A = 2 Subagents)
-- **Subagent 1 (Spec Author 01):** Authors `02-spec/21-app/75-onboarding-quiz-presentation-modernization/01-architecture-spec.md` and subtask `.ai-memory/plans/subtasks/75-onboarding-quiz-presentation-modernization/01-builder-chrome-and-branding.md`.
-- **Subagent 2 (Spec Author 02):** Authors `02-spec/21-app/75-onboarding-quiz-presentation-modernization/02-component-spec.md` and subtask `.ai-memory/plans/subtasks/75-onboarding-quiz-presentation-modernization/02-presentation-mode-and-theming.md`.
+---
 
-### Wave 2: Code Execution (Phase 2 Execution Step via A = 2 Worker Subagents)
-- **Worker 01 (Owned Files: Builder & Branding):**
-  - `src/assets/onboarding-quiz-logo.svg`
-  - `src/components/admin/wp-admin-sidebar.tsx`
-  - `src/components/forms/FormBuilder.tsx`
-  - `src/components/forms/field-palette.tsx`
-  - `src/components/forms/sortable-field-card.tsx`
-- **Worker 02 (Owned Files: Themes & Presentation Mode):**
-  - `src/lib/themes.ts`
-  - `src/themes/theme-definitions.ts`
-  - `src/styles/theme.css`
-  - `src/components/runner/FormRunner.tsx`
+## 3. Deliverables Summary
 
-### Wave 3: Decision Logging, Index Verification & GitMap Finalization (Phase 3 Lead Agent)
-- Author `.ai-memory/memory/learned/20-onboarding-quiz-ui-presentation-modernization.md`
-- Update `.ai-memory/what-to-read.md`
-- Verify targeted linters and execute single atomic GitMap commit: `gitmap cpb "wpexam - onboarding quiz presentation mode and ui polish"`
+1. **Brand Identity & Vector Mark**:
+   - `src/assets/onboarding-quiz-logo.svg`: High-resolution, multi-stop gradient SVG brand mark with typographic "Onboarding Quiz" identity.
+   - `src/components/admin/wp-admin-sidebar.tsx`: Integrated logo mark, tooltip, and subtitle.
+2. **Builder Chrome & Excessive Green Taming**:
+   - `src/components/forms/FormBuilder.tsx`: Refined 2px dynamic accent ribbon, soft card shadows, inline form title editing. Consolidated secondary actions into a compact Config menu (`SlidersHorizontal`) with tooltips.
+3. **Right-Hand Sidebar & Field Palette**:
+   - `src/components/forms/field-palette.tsx`: Category filter pills (All, Choice, Text, Media, Page Elements) with responsive icons, search filter, and unclipped component grid.
+4. **Question Card Action Icons**:
+   - `src/components/forms/sortable-field-card.tsx`: Action icons for Save, Duplicate, Delete, Preview, Reorder, custom stored values, and choice alignment controls.
+5. **Presentation Split Mode & CSS3 Slide-In Animations**:
+   - `src/styles/theme.css`: `@keyframes slideInUpSoft`, `.slide-up-anim`, `.stagger-1..6`, and `.presentation-option-card` hover glide (`hover:translate-x-2`).
+   - `src/components/runner/FormRunner.tsx`: True 2-column presentation layout (Left 50%, Right 50%) without artificial truncation, Lightbulb placeholder guidance chip, floating HUD sidebar with backdrop dismissal, constrained video player (`max-h-[380px]`), and 2-choice route controls.
+6. **Theming & Color Contrast**:
+   - `src/lib/themes.ts` and `src/themes/theme-definitions.ts`: `RiseUp (Gold & Navy)` brand spelling, restrained gold accents to avoid brain fog, and `vscode-navy-gold` dark navy preset.

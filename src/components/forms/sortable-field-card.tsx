@@ -590,9 +590,10 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   type="button"
                   onClick={() => setIsEditingIndex(true)}
                   onDoubleClick={() => setIsEditingIndex(true)}
-                  className="font-mono text-xs px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 font-bold shrink-0 flex items-center gap-1 hover:bg-primary/20 hover:border-primary/40 cursor-pointer transition-all shadow-2xs group"
+                  className="font-mono text-xs px-2.5 py-1 rounded-lg bg-primary/10 text-primary border border-primary/20 font-bold shrink-0 flex items-center gap-1.5 hover:bg-primary/20 hover:border-primary/40 cursor-pointer transition-all shadow-2xs group"
                   title="Click or double-click to type new order index"
                 >
+                  <ListOrdered className="w-3.5 h-3.5 opacity-75 group-hover:opacity-100 transition-opacity" />
                   <span>#{index + 1}</span>
                   {field.isRequired && <span className="text-destructive font-bold ml-0.5">*</span>}
                 </button>
@@ -1038,6 +1039,14 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 </DropdownMenuSub>
 
                 <DropdownMenuSeparator className="my-1 border-border/80" />
+
+                <DropdownMenuItem
+                  onClick={() => setIsEditingIndex(true)}
+                  className="text-sm flex items-center gap-2 cursor-pointer py-1.5"
+                >
+                  <ListOrdered className="w-4 h-4 text-muted-foreground" />
+                  <span>Reorder Position (#{index + 1})</span>
+                </DropdownMenuItem>
 
                 <DropdownMenuItem
                   onClick={() => onDuplicate(id)}
@@ -2867,7 +2876,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
 
           {/* Choice Options Editor */}
           {isChoiceField && (
-            <div className="p-4 bg-muted/20 rounded-xl space-y-3.5 border border-border/80">
+            <div className="p-4 sm:p-5 bg-muted/20 rounded-xl space-y-3.5 border border-border/80 shadow-2xs">
               <div className="flex items-center justify-between flex-wrap gap-2">
                 <div className="flex items-center gap-2">
                   <Label className="text-sm sm:text-base font-medium font-sans text-foreground">
@@ -2887,7 +2896,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                           key={align}
                           type="button"
                           onClick={() => onUpdate(id, { choiceAlignment: align })}
-                          className={`px-2.5 py-1 text-xs font-medium font-sans rounded-md capitalize transition-colors ${
+                          className={`px-2.5 py-1 text-xs font-medium font-sans rounded-md capitalize transition-colors cursor-pointer ${
                             isSelected
                               ? 'bg-primary text-primary-foreground font-medium font-sans shadow-xs'
                               : 'text-muted-foreground hover:text-foreground'
@@ -2914,7 +2923,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                         type="checkbox"
                         checked={Boolean(field.dropdownAllowSearch)}
                         onChange={(e) => onUpdate(id, { dropdownAllowSearch: e.target.checked })}
-                        className="rounded text-primary focus:ring-primary h-3.5 w-3.5 accent-primary"
+                        className="rounded text-primary focus:ring-primary h-3.5 w-3.5 accent-primary cursor-pointer"
                       />
                       <span>Option Search Bar</span>
                     </label>
@@ -2933,7 +2942,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                             onUpdate(id, { dropdownOptions: undefined });
                           }
                         }}
-                        className="rounded text-primary focus:ring-primary h-3.5 w-3.5 accent-primary"
+                        className="rounded text-primary focus:ring-primary h-3.5 w-3.5 accent-primary cursor-pointer"
                       />
                       <span>Custom Stored Values</span>
                     </label>
@@ -2953,8 +2962,8 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   const storedValue = field.dropdownOptions?.[optIndex]?.value || '';
 
                   return (
-                    <div key={optIndex} className="flex gap-2.5 items-center">
-                      <span className={`w-10 h-10 rounded-lg border flex items-center justify-center font-mono text-sm font-bold shrink-0 transition-colors ${
+                    <div key={optIndex} className="flex gap-2 sm:gap-2.5 items-center">
+                      <span className={`w-10 h-10 rounded-lg border flex items-center justify-center font-mono text-sm font-bold shrink-0 transition-colors shadow-2xs ${
                         isCorrect
                           ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/80 font-bold'
                           : 'bg-muted/50 border-border/70 text-foreground/80'
@@ -2963,7 +2972,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                       </span>
 
                       {hasCustomValues ? (
-                        <div className="flex-1 flex items-center gap-2">
+                        <div className="flex-1 flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
                           <Input
                             value={opt}
                             onChange={(e) => {
@@ -2977,7 +2986,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                               onUpdate(id, { options: newOpts, dropdownOptions: newDropdownOpts });
                             }}
                             placeholder={`Display Label (e.g. Option ${optIndex + 1})`}
-                            className="text-base h-10 px-3.5 bg-background text-foreground flex-1 font-medium rounded-lg border border-border"
+                            className="text-sm sm:text-base h-10 px-3.5 bg-background text-foreground flex-1 font-medium rounded-lg border border-border shadow-2xs"
                           />
                           <Input
                             value={storedValue}
@@ -2990,7 +2999,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                               onUpdate(id, { dropdownOptions: newDropdownOpts });
                             }}
                             placeholder="Stored Value"
-                            className="text-sm h-10 px-3 bg-muted/30 font-mono text-foreground w-36 sm:w-44 rounded-lg shrink-0 border border-border"
+                            className="text-xs sm:text-sm h-10 px-3 bg-muted/30 font-mono text-foreground w-full sm:w-44 rounded-lg shrink-0 border border-border shadow-2xs"
                             title="Internal stored value"
                           />
                         </div>
@@ -3003,16 +3012,16 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                             onUpdate(id, { options: newOpts });
                           }}
                           placeholder={`Option ${optIndex + 1}`}
-                          className="text-base h-10 px-3.5 bg-background text-foreground flex-1 font-medium rounded-lg border border-border"
+                          className="text-sm sm:text-base h-10 px-3.5 bg-background text-foreground flex-1 font-medium rounded-lg border border-border shadow-2xs"
                         />
                       )}
 
                       {isQuiz && (
                         <button
                           type="button"
-                          className={`w-10 h-10 p-0 flex items-center justify-center rounded-lg shrink-0 transition-all cursor-pointer border ${
+                          className={`w-10 h-10 p-0 flex items-center justify-center rounded-lg shrink-0 transition-all cursor-pointer border shadow-2xs ${
                             isCorrect
-                              ? 'bg-emerald-500/15 border-emerald-500/80 text-emerald-600 dark:text-emerald-400 font-bold hover:bg-emerald-500/25'
+                              ? 'bg-emerald-500/15 border-emerald-500/80 text-emerald-600 dark:text-emerald-400 font-bold hover:bg-emerald-500/25 ring-2 ring-emerald-500/20'
                               : 'bg-background hover:bg-muted border-border/70 text-muted-foreground/40 hover:text-foreground'
                           }`}
                           onClick={() => {
