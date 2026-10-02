@@ -4,13 +4,16 @@ Master directory of architectural and execution plans.
 
 ## Pending Plans
 
-- [74-onboarding-quiz-presentation-ui.md](pending/74-onboarding-quiz-presentation-ui.md): Onboarding Quiz logo, collapsed builder config menu, thin green accent, full presentation preview, and restrained Riseup / navy themes.
 - [02-slides-system-overhaul.md](pending/02-slides-system-overhaul.md): Full slides deck UI and system overhaul.
 - [04-guideline-prompt-and-installer-upgrade.md](pending/04-guideline-prompt-and-installer-upgrade.md): Guideline prompt and installer enhancements.
 - [09-update-prompts-and-release.md](pending/09-update-prompts-and-release.md): Update prompts and release lifecycle (deferred under WOR policy).
 - [11-code-red-refactor-remediation.md](pending/11-code-red-refactor-remediation.md): Remediate Code Red enum, boolean, and query wrapper violations across the codebase.
 
 ## Completed Plans
+
+- [75-onboarding-quiz-presentation-modernization.md](completed/75-onboarding-quiz-presentation-modernization.md): Onboarding Quiz UI Presentation Modernization (Restrained 2px green accent edge, unified 7-action Config dropdown menu, Onboarding Quiz vector branding, 4 unclipped icon dock tabs, 1-row category filter pills, White Presentation 50/50 slide split with staggered upward slide CSS3 motion, tactile hover glide, full-width video player with dual-choice conditional routes, and high-contrast Purple, Riseup, and Navy Gold themes).
+
+- [74-onboarding-quiz-presentation-ui.md](completed/74-onboarding-quiz-presentation-ui.md): Onboarding Quiz Presentation UI & Builder Chrome Polish (Restrained 2px top edge, card shadow-md, unified SlidersHorizontal config dropdown, Onboarding Quiz logo, Radix tooltips on icon buttons, full presentation preview, and restrained Riseup/Navy themes).
 
 - [73-ui-ux-candidate-view-theming-and-new-tab-preview.md](completed/73-ui-ux-candidate-view-theming-and-new-tab-preview.md): UI/UX Candidate View Overhaul, CSS3 Theming/Motion & New-Tab Preview Engine (Dismantled preview modal in FormBuilder, new-tab /preview/:slug route launch, clean distraction-free candidate assessment mode in FormRunner, 14px/16px textarea, elevated option contrast, key={currentField.id} card transitions, dynamic HSL pulse-glow, and code guideline fixes).
 

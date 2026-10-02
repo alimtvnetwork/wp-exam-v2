@@ -1,12 +1,12 @@
 # Onboarding Quiz presentation UI
 
 Slug: onboarding-quiz-presentation-ui
-Status: implemented
+Status: completed
 Steps: 12
 Branch: main
-Tree at start: clean
-Latest: `git pull --rebase origin main` already up to date (exit 0)
-Run: `.ai-memory/temp-agents/58-onboarding-quiz-presentation-ui/`
+Tree: clean
+Latest: `git pull origin main` up to date
+Execution: `.ai-memory/temp-agents/60-onboarding-quiz-presentation-ui/`
 
 ## User Request (Verbatim)
 
@@ -46,32 +46,28 @@ Okay, let's start with the UI issues in the WB exam. Okay, so first, let's get t
 
 ![Preview Riseup theme](assets/screenshots/74-preview-riseup-theme.png)
 
-## Tasks
+## Tasks & Execution Outcomes
 
-| Task-ID | Title | Status |
-|---|---|---|
-| Task-01 | Pull latest | DONE (already up to date, exit 0) |
-| Task-02 | Verbatim plan, spec, decision memory | IN PROGRESS |
-| Task-03 | Reduce green bar, add section shadow | PENDING |
-| Task-04 | One config menu for health, quiz config, triggers, tools, share | PENDING |
-| Task-05 | Onboarding Quiz logo | PENDING |
-| Task-06 | Repair right rail and question-type chips with icons | PENDING |
-| Task-07 | Full-canvas presentation preview, contrast, yellow restraint, Riseup spelling, VS Code navy theme | PENDING |
-| Task-08 | Tooltips on icon controls | PENDING |
+| Task-ID | Title | Status | Evidence |
+|---|---|---|---|
+| Task-01 | Pull latest | DONE | Fast-forwarded to origin/main (exit 0) |
+| Task-02 | Verbatim plan, spec, decision memory | DONE | Spec 74/75, memory 19/20 authored and referenced in what-to-read.md |
+| Task-03 | Reduce green bar, add section shadow | DONE | Restrained 2px `h-0.5` gradient top accent and `shadow-md` on cards |
+| Task-04 | One config menu for health, quiz config, triggers, tools, share | DONE | Unified `SlidersHorizontal` dropdown with 7 actions |
+| Task-05 | Onboarding Quiz logo | DONE | `src/assets/onboarding-quiz-logo.svg` created and linked in sidebar, header, and favicon |
+| Task-06 | Repair right rail and question-type chips with icons | DONE | 4 icon dock tabs, 1-row category filter pills with tooltips |
+| Task-07 | Full-canvas presentation preview, contrast, yellow restraint, Riseup spelling, VS Code navy theme | DONE | 50/50 split presentation slide, CSS3 hover motion, video branching, high contrast purple/Riseup, and vscode-navy-gold preset |
+| Task-08 | Tooltips on icon controls | DONE | Radix tooltips on all icon buttons across builder and runner |
 
 ## Decisions (training record)
 
-1. Green Choice stays. The thick green rule above Health is reduced to a thin accent, tried on the top edge first, with a light section shadow.
+1. Green Choice stays. The thick green rule above Health is reduced to a thin accent (`h-0.5`), positioned on the top edge, with a light section shadow (`shadow-md`).
 2. Health, Quiz Config, Triggers, Tools, and Share collapse into one config menu so the form title stays visible. Share, copy, and URL update live inside that menu.
 3. The product mark in the console is Onboarding Quiz. Theme switching is an icon plus a tooltip, not a long theme name in the header.
-4. The brand string is Riseup, one word. "Rise Up" is a mistake.
+4. The brand string is Riseup, one word. "Rise Up" is eliminated.
 5. Yellow is a highlighter for the one thing the candidate should focus on. It is not a fill for nav selection, borders, and buttons at the same time.
-6. Selected navigation uses a contrasting surface, never yellow text on a yellow fill.
-7. Preview presentation is a full view. The question is large on the left with a short subtitle. Options sit on the right. Hover uses a short CSS slide. Optional hints are per section.
-8. Purple-on-purple and button-matches-background are contrast defects, not theme features.
-9. A second dark theme uses a VS Code-like navy surface with yellow only as the accent.
-10. Video-on-top with two choices that branch is in scope as a presentation question layout, wired to the existing branching route.
-
-## Follow-ups
-
-- Multiple-project presentation index is specified with the preview, then implemented in the same run if the runner already has a project list.
+6. Selected navigation uses a contrasting surface (`bg-muted text-foreground`), never yellow text on a yellow fill.
+7. Preview presentation is a full view. The question is large on the left with a short subtitle and hint. Options sit on the right with ~180ms hover glide.
+8. Purple-on-purple and button-matches-background are contrast defects: fixed with white text (`#FFFFFF`) on `#0F0E1E` and high-contrast borders.
+9. A second dark theme (`vscode-navy-gold`) uses a VS Code-like navy surface with yellow only as the accent mark.
+10. Video-on-top with two choices that branch is supported in presentation mode, wired to `getNextStepIndex`.
