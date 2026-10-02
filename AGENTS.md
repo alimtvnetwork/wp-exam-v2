@@ -65,3 +65,12 @@ To survive massive checklists and complex codebases, you MUST operate using thes
 - **Parameter Structs:** Banned loose >2-3 parameters; use *Params structs.
 - **Vertical Line Gaps:** Mandatory blank lines before if, after }, before return, and around multiline struct calls.
 - **5-8 Files Micro-Batching:** All refactors broken into bounded subtasks.
+
+## 9. Onboarding Quiz Presentation & Theming Standard
+
+- **Hairline Chrome Accent**: Title cards must use a 2px hairline accent edge (`h-0.5`) with `shadow-md`, never heavy solid or gradient banners (`h-2`+).
+- **Consolidated Config Menu**: Secondary builder tools (Health, Config, Triggers, Import/Export, Flow, Share) must be combined into a single `SlidersHorizontal` dropdown menu.
+- **Brand Consistency**: The application is branded as "Onboarding Quiz" with `src/assets/onboarding-quiz-logo.svg`.
+- **Riseup Brand & Theme Rules**: Brand name must be written as one word (`Riseup`). Dark navy background (`#0A0A14`) paired with cream primary (`#F7F1E6`). Gold (`#E8C547`) is strictly an active indicator mark, never a dominant surface or text color.
+- **Purple Theme Contrast**: White text (`#FFFFFF`) on deep violet background (`#0F0E1E`) with luminous borders (`#3A3568`).
+
