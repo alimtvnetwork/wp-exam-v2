@@ -36,7 +36,17 @@ describe('Slug Routing, Theming Engine & AI Studio Verification', () => {
   });
 
   it('provides complete HSL CSS tokens across all supported themes', () => {
-    const themeKeys: AppThemeType[] = ['riseup', 'dracula', 'purple', 'obsidian', 'clean', 'clean-wide', 'sweet-digs'];
+    const themeKeys: AppThemeType[] = [
+      'riseup',
+      'dracula',
+      'purple',
+      'obsidian',
+      'vscode-navy-gold',
+      'clean',
+      'clean-wide',
+      'sweet-digs',
+      'green-choice',
+    ];
 
     themeKeys.forEach((themeKey) => {
       const config = THEME_CONFIGS[themeKey];
@@ -57,6 +67,9 @@ describe('Slug Routing, Theming Engine & AI Studio Verification', () => {
 
     // Dracula must feature purple primary (265 89% 78%)
     expect(THEME_CONFIGS.dracula.hslValues['--primary']).toBe('265 89% 78%');
+
+    // Navy Gold must feature cream primary (210 56% 96%)
+    expect(THEME_CONFIGS['vscode-navy-gold'].hslValues['--primary']).toBe('210 56% 96%');
 
     // Sweet Digs must feature Botanical Emerald primary (142 71% 45%) and Sage canvas (140 20% 97%)
     expect(THEME_CONFIGS['sweet-digs'].hslValues['--primary']).toBe('142 71% 45%');

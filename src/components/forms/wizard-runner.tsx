@@ -73,6 +73,7 @@ const THEME_OPTIONS: { id: AppThemeType; name: string }[] = [
   { id: 'dracula', name: 'Antigravity Dracula (Dark Purple)' },
   { id: 'purple', name: 'Purple Theme (Deep Purple & Violet)' },
   { id: 'obsidian', name: 'VS Code Dark (Slate & Cyan)' },
+  { id: 'vscode-navy-gold', name: 'Navy Gold (Obsidian & Cream)' },
   { id: 'clean', name: 'Clean Light (Enterprise Clean)' },
 ];
 

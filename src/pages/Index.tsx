@@ -20,7 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { WpAdminSidebar, AdminTab } from '@/components/admin/wp-admin-sidebar';
-import onboardingQuizMark from '@/assets/onboarding-quiz-mark.svg';
+import onboardingQuizLogo from '@/assets/onboarding-quiz-logo.svg';
 import {
   Shield,
   ExternalLink,
@@ -183,6 +183,7 @@ export const Index: React.FC = () => {
     purple: 'theme-purple bg-background text-foreground',
     dracula: 'theme-dracula bg-background text-foreground',
     obsidian: 'theme-obsidian bg-background text-foreground',
+    'vscode-navy-gold': 'theme-vscode-navy-gold bg-background text-foreground',
     clean: 'theme-clean bg-background text-foreground',
     'clean-wide': 'theme-clean-wide bg-background text-foreground',
     'sweet-digs': 'theme-sweet-digs bg-background text-foreground',
@@ -197,10 +198,10 @@ export const Index: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
             <img
-              src={onboardingQuizMark}
+              src={onboardingQuizLogo}
               alt=""
               title="Onboarding Quiz"
-              className="w-6 h-6 rounded shrink-0"
+              className="w-7 h-7 rounded-lg shrink-0 shadow-xs ring-1 ring-border/50"
             />
             <span className="font-bold text-sm tracking-tight text-foreground hidden sm:inline">
               Onboarding Quiz
