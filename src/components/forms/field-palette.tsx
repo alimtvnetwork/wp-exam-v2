@@ -224,7 +224,7 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
     { id: 'choice', label: 'Choice', count: PALETTE_OPTIONS.filter((o) => o.category === 'choice').length, icon: CheckSquare },
     { id: 'text', label: 'Text', count: PALETTE_OPTIONS.filter((o) => o.category === 'text').length, icon: Type },
     { id: 'media', label: 'Media', count: PALETTE_OPTIONS.filter((o) => o.category === 'media').length, icon: Video },
-    { id: 'layout', label: 'Layout', count: PALETTE_OPTIONS.filter((o) => o.category === 'layout').length, icon: Heading },
+    { id: 'layout', label: 'Page Elements', count: PALETTE_OPTIONS.filter((o) => o.category === 'layout').length, icon: Heading },
   ] as const;
 
   const content = (

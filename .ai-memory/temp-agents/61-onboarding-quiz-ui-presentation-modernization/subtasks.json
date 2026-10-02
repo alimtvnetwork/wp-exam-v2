@@ -1,0 +1,12 @@
+[
+  {
+    "title": "Subtask 01: Builder Chrome, Config Dropdown, Logo & Rail Icons",
+    "description": "Restrain title-card accent edge (2px hairline), add section shadow, collapse secondary controls into Config dropdown with SlidersHorizontal, replace legacy icons with official Onboarding Quiz logo, and streamline rail/card toolbars.",
+    "targetFiles": "src/components/forms/FormBuilder.tsx,src/components/forms/sortable-field-card.tsx,src/components/forms/field-palette.tsx,src/components/admin/wp-admin-sidebar.tsx,src/pages/Index.tsx,index.html"
+  },
+  {
+    "title": "Subtask 02: 50/50 White Presentation Mode, Motion & Contrast Theming",
+    "description": "50/50 split presentation mode with 5xl question typography, subtitle, description, lightbulb hint chip, 180ms hover glide option cards, full-width video player with dual-choice routes, floating HUD drawer, Purple contrast #FFFFFF on #0F0E1E, Riseup cream primary with gold highlight, and vscode-navy-gold preset.",
+    "targetFiles": "src/components/runner/FormRunner.tsx,src/styles/theme.css,src/styles/theme.less,src/lib/themes.ts,src/lib/theme-context.tsx,src/themes/theme-definitions.ts"
+  }
+]

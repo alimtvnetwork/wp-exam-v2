@@ -860,6 +860,36 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     return extractQuestionChecklist({ field: currentField });
   }, [currentField]);
 
+  const isHeroAndAccessBarVisible = useMemo(() => {
+    if (effectiveLayoutMode === 'presentation_split') {
+      return false;
+    }
+
+    if (isPreviewRoute) {
+      return false;
+    }
+
+    if (isCandidateOrPreview) {
+      return false;
+    }
+
+    if (isExamStarted) {
+      return false;
+    }
+
+    const hasAdvancedSequentialStep = isSequential && currentStep > 0;
+    if (hasAdvancedSequentialStep) {
+      return false;
+    }
+
+    const hasRecordedAnswers = Object.keys(answers).length > 0;
+    if (hasRecordedAnswers) {
+      return false;
+    }
+
+    return true;
+  }, [effectiveLayoutMode, isPreviewRoute, isCandidateOrPreview, isExamStarted, isSequential, currentStep, answers]);
+
   const handleToggleFullscreen = () => {
     if (!document.fullscreenElement) {
       document.documentElement.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
@@ -1680,16 +1710,6 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     </>
   );
 
-  const isHeroAndAccessBarVisible = useMemo(() => {
-    if (effectiveLayoutMode === 'presentation_split') return false;
-    if (isPreviewRoute) return false;
-    if (isCandidateOrPreview) return false;
-    if (isExamStarted) return false;
-    if (isSequential && currentStep > 0) return false;
-    if (Object.keys(answers).length > 0) return false;
-    return true;
-  }, [effectiveLayoutMode, isPreviewRoute, isCandidateOrPreview, isExamStarted, isSequential, currentStep, answers]);
-
   return (
     <div
       className={`min-h-screen w-full transition-colors duration-300 font-sans theme-${activeThemeId} ${
@@ -2100,7 +2120,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
       {/* Sequential Wizard Runner with Left-Hand Sequence Navigator */}
       {(isSequential || effectiveLayoutMode === 'presentation_split') && currentField ? (
-        <div className={effectiveLayoutMode === 'presentation_split' ? 'w-full relative' : 'flex flex-col lg:flex-row items-start gap-6 w-full'}>
+        <div className={effectiveLayoutMode === 'presentation_split' ? 'w-full max-w-[98vw] px-2 sm:px-4 mx-auto relative' : 'flex flex-col lg:flex-row items-start gap-6 w-full'}>
           {/* Question Sequence Sidebar: Floating HUD overlay in presentation mode, docked in standard mode */}
           {effectiveLayoutMode === 'presentation_split' ? (
             isSidebarVisible ? (
@@ -2269,42 +2289,51 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
                 {/* 2-Column Presentation Grid (50% / 50% on Desktop) */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 items-start">
-                  <div className={`w-full ${effectiveAnswerPlacement === 'left' ? 'lg:order-2' : 'lg:order-1'}`}>
-                    <div className="space-y-4">
-                      <h2 className="font-heading font-bold text-4xl lg:text-5xl text-foreground leading-tight tracking-tight">
-                        {currentField.label}
-                        {isCurrentFieldRequired ? (
-                          <span className="text-destructive font-bold ml-1.5" title="Required question">*</span>
-                        ) : null}
-                      </h2>
-                      {currentField.subtitle ? (
+                  <div className={`w-full space-y-5 ${effectiveAnswerPlacement === 'left' ? 'lg:order-2' : 'lg:order-1'}`}>
+                    <h2 className="font-heading font-bold text-4xl lg:text-5xl text-foreground leading-tight tracking-tight">
+                      {currentField.label}
+                      {isCurrentFieldRequired ? (
+                        <span className="text-destructive font-bold ml-1.5" title="Required question">*</span>
+                      ) : null}
+                    </h2>
+
+                    <div className="space-y-3 pt-1">
+                      {hasFieldSubtitle ? (
                         <p className="font-sans text-base lg:text-lg text-foreground/85 leading-relaxed font-normal">
                           {currentField.subtitle}
                         </p>
                       ) : null}
-                      {currentField.description ? (
-                        <p className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-line border-l-2 border-border pl-3.5 py-0.5">
+                      {hasFieldDescription ? (
+                        <div className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-line border-l-2 border-border pl-3.5 py-0.5">
                           {currentField.description}
-                        </p>
-                      ) : null}
-                      {currentField.placeholder ? (
-                        <div className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-muted/60 border border-border text-foreground text-xs sm:text-sm font-sans font-medium">
-                          <Lightbulb className="w-4 h-4 text-primary shrink-0" />
-                          <span>{currentField.placeholder}</span>
                         </div>
                       ) : null}
                     </div>
+
+                    {hasPlaceholderHint ? (
+                      <div className="pt-2">
+                        <div className="inline-flex items-center gap-2 p-3 rounded-xl bg-muted/60 border border-border text-foreground text-xs sm:text-sm font-sans font-medium shadow-2xs">
+                          <span className="p-1 rounded-md bg-accent text-accent-foreground shrink-0">
+                            <Lightbulb className="w-4 h-4 text-primary" />
+                          </span>
+                          <div className="space-y-0.5">
+                            <span className="font-semibold text-xs text-muted-foreground uppercase tracking-wider block">Candidate Guidance</span>
+                            <span className="font-sans leading-normal">{currentField.placeholder}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ) : null}
                   </div>
 
                   {/* Left/Right Column: Elevated Fluid Answer Card */}
                   <div className={`w-full space-y-5 ${effectiveAnswerPlacement === 'left' ? 'lg:order-1' : 'lg:order-2'}`}>
-                    <div className="bg-card border border-border/80 rounded-2xl p-6 sm:p-8 shadow-lg space-y-6">
-                      <div className="flex items-center justify-between pb-3 border-b border-border/70">
+                    <div className="bg-card border border-border/80 rounded-2xl p-6 sm:p-8 shadow-lg space-y-6 relative overflow-hidden backdrop-blur-md">
+                      <div className="flex items-center justify-between pb-3.5 border-b border-border/80">
                         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                           <Sparkles className="w-3.5 h-3.5 text-foreground" />
                           <span>Candidate Response</span>
                         </span>
-                        <span className="text-[11px] font-mono text-muted-foreground">
+                        <span className="text-[11px] font-mono text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-md border border-border/50">
                           Question {currentStep + 1} of {visibleFields.length}
                         </span>
                       </div>
@@ -2317,11 +2346,12 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                       {/* Navigation & Advance Footer */}
                       <div className="pt-5 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
                         <Button
+                          type="button"
                           variant="outline"
                           size="sm"
                           disabled={currentStep === 0}
                           onClick={handlePreviousStep}
-                          className="text-xs h-9 px-4 font-medium border-border hover:bg-accent cursor-pointer w-full sm:w-auto"
+                          className="text-xs h-9 px-4 font-medium border-border hover:bg-accent cursor-pointer w-full sm:w-auto rounded-xl shadow-xs"
                         >
                           Previous
                         </Button>
@@ -2334,7 +2364,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                                 variant="outline"
                                 size="sm"
                                 onClick={handleTestAutoFill}
-                                className="text-xs h-9 px-3 font-semibold rounded-lg border border-border bg-card text-foreground hover:bg-accent transition-all cursor-pointer"
+                                className="text-xs h-9 px-3 font-semibold rounded-xl border border-border bg-card text-foreground hover:bg-accent transition-all cursor-pointer shadow-xs"
                               >
                                 ⚡ Auto Fill
                               </Button>
@@ -2344,18 +2374,20 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
                           {isLastVisibleStep ? (
                             <Button
+                              type="button"
                               size="sm"
                               onClick={handleNextStep}
-                              className="text-xs h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer flex items-center gap-1.5 flex-1 sm:flex-initial justify-center"
+                              className="text-xs h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-1.5 flex-1 sm:flex-initial justify-center rounded-xl"
                             >
                               <span>Submit Assessment</span>
                               <span className="text-[10px] opacity-75 font-mono">Enter ↵</span>
                             </Button>
                           ) : (
                             <Button
+                              type="button"
                               size="sm"
                               onClick={handleNextStep}
-                              className="text-xs h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer flex items-center gap-1.5 flex-1 sm:flex-initial justify-center"
+                              className="text-xs h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-1.5 flex-1 sm:flex-initial justify-center rounded-xl"
                             >
                               <span>Next Question</span>
                               <span className="text-[10px] opacity-75 font-mono">Enter ↵</span>
@@ -3294,7 +3326,7 @@ function renderFieldInput(
 ) {
   const strValue = typeof value === 'string' ? value : '';
   const choiceMotionClass = isPresentationSlide
-    ? 'slide-up-anim presentation-option-card'
+    ? 'slide-up-anim presentation-option-card hover:translate-x-2'
     : 'transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs';
 
   switch (field.type) {

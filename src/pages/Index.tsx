@@ -102,10 +102,14 @@ export const Index: React.FC = () => {
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 font-sans selection:bg-primary selection:text-primary-foreground">
         <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl p-8 space-y-6">
           <div className="text-center space-y-2">
-            <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/30 text-primary flex items-center justify-center mx-auto">
-              <Shield className="w-6 h-6" />
+            <div className="w-12 h-12 rounded-2xl bg-muted border border-border text-primary flex items-center justify-center mx-auto overflow-hidden shadow-xs ring-1 ring-border/50">
+              <img
+                src={onboardingQuizLogo}
+                alt="Onboarding Quiz"
+                className="w-8 h-8 rounded-lg"
+              />
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-foreground">WP Exam Console</h1>
+            <h1 className="text-2xl font-black tracking-tight text-foreground">Onboarding Quiz Console</h1>
             <p className="text-sm text-muted-foreground">
               Restricted administrative portal for curriculum authoring and candidate scoring.
             </p>

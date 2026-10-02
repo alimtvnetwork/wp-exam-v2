@@ -707,8 +707,8 @@ export const FormBuilder: React.FC = () => {
         <div className="lg:col-span-8 space-y-5">
           {/* Prominent Google Forms Header Card */}
           <Card className="border border-border/80 bg-card shadow-md rounded-2xl overflow-hidden animate-sweet-fade-in">
-            {/* Top Accent Ribbon (Refined Hairline Border) */}
-            <div className="h-px bg-gradient-to-r from-primary/60 via-primary/30 to-transparent w-full" />
+            {/* Top Accent Ribbon (2px Hairline Gradient Edge) */}
+            <div className="h-0.5 bg-gradient-to-r from-primary via-primary/80 to-primary/60 w-full" />
 
             <CardContent className="p-5 sm:p-6 space-y-4">
               {/* Form Title & Config menu */}
@@ -1090,7 +1090,7 @@ export const FormBuilder: React.FC = () => {
 
         {/* Right Column: Unified Inspector Dock */}
         <div className="lg:col-span-4 sticky top-6">
-          <Card className="border border-border bg-card shadow-sm rounded-xl overflow-hidden">
+          <Card className="border border-border bg-card shadow-md rounded-xl overflow-hidden">
             <Tabs value={inspectorTab} onValueChange={setInspectorTab} className="w-full">
               {/* Sleek Segmented Dock Tabs Header */}
               <div className="p-2 border-b border-border/80 bg-muted/20">
