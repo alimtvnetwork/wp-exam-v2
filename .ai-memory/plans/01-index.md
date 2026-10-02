@@ -11,6 +11,8 @@ Master directory of architectural and execution plans.
 
 ## Completed Plans
 
+- [73-ui-ux-candidate-view-theming-and-new-tab-preview.md](completed/73-ui-ux-candidate-view-theming-and-new-tab-preview.md): UI/UX Candidate View Overhaul, CSS3 Theming/Motion & New-Tab Preview Engine (Dismantled preview modal in FormBuilder, new-tab /preview/:slug route launch, clean distraction-free candidate assessment mode in FormRunner, 14px/16px textarea, elevated option contrast, key={currentField.id} card transitions, dynamic HSL pulse-glow, and code guideline fixes).
+
 - [71-presentation-split-layout-and-preview-modes.md](completed/71-presentation-split-layout-and-preview-modes.md): Presentation Split Layout, Question Display Modes & Best UI/UX Preview Architecture (2-column slide presentation runner, dual form/question layout configurators, interactive references & checklist to-dos, real-time preview switcher; 9/9 spec tests, 139/139 total tests passed).
 
 - [64-wpexam-ui-ux-enhancements.md](completed/64-wpexam-ui-ux-enhancements.md): WP Exam UI/UX Comprehensive Redesign & Interactive Enhancement (Poppins/Ubuntu typography, phone country flag selector, mandatory red asterisks, 15 searchable roles, ⚡ Test Fill & Next engine, debug simulator, Green Choice theme & Radix select fix; 86/86 tests passed).
@@ -81,29 +83,24 @@ Master directory of architectural and execution plans.
 
 Compact registry of the last 20 tasks and milestone plans:
 
-1. **Task 72:** [Color Contrast, Multi-Layer Email Triggers, Citation Parser & Cinematic Presentation Runner](completed/72-color-contrast-email-triggers-citations-and-presentation-runner.md) — Elimination of dark-on-dark contrast, standalone Preview/Save buttons, universal 5-format citation links parser with 45 vitest tests, minimal MCQ option checkmarks, responsive left-hand footer dropdown, multi-layer email triggers with variable mapping, and cinematic 2-column presentation slide runner.
-2. **Task 70:** [Email Template Studio, 6 Theme Palettes, Modular Section Controls & Multi-Screen Verification](completed/70-email-templates-multi-theme-and-screen-verification.md) — 3-tab NotificationTriggerModal, 6 themes, modular section toggles, desktop/tablet/mobile viewport switchers, zero PII sanitized template.
-2. **Task 69:** [Card Actions, Enhanced Dropdowns, Multi-Mode Rating & Notification Triggers](completed/69-card-actions-dropdown-rating-and-email-triggers.md) — Delete-Left / Duplicate-Center / Save-Right layout, store trash ledger with Toast undo, sequenced searchable dropdowns with custom "Other" typing, multi-mode rating with feelings emojis and reviews.
-3. **Task 68:** [Quiz Preview Redesign Validation, Sidebar Grouping & Cross-Theme Completeness](completed/68-preview-quiz-redesign-validation-and-enhancement.md) — 2-column layout, left-hand sequence sidebar with section grouping, Hero model, session persistence, Poppins typography, and complete cross-theme HSL tokens.
-2. **Task 67:** [Quiz Preview Redesign: Hero Model, Sequence Sidebar & Session Persistence](completed/67-preview-quiz-redesign-hero-sidebar-session.md) — Hero model integration, responsive sequence navigator, session save and dual resume, anti-collision header, and dark purple theme synchronization.
-3. **Task 66:** [Question Card Redesign, Floating Placeholders & Exam Intelligence](completed/66-question-card-redesign.md) — Per-question save with dirty state, rating scales, vertical context inputs, and title opacity.
-4. **Task 64:** [WP Exam UI/UX Comprehensive Redesign & Interactive Enhancement](completed/64-wpexam-ui-ux-enhancements.md) — Emerald Eco-Luxury theme, typography standards, and dropdown fixes.
-5. **Task 60:** [Live Browser Address Bar URL Sync, File Upload Validation Engine & Theming Fluidity](completed/60-slug-routing-file-upload-validation-and-theming.md) — Live address bar sync (/admin/form/:slug), dedicated file upload validation configurator, 1-click section mover, and smooth CSS theme transitions.
-4. **Task 56:** [E2E Testing, Security & Media Orchestration](completed/56-e2e-python-testing-security-and-media-orchestration.md) — 43-suite Python E2E integration test runner.
-5. **Task 55:** [Exam Countdown & Certificate Issuance](completed/55-e2e-python-testing-security-and-media-orchestration.md) — Real-time countdown timer and cryptographic certificates.
-6. **Task 54:** [Offline Storage & Scoring Engine](completed/54-e2e-python-testing-security-and-media-orchestration.md) — Monotonic sync engine and weighted section thresholds.
-7. **Task 53:** [i18n Localization & Concept Map Schema](completed/53-e2e-python-testing-security-and-media-orchestration.md) — RTL tokens and mind map nodes.
-8. **Task 52:** [Topological Sequencing & Seeded Shuffle](completed/52-e2e-python-testing-security-and-media-orchestration.md) — DAG cycle prevention and question shuffle.
-9. **Task 51:** [Progress Bar & Split DB Backup Dual-Dispatch](completed/51-e2e-python-testing-security-and-media-orchestration.md) — Email digest queues and automated DB backups.
-10. **Task 50:** [Permission Inheritance & Form Validation Matrix](completed/50-e2e-python-testing-security-and-media-orchestration.md) — Multi-tier permission scopes.
-11. **Task 49:** [Question Hints & Theme Injection](completed/49-e2e-python-testing-security-and-media-orchestration.md) — CSS variable compilation and hint gating.
-12. **Task 48:** [Curriculum Revisions & Public Analytics](completed/48-e2e-python-testing-security-and-media-orchestration.md) — 1-click snapshot rollback and OpenGraph cards.
-13. **Task 47:** [Notification Cadence & Execution Pipeline](completed/47-e2e-python-testing-security-and-media-orchestration.md) — Submission verification pipelines.
-14. **Task 46:** [Candidate Telemetry & Bug Triage](completed/46-e2e-python-testing-security-and-media-orchestration.md) — Salted IP hashing and bug triage state machine.
-15. **Task 45:** [Multi-Project Hierarchy & JWT Security](completed/45-e2e-python-testing-security-and-media-orchestration.md) — Category/project resolution and REST security.
-16. **Task 44:** [Continuous Loop & E2E Certification](completed/44-e2e-python-testing-security-and-media-orchestration.md) — SQL injection defense and Elementor integration.
-17. **Task 43:** [Comprehensive Security & Media Embeds](completed/43-comprehensive-e2e-security-media-and-elementor.md) — Question media embeds and live validation.
-18. **Task 42:** [Audio Spec Audit & Verification](completed/42-audio-spec-audit-and-continuous-loop.md) — Sub-project recursion and focus quiz runner.
-19. **Task 41:** [Continuous Loop Orchestration](completed/41-audio-spec-audit-and-continuous-loop.md) — Remote deployment uploader protocol.
-20. **Task 40:** [Audio Spec Deep Audit](completed/40-audio-spec-deep-audit-and-verification.md) — Learning pipeline verification.
+1. **Task 73:** [UI/UX Candidate View Overhaul, CSS3 Theming/Motion & New-Tab Preview Engine](completed/73-ui-ux-candidate-view-theming-and-new-tab-preview.md) — Dismantled preview modal in FormBuilder, new-tab /preview/:slug route launch, clean distraction-free candidate assessment mode in FormRunner, 14px/16px textarea, elevated option contrast, key={currentField.id} card transitions, dynamic HSL pulse-glow, and code guideline fixes.
+2. **Task 72:** [Color Contrast, Multi-Layer Email Triggers, Citation Parser & Cinematic Presentation Runner](completed/72-color-contrast-email-triggers-citations-and-presentation-runner.md) — Elimination of dark-on-dark contrast, standalone Preview/Save buttons, universal 5-format citation links parser with 45 vitest tests, minimal MCQ option checkmarks, responsive left-hand footer dropdown, multi-layer email triggers with variable mapping, and cinematic 2-column presentation slide runner.
+3. **Task 70:** [Email Template Studio, 6 Theme Palettes, Modular Section Controls & Multi-Screen Verification](completed/70-email-templates-multi-theme-and-screen-verification.md) — 3-tab NotificationTriggerModal, 6 themes, modular section toggles, desktop/tablet/mobile viewport switchers, zero PII sanitized template.
+4. **Task 69:** [Card Actions, Enhanced Dropdowns, Multi-Mode Rating & Notification Triggers](completed/69-card-actions-dropdown-rating-and-email-triggers.md) — Delete-Left / Duplicate-Center / Save-Right layout, store trash ledger with Toast undo, sequenced searchable dropdowns with custom "Other" typing, multi-mode rating with feelings emojis and reviews.
+5. **Task 68:** [Quiz Preview Redesign Validation, Sidebar Grouping & Cross-Theme Completeness](completed/68-preview-quiz-redesign-validation-and-enhancement.md) — 2-column layout, left-hand sequence sidebar with section grouping, Hero model, session persistence, Poppins typography, and complete cross-theme HSL tokens.
+6. **Task 67:** [Quiz Preview Redesign: Hero Model, Sequence Sidebar & Session Persistence](completed/67-preview-quiz-redesign-hero-sidebar-session.md) — Hero model integration, responsive sequence navigator, session save and dual resume, anti-collision header, and dark purple theme synchronization.
+7. **Task 66:** [Question Card Redesign, Floating Placeholders & Exam Intelligence](completed/66-question-card-redesign.md) — Per-question save with dirty state, rating scales, vertical context inputs, and title opacity.
+8. **Task 64:** [WP Exam UI/UX Comprehensive Redesign & Interactive Enhancement](completed/64-wpexam-ui-ux-enhancements.md) — Emerald Eco-Luxury theme, typography standards, and dropdown fixes.
+9. **Task 60:** [Live Browser Address Bar URL Sync, File Upload Validation Engine & Theming Fluidity](completed/60-slug-routing-file-upload-validation-and-theming.md) — Live address bar sync (/admin/form/:slug), dedicated file upload validation configurator, 1-click section mover, and smooth CSS theme transitions.
+10. **Task 56:** [E2E Testing, Security & Media Orchestration](completed/56-e2e-python-testing-security-and-media-orchestration.md) — 43-suite Python E2E integration test runner.
+11. **Task 55:** [Exam Countdown & Certificate Issuance](completed/55-e2e-python-testing-security-and-media-orchestration.md) — Real-time countdown timer and cryptographic certificates.
+12. **Task 54:** [Offline Storage & Scoring Engine](completed/54-e2e-python-testing-security-and-media-orchestration.md) — Monotonic sync engine and weighted section thresholds.
+13. **Task 53:** [i18n Localization & Concept Map Schema](completed/53-e2e-python-testing-security-and-media-orchestration.md) — RTL tokens and mind map nodes.
+14. **Task 52:** [Topological Sequencing & Seeded Shuffle](completed/52-e2e-python-testing-security-and-media-orchestration.md) — DAG cycle prevention and question shuffle.
+15. **Task 51:** [Progress Bar & Split DB Backup Dual-Dispatch](completed/51-e2e-python-testing-security-and-media-orchestration.md) — Email digest queues and automated DB backups.
+16. **Task 50:** [Permission Inheritance & Form Validation Matrix](completed/50-e2e-python-testing-security-and-media-orchestration.md) — Multi-tier permission scopes.
+17. **Task 49:** [Question Hints & Theme Injection](completed/49-e2e-python-testing-security-and-media-orchestration.md) — CSS variable compilation and hint gating.
+18. **Task 48:** [Curriculum Revisions & Public Analytics](completed/48-e2e-python-testing-security-and-media-orchestration.md) — 1-click snapshot rollback and OpenGraph cards.
+19. **Task 47:** [Notification Cadence & Execution Pipeline](completed/47-e2e-python-testing-security-and-media-orchestration.md) — Submission verification pipelines.
+20. **Task 46:** [Candidate Telemetry & Bug Triage](completed/46-e2e-python-testing-security-and-media-orchestration.md) — Salted IP hashing and bug triage state machine.
 

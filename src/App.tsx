@@ -103,8 +103,8 @@ const App = () => (
             <Route path="/forms/nodes" element={<VisualNodeCanvas />} />
             <Route path="/f/:slug" element={<FormRunner />} />
             <Route path="/f/:category/:slug" element={<FormRunner />} />
-            <Route path="/preview/:slug" element={<FormRunner isPreviewRoute={true} />} />
-            <Route path="/preview" element={<FormRunner isPreviewRoute={true} />} />
+            <Route path="/preview/:slug" element={<FormRunner isPreviewRoute />} />
+            <Route path="/preview" element={<FormRunner isPreviewRoute />} />
             <Route path="/runner" element={<FormRunner />} />
             <Route path="/wp-exam-runner" element={<LegacyRunnerRedirect />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}

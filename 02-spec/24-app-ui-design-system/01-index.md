@@ -48,6 +48,9 @@ Application-specific UI and design-system specifications for whatever project th
 | # | File | Purpose | Status |
 |---|------|---------|--------|
 | 01 | [01-design-tokens.md](./01-design-tokens.md) | UI Tokens, CSS Variables & shadcn/ui Component Inventory | Complete |
+| 02 | [02-theming-and-color-palettes.md](./02-theming-and-color-palettes.md) | Multi-Theme Catalog, HSL Tokens & Dark Mode Contrast | Complete |
+| 03 | [03-css3-animations-and-motion.md](./03-css3-animations-and-motion.md) | CSS3 Keyframes, Motion Utility Classes & Zero Hover Scale | Complete |
+| 04 | [04-candidate-view-and-preview-runner.md](./04-candidate-view-and-preview-runner.md) | Candidate Assessment Ergonomics & New-Tab Preview Architecture | Complete |
 
 ---
 

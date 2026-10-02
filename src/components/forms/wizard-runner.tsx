@@ -1,26 +1,26 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
-import { 
-  CheckCircle2, 
-  AlertCircle, 
-  Send, 
-  ExternalLink, 
-  Save, 
-  HelpCircle, 
-  ChevronRight, 
-  ChevronLeft, 
-  Phone, 
-  Mail, 
-  Briefcase, 
-  Play, 
-  Search, 
-  ArrowLeft, 
-  Sparkles, 
-  Bug, 
-  ChevronDown, 
-  ChevronUp, 
-  Video, 
-  FileText 
+import {
+  CheckCircle2,
+  AlertCircle,
+  Send,
+  ExternalLink,
+  Save,
+  HelpCircle,
+  ChevronRight,
+  ChevronLeft,
+  Phone,
+  Mail,
+  Briefcase,
+  Play,
+  Search,
+  ArrowLeft,
+  Sparkles,
+  Bug,
+  ChevronDown,
+  ChevronUp,
+  Video,
+  FileText
 } from 'lucide-react';
 import { useTheme, AppThemeType } from '@/lib/theme-context';
 import { PhoneWithCountrySelect } from '@/components/ui/phone-input';
@@ -162,9 +162,12 @@ export const WizardRunner: React.FC = () => {
     }
 
     if (currentStep === 2) {
-      if (isOpenToWork === 'no' && !noticePeriod) {
-        errors.noticePeriod = 'Please specify your required notice period.';
+      if (isOpenToWork === 'no') {
+        if (!noticePeriod) {
+          errors.noticePeriod = 'Please specify your required notice period.';
+        }
       }
+
       if (!yearsOfExperience || Number(yearsOfExperience) < 0) {
         errors.yearsOfExperience = 'Years of relevant experience is required.';
       }
@@ -312,8 +315,8 @@ export const WizardRunner: React.FC = () => {
 
           {/* Theme Selector */}
           <div className="flex items-center space-x-1.5">
-            <Select 
-              value={theme} 
+            <Select
+              value={theme}
               onValueChange={(val) => setTheme(val as AppThemeType)}
             >
               <SelectTrigger className="h-9 text-xs w-[200px] rounded-xl border border-border bg-background text-foreground font-semibold shadow-xs cursor-pointer">
@@ -321,8 +324,8 @@ export const WizardRunner: React.FC = () => {
               </SelectTrigger>
               <SelectContent className="border border-border shadow-xl bg-card text-foreground rounded-xl">
                 {THEME_OPTIONS.map((t) => (
-                  <SelectItem 
-                    key={t.id} 
+                  <SelectItem
+                    key={t.id}
                     value={t.id}
                     className="text-xs cursor-pointer focus:bg-accent/40 font-medium"
                   >
@@ -387,12 +390,12 @@ export const WizardRunner: React.FC = () => {
 
             return (
               <div key={title} className="flex items-center space-x-2">
-                <div 
+                <div
                   className={`w-9 h-9 rounded-full flex items-center justify-center font-bold text-sm transition-colors font-heading ${
-                    isCurrent 
-                      ? 'bg-primary text-primary-foreground shadow-md' 
-                      : isCompleted 
-                        ? 'bg-emerald-600 text-white' 
+                    isCurrent
+                      ? 'bg-primary text-primary-foreground shadow-md'
+                      : isCompleted
+                        ? 'bg-emerald-600 text-white'
                         : 'bg-muted text-muted-foreground border border-border'
                   }`}
                 >
@@ -406,7 +409,7 @@ export const WizardRunner: React.FC = () => {
           })}
         </div>
         <div className="w-full bg-muted h-2.5 rounded-full overflow-hidden border border-border/40">
-          <div 
+          <div
             className="bg-primary h-full transition-all duration-300"
             style={{ width: `${((currentStep - 1) / 3) * 100}%` }}
           />
@@ -420,8 +423,8 @@ export const WizardRunner: React.FC = () => {
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
             <span>Draft saved! Resume token: <code className="font-mono bg-emerald-100 dark:bg-emerald-900 px-1 py-0.5 rounded">{draftToken}</code></span>
           </div>
-          <button 
-            type="button" 
+          <button
+            type="button"
             onClick={() => setIsDraftSaved(false)}
             className="text-xs font-semibold hover:underline cursor-pointer"
           >
@@ -517,9 +520,9 @@ export const WizardRunner: React.FC = () => {
                 <label className="block text-sm font-semibold text-foreground">
                   Full Legal Name <span className="text-red-500 font-bold ml-1">*</span>
                 </label>
-                <Input 
-                  type="text" 
-                  value={fullName} 
+                <Input
+                  type="text"
+                  value={fullName}
                   onChange={(e) => {
                     setFullName(e.target.value);
                     if (formErrors.fullName) setFormErrors((prev) => ({ ...prev, fullName: '' }));
@@ -544,9 +547,9 @@ export const WizardRunner: React.FC = () => {
                   Email Address <span className="text-red-500 font-bold ml-1">*</span>
                 </label>
                 <div className="relative">
-                  <Input 
-                    type="email" 
-                    value={email} 
+                  <Input
+                    type="email"
+                    value={email}
                     onChange={(e) => {
                       setEmail(e.target.value);
                       if (formErrors.email) setFormErrors((prev) => ({ ...prev, email: '' }));
@@ -607,10 +610,10 @@ export const WizardRunner: React.FC = () => {
                   <label className={`flex items-center gap-3 p-3.5 rounded-xl border text-sm font-semibold cursor-pointer transition-colors ${
                     isOpenToWork === 'yes' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card'
                   }`}>
-                    <input 
-                      type="radio" 
-                      name="openToWork" 
-                      value="yes" 
+                    <input
+                      type="radio"
+                      name="openToWork"
+                      value="yes"
                       checked={isOpenToWork === 'yes'}
                       onChange={() => setIsOpenToWork('yes')}
                       className="text-primary h-4 w-4"
@@ -621,10 +624,10 @@ export const WizardRunner: React.FC = () => {
                   <label className={`flex items-center gap-3 p-3.5 rounded-xl border text-sm font-semibold cursor-pointer transition-colors ${
                     isOpenToWork === 'no' ? 'border-primary bg-primary/10 text-primary' : 'border-border bg-card'
                   }`}>
-                    <input 
-                      type="radio" 
-                      name="openToWork" 
-                      value="no" 
+                    <input
+                      type="radio"
+                      name="openToWork"
+                      value="no"
                       checked={isOpenToWork === 'no'}
                       onChange={() => setIsOpenToWork('no')}
                       className="text-primary h-4 w-4"
@@ -659,8 +662,8 @@ export const WizardRunner: React.FC = () => {
                 <label className="block text-sm font-semibold text-foreground">
                   Years of Relevant Experience <span className="text-red-500 font-bold ml-1">*</span>
                 </label>
-                <Input 
-                  type="number" 
+                <Input
+                  type="number"
                   min="0"
                   max="40"
                   value={yearsOfExperience}
@@ -686,7 +689,7 @@ export const WizardRunner: React.FC = () => {
                   </label>
                   <span className="text-xs text-muted-foreground font-mono">e.g. github.com/profile</span>
                 </div>
-                <Input 
+                <Input
                   type="url"
                   value={portfolioUrl}
                   onChange={(e) => {
@@ -783,24 +786,24 @@ export const WizardRunner: React.FC = () => {
                     { val: 'monolithic-csv', label: 'Monolithic Unindexed CSV Flat File' },
                     { val: 'shared-table', label: 'Single giant table without index partition' }
                   ].map((opt, optIdx) => (
-                    <label 
-                      key={opt.val} 
+                    <label
+                      key={opt.val}
                       className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl border text-sm font-medium cursor-pointer transition-colors ${
-                        selectedMcq === opt.val 
-                          ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs' 
+                        selectedMcq === opt.val
+                          ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
                           : 'border-border bg-card text-foreground hover:bg-accent/40'
                       }`}
                     >
                       <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-mono text-xs font-bold shrink-0 ${
-                        selectedMcq === opt.val 
-                          ? 'bg-primary text-primary-foreground border-primary' 
+                        selectedMcq === opt.val
+                          ? 'bg-primary text-primary-foreground border-primary'
                           : 'bg-muted/60 border-border text-muted-foreground'
                       }`}>
                         {String.fromCharCode(65 + optIdx)}
                       </span>
-                      <input 
-                        type="radio" 
-                        name="db_pattern" 
+                      <input
+                        type="radio"
+                        name="db_pattern"
                         value={opt.val}
                         checked={selectedMcq === opt.val}
                         onChange={() => {
@@ -821,7 +824,7 @@ export const WizardRunner: React.FC = () => {
               {/* Agreement Checkbox */}
               <div className="p-4 rounded-xl bg-muted/30 border border-border">
                 <label className="flex items-start gap-3 cursor-pointer text-xs sm:text-sm">
-                  <input 
+                  <input
                     type="checkbox"
                     checked={hasConfirmedFaq}
                     onChange={(e) => {

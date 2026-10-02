@@ -20,12 +20,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import {
   DropdownMenu,
@@ -46,7 +40,6 @@ import {
   HoverCardContent,
 } from '@/components/ui/hover-card';
 import { useTheme, THEME_CONFIGS, ORDERED_THEME_KEYS, AppThemeType } from '@/lib/theme-context';
-import { FormRunner } from '@/components/runner/FormRunner';
 import { JsonModal } from './json-modal';
 import { GoogleFormsImportModal } from './google-forms-import-modal';
 import { DesignValidationPanel, DesignValidationSidebarView } from './design-validation-panel';
@@ -67,7 +60,6 @@ import {
   FileSpreadsheet,
   GitBranch,
   Copy,
-  ExternalLink,
   Layers,
   PlusCircle,
   HelpCircle,
@@ -147,7 +139,6 @@ export const FormBuilder: React.FC = () => {
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
   const [isSlugModalOpen, setIsSlugModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
-  const [isRunnerPreviewModalOpen, setIsRunnerPreviewModalOpen] = useState(false);
   const [isCentralConfigOpen, setIsCentralConfigOpen] = useState(false);
   const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
@@ -420,6 +411,28 @@ export const FormBuilder: React.FC = () => {
 
   const activeSlug = slug || 'custom-form';
 
+  const handleSyncDraft = () => {
+    try {
+      const draftData = {
+        title,
+        description,
+        slug: activeSlug,
+        formType,
+        formAccess,
+        isSequential,
+        settings,
+        fields,
+        updatedAt: new Date().toISOString(),
+      };
+
+      if (typeof window !== 'undefined' && window.localStorage) {
+        window.localStorage.setItem(`wp_exam_draft_${activeSlug}`, JSON.stringify(draftData));
+      }
+    } catch {
+      // Storage quota or serialization fallback
+    }
+  };
+
   const handleCopyLiveUrl = () => {
     const origin = typeof window !== 'undefined' ? window.location.origin : 'http://127.0.0.1:5173';
     const liveUrl = `${origin}/f/${activeSlug}`;
@@ -642,9 +655,12 @@ export const FormBuilder: React.FC = () => {
         <div className="inline-flex items-center rounded-lg border border-border bg-card p-0.5 h-8 shrink-0 shadow-2xs divide-x divide-border">
           <button
             type="button"
-            onClick={() => setIsRunnerPreviewModalOpen(true)}
+            onClick={() => {
+              handleSyncDraft();
+              window.open('/preview/' + (activeSlug || 'custom-form'), '_blank');
+            }}
             className="inline-flex items-center gap-1.5 h-full px-2.5 rounded-l-md text-xs font-semibold text-foreground hover:bg-accent transition-all cursor-pointer"
-            title="Open interactive assessment preview modal"
+            title="Open interactive assessment preview in new tab"
           >
             <Eye className="w-3.5 h-3.5 text-primary" />
             <span className="hidden sm:inline">Preview</span>
@@ -1184,7 +1200,7 @@ export const FormBuilder: React.FC = () => {
                   onAddField={handleQuickAdd}
                   activeCount={fields.length}
                   layoutMode="vertical"
-                  isEmbedded={true}
+                  isEmbedded
                 />
               </TabsContent>
 
@@ -1707,43 +1723,6 @@ export const FormBuilder: React.FC = () => {
         isOpen={isCentralConfigOpen}
         onClose={() => setIsCentralConfigOpen(false)}
       />
-
-      {/* Instant Interactive Live Runner Preview Modal (Zero Popup Blocking) */}
-      <Dialog open={isRunnerPreviewModalOpen} onOpenChange={setIsRunnerPreviewModalOpen}>
-        <DialogContent className="max-w-[96vw] w-full h-[94vh] p-0 flex flex-col bg-background border-border shadow-2xl rounded-2xl overflow-hidden">
-          <DialogHeader className="px-5 py-3 border-b border-border/70 flex flex-row items-center justify-between shrink-0 bg-muted/20">
-            <div className="flex items-center gap-2.5">
-              <Eye className="w-4 h-4 text-primary" />
-              <DialogTitle className="text-sm font-bold font-heading text-foreground">
-                Live Assessment Preview &bull; {title || 'Untitled Assessment'}
-              </DialogTitle>
-              <Badge variant="outline" className="text-[10px] font-mono bg-primary/10 text-primary border-primary/20">
-                Interactive Test Mode
-              </Badge>
-            </div>
-            <div className="flex items-center gap-2 pr-6">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => window.open('/preview/' + activeSlug + '?test=true', '_blank')}
-                className="h-7 text-xs px-2.5 gap-1.5 border-border hover:bg-accent"
-                title="Open in separate browser window"
-              >
-                <ExternalLink className="w-3.5 h-3.5 text-muted-foreground" />
-                <span className="hidden sm:inline">New Tab</span>
-              </Button>
-            </div>
-          </DialogHeader>
-          <div className="flex-1 min-h-0 overflow-y-auto p-2 sm:p-4 bg-background">
-            <FormRunner
-              slug={activeSlug}
-              isPreviewRoute={true}
-              onBack={() => setIsRunnerPreviewModalOpen(false)}
-            />
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

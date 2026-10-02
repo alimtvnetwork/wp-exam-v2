@@ -67,18 +67,20 @@ export function auditFormDesign(
 
   // Section fatigue check
   const hasSections = fields.some((f) => Boolean(f.group));
-  if (fields.length > 10 && !hasSections) {
-    issues.push({
-      id: 'issue-cognitive-overload',
-      category: 'structure',
-      severity: 'info',
-      title: 'High cognitive load detected',
-      description: `The form has ${fields.length} consecutive questions without section dividers.`,
-      recommendation: 'Break long forms into modular sections (e.g. Part 1: Personal, Part 2: Technical).',
-      autoFixAvailable: true,
-      autoFixAction: 'auto_group_sections',
-    });
-    structurePenalty += 10;
+  if (fields.length > 10) {
+    if (!hasSections) {
+      issues.push({
+        id: 'issue-cognitive-overload',
+        category: 'structure',
+        severity: 'info',
+        title: 'High cognitive load detected',
+        description: `The form has ${fields.length} consecutive questions without section dividers.`,
+        recommendation: 'Break long forms into modular sections (e.g. Part 1: Personal, Part 2: Technical).',
+        autoFixAvailable: true,
+        autoFixAction: 'auto_group_sections',
+      });
+      structurePenalty += 10;
+    }
   }
 
   // Iterate over individual questions
@@ -143,38 +145,42 @@ export function auditFormDesign(
     // 3. Quiz Scoring Invariants
     const isInformationalField = field.type === 'link' || field.type === 'video';
 
-    if (formType === 'quiz' && !isInformationalField) {
-      if (!field.points || field.points <= 0) {
-        issues.push({
-          id: `issue-points-${field.id}`,
-          fieldId: field.id,
-          category: 'scoring',
-          severity: 'warning',
-          title: `Question #${qNum} awards 0 points`,
-          description: 'In a graded quiz, each question should award positive scoring points.',
-          recommendation: 'Assign at least 5 or 10 points to this question.',
-          autoFixAvailable: true,
-          autoFixAction: 'set_default_points',
-        });
-        scoringPenalty += 5;
-      }
+    if (formType === 'quiz') {
+      if (!isInformationalField) {
+        if (!field.points || field.points <= 0) {
+          issues.push({
+            id: `issue-points-${field.id}`,
+            fieldId: field.id,
+            category: 'scoring',
+            severity: 'warning',
+            title: `Question #${qNum} awards 0 points`,
+            description: 'In a graded quiz, each question should award positive scoring points.',
+            recommendation: 'Assign at least 5 or 10 points to this question.',
+            autoFixAvailable: true,
+            autoFixAction: 'set_default_points',
+          });
+          scoringPenalty += 5;
+        }
 
-      if (
-        (field.type === 'single_choice' || field.type === 'multiple_choice' || field.type === 'dropdown') &&
-        (!field.correctAnswer || (Array.isArray(field.correctAnswer) && field.correctAnswer.length === 0))
-      ) {
-        issues.push({
-          id: `issue-answer-key-${field.id}`,
-          fieldId: field.id,
-          category: 'scoring',
-          severity: 'error',
-          title: `Question #${qNum} missing correct answer key`,
-          description: 'Automated grading requires designated correct answer(s).',
-          recommendation: 'Select the correct answer option for grading.',
-          autoFixAvailable: true,
-          autoFixAction: 'set_first_option_correct',
-        });
-        scoringPenalty += 12;
+        const isGradedType =
+          field.type === 'single_choice' || field.type === 'multiple_choice' || field.type === 'dropdown';
+
+        if (isGradedType) {
+          if (!field.correctAnswer || (Array.isArray(field.correctAnswer) && field.correctAnswer.length === 0)) {
+            issues.push({
+              id: `issue-answer-key-${field.id}`,
+              fieldId: field.id,
+              category: 'scoring',
+              severity: 'error',
+              title: `Question #${qNum} missing correct answer key`,
+              description: 'Automated grading requires designated correct answer(s).',
+              recommendation: 'Select the correct answer option for grading.',
+              autoFixAvailable: true,
+              autoFixAction: 'set_first_option_correct',
+            });
+            scoringPenalty += 12;
+          }
+        }
       }
     }
 
@@ -184,8 +190,10 @@ export function auditFormDesign(
     if (field.conditions && field.conditions.length > 0) {
       field.conditions.forEach((cond) => {
         const target = cond.jumpToFieldId || (cond as unknown as { targetFieldId?: string }).targetFieldId;
-        if (target && !fieldIdSet.has(target)) {
-          brokenTargets.push(target);
+        if (target) {
+          if (!fieldIdSet.has(target)) {
+            brokenTargets.push(target);
+          }
         }
       });
     }
@@ -194,20 +202,26 @@ export function auditFormDesign(
       const rules = (field as unknown as { branchingRules: Array<{ targetFieldId?: string; jumpToFieldId?: string }> }).branchingRules;
       rules.forEach((rule) => {
         const target = rule.targetFieldId || rule.jumpToFieldId;
-        if (target && !fieldIdSet.has(target)) {
-          brokenTargets.push(target);
+        if (target) {
+          if (!fieldIdSet.has(target)) {
+            brokenTargets.push(target);
+          }
         }
       });
     }
 
-    if (field.branchTarget && !fieldIdSet.has(field.branchTarget)) {
-      brokenTargets.push(field.branchTarget);
+    if (field.branchTarget) {
+      if (!fieldIdSet.has(field.branchTarget)) {
+        brokenTargets.push(field.branchTarget);
+      }
     }
 
     if (field.optionBranching) {
       Object.values(field.optionBranching).forEach((target) => {
-        if (target && !fieldIdSet.has(target)) {
-          brokenTargets.push(target);
+        if (target) {
+          if (!fieldIdSet.has(target)) {
+            brokenTargets.push(target);
+          }
         }
       });
     }

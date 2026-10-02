@@ -528,10 +528,46 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [result, setResult] = useState<FormSubmissionResult | null>(null);
 
-  const activeSlug = selectedProjectId === 'custom-active' 
-    ? (quizStore.slug || 'custom-form') 
+  const activeSlug = selectedProjectId === 'custom-active'
+    ? (quizStore.slug || 'custom-form')
     : selectedProjectId;
   const storageKey = `wp_quiz_session_${activeSlug}`;
+
+  const isCandidateOrPreview = useMemo(() => {
+    if (isPreviewRoute) {
+      return true;
+    }
+
+    if (typeof window !== 'undefined') {
+      const pathname = window.location.pathname;
+      if (pathname.startsWith('/f/') || pathname.startsWith('/preview')) {
+        return true;
+      }
+
+      const params = new URLSearchParams(window.location.search);
+      const isParamPreview = Boolean(params.get('preview') || params.get('candidate'));
+      if (isParamPreview) {
+        return true;
+      }
+    }
+
+    if (routeSlug) {
+      return true;
+    }
+
+    return false;
+  }, [isPreviewRoute, routeSlug]);
+
+  const isDebugAllowed = useMemo(() => {
+    if (isCandidateOrPreview) {
+      return false;
+    }
+
+    return true;
+  }, [isCandidateOrPreview]);
+
+  const isProjectPickerVisible = isDebugAllowed;
+  const isDevActionPillVisible = isDebugAllowed;
 
   const [savedSession, setSavedSession] = useState<QuizSessionData | null>(null);
   const [lastSavedTime, setLastSavedTime] = useState<string | null>(null);
@@ -686,12 +722,16 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
       const token = params.get('invite') || params.get('token');
-      if (token && !session.isAuthenticated) {
-        setTokenInput(token);
-        const isSuccess = examStore.authenticateWithToken(token);
-        if (isSuccess) {
-          setAuthMessage('✓ Access token verified. Candidate session active.');
-          setTimeout(() => setAuthMessage(null), 3500);
+
+      if (token) {
+        if (!session.isAuthenticated) {
+          setTokenInput(token);
+          const isSuccess = examStore.authenticateWithToken(token);
+
+          if (isSuccess) {
+            setAuthMessage('✓ Access token verified. Candidate session active.');
+            setTimeout(() => setAuthMessage(null), 3500);
+          }
         }
       }
     }
@@ -939,8 +979,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   };
 
   const handleProjectSwitch = (newProjectId: string) => {
-    const targetSlug = newProjectId === 'custom-active' 
-      ? (quizStore.slug || 'custom-form') 
+    const targetSlug = newProjectId === 'custom-active'
+      ? (quizStore.slug || 'custom-form')
       : newProjectId;
 
     setSelectedProjectId(newProjectId);
@@ -958,8 +998,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   };
 
   const handleCopyProjectLink = () => {
-    const targetSlug = selectedProjectId === 'custom-active' 
-      ? (quizStore.slug || 'custom-form') 
+    const targetSlug = selectedProjectId === 'custom-active'
+      ? (quizStore.slug || 'custom-form')
       : selectedProjectId;
     const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:5173';
     const link = isPreviewRoute ? `${origin}/preview/${targetSlug}` : `${origin}/f/${targetSlug}`;
@@ -1088,7 +1128,13 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     if (stepHistory.length > 0) {
       const newHistory = [...stepHistory];
       let targetIndex = newHistory.pop()!;
-      while (newHistory.length > 0 && !evaluateFieldVisibility(fields[targetIndex], answers, fields)) {
+      while (newHistory.length > 0) {
+        const isTargetVisible = evaluateFieldVisibility(fields[targetIndex], answers, fields);
+
+        if (isTargetVisible) {
+          break;
+        }
+
         targetIndex = newHistory.pop()!;
       }
       setStepHistory(newHistory);
@@ -1426,9 +1472,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   }
 
   return (
-    <div 
+    <div
       className={`min-h-screen w-full transition-colors duration-300 font-sans theme-${activeThemeId} ${
-        isFullscreen 
+        isFullscreen
           ? 'fixed inset-0 z-50 overflow-y-auto p-4 sm:p-8'
           : 'p-3 sm:p-6 lg:p-8'
       }`}
@@ -1440,45 +1486,56 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     >
       <div className={`space-y-5 mx-auto ${effectiveLayoutMode === 'presentation_split' ? 'w-full max-w-[98vw] px-2 sm:px-4' : activeThemeId === 'clean-wide' ? 'max-w-7xl' : 'max-w-6xl'}`}>
         {/* Streamlined Single-Line Project Selector, Slug & Actions Bar */}
-      <div 
+      <div
         className="p-2.5 sm:px-4 border border-border bg-card text-card-foreground rounded-xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors"
       >
         <div className="flex items-center gap-2 flex-wrap min-w-0">
-          {/* Project Selector */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            <Label className="text-xs font-medium font-sans flex items-center gap-1 whitespace-nowrap text-foreground">
-              <Layers className="w-3.5 h-3.5 text-primary" />
-              <span>Project:</span>
-            </Label>
-            <Select
-              value={selectedProjectId}
-              onValueChange={handleProjectSwitch}
-            >
-              <SelectTrigger 
-                className="text-xs font-medium font-sans h-8 w-[180px] sm:w-[220px] max-w-[260px] rounded-lg border border-border bg-background text-foreground shadow-2xs cursor-pointer truncate"
+          {/* Project Selector (Shown in dev mode, hidden in candidate/preview mode) */}
+          {isProjectPickerVisible ? (
+            <div className="flex items-center gap-1.5 shrink-0">
+              <Label className="text-xs font-medium font-sans flex items-center gap-1 whitespace-nowrap text-foreground">
+                <Layers className="w-3.5 h-3.5 text-primary" />
+                <span>Project:</span>
+              </Label>
+              <Select
+                value={selectedProjectId}
+                onValueChange={handleProjectSwitch}
               >
-                <SelectValue placeholder="Select Project" />
-              </SelectTrigger>
-              <SelectContent 
-                className="border border-border shadow-xl backdrop-blur-md rounded-xl bg-popover text-popover-foreground text-xs font-sans"
-              >
-                <SelectItem value="intern-programmer" className="text-xs py-1.5 font-sans">
-                  Intern Programmer Assessment
-                </SelectItem>
-                <SelectItem value="full-stack-architect" className="text-xs py-1.5 font-sans">
-                  Full-Stack Web Architecture
-                </SelectItem>
-                <SelectItem value="cybersecurity-essentials" className="text-xs py-1.5 font-sans">
-                  Cybersecurity Fundamentals
-                </SelectItem>
-                {(initialForm || quizStore.fields.length > 0) && (
-                  <SelectItem value="custom-active" className="text-xs py-1.5 font-sans">
-                    Custom Form ({activeForm.title || 'Builder Active'})
+                <SelectTrigger
+                  className="text-xs font-medium font-sans h-8 w-[180px] sm:w-[220px] max-w-[260px] rounded-lg border border-border bg-background text-foreground shadow-2xs cursor-pointer truncate"
+                >
+                  <SelectValue placeholder="Select Project" />
+                </SelectTrigger>
+                <SelectContent
+                  className="border border-border shadow-xl backdrop-blur-md rounded-xl bg-popover text-popover-foreground text-xs font-sans"
+                >
+                  <SelectItem value="intern-programmer" className="text-xs py-1.5 font-sans">
+                    Intern Programmer Assessment
                   </SelectItem>
-                )}
-              </SelectContent>
-            </Select>
-          </div>
+                  <SelectItem value="full-stack-architect" className="text-xs py-1.5 font-sans">
+                    Full-Stack Web Architecture
+                  </SelectItem>
+                  <SelectItem value="cybersecurity-essentials" className="text-xs py-1.5 font-sans">
+                    Cybersecurity Fundamentals
+                  </SelectItem>
+                  {(initialForm || quizStore.fields.length > 0) && (
+                    <SelectItem value="custom-active" className="text-xs py-1.5 font-sans">
+                      Custom Form ({activeForm.title || 'Builder Active'})
+                    </SelectItem>
+                  )}
+                </SelectContent>
+              </Select>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2 shrink-0">
+              <span className="font-heading font-bold text-sm sm:text-base text-foreground truncate max-w-[220px] sm:max-w-xs">
+                {activeForm.title || 'Candidate Assessment'}
+              </span>
+              <Badge variant="outline" className="text-[11px] font-mono border-primary/40 text-primary bg-primary/10">
+                {isPreviewRoute ? 'Live Preview' : 'Official Assessment'}
+              </Badge>
+            </div>
+          )}
 
           {/* Compact Copy Link Button (Replaces wide URL banner per UX requirement) */}
           <Button
@@ -1567,12 +1624,12 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 document.documentElement.setAttribute('data-theme', nextT.id);
               }}
             >
-              <SelectTrigger 
+              <SelectTrigger
                 className="text-xs font-medium font-sans h-8 w-[115px] sm:w-[135px] rounded-lg border border-border bg-background text-foreground hover:border-primary/50 shadow-2xs cursor-pointer truncate"
               >
                 <SelectValue placeholder="Theme" />
               </SelectTrigger>
-              <SelectContent 
+              <SelectContent
                 className="border border-border shadow-xl backdrop-blur-md rounded-xl bg-popover text-popover-foreground text-xs font-sans"
               >
                 {Object.values(THEME_PRESETS).map((t) => (
@@ -1584,46 +1641,48 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             </Select>
           </div>
 
-          {/* Grouped Action Pill: [ ⚡ Auto | 🛠️ Debug | ✕ Exit ] */}
-          <div className="flex items-center h-8 bg-muted/60 p-0.5 rounded-lg border border-border divide-x divide-border shrink-0">
-            <button
-              type="button"
-              onClick={handleAutoFill}
-              className="h-7 px-2.5 text-xs font-medium font-sans flex items-center gap-1 text-foreground hover:text-primary hover:bg-background/80 rounded-l-md transition-all cursor-pointer"
-              title="Auto-fill form fields with sample test data"
-            >
-              <Zap className="w-3.5 h-3.5 text-amber-500" />
-              <span>Auto</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setIsDebugMode(!isDebugMode)}
-              className={`h-7 px-2.5 text-xs font-medium font-sans flex items-center gap-1 transition-all cursor-pointer ${
-                isDebugMode
-                  ? 'bg-amber-600 text-white font-semibold'
-                  : 'text-foreground hover:text-amber-600 hover:bg-background/80'
-              }`}
-              title="Toggle Debug Simulator & Step Jumper"
-            >
-              <Bug className="w-3.5 h-3.5 text-amber-500" />
-              <span>Debug</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                if (onClose) {
-                  onClose();
-                } else {
-                  navigate('/');
-                }
-              }}
-              className="h-7 px-2.5 text-xs font-medium font-sans flex items-center gap-1 text-muted-foreground hover:text-destructive hover:bg-background/80 rounded-r-md transition-all cursor-pointer"
-              title="Exit form runner and return to portal"
-            >
-              <X className="w-3.5 h-3.5" />
-              <span>Exit</span>
-            </button>
-          </div>
+          {/* Grouped Action Pill: [ ⚡ Auto | 🛠️ Debug | ✕ Exit ] (Hidden in candidate or preview mode) */}
+          {isDevActionPillVisible && (
+            <div className="flex items-center h-8 bg-muted/60 p-0.5 rounded-lg border border-border divide-x divide-border shrink-0">
+              <button
+                type="button"
+                onClick={handleAutoFill}
+                className="h-7 px-2.5 text-xs font-medium font-sans flex items-center gap-1 text-foreground hover:text-primary hover:bg-background/80 rounded-l-md transition-all cursor-pointer"
+                title="Auto-fill form fields with sample test data"
+              >
+                <Zap className="w-3.5 h-3.5 text-amber-500" />
+                <span>Auto</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsDebugMode(!isDebugMode)}
+                className={`h-7 px-2.5 text-xs font-medium font-sans flex items-center gap-1 transition-all cursor-pointer ${
+                  isDebugMode
+                    ? 'bg-amber-600 text-white font-semibold'
+                    : 'text-foreground hover:text-amber-600 hover:bg-background/80'
+                }`}
+                title="Toggle Debug Simulator & Step Jumper"
+              >
+                <Bug className="w-3.5 h-3.5 text-amber-500" />
+                <span>Debug</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (onClose) {
+                    onClose();
+                  } else {
+                    navigate('/');
+                  }
+                }}
+                className="h-7 px-2.5 text-xs font-medium font-sans flex items-center gap-1 text-muted-foreground hover:text-destructive hover:bg-background/80 rounded-r-md transition-all cursor-pointer"
+                title="Exit form runner and return to portal"
+              >
+                <X className="w-3.5 h-3.5" />
+                <span>Exit</span>
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
@@ -1711,7 +1770,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       )}
 
       {/* Debug Mode Simulator & Step Jumper Panel */}
-      {isDebugMode && (
+      {isDebugAllowed && isDebugMode && (
         <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 text-xs space-y-3 animate-in fade-in duration-150">
           <div className="flex items-center justify-between">
             <span className="font-bold flex items-center gap-1.5 font-heading">
@@ -1773,7 +1832,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       {hasSavedSessionToResume && (
         <div className="w-full bg-primary/10 border border-primary/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-sans animate-in fade-in duration-150">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-primary/20 border border-primary/30 flex items-center justify-center text-primary shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary shrink-0">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
@@ -1966,7 +2025,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           <main className="flex-1 min-w-0 w-full">
             {effectiveLayoutMode === 'presentation_split' ? (
               /* Presentation-Grade 2-Column Split Question Canvas */
-              <div className="w-full bg-card border border-border rounded-3xl p-6 sm:p-8 lg:p-10 shadow-md space-y-8 animate-in fade-in duration-150">
+              <div
+                key={currentField.id}
+                className="w-full bg-card border border-border rounded-3xl p-6 sm:p-8 lg:p-10 shadow-md space-y-8 animate-card-entrance"
+              >
                 {/* Top Meta Bar */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground pb-4 border-b border-border/80">
                   <div className="flex items-center gap-2 flex-wrap">
@@ -2215,7 +2277,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               </div>
             ) : (
               /* Standard Quiz Card View */
-              <Card className="w-full border border-border shadow-md bg-card text-card-foreground rounded-2xl overflow-hidden animate-in fade-in duration-150">
+              <Card
+                key={currentField.id}
+                className="w-full border border-border shadow-md bg-card text-card-foreground rounded-2xl overflow-hidden animate-card-entrance"
+              >
                 <CardHeader className="py-4 px-6 border-b border-border bg-muted/20">
                   <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
                     <span className="font-bold text-sm text-primary">
@@ -2523,7 +2588,7 @@ const RunnerFileUpload: React.FC<{
   const [isDragging, setIsDragging] = useState(false);
   const [validationError, setValidationError] = useState<string | null>(null);
 
-  const fileValue = (typeof value === 'object' && value !== null) 
+  const fileValue = (typeof value === 'object' && value !== null)
     ? (value as {
         name?: string;
         size?: number;
@@ -2974,8 +3039,8 @@ const RunnerRatingField: React.FC<RunnerRatingFieldProps> = ({ field, value, onC
                 onClick={() => handleRate(f.num)}
                 className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border transition-all duration-200 cursor-pointer min-w-16 sm:min-w-20 ${
                   isSelected
-                    ? 'border-primary bg-primary/20 scale-110 shadow-md ring-2 ring-primary/40'
-                    : 'border-border/80 bg-card hover:bg-muted/50 hover:border-primary/40 hover:scale-105'
+                    ? 'border-primary bg-primary/10 shadow-md ring-2 ring-primary/40'
+                    : 'border-border/80 bg-card hover:bg-muted/50 hover:border-primary/40'
                 }`}
                 title={f.label}
               >
@@ -2998,7 +3063,7 @@ const RunnerRatingField: React.FC<RunnerRatingFieldProps> = ({ field, value, onC
                 onClick={() => handleRate(num)}
                 className={`w-11 h-11 rounded-xl border font-bold text-sm sm:text-base flex items-center justify-center transition-all cursor-pointer ${
                   isSelected
-                    ? 'border-primary bg-primary text-primary-foreground shadow-md scale-105'
+                    ? 'border-primary bg-primary text-primary-foreground shadow-md ring-2 ring-primary/40'
                     : 'border-border bg-card text-foreground hover:border-primary/50 hover:bg-primary/10'
                 }`}
               >
@@ -3052,7 +3117,7 @@ const RunnerRatingField: React.FC<RunnerRatingFieldProps> = ({ field, value, onC
             onChange={(e) => handleFeedbackChange(e.target.value)}
             placeholder={field.ratingFeedbackPlaceholder || 'Please let us know what went wrong or how we can do better...'}
             rows={3}
-            className="text-sm bg-background border-border/80 rounded-xl"
+            className="text-sm sm:text-base leading-relaxed bg-background border-border/80 rounded-xl p-3 focus-visible:ring-primary"
           />
         </div>
       )}
@@ -3250,39 +3315,46 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
 
       return (
         <div className="space-y-2">
-          {options.map((opt, optIndex) => (
-            <label
-              key={opt}
-              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${
-                selectedOpts.includes(opt)
-                  ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
-                  : 'border-border/80 bg-card text-foreground'
-              }`}
-            >
-              <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
-                selectedOpts.includes(opt)
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-muted/70 border-border/80 text-foreground/80'
-              }`}>
-                {String.fromCharCode(65 + optIndex)}
-              </span>
-              <input
-                type="checkbox"
-                name={`field-${field.id}`}
-                value={opt}
-                checked={selectedOpts.includes(opt)}
-                onChange={(e) => handleChange(opt, e.target.checked)}
-                className="text-primary focus:ring-primary h-4 w-4 rounded accent-primary cursor-pointer"
-              />
-              <span className="flex-1 font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
-            </label>
-          ))}
+          {options.map((opt, optIndex) => {
+            const isSelected = selectedOpts.includes(opt);
+
+            return (
+              <label
+                key={opt}
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${
+                  isSelected
+                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
+                    : 'border-border/80 bg-card text-foreground'
+                }`}
+              >
+                <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
+                  isSelected
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-muted/70 border-border/80 text-foreground/80'
+                }`}>
+                  {isSelected ? <Check className="w-4 h-4 stroke-[3]" /> : String.fromCharCode(65 + optIndex)}
+                </span>
+                <input
+                  type="checkbox"
+                  name={`field-${field.id}`}
+                  value={opt}
+                  checked={isSelected}
+                  onChange={(e) => handleChange(opt, e.target.checked)}
+                  className="text-primary focus:ring-primary h-4 w-4 rounded accent-primary cursor-pointer"
+                />
+                <span className="flex-1 font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
+                {isSelected && (
+                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 ml-auto" />
+                )}
+              </label>
+            );
+          })}
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
                 className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${
                   hasOther
-                    ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
+                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
                     : 'border-border/80 bg-card text-foreground'
                 }`}
               >
@@ -3291,7 +3363,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                     ? 'bg-primary text-primary-foreground border-primary'
                     : 'bg-muted/70 border-border/80 text-foreground/80'
                 }`}>
-                  {String.fromCharCode(65 + options.length)}
+                  {hasOther ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : String.fromCharCode(65 + options.length)}
                 </span>
                 <input
                   type="checkbox"
@@ -3318,18 +3390,22 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                   <Input
                     value={otherValue.trim()}
                     onChange={(e) => handleOtherChange(e.target.value)}
-                    placeholder="Type custom answer or click a suggestion below..."
+                    placeholder="Type custom answer..."
                     className="h-8 text-sm flex-1 max-w-md bg-background"
                     onClick={(e) => e.stopPropagation()}
                   />
                 )}
+                {hasOther && (
+                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 ml-auto" />
+                )}
               </label>
 
-              {/* MCQ Others Suggestions Pills */}
+              {/* MCQ Others Suggestions Pills (Only when author configured) */}
               {(() => {
-                const popularSuggestions = (field as FormField & { suggestedOtherOptions?: string[] }).suggestedOtherOptions?.length
-                  ? (field as FormField & { suggestedOtherOptions?: string[] }).suggestedOtherOptions!
-                  : ['Bachelor in E-commerce', 'Bachelor in Arts', 'Engineering', 'Self-Taught'];
+                const popularSuggestions = (field as FormField & { suggestedOtherOptions?: string[] }).suggestedOtherOptions;
+                if (!popularSuggestions || popularSuggestions.length === 0) {
+                  return null;
+                }
 
                 return (
                   <div className="flex flex-wrap items-center gap-1.5 pl-9 pt-0.5 animate-in fade-in duration-150">
@@ -3393,7 +3469,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                 key={opt}
                 className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${alignClass} ${
                   isSelected
-                    ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
+                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
                     : 'border-border/80 bg-card text-foreground'
                 }`}
               >
@@ -3402,7 +3478,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                     ? 'bg-primary text-primary-foreground border-primary'
                     : 'bg-muted/70 border-border/80 text-foreground/80'
                 }`}>
-                  {String.fromCharCode(65 + optIndex)}
+                  {isSelected ? <Check className="w-4 h-4 stroke-[3]" /> : String.fromCharCode(65 + optIndex)}
                 </span>
                 <input
                   type="radio"
@@ -3412,7 +3488,10 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                   onChange={() => onChange(opt)}
                   className="text-primary focus:ring-primary h-4 w-4 accent-primary cursor-pointer"
                 />
-                <span className="font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
+                <span className="font-sans text-sm sm:text-base font-medium text-foreground flex-1">{opt}</span>
+                {isSelected && (
+                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 ml-auto" />
+                )}
               </label>
             );
           })}
@@ -3439,39 +3518,46 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
 
       return (
         <div className="space-y-2">
-          {options.map((opt, optIndex) => (
-            <label
-              key={opt}
-              className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${
-                strValue === opt
-                  ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
-                  : 'border-border/80 bg-card text-foreground'
-              }`}
-            >
-              <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
-                strValue === opt
-                  ? 'bg-primary text-primary-foreground border-primary'
-                  : 'bg-muted/70 border-border/80 text-foreground/80'
-              }`}>
-                {String.fromCharCode(65 + optIndex)}
-              </span>
-              <input
-                type="radio"
-                name={`field-${field.id}`}
-                value={opt}
-                checked={strValue === opt}
-                onChange={() => onChange(opt)}
-                className="text-primary focus:ring-primary h-4 w-4 accent-primary cursor-pointer"
-              />
-              <span className="flex-1 font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
-            </label>
-          ))}
+          {options.map((opt, optIndex) => {
+            const isSelected = strValue === opt;
+
+            return (
+              <label
+                key={opt}
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${
+                  isSelected
+                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
+                    : 'border-border/80 bg-card text-foreground'
+                }`}
+              >
+                <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
+                  isSelected
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-muted/70 border-border/80 text-foreground/80'
+                }`}>
+                  {isSelected ? <Check className="w-4 h-4 stroke-[3]" /> : String.fromCharCode(65 + optIndex)}
+                </span>
+                <input
+                  type="radio"
+                  name={`field-${field.id}`}
+                  value={opt}
+                  checked={isSelected}
+                  onChange={() => onChange(opt)}
+                  className="text-primary focus:ring-primary h-4 w-4 accent-primary cursor-pointer"
+                />
+                <span className="flex-1 font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
+                {isSelected && (
+                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 ml-auto" />
+                )}
+              </label>
+            );
+          })}
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
                 className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${
                   hasOther
-                    ? 'border-primary bg-primary/20 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
+                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
                     : 'border-border/80 bg-card text-foreground'
                 }`}
               >
@@ -3480,7 +3566,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                     ? 'bg-primary text-primary-foreground border-primary'
                     : 'bg-muted/70 border-border/80 text-foreground/80'
                 }`}>
-                  {String.fromCharCode(65 + options.length)}
+                  {hasOther ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : String.fromCharCode(65 + options.length)}
                 </span>
                 <input
                   type="radio"
@@ -3495,18 +3581,22 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                   <Input
                     value={otherValue.trim()}
                     onChange={(e) => onChange(otherPrefix + e.target.value)}
-                    placeholder="Type custom answer or click a suggestion below..."
+                    placeholder="Type custom answer..."
                     className="h-8 text-sm flex-1 max-w-md bg-background"
                     onClick={(e) => e.stopPropagation()}
                   />
                 )}
+                {hasOther && (
+                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 ml-auto" />
+                )}
               </label>
 
-              {/* Single Choice Others Suggestions Pills */}
+              {/* Single Choice Others Suggestions Pills (Only when author configured) */}
               {(() => {
-                const popularSuggestions = (field as FormField & { suggestedOtherOptions?: string[] }).suggestedOtherOptions?.length
-                  ? (field as FormField & { suggestedOtherOptions?: string[] }).suggestedOtherOptions!
-                  : ['Bachelor in E-commerce', 'Bachelor in Arts', 'Engineering', 'Self-Taught'];
+                const popularSuggestions = (field as FormField & { suggestedOtherOptions?: string[] }).suggestedOtherOptions;
+                if (!popularSuggestions || popularSuggestions.length === 0) {
+                  return null;
+                }
 
                 return (
                   <div className="flex flex-wrap items-center gap-1.5 pl-9 pt-0.5 animate-in fade-in duration-150">
@@ -3544,8 +3634,8 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
           value={strValue}
           onChange={(e) => onChange(e.target.value)}
           placeholder={field.placeholder || 'Type your detailed answer...'}
-          rows={3}
-          className="text-xs bg-background"
+          rows={4}
+          className="text-sm sm:text-base leading-relaxed bg-background min-h-[110px] rounded-xl p-3 sm:p-4 border border-border/80 focus-visible:ring-primary"
         />
       );
 
