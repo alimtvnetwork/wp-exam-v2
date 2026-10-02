@@ -64,7 +64,7 @@ export const Index: React.FC = () => {
 
   const handleSelectTab = (newTab: AdminTab) => {
     setActiveTabState(newTab);
-    
+
     if (newTab === 'builder' && store.slug) {
       navigate(`/admin/form/${store.slug}`);
     } else {
