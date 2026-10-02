@@ -103,6 +103,8 @@ import {
   Smile,
   Columns,
   LayoutTemplate,
+  PanelLeft,
+  PanelRight,
 } from 'lucide-react';
 import {
   parseReferenceLinks,
@@ -527,7 +529,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
         className={`transition-all duration-200 border bg-card rounded-2xl ${
           isDragging
             ? 'shadow-2xl ring-2 ring-primary border-primary/80 bg-card/95'
-            : 'border-border/80 hover:border-primary/40 shadow-xs hover:shadow-md'
+            : 'border-border/80 hover:border-primary/40 shadow-md'
         }`}
       >
         {/* Card Header: Drag Handle + Question # on left, Field Type Select on right */}
@@ -595,15 +597,14 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               <button
                 type="button"
                 onClick={handleSaveQuestion}
-                className={`h-8 px-2.5 rounded-lg border text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-2xs ${
+                className={`h-8 w-8 p-0 rounded-lg border text-xs font-semibold inline-flex items-center justify-center transition-all cursor-pointer shadow-2xs ${
                   isQuestionDirty
                     ? 'bg-emerald-600 hover:bg-emerald-700 text-white border-emerald-600 shadow-xs ring-2 ring-emerald-500/20'
                     : 'bg-card border-border text-foreground hover:bg-accent hover:text-accent-foreground'
                 }`}
-                title={isQuestionDirty ? 'Save changes to this question' : 'Question is saved'}
+                title="Save"
               >
                 <Save className={`w-3.5 h-3.5 ${isQuestionDirty ? 'text-white' : 'text-emerald-500'}`} />
-                <span>Save</span>
               </button>
 
               {field.group && (
@@ -629,7 +630,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
           </div>
 
           {/* Action Toolbar: Field Type Selector on Right + Preview & Actions */}
-          <div className="flex items-center gap-2.5 shrink-0 flex-wrap justify-end">
+          <div className="flex items-center gap-2 min-w-0 flex-wrap justify-end">
             {/* Field Type Selector (~195px, text-sm font-semibold) */}
             <Select
               value={
@@ -673,7 +674,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 }
               }}
             >
-              <SelectTrigger className="h-10 text-sm bg-background text-foreground border border-input rounded-lg font-semibold w-[155px] sm:w-[175px] shadow-2xs cursor-pointer">
+              <SelectTrigger className="h-10 text-sm bg-background text-foreground border border-input rounded-lg font-semibold min-w-0 w-[9rem] max-w-full sm:w-[11rem] shrink overflow-hidden [&>span]:min-w-0 [&>span]:truncate shadow-2xs cursor-pointer">
                 <SelectValue placeholder="Select type" />
               </SelectTrigger>
               <SelectContent className="bg-popover border-border max-h-72">
@@ -700,7 +701,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               <button
                 type="button"
                 onClick={() => onUpdate(id, { layoutMode: 'standard' })}
-                className={`inline-flex items-center gap-1.5 h-full px-2 sm:px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center justify-center h-full w-8 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                   field.layoutMode !== 'presentation_split'
                     ? 'bg-primary text-primary-foreground shadow-xs font-bold'
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
@@ -708,12 +709,11 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 title="Display question in Standard Quiz format"
               >
                 <LayoutTemplate className="w-3.5 h-3.5" />
-                <span className="hidden xl:inline">Quiz</span>
               </button>
               <button
                 type="button"
                 onClick={() => onUpdate(id, { layoutMode: 'presentation_split' })}
-                className={`inline-flex items-center gap-1.5 h-full px-2 sm:px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center justify-center h-full w-8 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                   field.layoutMode === 'presentation_split'
                     ? 'bg-primary text-primary-foreground shadow-xs font-bold'
                     : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
@@ -721,7 +721,6 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 title="Display question in 2-Column Presentation Slide format"
               >
                 <Columns className="w-3.5 h-3.5" />
-                <span className="hidden xl:inline">Slide</span>
               </button>
             </div>
 
@@ -731,26 +730,26 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 <button
                   type="button"
                   onClick={() => onUpdate(id, { answerPlacement: 'right' })}
-                  className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                  className={`inline-flex items-center justify-center h-full w-8 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                     (field.answerPlacement || 'right') !== 'left'
                       ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                   title="Place candidate choices/answers on the right column"
                 >
-                  <span>Answers Right</span>
+                  <PanelRight className="w-3.5 h-3.5" />
                 </button>
                 <button
                   type="button"
                   onClick={() => onUpdate(id, { answerPlacement: 'left' })}
-                  className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                  className={`inline-flex items-center justify-center h-full w-8 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                     field.answerPlacement === 'left'
                       ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
                       : 'text-muted-foreground hover:text-foreground'
                   }`}
                   title="Place candidate choices/answers on the left column"
                 >
-                  <span>Answers Left</span>
+                  <PanelLeft className="w-3.5 h-3.5" />
                 </button>
               </div>
             )}
@@ -761,15 +760,14 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               <button
                 type="button"
                 onClick={() => setShowLivePreview(!showLivePreview)}
-                className={`inline-flex items-center gap-1.5 h-full px-3 text-sm font-semibold transition-all cursor-pointer ${
+                className={`inline-flex items-center justify-center h-full w-10 text-sm font-semibold transition-all cursor-pointer ${
                   showLivePreview
                     ? 'bg-primary text-primary-foreground shadow-inner'
                     : 'text-foreground hover:bg-accent/80 hover:text-foreground'
                 }`}
-                title="Toggle interactive live input preview test"
+                title="Preview"
               >
                 <Eye className={`w-4 h-4 stroke-[2.2] ${showLivePreview ? 'text-primary-foreground' : 'text-foreground'}`} />
-                <span>Preview</span>
               </button>
 
               {/* Vertical Divider */}
@@ -780,19 +778,17 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                 <DropdownMenuTrigger asChild>
                   <button
                     type="button"
-                    className={`inline-flex items-center gap-1.5 h-full px-2.5 text-sm font-semibold transition-all cursor-pointer ${
+                    className={`relative inline-flex items-center justify-center h-full w-10 text-sm font-semibold transition-all cursor-pointer ${
                       showAdvanced || showTriggers || showConditions
                         ? 'bg-primary/10 text-primary hover:bg-primary/20'
                         : 'text-foreground hover:bg-accent/80 hover:text-foreground'
                     }`}
-                    title="Question Actions & Configuration"
+                    title="Actions"
                   >
                     <SlidersHorizontal className="w-4 h-4 stroke-[2] text-foreground" />
-                    <span className="hidden sm:inline">Actions</span>
                     {(showAdvanced || showTriggers || showConditions) && (
-                      <span className="w-2 h-2 rounded-full bg-primary shrink-0" />
+                      <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-primary shrink-0" />
                     )}
-                    <ChevronDown className="w-3.5 h-3.5 text-muted-foreground opacity-70" />
                   </button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56 p-1 bg-popover border border-border shadow-lg">

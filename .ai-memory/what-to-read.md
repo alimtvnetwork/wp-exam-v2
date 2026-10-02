@@ -62,6 +62,7 @@
 - Root `readme.md` (must stay in sync with this file)
 - .ai-memory/plans/01-index.md
 - .ai-memory/plans/pending/74-onboarding-quiz-presentation-ui.md, why: verbatim UI complaint, contrast decisions, and Onboarding Quiz presentation scope
+- .ai-memory/memory/learned/19-onboarding-quiz-presentation-decisions.md, why: binding UI decisions for the Config menu, Riseup cream primary, Navy Gold, and presentation preview
 - .ai-memory/plans/pending/02-slides-system-overhaul.md
 - .ai-memory/plans/pending/04-guideline-prompt-and-installer-upgrade.md
 - .ai-memory/plans/pending/09-update-prompts-and-release.md

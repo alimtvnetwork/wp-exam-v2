@@ -20,6 +20,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { WpAdminSidebar, AdminTab } from '@/components/admin/wp-admin-sidebar';
+import onboardingQuizMark from '@/assets/onboarding-quiz-mark.svg';
 import {
   Shield,
   ExternalLink,
@@ -195,11 +196,14 @@ export const Index: React.FC = () => {
         {/* Left Side: Brand, Portal Link */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 rounded bg-primary text-primary-foreground font-black text-sm flex items-center justify-center font-serif shadow-xs">
-              W
-            </div>
+            <img
+              src={onboardingQuizMark}
+              alt=""
+              title="Onboarding Quiz"
+              className="w-6 h-6 rounded shrink-0"
+            />
             <span className="font-bold text-sm tracking-tight text-foreground hidden sm:inline">
-              WP Exam Console
+              Onboarding Quiz
             </span>
             <Badge variant="outline" className="text-xs font-mono py-0 border-border text-muted-foreground">
               v2.5

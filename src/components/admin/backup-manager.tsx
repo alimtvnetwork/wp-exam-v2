@@ -75,7 +75,7 @@ export const BackupManager: React.FC = () => {
     setIsDeploying(true);
     setDeployLog([
       `[1/4] Connecting to ${remoteServerUrl}/wp-json/riseup/v1/health...`,
-      `  ✓ Endpoint reachable (Rise Up Asia Uploader protocol v2.5 verified)`,
+      `  ✓ Endpoint reachable (Riseup Uploader protocol v2.5 verified)`,
       `[2/4] Packaging dist/${selectedPluginPackage}.zip with latest split DB schema...`,
       `  ✓ Package integrity validated (client_ip and is_anonymous columns synced)`,
       `[3/4] Uploading dist/${selectedPluginPackage}.zip to remote WordPress host...`,
@@ -236,7 +236,7 @@ export const BackupManager: React.FC = () => {
           <div>
             <h3 className="text-sm font-bold text-white flex items-center gap-2">
               <UploadCloud className="w-4 h-4 text-emerald-400" />
-              Remote WordPress Server Uploader & Deployer (Rise Up Asia Protocol)
+              Remote WordPress Server Uploader & Deployer (Riseup Protocol)
             </h3>
             <p className="text-xs text-slate-400 mt-1">
               Push packaged plugin releases directly to your remote hosting environment using the REST uploader mechanism.

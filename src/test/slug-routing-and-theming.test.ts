@@ -49,8 +49,8 @@ describe('Slug Routing, Theming Engine & AI Studio Verification', () => {
       expect(config.hslValues['--ring']).toBeDefined();
     });
 
-    // Rise Up Asia must feature Gold primary (41 100% 50%)
-    expect(THEME_CONFIGS.riseup.hslValues['--primary']).toBe('41 100% 50%');
+    // Riseup primary is cream. Gold is the highlight, not the fill.
+    expect(THEME_CONFIGS.riseup.hslValues['--primary']).toBe('40 43% 92%');
 
     // Purple theme must feature Electric Indigo primary (247 98% 63%)
     expect(THEME_CONFIGS.purple.hslValues['--primary']).toBe('247 98% 63%');

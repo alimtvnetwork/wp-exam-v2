@@ -35,10 +35,10 @@ import {
   PopoverContent,
 } from '@/components/ui/popover';
 import {
-  HoverCard,
-  HoverCardTrigger,
-  HoverCardContent,
-} from '@/components/ui/hover-card';
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 import { useTheme, THEME_CONFIGS, ORDERED_THEME_KEYS, AppThemeType } from '@/lib/theme-context';
 import { JsonModal } from './json-modal';
 import { GoogleFormsImportModal } from './google-forms-import-modal';
@@ -76,7 +76,7 @@ import {
   ShieldCheck,
   ShieldAlert,
   Wand2,
-  ChevronDown,
+  SlidersHorizontal,
   Clock,
   CheckCircle2,
   Globe,
@@ -653,28 +653,38 @@ export const FormBuilder: React.FC = () => {
 
         {/* Right Side: Combined Compact Preview & Save Segmented Control */}
         <div className="inline-flex items-center rounded-lg border border-border bg-card p-0.5 h-8 shrink-0 shadow-2xs divide-x divide-border">
-          <button
-            type="button"
-            onClick={() => {
-              handleSyncDraft();
-              window.open('/preview/' + (activeSlug || 'custom-form'), '_blank');
-            }}
-            className="inline-flex items-center gap-1.5 h-full px-2.5 rounded-l-md text-xs font-semibold text-foreground hover:bg-accent transition-all cursor-pointer"
-            title="Open interactive assessment preview in new tab"
-          >
-            <Eye className="w-3.5 h-3.5 text-primary" />
-            <span className="hidden sm:inline">Preview</span>
-          </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            disabled={isSaving}
-            className="inline-flex items-center gap-1.5 h-full px-3 rounded-r-md text-xs font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer disabled:opacity-50"
-            title={isSaving ? 'Saving Form...' : 'Save Form (Ctrl+S)'}
-          >
-            {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
-            <span>Save</span>
-          </button>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                onClick={() => {
+                  handleSyncDraft();
+                  window.open('/preview/' + (activeSlug || 'custom-form'), '_blank');
+                }}
+                aria-label="Preview"
+                className="inline-flex items-center justify-center h-full w-8 rounded-l-md text-foreground hover:bg-accent transition-all cursor-pointer"
+              >
+                <Eye className="w-3.5 h-3.5 text-primary" />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>Preview</TooltipContent>
+          </Tooltip>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <span className="inline-flex h-full">
+                <button
+                  type="button"
+                  onClick={handleSave}
+                  disabled={isSaving}
+                  aria-label="Save"
+                  className="inline-flex items-center justify-center h-full w-8 rounded-r-md font-bold bg-primary text-primary-foreground hover:bg-primary/90 transition-all cursor-pointer disabled:opacity-50 disabled:pointer-events-none"
+                >
+                  {isSaving ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />}
+                </button>
+              </span>
+            </TooltipTrigger>
+            <TooltipContent>Save</TooltipContent>
+          </Tooltip>
         </div>
       </div>
 
@@ -689,12 +699,12 @@ export const FormBuilder: React.FC = () => {
         {/* Main Column: Google Forms Canvas */}
         <div className="lg:col-span-8 space-y-5">
           {/* Prominent Google Forms Header Card */}
-          <Card className="border border-border/80 bg-card shadow-sm rounded-2xl overflow-hidden animate-sweet-fade-in">
+          <Card className="border border-border/80 bg-card shadow-md rounded-2xl overflow-hidden animate-sweet-fade-in">
             {/* Top Accent Ribbon (Dynamic Theme Tint) */}
-            <div className="h-2.5 bg-gradient-to-r from-primary via-primary/80 to-primary/60 w-full" />
+            <div className="h-0.5 bg-gradient-to-r from-primary via-primary/80 to-primary/60 w-full" />
 
             <CardContent className="p-5 sm:p-6 space-y-4">
-              {/* Form Title & Compact Utility Action Bar (Health, Config, Triggers, Tools, Share) */}
+              {/* Form Title & Config menu */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
                 <input
                   type="text"
@@ -704,121 +714,54 @@ export const FormBuilder: React.FC = () => {
                   className="flex-1 text-xl sm:text-2xl font-bold bg-transparent border-0 border-b border-border/40 hover:border-border focus:border-primary focus:outline-none transition-colors px-1 py-1 text-foreground placeholder:text-muted-foreground/40 min-w-0"
                 />
 
-                {/* Compact Utility Controls Cluster: Health, Config, Triggers, Tools, Share */}
-                <div className="flex items-center gap-1.5 shrink-0 flex-wrap">
-                  {/* Health Score Pill with HoverCard */}
-                  <HoverCard openDelay={100} closeDelay={150}>
-                    <HoverCardTrigger asChild>
-                      <button
-                        type="button"
+                {/* Config menu. Trash ledger stays beside it. */}
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <DropdownMenu>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            aria-label="Config"
+                            className="h-7 w-7 p-0 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0"
+                          >
+                            <SlidersHorizontal className="w-3.5 h-3.5 text-primary" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                      </TooltipTrigger>
+                      <TooltipContent>Config</TooltipContent>
+                    </Tooltip>
+                    <DropdownMenuContent align="end" className="w-56 bg-popover border border-border shadow-xl p-1 text-xs">
+                      <DropdownMenuItem
                         onClick={() => {
                           setInspectorTab('audit');
                           setIsDesignPanelOpen(true);
                         }}
-                        className="inline-flex items-center gap-1.5 h-7 px-2 rounded-lg font-mono font-bold text-xs bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/20 transition-all cursor-pointer shrink-0"
-                        title="Form Health Score (hover for details, click for full audit dock)"
+                        className="gap-2 cursor-pointer py-1.5"
                       >
-                        <Shield className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <Shield className="w-3.5 h-3.5 text-emerald-500" />
                         <span>Health: {designReport.grade || 'A+'} ({designReport.score}%)</span>
-                      </button>
-                    </HoverCardTrigger>
-                    <HoverCardContent
-                      align="end"
-                      className="w-80 p-3.5 space-y-3 rounded-xl border border-border bg-popover text-popover-foreground shadow-xl text-xs"
-                    >
-                      <div className="flex items-center justify-between border-b border-border/60 pb-2">
-                        <div className="flex items-center gap-2">
-                          <Shield className="w-4 h-4 text-emerald-500" />
-                          <span className="font-bold text-sm text-foreground">Form Health Audit</span>
-                        </div>
-                        <Badge variant="outline" className="font-mono font-bold text-xs bg-primary/10 text-primary border-primary/20">
-                          Grade {designReport.grade} ({designReport.score}%)
-                        </Badge>
-                      </div>
-                      <div className="space-y-1.5 text-muted-foreground">
-                        <div className="flex justify-between">
-                          <span>Audit Diagnostics:</span>
-                          <span className="font-semibold text-foreground">{designReport.issues?.length || 0} issues</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Questions Configured:</span>
-                          <span className="font-semibold text-foreground">{fields.length} questions</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Grading Allocation:</span>
-                          <span className="font-semibold text-foreground">{totalPoints} total points</span>
-                        </div>
-                      </div>
-                      <div className="pt-2 border-t border-border/60 flex items-center justify-between">
-                        <span className="text-[11px] text-muted-foreground">Click for audit details</span>
-                        <Button
-                          type="button"
-                          size="sm"
-                          onClick={() => {
-                            setInspectorTab('audit');
-                            setIsDesignPanelOpen(true);
-                          }}
-                          className="h-6 text-xs px-2 rounded-md"
-                        >
-                          Open Audit Dock
-                        </Button>
-                      </div>
-                    </HoverCardContent>
-                  </HoverCard>
-
-                  {/* Centralized Quiz Configuration Studio Button */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsCentralConfigOpen(true)}
-                    className="h-7 px-2 text-xs gap-1.5 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0 font-medium text-foreground"
-                    title="Open Centralized Quiz Configuration Studio"
-                  >
-                    <Settings className="w-3.5 h-3.5 text-primary" />
-                    <span className="hidden sm:inline">Quiz Config</span>
-                  </Button>
-
-                  {/* Notification Triggers Studio Button */}
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsNotificationModalOpen(true)}
-                    className="h-7 px-2 text-xs gap-1.5 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0 font-medium"
-                    title="Configure Email & Webhook Triggers"
-                  >
-                    <Bell className="w-3.5 h-3.5 text-primary" />
-                    <span className="hidden sm:inline">Triggers</span>
-                    {settings?.notificationTriggers && settings.notificationTriggers.length > 0 && (
-                      <Badge variant="secondary" className="h-4 px-1 text-[10px] font-bold bg-primary/15 text-primary">
-                        {settings.notificationTriggers.length}
-                      </Badge>
-                    )}
-                  </Button>
-
-                  {/* Tools Menu Dropdown */}
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-7 px-2 text-xs gap-1 border-border hover:bg-accent rounded-lg cursor-pointer shrink-0 font-medium"
-                        title="Builder Utility Tools"
-                      >
-                        <Wand2 className="w-3.5 h-3.5 text-primary" />
-                        <span className="hidden sm:inline">Tools</span>
-                        <ChevronDown className="w-3 h-3 text-muted-foreground" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="w-56 bg-popover border border-border shadow-xl p-1 text-xs">
+                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => setIsCentralConfigOpen(true)}
-                        className="gap-2 cursor-pointer py-1.5 font-semibold text-foreground"
+                        className="gap-2 cursor-pointer py-1.5"
                       >
                         <Settings className="w-3.5 h-3.5 text-primary" />
-                        <span>Centralized Quiz Config</span>
+                        <span>Quiz Config</span>
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onClick={() => setIsNotificationModalOpen(true)}
+                        className="gap-2 cursor-pointer py-1.5"
+                      >
+                        <Bell className="w-3.5 h-3.5 text-primary" />
+                        <span>Triggers</span>
+                        {(settings.notificationTriggers?.length ?? 0) > 0 && (
+                          <Badge variant="secondary" className="h-4 px-1 text-[10px] font-bold bg-primary/15 text-primary ml-auto">
+                            {settings.notificationTriggers?.length}
+                          </Badge>
+                        )}
                       </DropdownMenuItem>
                       <DropdownMenuSeparator className="my-1 border-border/60" />
                       <DropdownMenuItem
@@ -844,14 +787,11 @@ export const FormBuilder: React.FC = () => {
                       </DropdownMenuItem>
                       <DropdownMenuSeparator className="my-1 border-border/60" />
                       <DropdownMenuItem
-                        onClick={() => {
-                          setInspectorTab('audit');
-                          setIsDesignPanelOpen(true);
-                        }}
+                        onClick={handleCopyLiveUrl}
                         className="gap-2 cursor-pointer py-1.5"
                       >
-                        <Shield className="w-3.5 h-3.5 text-emerald-500" />
-                        <span>Form Health &amp; Audit Dock</span>
+                        <Share2 className="w-3.5 h-3.5 text-primary" />
+                        <span>Share</span>
                       </DropdownMenuItem>
                     </DropdownMenuContent>
                   </DropdownMenu>
@@ -859,18 +799,22 @@ export const FormBuilder: React.FC = () => {
                   {/* Trash Recovery Ledger */}
                   {trashFields && trashFields.length > 0 && (
                     <Popover>
-                      <PopoverTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="outline"
-                          size="sm"
-                          className="text-[11px] h-7 px-2 gap-1 bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20 rounded-lg font-semibold cursor-pointer shrink-0"
-                          title={`${trashFields.length} deleted question(s) in trash`}
-                        >
-                          <Trash2 className="w-3 h-3 shrink-0" />
-                          <span>Trash ({trashFields.length})</span>
-                        </Button>
-                      </PopoverTrigger>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <PopoverTrigger asChild>
+                            <Button
+                              type="button"
+                              variant="outline"
+                              size="sm"
+                              aria-label={`Trash (${trashFields.length})`}
+                              className="h-7 w-7 p-0 bg-destructive/10 border-destructive/30 text-destructive hover:bg-destructive/20 rounded-lg cursor-pointer shrink-0"
+                            >
+                              <Trash2 className="w-3.5 h-3.5 shrink-0" />
+                            </Button>
+                          </PopoverTrigger>
+                        </TooltipTrigger>
+                        <TooltipContent>Trash ({trashFields.length})</TooltipContent>
+                      </Tooltip>
                       <PopoverContent align="end" className="w-80 p-3 space-y-2.5 rounded-xl border border-border bg-popover shadow-xl text-xs">
                         <div className="flex items-center justify-between border-b border-border/60 pb-2">
                           <div className="flex items-center gap-1.5 font-bold text-foreground">
@@ -917,19 +861,6 @@ export const FormBuilder: React.FC = () => {
                       </PopoverContent>
                     </Popover>
                   )}
-
-                  {/* Share Button */}
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleCopyLiveUrl}
-                    className="h-7 px-2 text-xs gap-1 text-muted-foreground hover:text-foreground cursor-pointer"
-                    title="Share & Copy Live URL"
-                  >
-                    <Share2 className="w-3.5 h-3.5" />
-                    <span className="hidden sm:inline">Share</span>
-                  </Button>
                 </div>
               </div>
 
@@ -1154,43 +1085,54 @@ export const FormBuilder: React.FC = () => {
               {/* Sleek Segmented Dock Tabs Header */}
               <div className="p-2 border-b border-border/80 bg-muted/20">
                 <TabsList className="grid grid-cols-4 h-10 p-1 bg-muted/60 rounded-xl">
-                  <TabsTrigger
-                    value="palette"
-                    className="text-sm py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer"
-                  >
-                    <Layers className="w-4 h-4 text-primary" />
-                    <span>Fields</span>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="outline"
-                    className="text-sm py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer"
-                  >
-                    <ListOrdered className="w-4 h-4 text-primary" />
-                    <span>Outline</span>
-                    <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-4.5 font-mono font-bold">
-                      {fields.length}
-                    </Badge>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="audit"
-                    className="text-sm py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer"
-                  >
-                    <ShieldCheck className="w-4 h-4 text-primary" />
-                    <span>Audit</span>
-                    <Badge
-                      variant="secondary"
-                      className="text-xs px-1.5 py-0.5 h-4.5 font-mono font-bold bg-primary/10 text-primary"
-                    >
-                      {designReport.grade}
-                    </Badge>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="settings"
-                    className="text-sm py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer"
-                  >
-                    <Settings className="w-4 h-4 text-primary" />
-                    <span>Config</span>
-                  </TabsTrigger>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger
+                        value="palette"
+                        aria-label="Fields"
+                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center font-semibold transition-all cursor-pointer"
+                      >
+                        <Layers className="w-4 h-4 text-primary" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>Fields</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger
+                        value="outline"
+                        aria-label={`Outline (${fields.length})`}
+                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center font-semibold transition-all cursor-pointer"
+                      >
+                        <ListOrdered className="w-4 h-4 text-primary" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>Outline ({fields.length})</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger
+                        value="audit"
+                        aria-label={`Audit (${designReport.grade})`}
+                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center font-semibold transition-all cursor-pointer"
+                      >
+                        <ShieldCheck className="w-4 h-4 text-primary" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>Audit ({designReport.grade})</TooltipContent>
+                  </Tooltip>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <TabsTrigger
+                        value="settings"
+                        aria-label="Config"
+                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center font-semibold transition-all cursor-pointer"
+                      >
+                        <Settings className="w-4 h-4 text-primary" />
+                      </TabsTrigger>
+                    </TooltipTrigger>
+                    <TooltipContent>Config</TooltipContent>
+                  </Tooltip>
                 </TabsList>
               </div>
 

@@ -65,6 +65,7 @@ App-specific specification content for the WP Exam plugin. This engine provides 
 | 18 | [18-presentation-ui-ux-and-links-parser.md](./18-presentation-ui-ux-and-links-parser.md) | Presentation UI/UX, Multi-Format Citation Links Parser & Advanced Email Trigger Engine | Complete |
 | 19 | [19-color-contrast-email-triggers-citations-and-presentation-runner.md](./19-color-contrast-email-triggers-citations-and-presentation-runner.md) | Color Contrast, Multi-Layer Email Triggers, Citation Parser & Cinematic Presentation Runner | Complete |
 | 73 | [73-ui-ux-candidate-view-theming-and-new-tab-preview.md](./73-ui-ux-candidate-view-theming-and-new-tab-preview.md) | UI/UX Candidate View Overhaul, CSS3 Theming/Motion & New-Tab Preview Engine | Complete |
+| 74 | [74-onboarding-quiz-presentation-ui/01-architecture-spec.md](./74-onboarding-quiz-presentation-ui/01-architecture-spec.md) | Onboarding Quiz mark, collapsed Config menu, thin accent, full presentation preview, Riseup cream primary, Navy Gold theme | Complete |
 
 ---
 

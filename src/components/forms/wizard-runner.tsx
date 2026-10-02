@@ -69,7 +69,7 @@ const AVAILABLE_JOB_POSITIONS: JobPositionOption[] = [
 const THEME_OPTIONS: { id: AppThemeType; name: string }[] = [
   { id: 'green-choice', name: 'Green Choice (Emerald Botanical)' },
   { id: 'clean-wide', name: 'Clean Wide White (Indigo & Slate)' },
-  { id: 'riseup', name: 'Rise Up Asia (Warm Gold & Navy)' },
+  { id: 'riseup', name: 'Riseup (Warm Gold & Navy)' },
   { id: 'dracula', name: 'Antigravity Dracula (Dark Purple)' },
   { id: 'purple', name: 'Purple Theme (Deep Purple & Violet)' },
   { id: 'obsidian', name: 'VS Code Dark (Slate & Cyan)' },

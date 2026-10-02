@@ -20,6 +20,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import onboardingQuizMark from '@/assets/onboarding-quiz-mark.svg';
 
 export type AdminTab =
   | 'builder'
@@ -181,18 +182,20 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
       <div className="h-14 px-3 flex items-center justify-between border-b border-border bg-muted/30">
         <div
           onClick={onNavigateHome}
-          className="flex items-center gap-2.5 cursor-pointer group"
-          title="WP Exam Console"
+          className="flex items-center gap-2.5 cursor-pointer group min-w-0"
         >
-          <div className="w-8 h-8 rounded-lg bg-primary text-primary-foreground font-black text-sm flex items-center justify-center shadow-md shadow-primary/20 transition-colors shrink-0 font-serif">
-            WP
-          </div>
+          <img
+            src={onboardingQuizMark}
+            alt=""
+            title="Onboarding Quiz"
+            className="w-8 h-8 rounded-lg shrink-0"
+          />
 
           {!isCollapsed && (
             <div className="overflow-hidden">
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-xs tracking-tight text-foreground transition-colors">
-                  WP Exam
+                <span className="font-bold text-xs tracking-tight text-foreground transition-colors truncate">
+                  Onboarding Quiz
                 </span>
                 <span className="text-xs px-1 rounded bg-muted text-primary font-mono border border-border">
                   v2.5
@@ -246,7 +249,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
                     title={isCollapsed ? item.label : undefined}
                     className={`relative w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-all group ${
                       isActive
-                        ? 'bg-primary/15 text-primary font-semibold shadow-xs'
+                        ? 'bg-muted text-foreground font-semibold shadow-xs'
                         : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
                     }`}
                   >
@@ -258,7 +261,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
                     <IconComponent
                       className={`w-4 h-4 shrink-0 transition-colors ${
                         isActive
-                          ? 'text-primary'
+                          ? 'text-foreground'
                           : 'text-muted-foreground group-hover:text-foreground'
                       }`}
                     />
@@ -271,7 +274,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
                           <span
                             className={`text-xs px-1.5 py-0.2 rounded font-mono font-medium shrink-0 ml-1.5 ${
                               item.badgeVariant === 'amber'
-                                ? 'bg-primary/20 text-primary border border-primary/30'
+                                ? 'bg-muted text-foreground border border-border'
                                 : item.badgeVariant === 'secondary'
                                 ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
                                 : 'bg-muted text-muted-foreground border border-border'

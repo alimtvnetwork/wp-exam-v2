@@ -57,6 +57,7 @@ Updated: 2026-04-27
 - [Session 2026-09-21 Codebase Comprehension & Skills Set Expansion](learned/16-codebase-comprehension-and-skill-set-generation.md) — Full codebase architectural mapping and authoring of 6 Antigravity skills.
 - [Session 2026-09-22 Screenshot & Base64 Ingestion Protocol](learned/17-screenshot-printscreen-base64-ingestion-protocol.md) — Standardized screenshot/print screen base64 conversion to filesystem image files and relative referencing across execute prompts, spec writing prompts, and UI skills.
 - [WP Exam Onboarding & Codebase Ingestion](learned/18-wp-exam-onboarding-and-codebase-ingestion.md) — WP Exam repository identity, 10 git commits audit, Quiz plugin specs, DB schemas, and CODE RED rules.
+- [Onboarding Quiz presentation decisions](learned/19-onboarding-quiz-presentation-decisions.md) — Config menu, thin accent, Riseup cream primary, Navy Gold, and full presentation preview.
 - [Avoid Running Tests Without Owner Command](avoid/04-running-tests-without-owner-command.md) — Absolute ban on running unit tests in standard development turns unless explicitly requested by owner.
 - [Avoid Running Full CI/CD Runner in Routine Tasks](avoid/05-running-full-cicd-runner-in-routine-tasks.md) — Total ban on running the 28-38 gate CI runner during routine edits and coding guideline fixes.
 - [Fast File Indexing & Caching Strategy](standards/05-fast-file-indexing-and-caching.md) — Pre-computed file scanning and index caching in `tmp/` via `08-fast-file-scanner.py` for rapid multi-step lookups.
@@ -136,4 +137,5 @@ Updated: 2026-04-27
 - [Session 2026-09-21 Codebase Comprehension & Skills Set Expansion](learned/16-codebase-comprehension-and-skill-set-generation.md) — Full codebase architectural mapping and authoring of 6 Antigravity skills.
 - [Session 2026-09-22 Screenshot & Base64 Ingestion Protocol](learned/17-screenshot-printscreen-base64-ingestion-protocol.md) — Standardized screenshot/print screen base64 conversion to filesystem image files and relative referencing across execute prompts, spec writing prompts, and UI skills.
 - [WP Exam Onboarding & Codebase Ingestion](learned/18-wp-exam-onboarding-and-codebase-ingestion.md) — WP Exam repository identity, 10 git commits audit, Quiz plugin specs, DB schemas, and CODE RED rules.
+- [Onboarding Quiz presentation decisions](learned/19-onboarding-quiz-presentation-decisions.md) — Config menu, thin accent, Riseup cream primary, Navy Gold, and full presentation preview.
 

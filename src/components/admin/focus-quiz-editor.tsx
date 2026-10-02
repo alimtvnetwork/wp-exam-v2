@@ -439,7 +439,7 @@ export const FocusQuizEditor: React.FC<FocusQuizEditorProps> = ({ onLaunchRunner
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="purple">Purple Theme (Deep Purple & Focus)</SelectItem>
-                    <SelectItem value="riseup-asia">Rise Up Asia (Gold & Modern Dark)</SelectItem>
+                    <SelectItem value="riseup-asia">Riseup (Gold & Modern Dark)</SelectItem>
                     <SelectItem value="dracula">Dracula (Vibrant Purple & Slate)</SelectItem>
                     <SelectItem value="vscode-dark">VS Code Dark (Professional Slate)</SelectItem>
                     <SelectItem value="microsoft-blue">Microsoft Fluent Blue</SelectItem>

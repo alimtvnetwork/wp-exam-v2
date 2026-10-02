@@ -1,7 +1,7 @@
 # Onboarding Quiz presentation UI
 
 Slug: onboarding-quiz-presentation-ui
-Status: in-progress
+Status: implemented
 Steps: 12
 Branch: main
 Tree at start: clean

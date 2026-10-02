@@ -59,8 +59,7 @@ import {
   Check,
   Save,
   RotateCcw,
-  Columns,
-  LayoutTemplate,
+  Eye,
   Lock,
   Menu,
 } from 'lucide-react';
@@ -77,6 +76,13 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import {
   evaluateFieldVisibility,
   evaluateFieldRequired,
   getNextStepIndex,
@@ -85,7 +91,6 @@ import {
 import {
   resolveQuestionLayoutMode,
   resolveAnswerPlacement,
-  extractQuestionReferences,
   extractQuestionChecklist,
   verifyChecklistCompletion,
   isQuestionLockedForNavigation,
@@ -308,7 +313,7 @@ const QuizHeroSection: React.FC<QuizHeroSectionProps> = ({
       <div className="absolute inset-0 pointer-events-none bg-gradient-to-b from-primary/5 via-transparent to-transparent -z-10" />
 
       {/* Icon Badge */}
-      <div className="w-12 h-12 rounded-2xl bg-primary/10 border border-primary/20 flex items-center justify-center text-primary mx-auto mb-3 shadow-2xs">
+      <div className="w-12 h-12 rounded-2xl bg-primary border border-primary flex items-center justify-center text-primary-foreground mx-auto mb-3 shadow-2xs">
         <GraduationCap className="w-6 h-6" />
       </div>
 
@@ -347,8 +352,8 @@ const QuizHeroSection: React.FC<QuizHeroSectionProps> = ({
         </span>
 
         {hasSavedSession ? (
-          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-primary/10 border border-primary/30 text-primary font-medium">
-            <Sparkles className="w-3.5 h-3.5 text-primary" />
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-card border border-border text-foreground font-medium">
+            <Sparkles className="w-3.5 h-3.5 text-foreground" />
             <span>Saved Session {savedTimeAgo ? `(${savedTimeAgo})` : 'Available'}</span>
           </span>
         ) : null}
@@ -467,6 +472,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   });
   const currentTheme = getTheme(activeThemeId);
   const themeVars = getThemeCssVariables(currentTheme);
+  const activeThemeShortName = (currentTheme?.name || 'Theme').split(' (')[0];
 
   // Synchronize active theme attribute, HSL variables, and background to root document and body
   useEffect(() => {
@@ -764,7 +770,20 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const [showBlackoutWarning, setShowBlackoutWarning] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
   const [runnerViewMode, setRunnerViewMode] = useState<'default' | 'standard' | 'presentation_split'>('default');
-  const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(true);
+  const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(() => {
+    const startMode = resolveQuestionLayoutMode({
+      runtimeOverride: 'default',
+      fieldMode: currentField?.layoutMode,
+      formDefaultMode: activeForm.settings?.defaultQuestionLayout,
+    });
+
+    if (startMode === 'presentation_split') {
+      return false;
+    }
+
+    return true;
+  });
+  const layoutModeAtSidebarStart = useRef<QuestionLayoutMode | null>(null);
 
   const effectiveLayoutMode: QuestionLayoutMode = useMemo(() => {
     return resolveQuestionLayoutMode({
@@ -774,6 +793,21 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     });
   }, [runnerViewMode, currentField?.layoutMode, activeForm.settings?.defaultQuestionLayout]);
 
+  useEffect(() => {
+    const previousMode = layoutModeAtSidebarStart.current;
+    layoutModeAtSidebarStart.current = effectiveLayoutMode;
+
+    if (effectiveLayoutMode !== 'presentation_split') {
+      return;
+    }
+
+    if (previousMode === 'presentation_split') {
+      return;
+    }
+
+    setIsSidebarVisible(false);
+  }, [effectiveLayoutMode]);
+
   const effectiveAnswerPlacement = useMemo(() => {
     return resolveAnswerPlacement({
       fieldPlacement: currentField?.answerPlacement,
@@ -781,9 +815,12 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     });
   }, [currentField?.answerPlacement, activeForm.settings?.defaultAnswerPlacement]);
 
-  const referenceItems = useMemo(() => {
-    return extractQuestionReferences({ field: currentField });
-  }, [currentField]);
+  const hasVideoUrl = typeof currentField?.videoUrl === 'string' && currentField.videoUrl.length > 0;
+  const isVideoField = currentField?.type === 'video';
+  const hasSlideVideo = Boolean(hasVideoUrl || isVideoField);
+  const hasFieldSubtitle = typeof currentField?.subtitle === 'string' && currentField.subtitle.length > 0;
+  const hasFieldDescription = typeof currentField?.description === 'string' && currentField.description.length > 0;
+  const hasPlaceholderHint = typeof currentField?.placeholder === 'string' && currentField.placeholder.length > 0;
 
   const checklistItems = useMemo(() => {
     return extractQuestionChecklist({ field: currentField });
@@ -1489,7 +1526,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       <div
         className="p-2.5 sm:px-4 border border-border bg-card text-card-foreground rounded-xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors"
       >
-        <div className="flex items-center gap-2 flex-wrap min-w-0">
+        <div className="flex items-center gap-2 flex-1 min-w-0">
           {/* Project Selector (Shown in dev mode, hidden in candidate/preview mode) */}
           {isProjectPickerVisible ? (
             <div className="flex items-center gap-1.5 shrink-0">
@@ -1527,119 +1564,116 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               </Select>
             </div>
           ) : (
-            <div className="flex items-center gap-2 shrink-0">
-              <span className="font-heading font-bold text-sm sm:text-base text-foreground truncate max-w-[220px] sm:max-w-xs">
+            <div className="flex items-center gap-2 min-w-0">
+              <span className="font-heading font-bold text-sm sm:text-base text-foreground truncate min-w-0">
                 {activeForm.title || 'Candidate Assessment'}
               </span>
-              <Badge variant="outline" className="text-[11px] font-mono border-primary/40 text-primary bg-primary/10">
-                {isPreviewRoute ? 'Live Preview' : 'Official Assessment'}
-              </Badge>
+              {isPreviewRoute ? null : (
+                <Badge variant="outline" className="text-[11px] font-mono border-border text-foreground bg-card shrink-0">
+                  Official Assessment
+                </Badge>
+              )}
             </div>
           )}
 
-          {/* Compact Copy Link Button (Replaces wide URL banner per UX requirement) */}
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={handleCopyProjectLink}
-            className="h-8 px-2.5 text-xs font-medium font-sans gap-1.5 border-border bg-background text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/40 shadow-2xs transition-all cursor-pointer rounded-lg shrink-0"
-            title="Copy Direct Canonical Link to Clipboard"
-          >
-            <Copy className="w-3.5 h-3.5 text-primary" />
-            <span>Copy Link</span>
-          </Button>
-
-          {/* Real-time Preview Mode Switcher (Quiz View vs Presentation View) */}
-          <div className="flex items-center gap-1 bg-muted/60 p-0.5 rounded-lg border border-border shrink-0">
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setRunnerViewMode('standard');
-                toast.info('Switched to Standard Quiz View');
-              }}
-              className={`h-7 px-2.5 text-xs font-sans rounded-md transition-all gap-1.5 cursor-pointer ${
-                effectiveLayoutMode === 'standard'
-                  ? 'bg-background text-foreground font-semibold shadow-2xs border border-border/80'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              title="Standard Quiz Card View"
-            >
-              <LayoutTemplate className="w-3.5 h-3.5 text-primary" />
-              <span>Quiz Format</span>
-            </Button>
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => {
-                setRunnerViewMode('presentation_split');
-                toast.info('Switched to Presentation Slide format');
-              }}
-              className={`h-7 px-2.5 text-xs font-sans rounded-md transition-all gap-1.5 cursor-pointer ${
-                effectiveLayoutMode === 'presentation_split'
-                  ? 'bg-primary text-primary-foreground font-semibold shadow-2xs'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              title="2-Column Presentation Slide format"
-            >
-              <Columns className="w-3.5 h-3.5" />
-              <span>Presentation Slide</span>
-            </Button>
-            {(isSequential || effectiveLayoutMode === 'presentation_split') && (
+          <Tooltip>
+            <TooltipTrigger asChild>
               <Button
                 type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsSidebarVisible(!isSidebarVisible)}
-                className={`h-7 px-2 text-xs font-sans rounded-md transition-all gap-1 cursor-pointer ${
-                  isSidebarVisible
-                    ? 'text-muted-foreground hover:text-foreground'
-                    : 'bg-primary/10 text-primary font-semibold'
-                }`}
-                title={isSidebarVisible ? 'Collapse question sequence for wide view' : 'Show question sequence'}
+                variant="outline"
+                size="icon"
+                onClick={handleCopyProjectLink}
+                className="h-8 w-8 shrink-0"
+                aria-label="Copy link"
               >
-                <Menu className="w-3.5 h-3.5" />
-                <span className="hidden md:inline">Questions</span>
+                <Copy className="w-3.5 h-3.5" />
               </Button>
-            )}
-          </div>
+            </TooltipTrigger>
+            <TooltipContent>Copy link</TooltipContent>
+          </Tooltip>
+
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    aria-label="View"
+                  >
+                    <Eye className="w-3.5 h-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>View</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="start" className="min-w-[12rem] border border-border bg-popover text-popover-foreground">
+              <DropdownMenuItem
+                onSelect={() => {
+                  setRunnerViewMode('standard');
+                  toast.info('Switched to Standard Quiz View');
+                }}
+                className={effectiveLayoutMode === 'standard' ? 'bg-accent text-foreground' : undefined}
+              >
+                Quiz format
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => {
+                  setRunnerViewMode('presentation_split');
+                  setIsSidebarVisible(false);
+                  toast.info('Switched to Presentation Slide format');
+                }}
+                className={effectiveLayoutMode === 'presentation_split' ? 'bg-accent text-foreground' : undefined}
+              >
+                Presentation slide
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onSelect={() => setIsSidebarVisible(!isSidebarVisible)}
+                className={isSidebarVisible ? 'bg-accent text-foreground' : undefined}
+              >
+                Questions
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Right Action Controls: Anti-Collision guaranteed */}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap shrink-0 justify-end">
-          {/* Theme Selector */}
-          <div className="flex items-center gap-1 shrink-0">
-            <Label className="text-xs font-medium font-sans flex items-center gap-1 whitespace-nowrap text-foreground">
-              <Palette className="w-3.5 h-3.5 text-primary" />
-              <span className="hidden sm:inline">Theme:</span>
-            </Label>
-            <Select
-              value={activeThemeId}
-              onValueChange={(val) => {
-                setActiveThemeId(val);
-                const nextT = getTheme(val);
-                document.documentElement.setAttribute('data-theme', nextT.id);
-              }}
-            >
-              <SelectTrigger
-                className="text-xs font-medium font-sans h-8 w-[115px] sm:w-[135px] rounded-lg border border-border bg-background text-foreground hover:border-primary/50 shadow-2xs cursor-pointer truncate"
-              >
-                <SelectValue placeholder="Theme" />
-              </SelectTrigger>
-              <SelectContent
-                className="border border-border shadow-xl backdrop-blur-md rounded-xl bg-popover text-popover-foreground text-xs font-sans"
-              >
-                {Object.values(THEME_PRESETS).map((t) => (
-                  <SelectItem key={t.id} value={t.id} className="text-xs py-1.5 font-medium font-sans">
-                    {t.name.split(' (')[0]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="icon"
+                    className="h-8 w-8 shrink-0"
+                    aria-label={activeThemeShortName}
+                  >
+                    <Palette className="w-3.5 h-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>{activeThemeShortName}</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="end" className="min-w-[12rem] border border-border bg-popover text-popover-foreground">
+              {Object.values(THEME_PRESETS).map((themePreset) => (
+                <DropdownMenuItem
+                  key={themePreset.id}
+                  onSelect={() => {
+                    setActiveThemeId(themePreset.id);
+                    const nextTheme = getTheme(themePreset.id);
+                    document.documentElement.setAttribute('data-theme', nextTheme.id);
+                  }}
+                  className={activeThemeId === themePreset.id ? 'bg-accent text-foreground' : undefined}
+                >
+                  {themePreset.name.split(' (')[0]}
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           {/* Grouped Action Pill: [ ⚡ Auto | 🛠️ Debug | ✕ Exit ] (Hidden in candidate or preview mode) */}
           {isDevActionPillVisible && (
@@ -1764,7 +1798,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       )}
 
       {authMessage && (
-        <div className="p-2.5 rounded-lg bg-primary/10 border border-primary/20 text-xs text-primary font-semibold text-center">
+        <div className="p-2.5 rounded-lg bg-card border border-border text-xs text-foreground font-semibold text-center">
           {authMessage}
         </div>
       )}
@@ -1830,9 +1864,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
       {/* In-Runner Session Resume Banner */}
       {hasSavedSessionToResume && (
-        <div className="w-full bg-primary/10 border border-primary/30 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-sans animate-in fade-in duration-150">
+        <div className="w-full bg-card border border-border rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs font-sans animate-in fade-in duration-150">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-primary/10 border border-primary/30 flex items-center justify-center text-primary shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-primary border border-primary flex items-center justify-center text-primary-foreground shrink-0">
               <Sparkles className="w-4 h-4" />
             </div>
             <div>
@@ -1881,7 +1915,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   <div className="flex items-center justify-between text-xs font-sans">
                     <span className="font-semibold text-foreground">Questions ({visibleFields.length})</span>
                     <div className="flex items-center gap-1.5">
-                      <span className="font-mono text-primary font-bold">
+                      <span className="font-mono text-foreground font-bold">
                         {Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}%
                       </span>
                       <button
@@ -1924,8 +1958,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   return (
                     <React.Fragment key={f.id}>
                       {isNewGroup ? (
-                        <div className="pt-2 pb-0.5 text-[10px] font-semibold text-primary uppercase tracking-wider px-1 flex items-center gap-1.5">
-                          <Layers className="w-3 h-3 text-primary" />
+                        <div className="pt-2 pb-0.5 text-[10px] font-semibold text-foreground uppercase tracking-wider px-1 flex items-center gap-1.5">
+                          <Layers className="w-3 h-3 text-foreground" />
                           <span>{f.group}</span>
                         </div>
                       ) : null}
@@ -2012,10 +2046,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               variant="outline"
               size="sm"
               onClick={() => setIsSidebarVisible(true)}
-              className="h-9 px-3 text-xs font-sans font-medium gap-1.5 border-border bg-card hover:bg-primary/10 hover:text-primary rounded-xl shadow-xs transition-all cursor-pointer"
+              className="h-9 px-3 text-xs font-sans font-medium gap-1.5 border-border bg-card text-foreground hover:bg-accent rounded-xl shadow-xs transition-all cursor-pointer"
               title="Show Question Sequence"
             >
-              <Menu className="w-3.5 h-3.5 text-primary" />
+              <Menu className="w-3.5 h-3.5 text-foreground" />
               <span>Questions ({currentStep + 1}/{visibleFields.length})</span>
             </Button>
           </div>
@@ -2027,12 +2061,22 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               /* Presentation-Grade 2-Column Split Question Canvas */
               <div
                 key={currentField.id}
-                className="w-full bg-card border border-border rounded-3xl p-6 sm:p-8 lg:p-10 shadow-md space-y-8 animate-card-entrance"
+                className="w-full min-h-[calc(100dvh-5.5rem)] bg-card border border-border rounded-3xl p-6 sm:p-8 lg:p-10 shadow-md space-y-8 animate-card-entrance"
               >
+                {hasSlideVideo ? (
+                  <div className="w-full">
+                    <RunnerVideoPlayer
+                      videoUrl={currentField.videoUrl}
+                      videoCaption={currentField.videoCaption}
+                      title={currentField.label}
+                    />
+                  </div>
+                ) : null}
+
                 {/* Top Meta Bar */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground pb-4 border-b border-border/80">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className="px-3 py-1 rounded-full text-xs font-mono font-semibold border-primary/40 text-primary bg-primary/10 tracking-wide">
+                    <Badge variant="outline" className="px-3 py-1 rounded-full text-xs font-mono font-semibold border-border text-foreground bg-card tracking-wide">
                       {currentField.kickerText || `Question #${currentStep + 1} • ${currentField.group || activeForm.title}`}
                     </Badge>
                     {currentField.difficulty && (
@@ -2051,7 +2095,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   <div className="flex items-center gap-2">
                     {timeLeftSeconds !== null && (
                       <Badge variant="outline" className={`font-mono text-xs gap-1 font-semibold ${
-                        timeLeftSeconds < 60 ? 'border-destructive text-destructive bg-destructive/10 animate-pulse' : 'border-amber-500/40 text-amber-600 bg-amber-500/10'
+                        timeLeftSeconds < 60 ? 'border-destructive text-destructive bg-destructive/10 animate-pulse' : 'border-border text-foreground'
                       }`}>
                         <Clock className="w-3.5 h-3.5" />
                         <span>{formatTimerDisplay(timeLeftSeconds)}</span>
@@ -2072,140 +2116,27 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
                 {/* 2-Column Presentation Grid (50% / 50% on Desktop) */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 items-start">
-                  {/* Left/Right Column: Eyebrow, Large Title, Description, References & Action Checklist */}
-                  <div className={`w-full space-y-6 ${effectiveAnswerPlacement === 'left' ? 'lg:order-2' : 'lg:order-1'}`}>
-                    {/* Eyebrow Kicker Badge */}
-                    <div className="text-xs font-semibold text-primary uppercase tracking-wider flex items-center gap-2">
-                      <span className="w-2 h-2 rounded-full bg-primary" />
-                      <span>{currentField.kickerText || `Question ${currentStep + 1} of ${visibleFields.length}`}</span>
-                      {currentField.group && (
-                        <span className="text-muted-foreground font-normal">• {currentField.group}</span>
-                      )}
-                    </div>
-
-                    {/* Big Ubuntu Question Headline */}
-                    <div className="space-y-2">
-                      <h2 className="font-heading font-bold text-2xl sm:text-3xl lg:text-4xl text-foreground leading-tight tracking-tight">
+                  <div className={`w-full ${effectiveAnswerPlacement === 'left' ? 'lg:order-2' : 'lg:order-1'}`}>
+                    <div className="space-y-3">
+                      <h2 className="font-heading font-bold text-4xl lg:text-5xl text-foreground leading-tight tracking-tight">
                         {currentField.label}
-                        {isCurrentFieldRequired && (
-                          <span className="text-destructive text-red-500 font-bold ml-1.5" title="Required question">*</span>
-                        )}
+                        {isCurrentFieldRequired ? (
+                          <span className="text-destructive font-bold ml-1.5" title="Required question">*</span>
+                        ) : null}
                       </h2>
-
-                      {currentField.description && (
-                        <div className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-wrap mt-2">
+                      {hasFieldSubtitle ? (
+                        <p className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed line-clamp-2">
+                          {currentField.subtitle}
+                        </p>
+                      ) : hasFieldDescription ? (
+                        <p className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed line-clamp-2">
                           {currentField.description}
-                        </div>
-                      )}
+                        </p>
+                      ) : null}
+                      {hasPlaceholderHint ? (
+                        <p className="text-sm text-muted-foreground">{currentField.placeholder}</p>
+                      ) : null}
                     </div>
-
-                    {/* Question Media if present */}
-                    {currentField.imageUrl && (
-                      <div className="w-full my-2 rounded-xl overflow-hidden border border-border/80 shadow-xs bg-muted/20">
-                        <img
-                          src={currentField.imageUrl}
-                          alt={currentField.imageCaption || currentField.label}
-                          className="w-full max-h-72 object-contain mx-auto"
-                        />
-                        {currentField.imageCaption && (
-                          <p className="text-xs text-muted-foreground p-2 text-center italic bg-muted/40 border-t border-border/60">
-                            {currentField.imageCaption}
-                          </p>
-                        )}
-                      </div>
-                    )}
-
-                    {currentField.type !== 'video' && currentField.videoUrl && (
-                      <RunnerVideoPlayer
-                        videoUrl={currentField.videoUrl}
-                        videoCaption={currentField.videoCaption}
-                        title={currentField.label}
-                      />
-                    )}
-
-                    {/* Prefix Citations */}
-                    {renderCitations(currentField.citations, 'prefix')}
-
-                    {/* Reference Resources & Links */}
-                    {referenceItems.length > 0 && (
-                      <div className="space-y-3 pt-2">
-                        <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                          <BookOpen className="w-3.5 h-3.5 text-primary" />
-                          <span>Reference Resources &amp; Specifications</span>
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                          {referenceItems.map((ref) => (
-                            <a
-                              key={ref.id}
-                              href={ref.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="p-3 rounded-xl border border-border bg-card hover:bg-primary/5 hover:border-primary/40 text-foreground transition-all group flex items-start justify-between gap-2 shadow-2xs"
-                            >
-                              <div className="min-w-0 flex-1">
-                                <div className="text-xs sm:text-sm font-semibold group-hover:text-primary transition-colors truncate">
-                                  {ref.title}
-                                </div>
-                                {ref.description && (
-                                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{ref.description}</p>
-                                )}
-                              </div>
-                              <ExternalLink className="w-3.5 h-3.5 text-muted-foreground group-hover:text-primary shrink-0 mt-0.5 transition-colors" />
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Mandatory Action Checklist ("Must-Do Before Answering") */}
-                    {checklistItems.length > 0 && (
-                      <div className="space-y-3 pt-2">
-                        <div className="text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-between">
-                          <span className="flex items-center gap-1.5">
-                            <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
-                            <span>Action Checklist (Must-Do Before Answering)</span>
-                          </span>
-                          <span className="text-[11px] font-mono text-muted-foreground font-semibold">
-                            {checklistItems.filter((item) => completedChecks[item.id]).length}/{checklistItems.length} completed
-                          </span>
-                        </div>
-                        <div className="space-y-2">
-                          {checklistItems.map((item) => {
-                            const isDone = Boolean(completedChecks[item.id]);
-                            return (
-                              <div
-                                key={item.id}
-                                onClick={() => setCompletedChecks((prev) => ({ ...prev, [item.id]: !isDone }))}
-                                className={`p-3 rounded-xl border transition-all cursor-pointer flex items-center gap-3 select-none ${
-                                  isDone
-                                    ? 'border-emerald-500/50 bg-emerald-500/10 text-foreground'
-                                    : 'border-border bg-background hover:border-primary/40 hover:bg-muted/40 text-foreground'
-                                }`}
-                              >
-                                <div className={`w-5 h-5 rounded-md flex items-center justify-center transition-colors border ${
-                                  isDone
-                                    ? 'bg-emerald-600 border-emerald-600 text-white'
-                                    : 'border-border bg-background'
-                                }`}>
-                                  {isDone && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                                </div>
-                                <span className={`text-xs sm:text-sm font-medium flex-1 ${isDone ? 'line-through text-muted-foreground' : 'text-foreground'}`}>
-                                  {item.label}
-                                </span>
-                                {item.isRequired && (
-                                  <Badge variant="outline" className="text-[10px] uppercase font-mono border-amber-500/30 text-amber-500 bg-amber-500/10 shrink-0">
-                                    Required
-                                  </Badge>
-                                )}
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Suffix Citations */}
-                    {renderCitations(currentField.citations, 'suffix')}
                   </div>
 
                   {/* Left/Right Column: Elevated Fluid Answer Card */}
@@ -2213,7 +2144,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     <div className="bg-card border border-border/80 rounded-2xl p-6 sm:p-8 shadow-lg space-y-6">
                       <div className="flex items-center justify-between pb-3 border-b border-border/70">
                         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-primary" />
+                          <Sparkles className="w-3.5 h-3.5 text-foreground" />
                           <span>Candidate Response</span>
                         </span>
                         <span className="text-[11px] font-mono text-muted-foreground">
@@ -2223,7 +2154,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
                       {/* Interactive Field Input */}
                       <div className="space-y-4">
-                        {renderFieldInput(currentField, answers[currentField.id], (val) => handleAnswerChange(currentField.id, val))}
+                        {renderFieldInput(currentField, answers[currentField.id], (val) => handleAnswerChange(currentField.id, val), true)}
                       </div>
 
                       {/* Navigation & Advance Footer */}
@@ -2244,7 +2175,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                             variant="outline"
                             size="sm"
                             onClick={handleTestAutoFill}
-                            className="text-xs h-9 px-3 font-semibold rounded-lg border border-primary/30 bg-primary/5 text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer"
+                            className="text-xs h-9 px-3 font-semibold rounded-lg border border-border bg-card text-foreground hover:bg-accent transition-all cursor-pointer"
                             title="Fill valid answer and advance"
                           >
                             ⚡ Auto Fill
@@ -2283,13 +2214,13 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               >
                 <CardHeader className="py-4 px-6 border-b border-border bg-muted/20">
                   <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
-                    <span className="font-bold text-sm text-primary">
+                    <span className="font-bold text-sm text-foreground">
                       Step {stepHistory.length + 1} of ~{visibleFields.length} (Question #{currentStep + 1})
                     </span>
                     <div className="flex items-center gap-2">
                       {timeLeftSeconds !== null && (
                         <Badge variant="outline" className={`font-mono text-xs gap-1 font-semibold ${
-                          timeLeftSeconds < 60 ? 'border-destructive text-destructive bg-destructive/10 animate-pulse' : 'border-amber-500/40 text-amber-600 bg-amber-500/10'
+                          timeLeftSeconds < 60 ? 'border-destructive text-destructive bg-destructive/10 animate-pulse' : 'border-border text-foreground'
                         }`}>
                           <Clock className="w-3.5 h-3.5" />
                           <span>{formatTimerDisplay(timeLeftSeconds)}</span>
@@ -2382,7 +2313,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                         variant="outline"
                         size="sm"
                         onClick={handleTestAutoFill}
-                        className="text-xs h-9 px-3.5 font-bold rounded-xl border border-primary/40 bg-primary/10 text-primary hover:bg-primary hover:text-primary-foreground transition-all cursor-pointer"
+                        className="text-xs h-9 px-3.5 font-bold rounded-xl border border-border bg-card text-foreground hover:bg-accent transition-all cursor-pointer"
                         title="Fill valid answer and advance immediately"
                       >
                         ⚡ Test Fill &amp; Next
@@ -2415,7 +2346,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               <div className="flex items-center gap-2">
                 {timeLeftSeconds !== null && (
                   <Badge variant="outline" className={`font-mono text-xs gap-1 font-semibold ${
-                    timeLeftSeconds < 60 ? 'border-destructive text-destructive bg-destructive/10 animate-pulse' : 'border-amber-500/40 text-amber-600 bg-amber-500/10'
+                    timeLeftSeconds < 60 ? 'border-destructive text-destructive bg-destructive/10 animate-pulse' : 'border-border text-foreground'
                   }`}>
                     <Clock className="w-3.5 h-3.5" />
                     <span>{formatTimerDisplay(timeLeftSeconds)}</span>
@@ -3173,8 +3104,16 @@ const RunnerRatingField: React.FC<RunnerRatingFieldProps> = ({ field, value, onC
   );
 };
 
-function renderFieldInput(field: FormField, value: unknown, onChange: (val: unknown) => void) {
+function renderFieldInput(
+  field: FormField,
+  value: unknown,
+  onChange: (val: unknown) => void,
+  isPresentationSlide = false,
+) {
   const strValue = typeof value === 'string' ? value : '';
+  const choiceMotionClass = isPresentationSlide
+    ? 'opacity-[0.92] hover:opacity-100 hover:translate-x-2 transition-[transform,opacity] duration-[180ms]'
+    : 'transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs';
 
   switch (field.type) {
     case 'section_header':
@@ -3225,6 +3164,10 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
       );
 
     case 'video':
+      if (isPresentationSlide) {
+        return null;
+      }
+
       return (
         <RunnerVideoPlayer
           videoUrl={field.videoUrl}
@@ -3236,9 +3179,9 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
       return <RunnerFileUpload field={field} value={value} onChange={onChange} />;
     case 'link':
       return (
-        <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 flex items-center justify-between">
+        <div className="p-3 rounded-lg bg-card border border-border flex items-center justify-between">
           <div>
-            <span className="text-xs font-semibold text-primary block">{field.linkText || 'Open Learning Resource'}</span>
+            <span className="text-xs font-semibold text-foreground block">{field.linkText || 'Open Learning Resource'}</span>
             <span className="text-xs text-muted-foreground font-mono truncate max-w-sm block">{field.url || '#'}</span>
           </div>
           <a
@@ -3321,9 +3264,9 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${
                   isSelected
-                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
+                    ? 'border-primary bg-card text-foreground font-semibold shadow-xs ring-1 ring-border'
                     : 'border-border/80 bg-card text-foreground'
                 }`}
               >
@@ -3344,7 +3287,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                 />
                 <span className="flex-1 font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
                 {isSelected && (
-                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 ml-auto" />
+                  <CheckCircle2 className="w-5 h-5 text-foreground shrink-0 ml-auto" />
                 )}
               </label>
             );
@@ -3352,9 +3295,9 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${
                   hasOther
-                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
+                    ? 'border-primary bg-card text-foreground font-semibold shadow-xs ring-1 ring-border'
                     : 'border-border/80 bg-card text-foreground'
                 }`}
               >
@@ -3396,7 +3339,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                   />
                 )}
                 {hasOther && (
-                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 ml-auto" />
+                  <CheckCircle2 className="w-5 h-5 text-foreground shrink-0 ml-auto" />
                 )}
               </label>
 
@@ -3467,9 +3410,9 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${alignClass} ${
+                className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${alignClass} ${
                   isSelected
-                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
+                    ? 'border-primary bg-card text-foreground font-semibold shadow-xs ring-1 ring-border'
                     : 'border-border/80 bg-card text-foreground'
                 }`}
               >
@@ -3490,7 +3433,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                 />
                 <span className="font-sans text-sm sm:text-base font-medium text-foreground flex-1">{opt}</span>
                 {isSelected && (
-                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 ml-auto" />
+                  <CheckCircle2 className="w-5 h-5 text-foreground shrink-0 ml-auto" />
                 )}
               </label>
             );
@@ -3524,9 +3467,9 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${
                   isSelected
-                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
+                    ? 'border-primary bg-card text-foreground font-semibold shadow-xs ring-1 ring-border'
                     : 'border-border/80 bg-card text-foreground'
                 }`}
               >
@@ -3547,7 +3490,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                 />
                 <span className="flex-1 font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
                 {isSelected && (
-                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 ml-auto" />
+                  <CheckCircle2 className="w-5 h-5 text-foreground shrink-0 ml-auto" />
                 )}
               </label>
             );
@@ -3555,9 +3498,9 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs ${
+                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${
                   hasOther
-                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
+                    ? 'border-primary bg-card text-foreground font-semibold shadow-xs ring-1 ring-border'
                     : 'border-border/80 bg-card text-foreground'
                 }`}
               >
@@ -3587,7 +3530,7 @@ function renderFieldInput(field: FormField, value: unknown, onChange: (val: unkn
                   />
                 )}
                 {hasOther && (
-                  <CheckCircle2 className="w-5 h-5 text-primary shrink-0 ml-auto" />
+                  <CheckCircle2 className="w-5 h-5 text-foreground shrink-0 ml-auto" />
                 )}
               </label>
 

@@ -23,6 +23,11 @@ import {
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 interface PaletteOption {
   type: FieldType;
@@ -215,11 +220,11 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
   });
 
   const categories = [
-    { id: 'all', label: 'All', count: PALETTE_OPTIONS.length },
-    { id: 'choice', label: 'Choice', count: PALETTE_OPTIONS.filter((o) => o.category === 'choice').length },
-    { id: 'text', label: 'Text', count: PALETTE_OPTIONS.filter((o) => o.category === 'text').length },
-    { id: 'media', label: 'Media', count: PALETTE_OPTIONS.filter((o) => o.category === 'media').length },
-    { id: 'layout', label: 'Page Elements', count: PALETTE_OPTIONS.filter((o) => o.category === 'layout').length },
+    { id: 'all', label: 'All', count: PALETTE_OPTIONS.length, icon: Layers },
+    { id: 'choice', label: 'Choice', count: PALETTE_OPTIONS.filter((o) => o.category === 'choice').length, icon: CheckSquare },
+    { id: 'text', label: 'Text', count: PALETTE_OPTIONS.filter((o) => o.category === 'text').length, icon: Type },
+    { id: 'media', label: 'Media', count: PALETTE_OPTIONS.filter((o) => o.category === 'media').length, icon: Video },
+    { id: 'layout', label: 'Page Elements', count: PALETTE_OPTIONS.filter((o) => o.category === 'layout').length, icon: Heading },
   ] as const;
 
   const content = (
@@ -246,22 +251,30 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
       </div>
 
       {/* Segmented Category Filter Pills */}
-      <div className="flex items-center gap-1 p-0.5 bg-muted/40 rounded-lg border border-border/60">
-        {categories.map((cat) => (
-          <button
-            key={cat.id}
-            type="button"
-            onClick={() => setSelectedCategory(cat.id)}
-            className={`flex-1 text-xs py-1 px-1 rounded-md transition-all font-medium text-center flex items-center justify-center gap-1 ${
-              selectedCategory === cat.id
-                ? 'bg-background text-foreground font-semibold shadow-2xs'
-                : 'text-muted-foreground hover:text-foreground'
-            }`}
-          >
-            <span>{cat.label}</span>
-            <span className="text-xs opacity-60 font-mono">({cat.count})</span>
-          </button>
-        ))}
+      <div className="flex flex-nowrap items-center gap-1 p-0.5 bg-muted/40 rounded-lg border border-border/60 min-w-0">
+        {categories.map((cat) => {
+          const CategoryIcon = cat.icon;
+
+          return (
+            <Tooltip key={cat.id}>
+              <TooltipTrigger asChild>
+                <button
+                  type="button"
+                  onClick={() => setSelectedCategory(cat.id)}
+                  aria-label={`${cat.label} (${cat.count})`}
+                  className={`flex-1 min-w-0 text-xs py-1 px-1 rounded-md transition-all font-medium text-center flex items-center justify-center ${
+                    selectedCategory === cat.id
+                      ? 'bg-background text-foreground font-semibold shadow-2xs'
+                      : 'text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  <CategoryIcon className="w-3.5 h-3.5" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent>{cat.label} ({cat.count})</TooltipContent>
+            </Tooltip>
+          );
+        })}
       </div>
 
       {/* Grid of Components */}

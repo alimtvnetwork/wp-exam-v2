@@ -65,3 +65,5 @@ antigravity-resume_task.json
 .antigravity_resume_task.json
 antigravity_resume_task.json
 .antigravity-resume_task.json
+.ai-memory/temp-agents/**/agent-task.db
+.ai-memory/temp-agents/**/agent-task.db-*

@@ -82,6 +82,8 @@ Master directory of architectural and execution plans.
 
 ## Recent Completed Tasks Register (Last 20 Tasks)
 
+0. **Task 74:** [Onboarding Quiz presentation UI](pending/74-onboarding-quiz-presentation-ui.md) — Config menu, thin accent, Onboarding Quiz mark, full presentation preview, Riseup cream primary, Navy Gold theme.
+
 Compact registry of the last 20 tasks and milestone plans:
 
 1. **Task 73:** [UI/UX Candidate View Overhaul, CSS3 Theming/Motion & New-Tab Preview Engine](completed/73-ui-ux-candidate-view-theming-and-new-tab-preview.md) — Dismantled preview modal in FormBuilder, new-tab /preview/:slug route launch, clean distraction-free candidate assessment mode in FormRunner, 14px/16px textarea, elevated option contrast, key={currentField.id} card transitions, dynamic HSL pulse-glow, and code guideline fixes.

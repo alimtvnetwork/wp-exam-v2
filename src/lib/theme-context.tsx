@@ -8,7 +8,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
 
-export type AppThemeType = 'riseup' | 'dracula' | 'purple' | 'obsidian' | 'clean' | 'clean-wide' | 'sweet-digs' | 'green-choice';
+export type AppThemeType = 'riseup' | 'dracula' | 'purple' | 'obsidian' | 'vscode-navy-gold' | 'clean' | 'clean-wide' | 'sweet-digs' | 'green-choice';
 
 export interface ThemeConfig {
   id: AppThemeType;
@@ -116,16 +116,16 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
   },
   riseup: {
     id: 'riseup',
-    name: 'Rise Up Asia',
+    name: 'Riseup',
     tagline: 'Warm Gold & Midnight Navy',
-    primaryColor: '#FFAD01',
+    primaryColor: '#F7F1E6',
     bgColor: '#0A0A14',
     cardColor: '#121224',
     borderColor: '#2A2A44',
-    accentColor: '#FFAD01',
-    badgeClass: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+    accentColor: '#E8C547',
+    badgeClass: 'bg-secondary text-foreground border-border',
     hslValues: {
-      '--primary': '41 100% 50%',
+      '--primary': '40 43% 92%',
       '--primary-foreground': '240 33% 6%',
       '--background': '240 33% 6%',
       '--foreground': '210 40% 98%',
@@ -135,7 +135,7 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
       '--popover-foreground': '210 40% 98%',
       '--border': '240 24% 22%',
       '--input': '240 24% 22%',
-      '--ring': '41 100% 50%',
+      '--ring': '40 43% 92%',
       '--accent': '246 32% 19%',
       '--accent-foreground': '0 0% 100%',
       '--secondary': '246 32% 19%',
@@ -234,6 +234,36 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
       '--muted-foreground': '215 20% 70%',
     },
   },
+  'vscode-navy-gold': {
+    id: 'vscode-navy-gold',
+    name: 'Navy Gold',
+    tagline: 'Obsidian Navy & Cream',
+    primaryColor: '#F0F6FC',
+    bgColor: '#0D1117',
+    cardColor: '#161B22',
+    borderColor: '#30363D',
+    accentColor: '#E8C547',
+    badgeClass: 'bg-secondary text-foreground border-border',
+    hslValues: {
+      '--primary': '210 56% 96%',
+      '--primary-foreground': '220 26% 7%',
+      '--background': '220 26% 7%',
+      '--foreground': '210 56% 96%',
+      '--card': '215 21% 11%',
+      '--card-foreground': '210 56% 96%',
+      '--popover': '215 21% 11%',
+      '--popover-foreground': '210 56% 96%',
+      '--secondary': '215 15% 15%',
+      '--secondary-foreground': '210 56% 96%',
+      '--border': '215 12% 21%',
+      '--input': '215 12% 21%',
+      '--ring': '210 56% 96%',
+      '--accent': '215 15% 15%',
+      '--accent-foreground': '210 56% 96%',
+      '--muted': '215 15% 15%',
+      '--muted-foreground': '215 9% 58%',
+    },
+  },
   clean: {
     id: 'clean',
     name: 'Clean Light',
@@ -274,6 +304,7 @@ export const ORDERED_THEME_KEYS: AppThemeType[] = [
   'dracula',
   'purple',
   'obsidian',
+  'vscode-navy-gold',
 ];
 
 interface ThemeContextType {
@@ -347,6 +378,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       'theme-dracula',
       'theme-obsidian',
       'theme-vscode-dark',
+      'theme-vscode-navy-gold',
       'theme-riseup',
       'theme-riseup-asia',
     ];
