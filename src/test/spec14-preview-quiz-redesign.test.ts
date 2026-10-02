@@ -21,7 +21,7 @@ describe('Spec 14: Preview Quiz Redesign (Hero Model, Sidebar, Session & Purple 
       expect(cssVars['--card']).toBe('245 36% 14%');
       expect(cssVars['--foreground']).toBe('0 0% 100%');
       expect(cssVars['--ring']).toBe('248 98% 63%');
-      expect(cssVars['--border']).toBe('246 34% 24%');
+      expect(cssVars['--border']).toBe('246 34% 28%');
     });
 
     it('aliases letterly to the purple theme with consistent dark contrast', () => {
