@@ -59,7 +59,7 @@ interface QuizState {
   updateSettings: (settings: Partial<FormSettings>) => void;
   batchApplyConfig: (options: BatchApplyConfigOptions) => void;
 
-  addField: (field: FormField) => void;
+  addField: (field: FormField, index?: number) => void;
   updateField: (id: string, field: Partial<FormField>) => void;
   removeField: (id: string) => void;
   restoreField: (id: string) => void;
@@ -209,9 +209,22 @@ export const useQuizStore = create<QuizState>()(
       return { fields: updatedFields, questions: updatedFields };
     }),
 
-  addField: (field) =>
+  addField: (field, index) =>
     set((state) => {
-      const updated = [...state.fields, field];
+      const updated = [...state.fields];
+
+      if (index !== undefined) {
+        if (index >= 0) {
+          if (index <= updated.length) {
+            updated.splice(index, 0, field);
+
+            return { fields: updated, questions: updated };
+          }
+        }
+      }
+
+      updated.push(field);
+
       return { fields: updated, questions: updated };
     }),
 

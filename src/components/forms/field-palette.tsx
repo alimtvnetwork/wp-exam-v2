@@ -20,6 +20,7 @@ import {
   Sparkles,
   Heading,
   HelpCircle,
+  GripVertical,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
@@ -189,12 +190,16 @@ interface FieldPaletteProps {
   activeCount: number;
   layoutMode?: 'horizontal' | 'vertical';
   isEmbedded?: boolean;
+  onDragStartControl?: (type: FieldType, label: string) => void;
+  onDragEndControl?: () => void;
 }
 
 export const FieldPalette: React.FC<FieldPaletteProps> = ({
   onAddField,
   layoutMode = 'vertical',
   isEmbedded = false,
+  onDragStartControl,
+  onDragEndControl,
 }) => {
   const [selectedCategory, setSelectedCategory] = useState<'all' | 'choice' | 'text' | 'media' | 'layout'>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -228,16 +233,16 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
   ] as const;
 
   const content = (
-    <div className="space-y-3">
+    <div className="space-y-3.5">
       {/* Search Input for Field Types */}
       <div className="relative">
         <Input
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder="Search question types..."
-          className="h-8 text-xs pl-8 pr-7 bg-muted/20 border-border/70 rounded-lg placeholder:text-muted-foreground/60 focus:bg-background transition-colors"
+          className="h-9 text-xs sm:text-sm pl-8.5 pr-8 bg-muted/20 border-border/80 rounded-lg placeholder:text-muted-foreground/60 focus:bg-background transition-colors"
         />
-        <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
+        <Search className="w-4 h-4 absolute left-2.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none" />
         {searchQuery && (
           <button
             type="button"
@@ -250,8 +255,8 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
         )}
       </div>
 
-      {/* Segmented Category Filter Pills (Compact Icon Pills with Accessible Tooltips & Safe Overflow) */}
-      <div className="flex flex-nowrap items-center gap-1 p-1 bg-muted/40 rounded-lg border border-border/60 min-w-0 overflow-x-auto no-scrollbar">
+      {/* Segmented Category Filter Pills (Generous, accessible pills) */}
+      <div className="flex flex-nowrap items-center gap-1.5 p-1 bg-muted/40 rounded-lg border border-border/60 min-w-0 overflow-x-auto no-scrollbar">
         {categories.map((cat) => {
           const CategoryIcon = cat.icon;
           const isSelected = selectedCategory === cat.id;
@@ -263,14 +268,14 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
                   type="button"
                   onClick={() => setSelectedCategory(cat.id)}
                   aria-label={`${cat.label} (${cat.count})`}
-                  className={`flex-1 min-w-0 text-xs py-1.5 px-1.5 rounded-md transition-all font-medium text-center flex items-center justify-center gap-1 cursor-pointer shrink-0 ${
+                  className={`flex-1 min-w-0 text-xs py-1.5 px-2 rounded-md transition-all font-medium text-center flex items-center justify-center gap-1.5 cursor-pointer shrink-0 ${
                     isSelected
-                      ? 'bg-background text-foreground font-semibold shadow-xs'
+                      ? 'bg-background text-foreground font-semibold shadow-xs border border-border/50'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted/60'
                   }`}
                 >
-                  <CategoryIcon className="w-3.5 h-3.5 shrink-0" />
-                  <span className={`text-[11px] truncate ${isEmbedded ? 'hidden 2xl:inline-block' : 'hidden sm:inline-block'}`}>
+                  <CategoryIcon className="w-3.5 h-3.5 shrink-0 text-primary" />
+                  <span className={`text-xs truncate ${isEmbedded ? 'hidden 2xl:inline-block' : 'hidden sm:inline-block'}`}>
                     {cat.label}
                   </span>
                 </button>
@@ -303,44 +308,64 @@ export const FieldPalette: React.FC<FieldPaletteProps> = ({
         <div
           className={
             layoutMode === 'vertical'
-              ? 'grid grid-cols-1 gap-2 max-h-[calc(100vh-340px)] overflow-y-auto pr-1 custom-scrollbar'
-              : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2'
+              ? 'grid grid-cols-1 gap-2.5 max-h-[calc(100vh-320px)] overflow-y-auto pr-1 custom-scrollbar'
+              : 'grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2.5'
           }
         >
           {filteredOptions.map((opt) => {
             const IconComp = opt.icon;
 
             return (
-              <button
+              <div
                 key={opt.type}
-                type="button"
+                draggable
+                onDragStart={(e) => {
+                  e.dataTransfer.setData('application/json', JSON.stringify({ fieldType: opt.type, label: opt.label }));
+                  e.dataTransfer.setData('text/plain', opt.type);
+                  e.dataTransfer.effectAllowed = 'copy';
+
+                  if (onDragStartControl) {
+                    onDragStartControl(opt.type, opt.label);
+                  }
+                }}
+                onDragEnd={() => {
+                  if (onDragEndControl) {
+                    onDragEndControl();
+                  }
+                }}
                 onClick={() => onAddField(opt.type)}
-                title={`${opt.label}: ${opt.description}`}
-                className="flex items-center justify-between p-2 rounded-xl border border-border bg-card hover:bg-accent/60 hover:border-primary/50 transition-colors text-left group shadow-2xs hover:shadow-xs cursor-pointer min-w-0 w-full"
+                title={`${opt.label}: ${opt.description} (Drag to form canvas or click to add)`}
+                className="flex items-center justify-between p-3 sm:p-3.5 rounded-xl border border-border bg-card hover:bg-accent/60 hover:border-primary/60 transition-all text-left group shadow-xs hover:shadow-md cursor-grab active:cursor-grabbing min-w-0 w-full select-none"
               >
-                <div className="flex items-start gap-2.5 min-w-0 flex-1 mr-2">
+                <div className="flex items-start gap-3 min-w-0 flex-1 mr-2">
                   <div
-                    className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 border ${opt.colorClass} group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-colors duration-150 mt-0.5`}
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 border ${opt.colorClass} group-hover:bg-primary group-hover:text-primary-foreground group-hover:border-primary transition-all duration-200 mt-0.5 shadow-2xs`}
                   >
-                    <IconComp className="w-4 h-4 transition-colors" />
+                    <IconComp className="w-5 h-5 transition-transform group-hover:scale-110" />
                   </div>
 
                   <div className="min-w-0 flex-1">
-                    <span className="text-xs font-semibold text-foreground group-hover:text-primary transition-colors leading-tight block truncate">
+                    <span className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors leading-tight block truncate">
                       {opt.label}
                     </span>
-                    <p className="text-[11px] text-muted-foreground leading-snug mt-0.5 line-clamp-2 break-words">
+                    <p className="text-xs text-muted-foreground leading-normal mt-0.5 line-clamp-2 break-words">
                       {opt.description}
                     </p>
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                      <GripVertical className="w-3.5 h-3.5 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                      <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground/70 group-hover:text-primary font-medium">
+                        Drag or click
+                      </span>
+                    </div>
                   </div>
                 </div>
 
                 <div className="opacity-0 group-hover:opacity-100 transition-opacity shrink-0 self-center">
-                  <div className="w-6 h-6 rounded-md bg-primary text-primary-foreground flex items-center justify-center text-xs shadow-2xs">
-                    <Plus className="w-3.5 h-3.5" />
+                  <div className="w-7 h-7 rounded-lg bg-primary text-primary-foreground flex items-center justify-center text-xs shadow-xs group-hover:scale-105 transition-all">
+                    <Plus className="w-4 h-4" />
                   </div>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>

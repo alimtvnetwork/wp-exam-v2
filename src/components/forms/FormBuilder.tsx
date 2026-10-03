@@ -62,6 +62,7 @@ import {
   GitBranch,
   Copy,
   Layers,
+  Plus,
   PlusCircle,
   HelpCircle,
   ListOrdered,
@@ -146,6 +147,8 @@ export const FormBuilder: React.FC = () => {
   const [outlineFilter, setOutlineFilter] = useState<string>('');
   const [isDesignPanelOpen, setIsDesignPanelOpen] = useState(false);
   const [inspectorTab, setInspectorTab] = useState<string>('palette');
+  const [draggedControlInfo, setDraggedControlInfo] = useState<{ type: FieldType; label: string } | null>(null);
+  const [activeDropIndex, setActiveDropIndex] = useState<number | null>(null);
 
   const designReport: DesignHealthReport = useMemo(
     () => auditFormDesign(fields, formType, settings),
@@ -249,7 +252,7 @@ export const FormBuilder: React.FC = () => {
     }
   };
 
-  const handleQuickAdd = (type: FieldType) => {
+  const handleQuickAdd = (type: FieldType, targetIndex?: number) => {
     const newId = `field-${Date.now()}-${Math.random().toString(36).substring(7)}`;
     const defaults: Record<string, Partial<FormField>> = {
       multiple_choice: {
@@ -351,7 +354,7 @@ export const FormBuilder: React.FC = () => {
 
     const isBinaryType = type === 'true_false' || type === 'boolean';
 
-    addField({
+    const newField: FormField = {
       id: newId,
       type,
       label: defaults[type]?.label || 'New Question',
@@ -371,9 +374,58 @@ export const FormBuilder: React.FC = () => {
       videoCaption: defaults[type]?.videoCaption,
       validationRule: defaults[type]?.validationRule,
       points: defaultPts,
-    });
+    };
 
-    toast.success(`Added ${type.replace('_', ' ')} question`);
+    if (targetIndex !== undefined) {
+      if (targetIndex >= 0) {
+        if (targetIndex <= fields.length) {
+          addField(newField, targetIndex);
+          toast.success(`Inserted ${type.replace(/_/g, ' ')} question at #${targetIndex + 1}`);
+
+          setTimeout(() => scrollToField(newId), 100);
+
+          return;
+        }
+      }
+    }
+
+    addField(newField);
+    toast.success(`Added ${type.replace(/_/g, ' ')} question`);
+
+    setTimeout(() => scrollToField(newId), 100);
+  };
+
+  const handleDropControl = (e: React.DragEvent, targetIndex?: number) => {
+    e.preventDefault();
+    setActiveDropIndex(null);
+    setDraggedControlInfo(null);
+
+    const jsonRaw = e.dataTransfer.getData('application/json');
+    let targetType: FieldType | null = null;
+
+    if (jsonRaw) {
+      try {
+        const parsed = JSON.parse(jsonRaw);
+
+        if (parsed.fieldType) {
+          targetType = parsed.fieldType as FieldType;
+        }
+      } catch {
+        // Fallback
+      }
+    }
+
+    if (!targetType) {
+      const textType = e.dataTransfer.getData('text/plain');
+
+      if (textType) {
+        targetType = textType as FieldType;
+      }
+    }
+
+    if (targetType) {
+      handleQuickAdd(targetType, targetIndex);
+    }
   };
 
   const handleDuplicateField = (id: string) => {
@@ -701,14 +753,10 @@ export const FormBuilder: React.FC = () => {
         </div>
       )}
 
-      {/* 2-Column Responsive Layout: Google Forms Central Canvas + Sticky Sidebar Palette */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Main Column: Google Forms Canvas */}
-        <div className="lg:col-span-8 space-y-5">
-          {/* Prominent Google Forms Header Card */}
-          <Card className="border border-border/80 bg-card shadow-md rounded-2xl overflow-hidden animate-sweet-fade-in">
-            {/* Top Accent Ribbon (2px Hairline Gradient Edge) */}
-            <div className="h-0.5 bg-gradient-to-r from-primary via-primary/80 to-primary/60 w-full" />
+      {/* 1. Full-Width Assessment Header Section (Spans Whole Section) */}
+      <Card className="border border-border/80 bg-card shadow-md rounded-2xl overflow-hidden animate-sweet-fade-in w-full">
+        {/* Top Accent Ribbon (2px Hairline Gradient Edge) */}
+        <div className="h-0.5 bg-gradient-to-r from-primary via-primary/80 to-primary/60 w-full" />
 
             <CardContent className="p-5 sm:p-6 space-y-4">
               {/* Form Title & Config menu */}
@@ -951,6 +999,10 @@ export const FormBuilder: React.FC = () => {
             </CardContent>
           </Card>
 
+      {/* 2. Responsive 2-Column Section: Questions Canvas (8 cols) + Sticky Controls Dock (4 cols) */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* Main Column: Assessment Canvas */}
+        <div className="lg:col-span-8 space-y-5">
           {/* Section Filter Toolbar */}
           <div className="flex items-center justify-between gap-3 px-1">
             <div className="flex items-center gap-2">
@@ -979,6 +1031,37 @@ export const FormBuilder: React.FC = () => {
                 </Select>
               </div>
             )}
+          </div>
+
+          {/* Top Drop Target (Insert at index 0) */}
+          <div
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.dataTransfer.dropEffect = 'copy';
+              setActiveDropIndex(0);
+            }}
+            onDragLeave={() => {
+              if (activeDropIndex === 0) {
+                setActiveDropIndex(null);
+              }
+            }}
+            onDrop={(e) => handleDropControl(e, 0)}
+            className={`transition-all rounded-xl border-2 border-dashed flex items-center justify-center cursor-pointer ${
+              activeDropIndex === 0
+                ? 'py-4 bg-primary/15 border-primary text-primary shadow-sm scale-[1.01]'
+                : draggedControlInfo
+                ? 'py-3 bg-muted/40 border-primary/50 text-primary hover:bg-primary/10'
+                : 'h-2 border-transparent hover:border-primary/40 hover:h-6 opacity-0 hover:opacity-100'
+            }`}
+          >
+            <div className="flex items-center gap-2 text-xs font-semibold">
+              <Plus className="w-4 h-4" />
+              <span>
+                {activeDropIndex === 0
+                  ? `Drop here to insert "${draggedControlInfo?.label || 'question'}" at beginning`
+                  : 'Drop here to insert question at beginning'}
+              </span>
+            </div>
           </div>
 
           {/* Drag-and-Drop Sortable Context */}
@@ -1028,7 +1111,20 @@ export const FormBuilder: React.FC = () => {
                         </div>
                       )}
 
-                      <div id={`field-card-${field.id}`}>
+                      <div
+                        id={`field-card-${field.id}`}
+                        onDragOver={(e) => {
+                          if (e.dataTransfer.types.includes('application/json') || e.dataTransfer.types.includes('text/plain')) {
+                            e.preventDefault();
+                            e.dataTransfer.dropEffect = 'copy';
+                          }
+                        }}
+                        onDrop={(e) => {
+                          if (e.dataTransfer.types.includes('application/json') || e.dataTransfer.types.includes('text/plain')) {
+                            handleDropControl(e, index + 1);
+                          }
+                        }}
+                      >
                         <SortableFieldCard
                           id={field.id}
                           index={index}
@@ -1043,6 +1139,37 @@ export const FormBuilder: React.FC = () => {
                           onReorderToIndex={handleReorderToIndex}
                         />
                       </div>
+
+                      {/* Inter-question Drop Indicator Zone */}
+                      <div
+                        onDragOver={(e) => {
+                          e.preventDefault();
+                          e.dataTransfer.dropEffect = 'copy';
+                          setActiveDropIndex(index + 1);
+                        }}
+                        onDragLeave={() => {
+                          if (activeDropIndex === index + 1) {
+                            setActiveDropIndex(null);
+                          }
+                        }}
+                        onDrop={(e) => handleDropControl(e, index + 1)}
+                        className={`transition-all rounded-lg border-dashed flex items-center justify-center cursor-pointer ${
+                          activeDropIndex === index + 1
+                            ? 'py-3.5 border-2 bg-primary/15 border-primary text-primary shadow-sm scale-[1.01] my-2'
+                            : draggedControlInfo
+                            ? 'py-2 border border-primary/40 bg-muted/30 text-primary hover:bg-primary/10 my-1'
+                            : 'h-1.5 -my-1 border-transparent hover:h-5 hover:border hover:border-primary/40 opacity-0 hover:opacity-100'
+                        }`}
+                      >
+                        <div className="flex items-center gap-1.5 text-xs font-semibold">
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>
+                            {activeDropIndex === index + 1
+                              ? `Drop to insert "${draggedControlInfo?.label || 'question'}" after #${index + 1}`
+                              : `Insert after #${index + 1}`}
+                          </span>
+                        </div>
+                      </div>
                     </React.Fragment>
                   );
                 })}
@@ -1050,40 +1177,91 @@ export const FormBuilder: React.FC = () => {
             </SortableContext>
           </DndContext>
 
-          {/* Empty State */}
+          {/* Empty State with Drop Target Support */}
           {displayedFields.length === 0 && (
-            <div className="p-10 text-center border-2 border-dashed rounded-xl bg-card border-border/80 text-muted-foreground space-y-3">
-              <Sparkles className="w-8 h-8 text-primary mx-auto opacity-60" />
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+                setActiveDropIndex(0);
+              }}
+              onDragLeave={() => {
+                if (activeDropIndex === 0) {
+                  setActiveDropIndex(null);
+                }
+              }}
+              onDrop={(e) => handleDropControl(e, 0)}
+              className={`p-10 text-center border-2 border-dashed rounded-xl transition-all space-y-3 ${
+                activeDropIndex === 0
+                  ? 'border-primary bg-primary/15 shadow-md scale-[1.01]'
+                  : 'bg-card border-border/80 text-muted-foreground'
+              }`}
+            >
+              <Sparkles className="w-8 h-8 text-primary mx-auto opacity-70" />
               <div className="space-y-1">
-                <p className="font-semibold text-sm text-foreground">No questions added yet</p>
+                <p className="font-semibold text-sm sm:text-base text-foreground">No questions added yet</p>
                 <p className="text-sm max-w-sm mx-auto">
-                  Click any question type from the palette on the right to start building your form.
+                  Drag any question type from the palette on the right, or click below to start building your form.
                 </p>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => handleQuickAdd('multiple_choice')}
-                className="text-sm gap-1.5 bg-background border border-border text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary transition-all font-medium"
-              >
-                <PlusCircle className="w-3.5 h-3.5" />
-                <span>Add Multiple Choice</span>
-              </Button>
+              <div className="flex flex-wrap items-center justify-center gap-2 pt-1">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleQuickAdd('multiple_choice')}
+                  className="text-sm gap-1.5 bg-background border border-border text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary transition-all font-medium"
+                >
+                  <PlusCircle className="w-4 h-4 text-primary" />
+                  <span>Add Multiple Choice</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleQuickAdd('text')}
+                  className="text-sm gap-1.5 bg-background border border-border text-foreground hover:bg-primary/10 hover:border-primary hover:text-primary transition-all font-medium"
+                >
+                  <PlusCircle className="w-4 h-4 text-primary" />
+                  <span>Add Text Question</span>
+                </Button>
+              </div>
             </div>
           )}
 
-          {/* Bottom Canvas Quick Add Prompt */}
+          {/* Bottom Canvas Quick Add Prompt & End Drop Target */}
           {displayedFields.length > 0 && (
-            <div className="flex items-center justify-center p-3 border border-dashed border-border/80 rounded-xl bg-muted/10 hover:bg-accent/20 transition-colors">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleQuickAdd('multiple_choice')}
-                className="text-sm text-foreground hover:text-primary hover:bg-primary/10 transition-all gap-2 font-medium"
-              >
-                <PlusCircle className="w-4 h-4 text-primary" />
-                <span>Add Multiple Choice Question</span>
-              </Button>
+            <div
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+                setActiveDropIndex(fields.length);
+              }}
+              onDragLeave={() => {
+                if (activeDropIndex === fields.length) {
+                  setActiveDropIndex(null);
+                }
+              }}
+              onDrop={(e) => handleDropControl(e, fields.length)}
+              className={`transition-all flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-xl ${
+                activeDropIndex === fields.length
+                  ? 'bg-primary/15 border-primary text-primary shadow-md scale-[1.01]'
+                  : draggedControlInfo
+                  ? 'bg-primary/5 border-primary/40 text-primary hover:bg-primary/10'
+                  : 'border-border/80 bg-muted/10 hover:bg-accent/20'
+              }`}
+            >
+              <div className="flex items-center gap-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => handleQuickAdd('multiple_choice')}
+                  className="text-sm text-foreground hover:text-primary hover:bg-primary/10 transition-all gap-2 font-medium cursor-pointer"
+                >
+                  <PlusCircle className="w-4 h-4 text-primary" />
+                  <span>Add Multiple Choice Question</span>
+                </Button>
+                <span className="text-xs text-muted-foreground hidden sm:inline">•</span>
+                <span className="text-xs text-muted-foreground hidden sm:inline">or drag controls from right rail</span>
+              </div>
             </div>
           )}
         </div>
@@ -1092,18 +1270,18 @@ export const FormBuilder: React.FC = () => {
         <div className="lg:col-span-4 sticky top-6">
           <Card className="border border-border bg-card shadow-md rounded-xl overflow-hidden">
             <Tabs value={inspectorTab} onValueChange={setInspectorTab} className="w-full">
-              {/* Sleek Segmented Dock Tabs Header */}
+              {/* Sleek Segmented Dock Tabs Header (Larger, more tactile) */}
               <div className="p-2 border-b border-border/80 bg-muted/20">
-                <TabsList className="grid grid-cols-4 h-10 p-1 bg-muted/60 rounded-xl">
+                <TabsList className="grid grid-cols-4 h-11 p-1 bg-muted/60 rounded-xl gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
                       <TabsTrigger
                         value="palette"
                         aria-label="Fields"
-                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer text-xs"
+                        className="min-w-0 px-2 py-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer text-xs"
                       >
-                        <Layers className="w-3.5 h-3.5 text-primary shrink-0" />
-                        <span className="hidden sm:inline-block text-[11px] truncate">Fields</span>
+                        <Layers className="w-4 h-4 text-primary shrink-0" />
+                        <span className="hidden sm:inline-block text-xs font-semibold truncate">Fields</span>
                       </TabsTrigger>
                     </TooltipTrigger>
                     <TooltipContent>Fields ({fields.length})</TooltipContent>
@@ -1113,10 +1291,10 @@ export const FormBuilder: React.FC = () => {
                       <TabsTrigger
                         value="outline"
                         aria-label={`Outline (${fields.length})`}
-                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer text-xs"
+                        className="min-w-0 px-2 py-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer text-xs"
                       >
-                        <ListOrdered className="w-3.5 h-3.5 text-primary shrink-0" />
-                        <span className="hidden sm:inline-block text-[11px] truncate">Outline</span>
+                        <ListOrdered className="w-4 h-4 text-primary shrink-0" />
+                        <span className="hidden sm:inline-block text-xs font-semibold truncate">Outline</span>
                       </TabsTrigger>
                     </TooltipTrigger>
                     <TooltipContent>Outline ({fields.length})</TooltipContent>
@@ -1126,10 +1304,10 @@ export const FormBuilder: React.FC = () => {
                       <TabsTrigger
                         value="audit"
                         aria-label={`Audit (${designReport.grade})`}
-                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer text-xs"
+                        className="min-w-0 px-2 py-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer text-xs"
                       >
-                        <ShieldCheck className="w-3.5 h-3.5 text-primary shrink-0" />
-                        <span className="hidden sm:inline-block text-[11px] truncate">Audit</span>
+                        <ShieldCheck className="w-4 h-4 text-primary shrink-0" />
+                        <span className="hidden sm:inline-block text-xs font-semibold truncate">Audit</span>
                       </TabsTrigger>
                     </TooltipTrigger>
                     <TooltipContent>Audit ({designReport.grade})</TooltipContent>
@@ -1139,10 +1317,10 @@ export const FormBuilder: React.FC = () => {
                       <TabsTrigger
                         value="settings"
                         aria-label="Config"
-                        className="min-w-0 px-1.5 py-1.5 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer text-xs"
+                        className="min-w-0 px-2 py-2 data-[state=active]:bg-background data-[state=active]:text-foreground data-[state=active]:shadow-xs flex items-center justify-center gap-1.5 font-semibold transition-all cursor-pointer text-xs"
                       >
-                        <Settings className="w-3.5 h-3.5 text-primary shrink-0" />
-                        <span className="hidden sm:inline-block text-[11px] truncate">Config</span>
+                        <Settings className="w-4 h-4 text-primary shrink-0" />
+                        <span className="hidden sm:inline-block text-xs font-semibold truncate">Config</span>
                       </TabsTrigger>
                     </TooltipTrigger>
                     <TooltipContent>Config</TooltipContent>
@@ -1157,6 +1335,11 @@ export const FormBuilder: React.FC = () => {
                   activeCount={fields.length}
                   layoutMode="vertical"
                   isEmbedded
+                  onDragStartControl={(type, label) => setDraggedControlInfo({ type, label })}
+                  onDragEndControl={() => {
+                    setDraggedControlInfo(null);
+                    setActiveDropIndex(null);
+                  }}
                 />
               </TabsContent>
 
