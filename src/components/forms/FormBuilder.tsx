@@ -259,11 +259,13 @@ export const FormBuilder: React.FC = () => {
         label: 'Select the best option',
         options: ['Choice A', 'Choice B', 'Choice C'],
         correctAnswer: 'Choice A',
+        suggestedOtherOptions: ['N/A', 'Other (Please specify)'],
       },
       single_choice: {
         label: 'Select single correct response',
         options: ['Option 1', 'Option 2', 'Option 3'],
         correctAnswer: 'Option 1',
+        suggestedOtherOptions: ['N/A', 'Other (Please specify)'],
       },
       true_false: {
         label: 'State whether this claim is True or False',
@@ -367,6 +369,7 @@ export const FormBuilder: React.FC = () => {
       booleanDisplay: isBinaryType ? booleanPreset : undefined,
       choiceAlignment: settings.defaultAlignment || 'center',
       allowOtherOption: Boolean(settings.defaultAllowOtherOption),
+      suggestedOtherOptions: defaults[type]?.suggestedOtherOptions,
       questionLayout: settings.defaultQuestionLayout || 'standard',
       url: defaults[type]?.url,
       linkText: defaults[type]?.linkText,
@@ -999,39 +1002,40 @@ export const FormBuilder: React.FC = () => {
             </CardContent>
           </Card>
 
+      {/* Section Filter Toolbar */}
+      <div className="flex items-center justify-between gap-3 px-1 w-full">
+        <div className="flex items-center gap-2">
+          <h2 className="text-sm font-semibold text-foreground tracking-tight">Questions & Fields</h2>
+          <span className="text-sm text-muted-foreground">({displayedFields.length} of {fields.length})</span>
+        </div>
+
+        {distinctGroups.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-xs text-muted-foreground">Filter Section:</span>
+            <Select
+              value={selectedGroupFilter}
+              onValueChange={setSelectedGroupFilter}
+            >
+              <SelectTrigger className="h-8 min-w-[150px] w-auto max-w-[220px] text-sm bg-background">
+                <SelectValue placeholder="All Sections" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Sections</SelectItem>
+                {distinctGroups.map((g) => (
+                  <SelectItem key={g} value={g}>
+                    {g}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        )}
+      </div>
+
       {/* 2. Responsive 2-Column Section: Questions Canvas (8 cols) + Sticky Controls Dock (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Main Column: Assessment Canvas */}
         <div className="lg:col-span-8 space-y-5">
-          {/* Section Filter Toolbar */}
-          <div className="flex items-center justify-between gap-3 px-1">
-            <div className="flex items-center gap-2">
-              <h2 className="text-sm font-semibold text-foreground tracking-tight">Questions & Fields</h2>
-              <span className="text-sm text-muted-foreground">({displayedFields.length} of {fields.length})</span>
-            </div>
-
-            {distinctGroups.length > 0 && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-muted-foreground">Filter Section:</span>
-                <Select
-                  value={selectedGroupFilter}
-                  onValueChange={setSelectedGroupFilter}
-                >
-                  <SelectTrigger className="h-8 min-w-[150px] w-auto max-w-[220px] text-sm bg-background">
-                    <SelectValue placeholder="All Sections" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Sections</SelectItem>
-                    {distinctGroups.map((g) => (
-                      <SelectItem key={g} value={g}>
-                        {g}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-          </div>
 
           {/* Top Drop Target (Insert at index 0) */}
           <div

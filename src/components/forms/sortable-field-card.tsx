@@ -2962,7 +2962,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                   const storedValue = field.dropdownOptions?.[optIndex]?.value || '';
 
                   return (
-                    <div key={optIndex} className="flex gap-2 sm:gap-2.5 items-center">
+                    <div key={optIndex} className="flex gap-2 sm:gap-2.5 items-center transition-all duration-300 transform hover:scale-[1.02]">
                       <span className={`w-10 h-10 rounded-lg border flex items-center justify-center font-mono text-sm font-bold shrink-0 transition-colors shadow-2xs ${
                         isCorrect
                           ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/80 font-bold'
@@ -3055,14 +3055,14 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                         }}
                         title="Delete option"
                       >
-                        <X className="w-4 h-4" />
+                        <Trash2 className="w-4 h-4" />
                       </Button>
                     </div>
                   );
                 })}
 
                 {field.allowOtherOption && (
-                  <div className="flex gap-2.5 items-center">
+                  <div className="flex gap-2.5 items-center transition-all duration-300 transform hover:scale-[1.02]">
                     <span className="w-10 h-10 rounded-lg bg-muted border border-border flex items-center justify-center font-mono text-sm text-muted-foreground font-bold shrink-0">
                       {String.fromCharCode(65 + (field.options?.length || 0))}
                     </span>
@@ -3077,7 +3077,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                       onClick={() => onUpdate(id, { allowOtherOption: false })}
                       title="Remove Other option"
                     >
-                      <X className="w-4 h-4" />
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
                 )}

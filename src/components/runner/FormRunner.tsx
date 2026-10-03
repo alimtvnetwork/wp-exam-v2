@@ -96,6 +96,7 @@ import {
   verifyChecklistCompletion,
   isQuestionLockedForNavigation,
 } from '@/lib/presentation-layout';
+import { PresenterHUD } from './floating-controls';
 
 interface FormRunnerProps {
   form?: FormModel;
@@ -1794,88 +1795,12 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             <TooltipContent>Copy link</TooltipContent>
           </Tooltip>
 
-          <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 shrink-0"
-                    aria-label="View"
-                  >
-                    <Eye className="w-3.5 h-3.5" />
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent>View</TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent align="start" className="min-w-[12rem] border border-border bg-popover text-popover-foreground">
-              <DropdownMenuItem
-                onSelect={() => {
-                  setRunnerViewMode('standard');
-                  toast.info('Switched to Standard Quiz View');
-                }}
-                className={effectiveLayoutMode === 'standard' ? 'bg-accent text-foreground' : undefined}
-              >
-                Quiz format
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => {
-                  setRunnerViewMode('presentation_split');
-                  setIsSidebarVisible(false);
-                  toast.info('Switched to Presentation Slide format');
-                }}
-                className={effectiveLayoutMode === 'presentation_split' ? 'bg-accent text-foreground' : undefined}
-              >
-                Presentation slide
-              </DropdownMenuItem>
-              <DropdownMenuItem
-                onSelect={() => setIsSidebarVisible(!isSidebarVisible)}
-                className={isSidebarVisible ? 'bg-accent text-foreground' : undefined}
-              >
-                Questions
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+
         </div>
 
         {/* Right Action Controls: Anti-Collision guaranteed */}
         <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap shrink-0 justify-end">
-          <DropdownMenu>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="icon"
-                    className="h-8 w-8 shrink-0"
-                    aria-label={activeThemeShortName}
-                  >
-                    <Palette className="w-3.5 h-3.5" />
-                  </Button>
-                </DropdownMenuTrigger>
-              </TooltipTrigger>
-              <TooltipContent>{activeThemeShortName}</TooltipContent>
-            </Tooltip>
-            <DropdownMenuContent align="end" className="min-w-[12rem] border border-border bg-popover text-popover-foreground">
-              {Object.values(THEME_PRESETS).map((themePreset) => (
-                <DropdownMenuItem
-                  key={themePreset.id}
-                  onSelect={() => {
-                    setActiveThemeId(themePreset.id);
-                    const nextTheme = getTheme(themePreset.id);
-                    document.documentElement.setAttribute('data-theme', nextTheme.id);
-                  }}
-                  className={activeThemeId === themePreset.id ? 'bg-accent text-foreground' : undefined}
-                >
-                  {themePreset.name.split(' (')[0]}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
+
 
           {/* Grouped Action Pill: [ ⚡ Auto | 🛠️ Debug | ✕ Exit ] (Hidden in candidate or preview mode) */}
           {isDevActionPillVisible && (
@@ -2186,8 +2111,14 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               /* Presentation-Grade 2-Column Split Question Canvas */
               <div
                 key={currentField.id}
-                className="w-full min-h-[calc(100dvh-5.5rem)] bg-card border border-border rounded-3xl p-6 sm:p-8 lg:p-10 shadow-md space-y-8 animate-card-entrance"
+                className="w-full min-h-[calc(100dvh-5.5rem)] bg-card border border-border rounded-3xl p-6 sm:p-8 lg:p-10 shadow-md space-y-8 animate-card-entrance relative overflow-hidden"
               >
+                <div className="absolute top-0 left-0 w-full h-2">
+                  <Progress
+                    value={Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}
+                    className="h-full bg-secondary rounded-none"
+                  />
+                </div>
                 {hasSlideVideo ? (
                   <div className="space-y-4">
                     <div className="max-w-3xl mx-auto w-full max-h-[380px] aspect-video rounded-2xl overflow-hidden border border-border shadow-lg bg-black/80">
@@ -2244,20 +2175,6 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 {/* Top Meta Bar */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground pb-4 border-b border-border/80">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <Badge variant="outline" className="px-3 py-1 rounded-full text-xs font-mono font-semibold border-border text-foreground bg-muted/60 dark:bg-white/10 dark:text-white dark:border-indigo-400/40 tracking-wide shadow-2xs">
-                      {currentField.kickerText || `Question #${currentStep + 1} • ${currentField.group || activeForm.title}`}
-                    </Badge>
-                    {currentField.difficulty && (
-                      <Badge variant="outline" className={`px-2 py-0.5 rounded-full text-[11px] uppercase font-mono ${
-                        currentField.difficulty === 'hard'
-                          ? 'border-rose-500/40 text-rose-600 bg-rose-500/10'
-                          : currentField.difficulty === 'medium'
-                          ? 'border-amber-500/40 text-amber-600 bg-amber-500/10'
-                          : 'border-emerald-500/40 text-emerald-600 bg-emerald-500/10'
-                      }`}>
-                        {currentField.difficulty} ({currentField.customPointsOverride ?? (currentField.difficulty === 'hard' ? 20 : currentField.difficulty === 'medium' ? 10 : 5)} pt)
-                      </Badge>
-                    )}
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -2290,7 +2207,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 {/* 2-Column Presentation Grid (50% / 50% on Desktop) */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 items-start">
                   <div className={`w-full space-y-5 ${effectiveAnswerPlacement === 'left' ? 'lg:order-2' : 'lg:order-1'}`}>
-                    <h2 className="font-heading font-bold text-4xl lg:text-5xl text-foreground leading-tight tracking-tight">
+                    <h2 className="font-heading font-bold text-5xl lg:text-6xl text-foreground leading-tight tracking-tight">
                       {currentField.label}
                       {isCurrentFieldRequired ? (
                         <span className="text-destructive font-bold ml-1.5" title="Required question">*</span>
@@ -2332,9 +2249,6 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                           <Sparkles className="w-3.5 h-3.5 text-foreground" />
                           <span>Candidate Response</span>
-                        </span>
-                        <span className="text-[11px] font-mono text-muted-foreground bg-muted/50 px-2.5 py-1 rounded-md border border-border/50">
-                          Question {currentStep + 1} of {visibleFields.length}
                         </span>
                       </div>
 
@@ -2698,7 +2612,19 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             </div>
           </div>
         </div>
+        </div>
       )}
+      <PresenterHUD
+        activeThemeId={activeThemeId}
+        setActiveThemeId={setActiveThemeId}
+        activeThemeShortName={activeThemeShortName}
+        runnerViewMode={runnerViewMode}
+        setRunnerViewMode={setRunnerViewMode}
+        effectiveLayoutMode={effectiveLayoutMode}
+        isSidebarVisible={isSidebarVisible}
+        setIsSidebarVisible={setIsSidebarVisible}
+        timeLeftSeconds={timeLeftSeconds}
+      />
       </div>
     </div>
   );
