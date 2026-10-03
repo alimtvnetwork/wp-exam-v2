@@ -2612,7 +2612,6 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             </div>
           </div>
         </div>
-        </div>
       )}
       <PresenterHUD
         activeThemeId={activeThemeId}
