@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Palette, Eye, Clock } from 'lucide-react';
+import { Palette, Eye, Clock, GripVertical } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
@@ -28,6 +28,7 @@ export interface PresenterHUDProps {
 const formatTimerDisplay = (seconds: number): string => {
   const m = Math.floor(seconds / 60);
   const s = seconds % 60;
+
   return `${m}:${s < 10 ? '0' : ''}${s}`;
 };
 
@@ -47,11 +48,24 @@ export const PresenterHUD: React.FC<PresenterHUDProps> = ({
       <motion.div
         drag
         dragMomentum={false}
-        className="fixed z-50 bottom-8 right-8 flex items-center gap-2 p-2 bg-card/90 backdrop-blur-md border border-border shadow-2xl rounded-2xl cursor-move"
+        whileDrag={{ scale: 1.03, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)' }}
+        className="fixed z-[9999] bottom-8 right-8 flex items-center gap-2 p-2 bg-card/95 backdrop-blur-md border border-border shadow-2xl rounded-2xl select-none touch-none cursor-grab active:cursor-grabbing"
       >
-        <div className="px-2 border-r border-border/50 text-xs font-semibold text-muted-foreground uppercase tracking-widest flex items-center h-full cursor-move">
-          HUD
-        </div>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div
+              className="flex items-center gap-1 px-2 border-r border-border/50 text-xs font-semibold text-muted-foreground uppercase tracking-widest cursor-grab active:cursor-grabbing select-none touch-none hover:text-foreground hover:bg-muted/40 rounded-lg transition-colors"
+              title="Drag to reposition HUD anywhere on screen"
+              aria-label="Drag to reposition HUD"
+              role="button"
+              tabIndex={0}
+            >
+              <GripVertical className="w-3.5 h-3.5 opacity-70 shrink-0" />
+              <span>HUD</span>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent side="top">Drag to reposition HUD</TooltipContent>
+        </Tooltip>
 
         {timeLeftSeconds !== null && (
           <Badge variant="outline" className={`font-mono text-xs gap-1 font-semibold cursor-default ${
@@ -79,7 +93,7 @@ export const PresenterHUD: React.FC<PresenterHUDProps> = ({
             </TooltipTrigger>
             <TooltipContent>View</TooltipContent>
           </Tooltip>
-          <DropdownMenuContent align="end" className="min-w-[12rem] border border-border bg-popover text-popover-foreground">
+          <DropdownMenuContent align="end" className="min-w-[12rem] border border-border bg-popover text-popover-foreground z-[10000]">
             <DropdownMenuItem
               onSelect={() => {
                 setRunnerViewMode('standard');
@@ -125,7 +139,7 @@ export const PresenterHUD: React.FC<PresenterHUDProps> = ({
             </TooltipTrigger>
             <TooltipContent>{activeThemeShortName}</TooltipContent>
           </Tooltip>
-          <DropdownMenuContent align="end" className="min-w-[12rem] border border-border bg-popover text-popover-foreground">
+          <DropdownMenuContent align="end" className="min-w-[12rem] border border-border bg-popover text-popover-foreground z-[10000]">
             {Object.values(THEME_PRESETS).map((themePreset) => (
               <DropdownMenuItem
                 key={themePreset.id}

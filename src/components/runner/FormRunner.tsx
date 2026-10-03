@@ -1724,11 +1724,18 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
         color: currentTheme?.colors?.textPrimary || '#0F172A',
       }}
     >
-      <div className={`space-y-5 mx-auto ${effectiveLayoutMode === 'presentation_split' ? 'w-full max-w-[1400px] px-2 sm:px-4' : activeThemeId === 'clean-wide' ? 'max-w-7xl' : 'max-w-6xl'}`}>
+      <div className={`mx-auto ${
+        effectiveLayoutMode === 'presentation_split'
+          ? 'space-y-0 w-full max-w-[1400px] px-2 sm:px-4'
+          : activeThemeId === 'clean-wide'
+          ? 'space-y-5 max-w-7xl'
+          : 'space-y-5 max-w-6xl'
+      }`}>
         {/* Streamlined Single-Line Project Selector, Slug & Actions Bar */}
-      <div
-        className="p-2.5 sm:px-4 border border-border bg-card text-card-foreground rounded-xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors"
-      >
+        {effectiveLayoutMode !== 'presentation_split' ? (
+          <div
+            className="p-2.5 sm:px-4 border border-border bg-card text-card-foreground rounded-xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors"
+          >
         <div className="flex items-center gap-2 flex-1 min-w-0">
           {/* Project Selector (Shown in dev mode, hidden in candidate/preview mode) */}
           {isProjectPickerVisible ? (
@@ -1858,6 +1865,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           )}
         </div>
       </div>
+        ) : null}
 
       {/* Hero Model: Assessment Introduction & Overview (Omitted during active questions and in preview mode) */}
       {isHeroAndAccessBarVisible && (
@@ -2111,9 +2119,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               /* Presentation-Grade 2-Column Split Question Canvas */
               <div
                 key={currentField.id}
-                className="w-full min-h-[calc(100dvh-5.5rem)] bg-card border border-border rounded-3xl p-6 sm:p-8 lg:p-10 shadow-md space-y-8 animate-card-entrance relative overflow-hidden"
+                className="w-full min-h-[calc(100dvh-3rem)] bg-transparent border-0 rounded-none shadow-none p-4 sm:p-8 lg:p-12 space-y-8 animate-card-entrance relative"
               >
-                <div className="absolute top-0 left-0 w-full h-2">
+                <div className="absolute top-0 left-0 w-full h-1">
                   <Progress
                     value={Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}
                     className="h-full bg-secondary rounded-none"
@@ -2173,7 +2181,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 ) : null}
 
                 {/* Top Meta Bar */}
-                <div className="flex items-center justify-between text-xs text-muted-foreground pb-4 border-b border-border/80">
+                <div className="flex items-center justify-between text-xs text-muted-foreground pb-2">
                   <div className="flex items-center gap-2 flex-wrap">
                   </div>
 
@@ -2229,23 +2237,21 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
                     {hasPlaceholderHint ? (
                       <div className="pt-2">
-                        <div className="inline-flex items-center gap-2 p-3 rounded-xl bg-muted/60 border border-border text-foreground text-xs sm:text-sm font-sans font-medium shadow-2xs">
-                          <span className="p-1 rounded-md bg-accent text-accent-foreground shrink-0">
-                            <Lightbulb className="w-4 h-4 text-primary" />
-                          </span>
+                        <div className="inline-flex items-start gap-2.5 text-foreground/80 text-xs sm:text-sm font-sans">
+                          <Lightbulb className="w-4 h-4 text-primary shrink-0 mt-0.5" />
                           <div className="space-y-0.5">
-                            <span className="font-semibold text-xs text-muted-foreground uppercase tracking-wider block">Candidate Guidance</span>
-                            <span className="font-sans leading-normal">{currentField.placeholder}</span>
+                            <span className="font-semibold text-[11px] text-muted-foreground uppercase tracking-wider block">Candidate Guidance</span>
+                            <span className="font-sans text-muted-foreground leading-relaxed">{currentField.placeholder}</span>
                           </div>
                         </div>
                       </div>
                     ) : null}
                   </div>
 
-                  {/* Left/Right Column: Elevated Fluid Answer Card */}
-                  <div className={`w-full space-y-5 ${effectiveAnswerPlacement === 'left' ? 'lg:order-1' : 'lg:order-2'}`}>
-                    <div className="bg-card border border-border/80 rounded-2xl p-6 sm:p-8 shadow-lg space-y-6 relative overflow-hidden backdrop-blur-md">
-                      <div className="flex items-center justify-between pb-3.5 border-b border-border/80">
+                  {/* Left/Right Column: Seamless Unboxed Answer Column */}
+                  <div className={`w-full space-y-6 ${effectiveAnswerPlacement === 'left' ? 'lg:order-1' : 'lg:order-2'}`}>
+                    <div className="w-full space-y-6 relative">
+                      <div className="flex items-center justify-between pb-1">
                         <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
                           <Sparkles className="w-3.5 h-3.5 text-foreground" />
                           <span>Candidate Response</span>
@@ -2258,7 +2264,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                       </div>
 
                       {/* Navigation & Advance Footer */}
-                      <div className="pt-5 border-t border-border flex flex-col sm:flex-row items-center justify-between gap-3">
+                      <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
                         <Button
                           type="button"
                           variant="outline"
@@ -2613,6 +2619,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           </div>
         </div>
       )}
+      </div>
+
       <PresenterHUD
         activeThemeId={activeThemeId}
         setActiveThemeId={setActiveThemeId}
@@ -2624,7 +2632,6 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
         setIsSidebarVisible={setIsSidebarVisible}
         timeLeftSeconds={timeLeftSeconds}
       />
-      </div>
     </div>
   );
 };
