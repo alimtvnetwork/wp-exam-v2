@@ -35,7 +35,7 @@ export const BackupManager: React.FC = () => {
   const [emailTarget, setEmailTarget] = useState<string>('admin@example.com');
   const [retentionKeep, setRetentionKeep] = useState<number>(15);
 
-  // Remote Server Uploader (Rise Up Asia Protocol)
+  // Remote Server Uploader (Riseup Protocol)
   const [remoteServerUrl, setRemoteServerUrl] = useState<string>('https://staging.riseup.asia');
   const [remoteUsername, setRemoteUsername] = useState<string>('admin');
   const [remoteAppPassword, setRemoteAppPassword] = useState<string>('•••• •••• •••• ••••');
@@ -230,7 +230,7 @@ export const BackupManager: React.FC = () => {
         </div>
       </div>
 
-      {/* Remote Server Deployer & Rise Up Asia Uploader Protocol */}
+      {/* Remote Server Deployer & Riseup Uploader Protocol */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-4">
         <div className="flex items-center justify-between">
           <div>

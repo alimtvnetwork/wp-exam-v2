@@ -1,7 +1,7 @@
 /**
  * Multi-Theme Catalog and CSS Variable Engine for WP Exam.
  * Supports Clean Wide White (Vivid Indigo & Crisp Slate), Clean Light,
- * Purple (Indigo/Violet), Rise Up Asia (Gold Amber), Antigravity Dracula,
+ * Purple (Indigo/Violet), Riseup (Cream & Gold Amber), Antigravity Dracula,
  * and VS Code Dark (Obsidian & Cyan).
  */
 

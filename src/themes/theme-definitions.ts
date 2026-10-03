@@ -1,6 +1,6 @@
 /**
  * Multi-Theme Catalog and CSS Variable Engine.
- * Supports Purple (Indigo/Violet), Rise Up Asia (Bright Gold Amber), Antigravity Dracula,
+ * Supports Purple (Indigo/Violet), Riseup (Cream & Gold Amber), Antigravity Dracula,
  * VS Code Dark (Slate & Cyan), and Clean Light / Paper.
  */
 
