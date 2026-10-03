@@ -84,6 +84,17 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import {
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+} from '@/components/ui/popover';
+import {
+  saveDraftToIndexedDB,
+  getDraftFromIndexedDB,
+  clearDraftFromIndexedDB,
+  FormDraftSession,
+} from '@/lib/indexeddb-answers';
+import {
   evaluateFieldVisibility,
   evaluateFieldRequired,
   getNextStepIndex,
@@ -391,6 +402,62 @@ const QuizHeroSection: React.FC<QuizHeroSectionProps> = ({
   );
 };
 
+const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+export const renderHighlightedQuestionTitle = (
+  title: string,
+  highlightWord?: string,
+  isRiseupTheme = false
+): React.ReactNode => {
+  const hasTitle = Boolean(title);
+
+  if (!hasTitle) {
+    return null;
+  }
+
+  const highlightClass = isRiseupTheme
+    ? 'text-[#E8C547] font-extrabold tracking-tight'
+    : 'text-primary font-extrabold';
+
+  const normalClass = isRiseupTheme
+    ? 'text-white font-bold'
+    : 'text-foreground font-bold';
+
+  const trimmedHighlight = highlightWord ? highlightWord.trim() : '';
+  const hasHighlightWord = Boolean(trimmedHighlight);
+
+  let pattern: RegExp;
+
+  if (hasHighlightWord) {
+    const escaped = escapeRegex(trimmedHighlight);
+    pattern = new RegExp(`(${escaped}|\\b[A-Z]{2,}\\b)`, 'g');
+  } else {
+    pattern = /(\b[A-Z]{2,}\b)/g;
+  }
+
+  const parts = title.split(pattern);
+
+  return (
+    <span className={normalClass}>
+      {parts.map((part, index) => {
+        const isHighlightWordMatch = hasHighlightWord && part.toLowerCase() === trimmedHighlight.toLowerCase();
+        const isAcronymMatch = /^[A-Z]{2,}$/.test(part);
+        const isMatch = isHighlightWordMatch || isAcronymMatch;
+
+        if (isMatch) {
+          return (
+            <span key={index} className={highlightClass}>
+              {part}
+            </span>
+          );
+        }
+
+        return <React.Fragment key={index}>{part}</React.Fragment>;
+      })}
+    </span>
+  );
+};
+
 export const FormRunner: React.FC<FormRunnerProps> = ({
   form: initialForm,
   onClose,
@@ -472,6 +539,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     }
     return 'purple';
   });
+  const isRiseupTheme = activeThemeId === 'riseup' || activeThemeId === 'riseup-asia';
   const currentTheme = getTheme(activeThemeId);
   const themeVars = getThemeCssVariables(currentTheme);
   const activeThemeShortName = (currentTheme?.name || 'Theme').split(' (')[0];
@@ -529,6 +597,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const [currentStep, setCurrentStep] = useState(0);
   const [stepHistory, setStepHistory] = useState<number[]>([]);
   const [answers, setAnswers] = useState<Record<string, unknown>>({});
+  const [otherTexts, setOtherTexts] = useState<Record<string, string>>({});
   const [isExamStarted, setIsExamStarted] = useState(false);
   const [guestName, setGuestName] = useState(session.respondentName || '');
   const [guestEmail, setGuestEmail] = useState(session.respondentEmail || '');
@@ -601,6 +670,48 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       setLastSavedTime(null);
     }
   }, [storageKey]);
+
+  // Hydrate answers and otherTexts from IndexedDB on activeSlug change
+  useEffect(() => {
+    let isMounted = true;
+
+    const hydrateDraft = async () => {
+      const draft = await getDraftFromIndexedDB(activeSlug);
+      const hasDraft = Boolean(draft);
+
+      if (hasDraft && isMounted && draft) {
+        if (draft.answers && Object.keys(draft.answers).length > 0) {
+          setAnswers(draft.answers);
+        }
+
+        if (draft.otherTexts && Object.keys(draft.otherTexts).length > 0) {
+          setOtherTexts(draft.otherTexts);
+        }
+      }
+    };
+
+    hydrateDraft();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [activeSlug]);
+
+  const persistDraft = (
+    updatedAnswers: Record<string, unknown>,
+    updatedOtherTexts: Record<string, string>
+  ) => {
+    const draftSession: FormDraftSession = {
+      formSlug: activeSlug,
+      answers: updatedAnswers,
+      otherTexts: updatedOtherTexts,
+      currentStep,
+      stepHistory,
+      updatedAt: Date.now(),
+    };
+
+    saveDraftToIndexedDB(draftSession);
+  };
 
   const handleSaveProgress = () => {
     try {
@@ -1077,7 +1188,21 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   };
 
   const handleAnswerChange = (fieldId: string, value: unknown) => {
-    setAnswers((prev) => ({ ...prev, [fieldId]: value }));
+    setAnswers((prev) => {
+      const nextAnswers = { ...prev, [fieldId]: value };
+      persistDraft(nextAnswers, otherTexts);
+
+      return nextAnswers;
+    });
+  };
+
+  const handleOtherTextChange = (fieldId: string, text: string) => {
+    setOtherTexts((prev) => {
+      const nextOtherTexts = { ...prev, [fieldId]: text };
+      persistDraft(answers, nextOtherTexts);
+
+      return nextOtherTexts;
+    });
   };
 
   const handleProjectSwitch = (newProjectId: string) => {
@@ -1090,6 +1215,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     setCurrentStep(0);
     setStepHistory([]);
     setAnswers({});
+    setOtherTexts({});
     setIsSubmitted(false);
     setResult(null);
 
@@ -1500,6 +1626,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       examStore.markInviteCompleted(session.token);
     }
 
+    clearDraftFromIndexedDB(activeSlug);
+    setOtherTexts({});
     setIsSubmitted(true);
   };
 
@@ -1545,6 +1673,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               variant="outline"
               size="sm"
               onClick={() => {
+                clearDraftFromIndexedDB(activeSlug);
+                setOtherTexts({});
                 setIsSubmitted(false);
                 setCurrentStep(0);
                 setAnswers({});
@@ -2039,6 +2169,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               size="sm"
               onClick={() => {
                 localStorage.removeItem(storageKey);
+                clearDraftFromIndexedDB(activeSlug);
+                setOtherTexts({});
                 setSavedSession(null);
                 setLastSavedTime(null);
                 toast.info('Saved session dismissed. Starting fresh assessment.');
@@ -2121,10 +2253,14 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 key={currentField.id}
                 className="w-full min-h-[calc(100dvh-3rem)] bg-transparent border-0 rounded-none shadow-none p-4 sm:p-8 lg:p-12 space-y-8 animate-card-entrance relative"
               >
-                <div className="absolute top-0 left-0 w-full h-1">
+                <div className="fixed top-0 left-0 right-0 w-full h-1 z-50 pointer-events-none">
                   <Progress
                     value={Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}
-                    className="h-full bg-secondary rounded-none"
+                    className={`h-full rounded-none ${
+                      isRiseupTheme
+                        ? 'bg-black/40 [&>div]:bg-[#E8C547]'
+                        : 'bg-secondary'
+                    }`}
                   />
                 </div>
                 {hasSlideVideo ? (
@@ -2216,7 +2352,11 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 items-start">
                   <div className={`w-full space-y-5 ${effectiveAnswerPlacement === 'left' ? 'lg:order-2' : 'lg:order-1'}`}>
                     <h2 className="font-heading font-bold text-5xl lg:text-6xl text-foreground leading-tight tracking-tight">
-                      {currentField.label}
+                      {renderHighlightedQuestionTitle(
+                        currentField.label,
+                        (currentField as FormField & { highlightWord?: string }).highlightWord,
+                        isRiseupTheme
+                      )}
                       {isCurrentFieldRequired ? (
                         <span className="text-destructive font-bold ml-1.5" title="Required question">*</span>
                       ) : null}
@@ -2234,18 +2374,6 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                         </div>
                       ) : null}
                     </div>
-
-                    {hasPlaceholderHint ? (
-                      <div className="pt-2">
-                        <div className="inline-flex items-start gap-2.5 text-foreground/80 text-xs sm:text-sm font-sans">
-                          <Lightbulb className="w-4 h-4 text-primary shrink-0 mt-0.5" />
-                          <div className="space-y-0.5">
-                            <span className="font-semibold text-[11px] text-muted-foreground uppercase tracking-wider block">Candidate Guidance</span>
-                            <span className="font-sans text-muted-foreground leading-relaxed">{currentField.placeholder}</span>
-                          </div>
-                        </div>
-                      </div>
-                    ) : null}
                   </div>
 
                   {/* Left/Right Column: Seamless Unboxed Answer Column */}
@@ -2256,11 +2384,45 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                           <Sparkles className="w-3.5 h-3.5 text-foreground" />
                           <span>Candidate Response</span>
                         </span>
+
+                        {hasPlaceholderHint ? (
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all cursor-pointer text-xs"
+                              >
+                                <Lightbulb className="w-4 h-4 text-amber-400 animate-pulse" />
+                                <span className="font-semibold text-[11px] text-amber-300">Need a Hint?</span>
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              side="bottom"
+                              align="end"
+                              className="w-80 p-3.5 text-xs bg-popover/95 backdrop-blur-md border border-amber-500/30 shadow-xl rounded-xl space-y-1.5"
+                            >
+                              <div className="flex items-center gap-1.5 text-amber-400 font-semibold">
+                                <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
+                                <span>Question Hint</span>
+                              </div>
+                              <p className="text-muted-foreground leading-relaxed whitespace-pre-line text-xs font-sans">
+                                {currentField.placeholder}
+                              </p>
+                            </PopoverContent>
+                          </Popover>
+                        ) : null}
                       </div>
 
                       {/* Interactive Field Input */}
                       <div className="space-y-4">
-                        {renderFieldInput(currentField, answers[currentField.id], (val) => handleAnswerChange(currentField.id, val), true)}
+                        {renderFieldInput(
+                          currentField,
+                          answers[currentField.id],
+                          (val) => handleAnswerChange(currentField.id, val),
+                          true,
+                          otherTexts,
+                          handleOtherTextChange
+                        )}
                       </div>
 
                       {/* Navigation & Advance Footer */}
@@ -2271,7 +2433,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                           size="sm"
                           disabled={currentStep === 0}
                           onClick={handlePreviousStep}
-                          className="text-xs h-9 px-4 font-medium border-border hover:bg-accent cursor-pointer w-full sm:w-auto rounded-xl shadow-xs"
+                          className="btn-tactile-spring transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] text-xs h-9 px-4 font-medium border-border hover:bg-accent cursor-pointer w-full sm:w-auto rounded-xl shadow-xs"
                         >
                           Previous
                         </Button>
@@ -2284,7 +2446,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                                 variant="outline"
                                 size="sm"
                                 onClick={handleTestAutoFill}
-                                className="text-xs h-9 px-3 font-semibold rounded-xl border border-border bg-card text-foreground hover:bg-accent transition-all cursor-pointer shadow-xs"
+                                className="btn-tactile-spring transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] text-xs h-9 px-3 font-semibold rounded-xl border border-border bg-card text-foreground hover:bg-accent transition-all cursor-pointer shadow-xs"
                               >
                                 ⚡ Auto Fill
                               </Button>
@@ -2297,7 +2459,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                               type="button"
                               size="sm"
                               onClick={handleNextStep}
-                              className="text-xs h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-1.5 flex-1 sm:flex-initial justify-center rounded-xl"
+                              className="btn-tactile-spring transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] text-xs h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-1.5 flex-1 sm:flex-initial justify-center rounded-xl"
                             >
                               <span>Submit Assessment</span>
                               <span className="text-[10px] opacity-75 font-mono">Enter ↵</span>
@@ -2307,7 +2469,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                               type="button"
                               size="sm"
                               onClick={handleNextStep}
-                              className="text-xs h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-1.5 flex-1 sm:flex-initial justify-center rounded-xl"
+                              className="btn-tactile-spring transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] text-xs h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-1.5 flex-1 sm:flex-initial justify-center rounded-xl"
                             >
                               <span>Next Question</span>
                               <span className="text-[10px] opacity-75 font-mono">Enter ↵</span>
@@ -2370,7 +2532,11 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     className="h-2 mb-2 bg-secondary"
                   />
                   <CardTitle className="font-sans font-medium text-lg sm:text-xl tracking-normal text-foreground leading-relaxed">
-                    {currentField.label}
+                    {renderHighlightedQuestionTitle(
+                      currentField.label,
+                      (currentField as FormField & { highlightWord?: string }).highlightWord,
+                      isRiseupTheme
+                    )}
                     {isCurrentFieldRequired && (
                       <span className="text-destructive text-red-500 font-bold ml-1.5" title="Required">*</span>
                     )}
@@ -2405,7 +2571,14 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   {/* Prefix Citations */}
                   {renderCitations(currentField.citations, 'prefix')}
 
-                  {renderFieldInput(currentField, answers[currentField.id], (val) => handleAnswerChange(currentField.id, val))}
+                  {renderFieldInput(
+                    currentField,
+                    answers[currentField.id],
+                    (val) => handleAnswerChange(currentField.id, val),
+                    false,
+                    otherTexts,
+                    handleOtherTextChange
+                  )}
 
                   {/* Suffix Citations */}
                   {renderCitations(currentField.citations, 'suffix')}
@@ -2417,7 +2590,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                         size="sm"
                         disabled={currentStep === 0}
                         onClick={handlePreviousStep}
-                        className="text-sm h-9 px-4 font-medium border-border hover:bg-accent cursor-pointer"
+                        className="btn-tactile-spring transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] text-sm h-9 px-4 font-medium border-border hover:bg-accent cursor-pointer"
                       >
                         Previous
                       </Button>
@@ -2426,7 +2599,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                         variant="outline"
                         size="sm"
                         onClick={handleTestAutoFill}
-                        className="text-xs h-9 px-3.5 font-bold rounded-xl border border-border bg-card text-foreground hover:bg-accent transition-all cursor-pointer"
+                        className="btn-tactile-spring transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] text-xs h-9 px-3.5 font-bold rounded-xl border border-border bg-card text-foreground hover:bg-accent transition-all cursor-pointer"
                         title="Fill valid answer and advance immediately"
                       >
                         ⚡ Test Fill &amp; Next
@@ -2434,11 +2607,11 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     </div>
 
                     {isLastVisibleStep ? (
-                      <Button size="sm" onClick={handleNextStep} className="text-sm h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer">
+                      <Button size="sm" onClick={handleNextStep} className="btn-tactile-spring transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] text-sm h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer">
                         Submit Assessment &check;
                       </Button>
                     ) : (
-                      <Button size="sm" onClick={handleNextStep} className="text-sm h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer">
+                      <Button size="sm" onClick={handleNextStep} className="btn-tactile-spring transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] text-sm h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-xs cursor-pointer">
                         Next Question &rarr;
                       </Button>
                     )}
@@ -2568,7 +2741,14 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     {/* Prefix Citations */}
                     {renderCitations(f.citations, 'prefix')}
 
-                    {renderFieldInput(f, answers[f.id], (val) => handleAnswerChange(f.id, val))}
+                    {renderFieldInput(
+                      f,
+                      answers[f.id],
+                      (val) => handleAnswerChange(f.id, val),
+                      false,
+                      otherTexts,
+                      handleOtherTextChange
+                    )}
 
                     {/* Suffix Citations */}
                     {renderCitations(f.citations, 'suffix')}
@@ -2578,7 +2758,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             </div>
 
             <div className="flex justify-end gap-2 pt-3 border-t border-border">
-              <Button onClick={handleSubmit} size="sm" className="bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-bold h-10 px-5 rounded-lg shadow-xs cursor-pointer">
+              <Button onClick={handleSubmit} size="sm" className="btn-tactile-spring transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] bg-primary hover:bg-primary/90 text-primary-foreground text-sm font-bold h-10 px-5 rounded-lg shadow-xs cursor-pointer">
                 Submit Response
               </Button>
             </div>
@@ -3255,6 +3435,8 @@ function renderFieldInput(
   value: unknown,
   onChange: (val: unknown) => void,
   isPresentationSlide = false,
+  otherTexts?: Record<string, string>,
+  onOtherTextChange?: (fieldId: string, text: string) => void,
 ) {
   const strValue = typeof value === 'string' ? value : '';
   const choiceMotionClass = isPresentationSlide
@@ -3376,14 +3558,19 @@ function renderFieldInput(
       const options = field.options || [];
       const selectedOpts = Array.isArray(value) ? value : (typeof value === 'string' && value ? [value] : []);
       const otherPrefix = '__other__:';
-      const hasOther = selectedOpts.some(opt => typeof opt === 'string' && opt.startsWith(otherPrefix));
-      const otherValue = hasOther ? selectedOpts.find(opt => typeof opt === 'string' && opt.startsWith(otherPrefix))?.substring(otherPrefix.length) || '' : '';
+      const hasOther = selectedOpts.some((opt) => typeof opt === 'string' && opt.startsWith(otherPrefix));
+      const otherOptionVal = hasOther
+        ? selectedOpts.find((opt) => typeof opt === 'string' && opt.startsWith(otherPrefix))?.substring(otherPrefix.length) || ''
+        : '';
+      const currentOtherText = hasOther
+        ? (otherOptionVal === ' ' ? (otherTexts?.[field.id] || '') : otherOptionVal)
+        : (otherTexts?.[field.id] || '');
 
       const handleChange = (opt: string, checked: boolean) => {
         if (checked) {
           onChange([...selectedOpts, opt]);
         } else {
-          onChange(selectedOpts.filter(o => o !== opt));
+          onChange(selectedOpts.filter((o) => o !== opt));
         }
       };
 
@@ -3392,13 +3579,20 @@ function renderFieldInput(
           if (typeof o !== 'string') {
             return true;
           }
+
           const isOther = o.startsWith(otherPrefix);
+
           return !isOther;
         });
+
         if (text) {
-           onChange([...filtered, otherPrefix + text]);
+          onChange([...filtered, otherPrefix + text]);
         } else {
-           onChange([...filtered, otherPrefix + ' ']);
+          onChange([...filtered, otherPrefix + ' ']);
+        }
+
+        if (onOtherTextChange) {
+          onOtherTextChange(field.id, text);
         }
       };
 
@@ -3460,16 +3654,22 @@ function renderFieldInput(
                   name={`field-${field.id}-other`}
                   checked={hasOther}
                   onChange={(e) => {
-                    if (e.target.checked) {
-                      handleOtherChange(' ');
+                    const isChecked = e.target.checked;
+
+                    if (isChecked) {
+                      const restoredText = otherTexts?.[field.id] || '';
+                      handleOtherChange(restoredText);
                     } else {
                       const filtered = selectedOpts.filter((o) => {
                         if (typeof o !== 'string') {
                           return true;
                         }
+
                         const isOther = o.startsWith(otherPrefix);
+
                         return !isOther;
                       });
+
                       onChange(filtered);
                     }
                   }}
@@ -3478,7 +3678,7 @@ function renderFieldInput(
                 <span className="shrink-0">Other:</span>
                 {hasOther && (
                   <Input
-                    value={otherValue.trim()}
+                    value={currentOtherText}
                     onChange={(e) => handleOtherChange(e.target.value)}
                     placeholder="Type custom answer..."
                     className="h-8 text-sm flex-1 max-w-md bg-background"
@@ -3605,7 +3805,10 @@ function renderFieldInput(
       const options = field.options || ['Yes', 'No'];
       const otherPrefix = '__other__:';
       const hasOther = strValue.startsWith(otherPrefix);
-      const otherValue = hasOther ? strValue.substring(otherPrefix.length) : '';
+      const otherOptionVal = hasOther ? strValue.substring(otherPrefix.length) : '';
+      const currentOtherText = hasOther
+        ? (otherOptionVal === ' ' ? (otherTexts?.[field.id] || '') : otherOptionVal)
+        : (otherTexts?.[field.id] || '');
 
       return (
         <div className="space-y-2">
@@ -3665,14 +3868,30 @@ function renderFieldInput(
                   name={`field-${field.id}`}
                   value="__other__"
                   checked={hasOther}
-                  onChange={() => onChange(otherPrefix + ' ')}
+                  onChange={() => {
+                    const restoredText = otherTexts?.[field.id] || '';
+                    const nextVal = restoredText ? (otherPrefix + restoredText) : (otherPrefix + ' ');
+                    onChange(nextVal);
+
+                    if (onOtherTextChange) {
+                      onOtherTextChange(field.id, restoredText);
+                    }
+                  }}
                   className="text-primary focus:ring-primary h-4 w-4"
                 />
                 <span className="shrink-0">Other:</span>
                 {hasOther && (
                   <Input
-                    value={otherValue.trim()}
-                    onChange={(e) => onChange(otherPrefix + e.target.value)}
+                    value={currentOtherText}
+                    onChange={(e) => {
+                      const text = e.target.value;
+                      const nextVal = text ? (otherPrefix + text) : (otherPrefix + ' ');
+                      onChange(nextVal);
+
+                      if (onOtherTextChange) {
+                        onOtherTextChange(field.id, text);
+                      }
+                    }}
                     placeholder="Type custom answer..."
                     className="h-8 text-sm flex-1 max-w-md bg-background"
                     onClick={(e) => e.stopPropagation()}
@@ -3701,6 +3920,10 @@ function renderFieldInput(
                           e.preventDefault();
                           e.stopPropagation();
                           onChange(otherPrefix + sug);
+
+                          if (onOtherTextChange) {
+                            onOtherTextChange(field.id, sug);
+                          }
                         }}
                         className="text-xs px-3 py-1 rounded-full border border-border/80 bg-background text-foreground hover:bg-muted hover:border-foreground/40 hover:text-foreground transition-all font-medium cursor-pointer shadow-2xs"
                         title={`Fill Other with "${sug}"`}

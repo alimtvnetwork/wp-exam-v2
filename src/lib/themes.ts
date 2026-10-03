@@ -169,7 +169,7 @@ export const THEME_PRESETS: Record<string, ThemeDefinition> = {
       primary: '#F7F1E6',
       primaryText: '#0A0A14',
       highlightWord: '#E8C547',
-      textPrimary: '#FFF1D6',
+      textPrimary: '#FFFFFF',
       textSecondary: '#94A3B8',
       progressBar: '#3A3A55',
       badgeBg: 'rgba(232, 197, 71, 0.12)',
@@ -438,6 +438,7 @@ export function getTheme(id?: string): ThemeDefinition {
 
 export function getThemeCssVariables(theme?: ThemeDefinition): Record<string, string> {
   const safeTheme = theme || getTheme();
+
   if (!safeTheme || !safeTheme.colors) {
     return {};
   }
@@ -454,6 +455,7 @@ export function getThemeCssVariables(theme?: ThemeDefinition): Record<string, st
     '--wp-exam-text-secondary': safeTheme.colors.textSecondary || '#64748B',
     '--wp-exam-progress-bar': safeTheme.colors.progressBar || '#16A34A',
     '--wp-exam-badge-bg': safeTheme.colors.badgeBg || '#DCFCE7',
+    '--wp-exam-question-title': safeTheme.colors.textPrimary || '#FFFFFF',
     ...(safeTheme.hslValues || {}),
   };
 }
