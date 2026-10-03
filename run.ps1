@@ -15,6 +15,15 @@ param (
 $ErrorActionPreference = "Stop"
 $RepoRoot = $PSScriptRoot
 
+# Set SWC native binding cache to prevent Windows MAX_PATH (260-char) truncation in long home directory paths
+if (-not $env:SWC_NATIVE_BINDING_CACHE) {
+    $swcCacheDir = Join-Path $RepoRoot "node_modules\.cache\swc"
+    if (-not (Test-Path $swcCacheDir)) {
+        New-Item -ItemType Directory -Path $swcCacheDir -Force | Out-Null
+    }
+    $env:SWC_NATIVE_BINDING_CACHE = $swcCacheDir
+}
+
 Write-Host "====================================================" -ForegroundColor Cyan
 Write-Host "  WP Exam & WP Sam - Local Development & Test Runner" -ForegroundColor Cyan
 Write-Host "====================================================" -ForegroundColor Cyan
