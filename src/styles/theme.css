@@ -69,8 +69,7 @@
 @media (prefers-reduced-motion: reduce) {
   .slide-up-anim,
   .presentation-option-card,
-  .animate-card-entrance,
-  .btn-tactile-spring {
+  .animate-card-entrance {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
@@ -144,7 +143,6 @@
   --wp-exam-primary: #F7F1E6;
   --wp-exam-primary-text: #0A0A14;
   --wp-exam-highlight: #E8C547;
-  --wp-exam-question-title: #FFFFFF;
   --wp-exam-text-primary: #FFF1D6;
   --wp-exam-text-secondary: #94A3B8;
   --wp-exam-progress-bar: #3A3A55;
@@ -644,16 +642,6 @@
 }
 .slide-btn:hover .slide-btn__text {
   transform: translateY(-100%);
-}
-.btn-tactile-spring {
-  transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.btn-tactile-spring:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.25);
-}
-.btn-tactile-spring:active {
-  transform: translateY(0) scale(0.98);
 }
 .custom-scrollbar::-webkit-scrollbar {
   width: 6px;
