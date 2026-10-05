@@ -2785,7 +2785,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                           size="sm"
                           disabled={currentStep === 0}
                           onClick={handlePreviousStep}
-                          className={`h-11 px-4 rounded-xl text-xs sm:text-sm font-sans font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all flex items-center gap-1.5 cursor-pointer w-full sm:w-auto ${
+                          className={`h-11 px-4 rounded-xl text-xs sm:text-sm font-sans font-medium text-foreground/80 hover:text-foreground hover:bg-muted/60 transition-all flex items-center gap-1.5 cursor-pointer w-full sm:w-auto ${
                             currentStep === 0 ? 'invisible sm:opacity-0 sm:pointer-events-none' : 'opacity-100'
                           }`}
                         >
@@ -2802,9 +2802,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                                 variant="outline"
                                 size="sm"
                                 onClick={handleTestAutoFill}
-                                className="h-9 px-3 text-xs font-mono font-medium rounded-lg border-border/50 bg-background/60 text-muted-foreground hover:text-foreground hover:bg-accent/60 hover:border-border transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                                className="h-9 px-3 text-xs font-mono font-medium rounded-lg border-border bg-card/80 text-foreground/80 hover:text-foreground hover:bg-accent/60 hover:border-primary/50 transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
                               >
-                                <Zap className="w-3.5 h-3.5 text-amber-500/80" />
+                                <Zap className="w-3.5 h-3.5 text-amber-500" />
                                 <span>Auto Fill</span>
                               </Button>
                             </TooltipTrigger>
@@ -2815,10 +2815,20 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                             type="button"
                             size="default"
                             onClick={handleNextStep}
-                            className="h-11 px-6 sm:px-7 rounded-xl font-heading font-bold text-sm bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-2.5 flex-1 sm:flex-initial"
+                            className={`h-11 px-6 sm:px-7 rounded-xl font-heading font-bold text-sm shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-2.5 flex-1 sm:flex-initial ${
+                              isRiseupTheme
+                                ? 'bg-[#F7F1E6] text-[#0A0A14] hover:bg-[#F7F1E6]/90 border border-[#F7F1E6]/50 active:ring-2 active:ring-[#E8C547]'
+                                : activeThemeId === 'purple' || activeThemeId === 'letterly'
+                                ? 'bg-[#5C45FD] text-white hover:bg-[#5C45FD]/90 shadow-indigo-500/25 border border-[#818CF8]/40'
+                                : 'bg-primary hover:bg-primary/90 text-primary-foreground'
+                            }`}
                           >
                             <span>{isLastVisibleStep ? 'Submit Assessment' : 'Next Question'}</span>
-                            <kbd className="inline-flex items-center justify-center h-5 min-w-[20px] px-1 text-[11px] font-mono font-bold bg-primary-foreground/20 text-primary-foreground rounded border border-primary-foreground/30 shadow-2xs">
+                            <kbd className={`inline-flex items-center justify-center h-5 min-w-[20px] px-1 text-[11px] font-mono font-bold rounded border shadow-2xs ${
+                              isRiseupTheme
+                                ? 'bg-[#0A0A14]/15 text-[#0A0A14] border-[#0A0A14]/20'
+                                : 'bg-primary-foreground/20 text-primary-foreground border-primary-foreground/30'
+                            }`}>
                               ↵
                             </kbd>
                           </Button>
@@ -3974,7 +3984,7 @@ function renderFieldInput(
                     ? isRiseupTheme
                       ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
                       : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
-                    : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground hover:border-border'
+                    : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground'
                 }`}
               >
                 <span
@@ -4017,7 +4027,7 @@ function renderFieldInput(
                     ? isRiseupTheme
                       ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
                       : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
-                    : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground hover:border-border'
+                    : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground'
                 }`}
               >
                 <span
