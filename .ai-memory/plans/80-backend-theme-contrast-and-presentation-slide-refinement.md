@@ -1,6 +1,6 @@
 # Plan 80: Backend Theme Contrast, Option Hover Motion, and Presentation Slide Refinement
 
-**Status:** In Progress  
+**Status:** Complete  
 **Spec Reference:** `02-spec/21-app/80-backend-theme-contrast-and-presentation-slide-refinement/`  
 **Subtasks Directory:** `.ai-memory/plans/subtasks/15-backend-theme-contrast-and-presentation-slide-refinement/`  
 
@@ -20,8 +20,8 @@
 
 | Subtask File | Scope | Status |
 | :--- | :--- | :--- |
-| `subtasks/15-backend-theme-contrast-and-presentation-slide-refinement/01-dracula-theme-and-admin-contrast.md` | Dracula tokens in theme.css, theme.less, themes.ts, theme-definitions.ts, theme-context.tsx | PENDING |
-| `subtasks/15-backend-theme-contrast-and-presentation-slide-refinement/02-quiz-title-and-backend-hover-effects.md` | Sidebar contrast in wp-admin-sidebar.tsx & title hover in FormBuilder.tsx | PENDING |
-| `subtasks/15-backend-theme-contrast-and-presentation-slide-refinement/03-presentation-layout-and-candidate-removal.md` | Layout centering, right offset tuning, zero Candidate Response in FormRunner.tsx | PENDING |
-| `subtasks/15-backend-theme-contrast-and-presentation-slide-refinement/04-option-hover-animations-and-theme-palettes.md` | Option slide hover motion, text-shadow, Riseup cream acronyms, Purple contrast | PENDING |
-| `subtasks/15-backend-theme-contrast-and-presentation-slide-refinement/05-verification-and-regression-testing.md` | Regression testing & acceptance criteria sign-off | PENDING |
+| `subtasks/15-backend-theme-contrast-and-presentation-slide-refinement/01-dracula-theme-and-admin-contrast.md` | Dracula tokens in theme.css, theme.less, themes.ts, theme-definitions.ts, theme-context.tsx | COMPLETE |
+| `subtasks/15-backend-theme-contrast-and-presentation-slide-refinement/02-quiz-title-and-backend-hover-effects.md` | Sidebar contrast in wp-admin-sidebar.tsx & title hover in FormBuilder.tsx | COMPLETE |
+| `subtasks/15-backend-theme-contrast-and-presentation-slide-refinement/03-presentation-layout-and-candidate-removal.md` | Layout centering, right offset tuning, zero Candidate Response in FormRunner.tsx | COMPLETE |
+| `subtasks/15-backend-theme-contrast-and-presentation-slide-refinement/04-option-hover-animations-and-theme-palettes.md` | Option slide hover motion, text-shadow, Riseup cream acronyms, Purple contrast | COMPLETE |
+| `subtasks/15-backend-theme-contrast-and-presentation-slide-refinement/05-verification-and-regression-testing.md` | Regression testing & acceptance criteria sign-off | COMPLETE |

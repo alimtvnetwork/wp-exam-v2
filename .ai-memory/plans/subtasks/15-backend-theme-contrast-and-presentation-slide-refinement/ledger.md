@@ -17,8 +17,8 @@
 
 | ID | Subtask Name | Assigned Scope | State | Target Files |
 | :--- | :--- | :--- | :--- | :--- |
-| **ST-01** | Dracula Theme & Admin Contrast | Update Dracula `--muted-foreground` and `textSecondary` across 5 catalogs | IN PROGRESS | `src/styles/theme.css`, `src/styles/theme.less`, `src/lib/themes.ts`, `src/themes/theme-definitions.ts`, `src/lib/theme-context.tsx` |
-| **ST-02** | Quiz Title & Admin Hover Effects | Sidebar contrast in `wp-admin-sidebar.tsx` & quiz title interactive hover in `FormBuilder.tsx` | QUEUED | `src/components/admin/wp-admin-sidebar.tsx`, `src/components/forms/FormBuilder.tsx` |
-| **ST-03** | Presentation Centering & Zero Candidate Response | Title vertical centering, `pt-2 lg:pt-6 xl:pt-8` offset, zero Candidate Response | QUEUED | `src/components/runner/FormRunner.tsx`, `src/components/runner/FocusQuizRunner.tsx` |
-| **ST-04** | Option Motion & Theme Palettes | Slide-right motion, semi-transparent rest, Riseup cream acronyms, Purple contrast | QUEUED | `src/styles/theme.css`, `src/components/runner/FormRunner.tsx` |
-| **ST-05** | Regression Testing & Acceptance Sign-off | Run compound validation tests and confirm all acceptance gates | QUEUED | `src/test/compound-validation.test.ts` |
+| **ST-01** | Dracula Theme & Admin Contrast | Update Dracula `--muted-foreground` and `textSecondary` across 5 catalogs | COMPLETE | `src/styles/theme.css`, `src/styles/theme.less`, `src/lib/themes.ts`, `src/themes/theme-definitions.ts`, `src/lib/theme-context.tsx` |
+| **ST-02** | Quiz Title & Admin Hover Effects | Sidebar contrast in `wp-admin-sidebar.tsx` & quiz title interactive hover in `FormBuilder.tsx` | COMPLETE | `src/components/admin/wp-admin-sidebar.tsx`, `src/components/forms/FormBuilder.tsx` |
+| **ST-03** | Presentation Centering & Zero Candidate Response | Title vertical centering, `pt-2 lg:pt-6 xl:pt-8` offset, zero Candidate Response | COMPLETE | `src/components/runner/FormRunner.tsx`, `src/components/runner/FocusQuizRunner.tsx` |
+| **ST-04** | Option Motion & Theme Palettes | Slide-right motion, semi-transparent rest, Riseup cream acronyms, Purple contrast | COMPLETE | `src/styles/theme.css`, `src/components/runner/FormRunner.tsx` |
+| **ST-05** | Regression Testing & Acceptance Sign-off | Run compound validation tests and confirm all acceptance gates | COMPLETE | `src/test/compound-validation.test.ts` |
