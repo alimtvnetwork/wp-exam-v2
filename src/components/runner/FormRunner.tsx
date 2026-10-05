@@ -2320,12 +2320,14 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 <div className="flex items-center justify-end text-xs text-muted-foreground pb-2">
                   <div className="flex items-center gap-2">
                     {timeLeftSeconds !== null && (
-                      <Badge variant="outline" className={`font-mono text-xs gap-1 font-semibold ${
-                        timeLeftSeconds < 60 ? 'border-destructive text-destructive bg-destructive/10 animate-pulse' : 'border-border text-foreground'
+                      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-semibold ${
+                        timeLeftSeconds < 60
+                          ? 'bg-destructive/10 text-destructive animate-pulse'
+                          : 'bg-muted/60 text-muted-foreground'
                       }`}>
                         <Clock className="w-3.5 h-3.5" />
                         <span>{formatTimerDisplay(timeLeftSeconds)}</span>
-                      </Badge>
+                      </div>
                     )}
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -2366,7 +2368,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                         </p>
                       ) : null}
                       {hasFieldDescription ? (
-                        <div className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-line border-l-2 border-border pl-3.5 py-0.5">
+                        <div className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-line pl-0 py-0.5">
                           {currentField.description}
                         </div>
                       ) : null}

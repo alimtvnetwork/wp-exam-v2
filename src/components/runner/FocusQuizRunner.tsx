@@ -817,8 +817,8 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
     >
       {/* Top Navigation & Stage Progress */}
       <header
-        className="sticky top-0 z-20 backdrop-blur-md bg-opacity-90 border-b"
-        style={{ borderColor: theme.colors.cardBorder }}
+        className="sticky top-0 z-20 backdrop-blur-md bg-opacity-90"
+        style={{ borderBottom: `1px solid ${theme.colors.cardBorder}40` }}
       >
         <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
           <button
@@ -855,9 +855,9 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
               onValueChange={setActiveThemeId}
             >
               <SelectTrigger
-                className="h-7 text-xs w-[110px] rounded border"
+                className="h-7 text-xs w-[110px] rounded"
                 style={{
-                  borderColor: theme.colors.cardBorder,
+                  border: `1px solid ${theme.colors.cardBorder}60`,
                   color: theme.colors.textSecondary,
                   backgroundColor: theme.colors.cardBg,
                 }}
@@ -948,7 +948,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
         {/* Stage 1: Reading Documentation & Embedded Video */}
         {currentStage === 'reading' && config.readingSection && (
           <div className="space-y-5 animate-in fade-in duration-200">
-            <div className="flex items-center justify-between border-b pb-3" style={{ borderColor: theme.colors.cardBorder }}>
+            <div className="flex items-center justify-between pb-3" style={{ borderBottom: `1px solid ${theme.colors.cardBorder}40` }}>
               <span className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-indigo-400">
                 <BookOpen className="w-4 h-4" />
                 Step 1: Reading & Lectures
@@ -1197,9 +1197,9 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                       >
                         <div className="flex items-center gap-3">
                           <span
-                            className="min-w-[2rem] h-8 rounded-xl font-mono font-bold text-sm flex items-center justify-center border-2 transition-all duration-200 shrink-0 group-hover:translate-x-1"
+                            className="min-w-[2rem] h-8 rounded-xl font-mono font-bold text-sm flex items-center justify-center border transition-all duration-200 shrink-0 group-hover:translate-x-1"
                             style={{
-                              borderColor: isSelected ? theme.colors.primary : theme.colors.cardBorder,
+                              borderColor: isSelected ? theme.colors.primary : `${theme.colors.cardBorder}80`,
                               backgroundColor: isSelected ? theme.colors.primary : 'transparent',
                               color: isSelected ? theme.colors.primaryText : theme.colors.textSecondary,
                             }}
