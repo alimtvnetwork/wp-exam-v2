@@ -791,10 +791,10 @@ export const FormBuilder: React.FC = () => {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Untitled Assessment Form"
-                    className="w-full text-xl sm:text-2xl font-bold bg-transparent border-0 border-b border-border/30 hover:border-primary/60 hover:bg-accent/25 focus:bg-accent/35 focus:border-primary focus:outline-none transition-all duration-200 px-3 py-1.5 rounded-lg text-foreground placeholder:text-muted-foreground/40 cursor-text shadow-2xs hover:shadow-xs"
+                    className="w-full text-xl sm:text-2xl font-bold bg-muted/20 border border-transparent hover:border-primary/50 hover:bg-muted/40 focus:bg-muted/50 focus:border-primary focus:outline-none transition-all duration-200 px-3 py-1.5 rounded-lg text-foreground placeholder:text-muted-foreground/40 cursor-text shadow-2xs hover:shadow-xs"
                     title="Click to edit assessment title"
                   />
-                  <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover/title:opacity-60 transition-opacity duration-200 pointer-events-none flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover/title:opacity-80 transition-opacity duration-200 pointer-events-none flex items-center gap-1.5 text-xs text-muted-foreground">
                     <Edit3 className="w-3.5 h-3.5 text-primary" />
                     <span className="text-[11px] font-mono hidden sm:inline">Edit Title</span>
                   </div>
@@ -956,7 +956,7 @@ export const FormBuilder: React.FC = () => {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Form description..."
                 rows={2}
-                className="w-full text-sm text-foreground/80 hover:text-foreground focus:text-foreground bg-transparent border-0 border-b border-border/30 hover:border-primary/50 focus:border-primary focus:outline-none transition-colors px-1 py-1 resize-none placeholder:text-muted-foreground/50"
+                className="w-full text-sm text-foreground/80 hover:text-foreground focus:text-foreground bg-muted/10 hover:bg-muted/25 focus:bg-muted/35 border border-transparent hover:border-primary/40 focus:border-primary focus:outline-none rounded-lg transition-all px-2.5 py-1.5 resize-none placeholder:text-muted-foreground/50"
               />
 
               {/* Status and Configuration Pill Row */}

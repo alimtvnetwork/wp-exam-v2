@@ -34,7 +34,7 @@ The WP Exam design system implements a dynamic, zero-runtime-overhead CSS variab
 | 1 | `green-choice` | Green Choice (Emerald Eco-Luxury) | Light / Dark | `#16A34A` (Emerald) | `#F4F8F5` / `#0E1613` | `#FFFFFF` / `#16221E` |
 | 2 | `clean-wide` | Clean Wide White (Vivid Indigo) | Light | `#4F46E5` (Indigo) | `#FFFFFF` (Pure White) | `#FFFFFF` (Card Shadow) |
 | 3 | `microsoft-blue` | Clean Paper Light (Sapphire) | Light | `#2563EB` (Sapphire) | `#F8FAFC` (Slate Tint) | `#FFFFFF` (Pure Card) |
-| 4 | `riseup-asia` | Rise Up Asia (Gold & Midnight) | Dark | `#FFAD01` (Gold Amber) | `#0A0A14` (Midnight Navy) | `#141424` (Deep Navy) |
+| 4 | `riseup-asia` | Riseup (Cream & Midnight Navy) | Dark | `#F7F1E6` (Brand Cream) | `#0A0A14` (Midnight Navy) | `#141424` (Deep Navy) |
 | 5 | `dracula` | Antigravity Dracula (Neon & Violet) | Dark | `#BD93F9` (Purple Neon) | `#191A21` (Dracula Black) | `#282A36` (Charcoal Slate) |
 | 6 | `purple` | Purple Theme (Electric Indigo) | Dark | `#5C45FD` (Electric Violet) | `#0F0E1E` (Violet Black) | `#18162F` (Dark Indigo) |
 | 7 | `vscode-dark` | VS Code Dark (Obsidian & Cyan) | Dark | `#38BDF8` (Sky Cyan) | `#0D1117` (GitHub Dark) | `#161B22` (Elevated Slate) |
@@ -84,19 +84,19 @@ The WP Exam design system implements a dynamic, zero-runtime-overhead CSS variab
   - `--border`: `214 32% 91%` (`#E2E8F0`)
   - `--accent`: `210 40% 96.1%` (`#EFF6FF`)
 
-### 3.4 Theme 4: Rise Up Asia (`riseup-asia`)
-- **Concept**: Signature institutional brand featuring bright gold amber on midnight navy with warm cream typography.
+### 3.4 Theme 4: Riseup (`riseup-asia`, alias `riseup`)
+- **Concept**: Signature institutional brand featuring cream controls on midnight navy, with gold strictly reserved as the active indicator mark.
 - **Dark Tokens**:
   - `--background`: `240 33% 6%` (`#0A0A14`)
   - `--foreground`: `40 100% 92%` (`#FFF1D6`)
   - `--card`: `240 28% 11%` (`#141424`)
   - `--card-foreground`: `40 100% 92%`
-  - `--primary`: `41 100% 50%` (`#FFAD01`)
+  - `--primary`: `40 43% 92%` (`#F7F1E6`)
   - `--border`: `240 24% 21%` (`#2A2A44`)
   - `--muted`: `240 25% 16%`
   - `--muted-foreground`: `38 22% 64%` (`#B8A990`)
-  - `--card-active-border`: `#FFAD01`
-  - `--card-active-bg`: `#2A230F`
+  - `--card-active-border`: `#E8C547` (Gold active indicator only)
+  - `--card-active-bg`: `rgba(232, 197, 71, 0.12)`
 
 ### 3.5 Theme 5: Antigravity Dracula (`dracula`)
 - **Concept**: High-contrast vampire palette with deep purple-black canvas, neon green highlights, and glowing purple borders.
@@ -107,7 +107,7 @@ The WP Exam design system implements a dynamic, zero-runtime-overhead CSS variab
   - `--primary`: `265 89% 78%` (`#BD93F9`)
   - `--border`: `232 14% 31%` (`#44475A`)
   - `--accent`: `135 94% 65%` (`#50FA7B`)
-  - `--muted-foreground`: `225 27% 51%` (`#6272A4`)
+  - `--muted-foreground`: `225 25% 76%` (`#BAC7E8`, 7.2:1 AAA contrast)
 
 ### 3.6 Theme 6: Purple Theme (`purple`, alias `letterly`)
 - **Concept**: Modern focus UI with vivid electric indigo on deep violet-navy with warm amber highlights.

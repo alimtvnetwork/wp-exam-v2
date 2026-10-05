@@ -90,23 +90,24 @@
   will-change: transform, opacity, box-shadow;
 
   &:hover {
-    opacity: 1;
-    transform: translate3d(6px, 0, 0);
-    border-color: hsl(var(--primary) / 0.55);
-    background-color: hsl(var(--primary) / 0.08);
-    box-shadow: 0 8px 24px -4px hsl(var(--primary) / 0.18), 0 2px 6px -1px rgba(0, 0, 0, 0.25);
+    opacity: 1 !important;
+    transform: translate3d(6px, 0, 0) !important;
+    border-color: hsl(var(--primary) / 0.65) !important;
+    background-color: hsl(var(--card) / 0.95) !important;
+    box-shadow: 0 10px 28px -4px hsl(var(--primary) / 0.22), 0 2px 8px -1px rgba(0, 0, 0, 0.3) !important;
 
     .option-text,
     .option-text-shadow {
-      color: hsl(var(--foreground));
-      font-weight: 600;
-      text-shadow: var(--option-text-shadow-hover);
+      color: hsl(var(--foreground)) !important;
+      font-weight: 600 !important;
+      text-shadow: var(--option-text-shadow-hover) !important;
     }
 
     .option-badge {
-      border-color: hsl(var(--primary) / 0.6);
-      background-color: hsl(var(--primary) / 0.15);
-      color: hsl(var(--primary));
+      border-color: hsl(var(--primary) / 0.7) !important;
+      background-color: hsl(var(--primary) / 0.2) !important;
+      color: hsl(var(--primary)) !important;
+      transform: scale(1.05);
     }
   }
 }
