@@ -237,6 +237,8 @@ export function getThemeCssVariables(theme: ThemeDefinition): Record<string, str
     '--wp-exam-card': theme.colors.cardBg,
     '--wp-exam-card-border': theme.colors.cardBorder,
     '--wp-exam-card-hover': theme.colors.cardHover,
+    '--wp-exam-card-active-border': theme.colors.cardActiveBorder,
+    '--wp-exam-card-active-bg': theme.colors.cardActiveBg,
     '--wp-exam-primary': theme.colors.primary,
     '--wp-exam-primary-text': theme.colors.primaryText,
     '--wp-exam-highlight': theme.colors.highlightWord,

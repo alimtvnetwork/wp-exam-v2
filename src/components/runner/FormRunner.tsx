@@ -915,7 +915,27 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const [tabBlurCount, setTabBlurCount] = useState<number>(0);
   const [showBlackoutWarning, setShowBlackoutWarning] = useState<boolean>(false);
   const [isFullscreen, setIsFullscreen] = useState<boolean>(false);
+  const [slideDirection, setSlideDirection] = useState<'forward' | 'backward'>('forward');
   const [runnerViewMode, setRunnerViewMode] = useState<'default' | 'standard' | 'presentation_split'>('default');
+
+  const urgencyThreshold = activeForm.settings?.urgencyThresholdSeconds ?? 300;
+  const isUrgent = Boolean(timeLeftSeconds !== null && timeLeftSeconds <= urgencyThreshold && timeLeftSeconds > 0);
+  const isMinuteRollover = Boolean(isUrgent && timeLeftSeconds !== null && timeLeftSeconds % 60 === 0);
+
+  const activeTransitionClass = useMemo(() => {
+    const transitionMode = activeForm.settings?.slideTransition || 'slide_horizontal';
+
+    if (transitionMode === 'fade') {
+      return 'animate-ppt-fade';
+    }
+
+    if (transitionMode === 'slide_horizontal') {
+      return slideDirection === 'forward' ? 'animate-ppt-slide-forward' : 'animate-ppt-slide-backward';
+    }
+
+    return 'animate-card-entrance';
+  }, [activeForm.settings?.slideTransition, slideDirection]);
+
   const [isSidebarVisible, setIsSidebarVisible] = useState<boolean>(() => {
     const startMode = resolveQuestionLayoutMode({
       runtimeOverride: 'default',
@@ -1348,6 +1368,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   }, [fields.length]);
 
   const handleNextStep = () => {
+    setSlideDirection('forward');
+
     if (!currentField) {
       return;
     }
@@ -1393,6 +1415,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   };
 
   const handlePreviousStep = () => {
+    setSlideDirection('backward');
+
     if (stepHistory.length > 0) {
       const newHistory = [...stepHistory];
       let targetIndex = newHistory.pop()!;
@@ -1933,6 +1957,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 <button
                   type="button"
                   onClick={() => {
+                    setSlideDirection(idx >= currentStep ? 'forward' : 'backward');
                     setCurrentStep(idx);
                     if (effectiveLayoutMode === 'presentation_split') {
                       setIsSidebarVisible(false);
@@ -2027,6 +2052,40 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           <span>{currentStep + 1} / {visibleFields.length}</span>
         </div>
       )}
+
+      {/* Floating Top-Right Executive Timer & Fullscreen HUD */}
+      <div className="fixed top-3 right-4 sm:top-4 sm:right-6 z-40 flex items-center gap-2 select-none">
+        {timeLeftSeconds !== null && (
+          <div
+            className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-sm sm:text-base font-mono font-bold tracking-tight shadow-sm transition-all duration-300 ${
+              isUrgent
+                ? isMinuteRollover
+                  ? 'timer-urgency-glow animate-timer-minute-pulse'
+                  : 'timer-urgency-glow'
+                : 'bg-card/90 backdrop-blur-md border-border/70 text-foreground'
+            }`}
+          >
+            <Clock className={`w-4 h-4 sm:w-4.5 sm:h-4.5 ${isUrgent ? 'text-destructive animate-pulse' : 'text-primary'}`} />
+            <span>{formatTimerDisplay(timeLeftSeconds)}</span>
+          </div>
+        )}
+
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              onClick={handleToggleFullscreen}
+              className="h-9 w-9 bg-card/90 backdrop-blur-md border border-border/70 text-muted-foreground hover:text-foreground rounded-full hover:bg-accent transition-all shadow-sm cursor-pointer"
+              aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen Exam'}
+            >
+              {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}
+            </Button>
+          </TooltipTrigger>
+          <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen Exam'}</TooltipContent>
+        </Tooltip>
+      </div>
 
       <div className={`mx-auto ${
         effectiveLayoutMode !== 'standard'
@@ -2277,7 +2336,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   type="button"
                   size="sm"
                   variant={currentStep === idx ? 'default' : 'outline'}
-                  onClick={() => setCurrentStep(idx)}
+                  onClick={() => {
+                    setSlideDirection(idx >= currentStep ? 'forward' : 'backward');
+                    setCurrentStep(idx);
+                  }}
                   className={`h-7 px-2.5 text-xs font-mono font-semibold rounded-lg ${
                     currentStep === idx ? 'bg-amber-600 text-white' : 'border-border/80'
                   }`}
@@ -2425,7 +2487,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               /* Presentation-Grade Split or Centered Question Canvas */
               <div
                 key={currentField.id}
-                className="w-full min-h-[calc(100dvh-3rem)] bg-transparent border-0 rounded-none shadow-none p-4 sm:p-8 lg:p-12 space-y-8 animate-card-entrance relative"
+                className={`w-full min-h-[calc(100dvh-4rem)] lg:min-h-[calc(100dvh-3rem)] flex flex-col justify-center bg-transparent border-0 rounded-none shadow-none px-4 sm:px-8 lg:px-12 py-4 relative ${activeTransitionClass}`}
               >
                 {hasSlideVideo ? (
                   <div className="space-y-4">
@@ -2471,7 +2533,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                                 {isSelected ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : String.fromCharCode(65 + cIdx)}
                               </span>
                               <span className="truncate">{choice}</span>
-                              {isSelected && <CheckCircle2 className="w-4 h-4 ml-auto sm:ml-1 text-primary-foreground shrink-0" />}
+                              {isSelected && <CheckCircle2 className={`w-4 h-4 ml-auto sm:ml-1 shrink-0 ${isRiseupTheme ? 'text-[#E8C547]' : 'text-primary-foreground'}`} />}
                             </Button>
                           );
                         })}
@@ -2480,7 +2542,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   </div>
                 ) : null}
 
-                {/* Top Meta Bar: Balanced Header with Question Context on Left, Timer & Fullscreen on Right */}
+                {/* Top Meta Bar: Question Context */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground pb-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     {(activeForm.settings?.showSlideNumbers ?? true) && (
@@ -2502,40 +2564,15 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                       </div>
                     )}
                   </div>
-
-                  <div className="flex items-center gap-2">
-                    {timeLeftSeconds !== null && (
-                      <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-semibold ${
-                        timeLeftSeconds < 60
-                          ? 'bg-destructive/10 text-destructive animate-pulse'
-                          : 'bg-muted/40 text-muted-foreground'
-                      }`}>
-                        <Clock className="w-3.5 h-3.5" />
-                        <span>{formatTimerDisplay(timeLeftSeconds)}</span>
-                      </div>
-                    )}
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon"
-                          onClick={handleToggleFullscreen}
-                          className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/40 cursor-pointer"
-                          aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen Exam'}
-                        >
-                          <Maximize2 className="w-4 h-4" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen Exam'}</TooltipContent>
-                    </Tooltip>
-                  </div>
                 </div>
 
                 {isCenteredPresentation ? (
                   <div className="max-w-3xl mx-auto w-full space-y-8 pt-2 flex flex-col items-center">
                     {/* Centered Question Header */}
                     <div className="w-full text-center space-y-4">
+                      {isRiseupTheme && (
+                        <div className="h-0.5 w-16 bg-[#E8C547] rounded-full shadow-md mx-auto mb-3" />
+                      )}
                       <h2 className={`font-heading font-bold ${dynamicTitleTypography} text-foreground tracking-tight text-center mx-auto max-w-2xl`}>
                         {renderHighlightedQuestionTitle(currentField.label, (currentField as FormField & { highlightWord?: string }).highlightWord, isRiseupTheme)}
                         {isCurrentFieldRequired && <span className="text-destructive font-bold ml-1.5">*</span>}
@@ -2583,7 +2620,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     {/* Centered MCQ Options Stack */}
                     <div className="w-full max-w-xl mx-auto space-y-6">
                       <div className="space-y-3.5">
-                        {renderFieldInput(currentField, answers[currentField.id], (val) => handleAnswerChange(currentField.id, val), true, otherTexts, handleOtherTextChange)}
+                        {renderFieldInput(currentField, answers[currentField.id], (val) => handleAnswerChange(currentField.id, val), true, otherTexts, handleOtherTextChange, isRiseupTheme)}
                       </div>
 
                       {/* Centered Navigation Footer */}
@@ -2640,8 +2677,11 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   </div>
                 ) : (
                   /* 2-Column Presentation Grid (50% / 50% on Desktop, Vertically Centered Left Column) */
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center min-h-[55vh] lg:min-h-[62vh] pt-2">
-                    <div className={`w-full space-y-6 flex flex-col justify-center ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-2' : 'lg:order-1'}`}>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-start w-full my-auto">
+                    <div className={`w-full space-y-6 flex flex-col justify-center lg:self-center ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-2' : 'lg:order-1'}`}>
+                      {isRiseupTheme && (
+                        <div className="h-0.5 w-16 bg-[#E8C547] rounded-full shadow-md mb-3" />
+                      )}
                       <h2 className={`font-heading font-bold ${dynamicTitleTypography} text-foreground tracking-tight`}>
                         {renderHighlightedQuestionTitle(
                           currentField.label,
@@ -2697,7 +2737,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     </div>
 
                     {/* Left/Right Column: Seamless Unboxed Answer Column (Nudged Downward for Optical Balance) */}
-                    <div className={`w-full space-y-6 flex flex-col justify-center pt-3 lg:pt-6 ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-1' : 'lg:order-2'}`}>
+                    <div className={`w-full space-y-6 flex flex-col justify-center pt-3 lg:pt-16 xl:pt-20 ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-1' : 'lg:order-2'}`}>
                       <div className="w-full space-y-6 relative">
                         {/* Interactive Field Input */}
                         <div className="space-y-4">
@@ -2707,7 +2747,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                             (val) => handleAnswerChange(currentField.id, val),
                             true,
                             otherTexts,
-                            handleOtherTextChange
+                            handleOtherTextChange,
+                            isRiseupTheme
                           )}
                         </div>
 
@@ -2864,7 +2905,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     (val) => handleAnswerChange(currentField.id, val),
                     false,
                     otherTexts,
-                    handleOtherTextChange
+                    handleOtherTextChange,
+                    isRiseupTheme
                   )}
 
                   {/* Suffix Citations */}
@@ -3034,7 +3076,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                       (val) => handleAnswerChange(f.id, val),
                       false,
                       otherTexts,
-                      handleOtherTextChange
+                      handleOtherTextChange,
+                      isRiseupTheme
                     )}
 
                     {/* Suffix Citations */}
@@ -3738,6 +3781,7 @@ function renderFieldInput(
   isPresentationSlide = false,
   otherTexts?: Record<string, string>,
   onOtherTextChange?: (fieldId: string, text: string) => void,
+  isRiseupTheme = false,
 ) {
   const strValue = typeof value === 'string' ? value : '';
   const choiceMotionClass = isPresentationSlide
@@ -3908,7 +3952,9 @@ function renderFieldInput(
                 key={opt}
                 className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} ${
                   isSelected
-                    ? 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                    ? isRiseupTheme
+                      ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
+                      : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
                     : 'bg-card/75 border-border/80 text-foreground/80 hover:text-foreground'
                 }`}
               >
@@ -3927,9 +3973,13 @@ function renderFieldInput(
                   onChange={(e) => handleChange(opt, e.target.checked)}
                   className="sr-only"
                 />
-                <span className="option-text flex-1 font-sans text-sm sm:text-base font-medium text-foreground/90 transition-colors duration-200">{opt}</span>
+                <span className="option-text option-text-shadow flex-1 font-sans text-sm sm:text-base font-medium text-foreground/90 transition-colors duration-200">{opt}</span>
                 {isSelected && (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 ml-auto" />
+                  <CheckCircle2
+                    className={`w-5 h-5 shrink-0 ml-auto ${
+                      isRiseupTheme ? 'text-[#E8C547]' : 'text-emerald-500'
+                    }`}
+                  />
                 )}
               </label>
             );
@@ -3939,7 +3989,9 @@ function renderFieldInput(
               <label
                 className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
                   hasOther
-                    ? 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                    ? isRiseupTheme
+                      ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
+                      : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
                     : 'bg-card/75 border-border/80 text-foreground/80 hover:text-foreground'
                 }`}
               >
@@ -3987,7 +4039,11 @@ function renderFieldInput(
                   />
                 )}
                 {hasOther && (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 ml-auto" />
+                  <CheckCircle2
+                    className={`w-5 h-5 shrink-0 ml-auto ${
+                      isRiseupTheme ? 'text-[#E8C547]' : 'text-emerald-500'
+                    }`}
+                  />
                 )}
               </label>
 
@@ -4061,7 +4117,9 @@ function renderFieldInput(
                 key={opt}
                 className={`flex items-center gap-3.5 p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} ${alignClass} ${
                   isSelected
-                    ? 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                    ? isRiseupTheme
+                      ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
+                      : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
                     : 'bg-card/75 border-border/80 text-foreground/80 hover:text-foreground'
                 }`}
               >
@@ -4080,9 +4138,13 @@ function renderFieldInput(
                   onChange={() => onChange(opt)}
                   className="sr-only"
                 />
-                <span className="option-text font-sans text-sm sm:text-base font-medium text-foreground/90 flex-1 transition-colors duration-200">{opt}</span>
+                <span className="option-text option-text-shadow font-sans text-sm sm:text-base font-medium text-foreground/90 flex-1 transition-colors duration-200">{opt}</span>
                 {isSelected && (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 ml-auto" />
+                  <CheckCircle2
+                    className={`w-5 h-5 shrink-0 ml-auto ${
+                      isRiseupTheme ? 'text-[#E8C547]' : 'text-emerald-500'
+                    }`}
+                  />
                 )}
               </label>
             );
@@ -4122,7 +4184,9 @@ function renderFieldInput(
                 key={opt}
                 className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} ${
                   isSelected
-                    ? 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                    ? isRiseupTheme
+                      ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
+                      : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
                     : 'bg-card/75 border-border/80 text-foreground/80 hover:text-foreground'
                 }`}
               >
@@ -4141,9 +4205,13 @@ function renderFieldInput(
                   onChange={() => onChange(opt)}
                   className="sr-only"
                 />
-                <span className="option-text flex-1 font-sans text-sm sm:text-base font-medium text-foreground/90 transition-colors duration-200">{opt}</span>
+                <span className="option-text option-text-shadow flex-1 font-sans text-sm sm:text-base font-medium text-foreground/90 transition-colors duration-200">{opt}</span>
                 {isSelected && (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 ml-auto" />
+                  <CheckCircle2
+                    className={`w-5 h-5 shrink-0 ml-auto ${
+                      isRiseupTheme ? 'text-[#E8C547]' : 'text-emerald-500'
+                    }`}
+                  />
                 )}
               </label>
             );
@@ -4153,7 +4221,9 @@ function renderFieldInput(
               <label
                 className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
                   hasOther
-                    ? 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                    ? isRiseupTheme
+                      ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
+                      : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
                     : 'bg-card/75 border-border/80 text-foreground/80 hover:text-foreground'
                 }`}
               >
@@ -4199,7 +4269,11 @@ function renderFieldInput(
                   />
                 )}
                 {hasOther && (
-                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 ml-auto" />
+                  <CheckCircle2
+                    className={`w-5 h-5 shrink-0 ml-auto ${
+                      isRiseupTheme ? 'text-[#E8C547]' : 'text-emerald-500'
+                    }`}
+                  />
                 )}
               </label>
 

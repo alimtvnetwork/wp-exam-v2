@@ -260,6 +260,8 @@ export interface FormSettings {
   showFeedbackImmediately?: boolean;
   theme?: string;
   showSlideNumbers?: boolean;
+  urgencyThresholdSeconds?: number;
+  slideTransition?: 'slide_horizontal' | 'fade' | 'card_entrance';
 }
 
 export interface FormModel {
