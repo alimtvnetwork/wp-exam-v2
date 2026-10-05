@@ -252,7 +252,7 @@ export const THEME_PRESETS: Record<string, ThemeDefinition> = {
       primaryText: '#282A36',
       highlightWord: '#50FA7B',
       textPrimary: '#F8F8F2',
-      textSecondary: '#6272A4',
+      textSecondary: '#BAC7E8',
       progressBar: '#BD93F9',
       badgeBg: '#44475A',
     },
@@ -273,7 +273,7 @@ export const THEME_PRESETS: Record<string, ThemeDefinition> = {
       '--secondary': '232 14% 24%',
       '--secondary-foreground': '60 30% 96%',
       '--muted': '232 14% 24%',
-      '--muted-foreground': '225 27% 51%',
+      '--muted-foreground': '225 25% 76%',
     },
   },
 

@@ -159,5 +159,14 @@ describe('Theme Definitions & CSS Variable Generator', () => {
     expect(vars['--wp-exam-card']).toBe('#282A36');
     expect(vars['--wp-exam-primary']).toBe('#BD93F9');
     expect(vars['--wp-exam-text-primary']).toBe('#F8F8F2');
+    expect(vars['--wp-exam-text-secondary']).toBe('#BAC7E8');
+
+    const riseupVars = getThemeCssVariables(getTheme('riseup-asia'));
+    expect(riseupVars['--wp-exam-highlight']).toBe('#F7F1E6');
+    expect(riseupVars['--wp-exam-bg']).toBe('#0A0A14');
+
+    const purpleVars = getThemeCssVariables(getTheme('purple'));
+    expect(purpleVars['--wp-exam-bg']).toBe('#0F0E1E');
+    expect(purpleVars['--wp-exam-primary']).toBe('#5C45FD');
   });
 });

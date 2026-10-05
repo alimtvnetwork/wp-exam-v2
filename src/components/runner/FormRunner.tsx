@@ -2677,7 +2677,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   </div>
                 ) : (
                   /* 2-Column Presentation Grid (50% / 50% on Desktop, Vertically Centered Left Column) */
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-start w-full my-auto">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center w-full my-auto">
                     <div className={`w-full space-y-6 flex flex-col justify-center lg:self-center ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-2' : 'lg:order-1'}`}>
                       {isRiseupTheme && (
                         <div className="h-0.5 w-16 bg-[#E8C547] rounded-full shadow-md mb-3" />
@@ -2737,7 +2737,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     </div>
 
                     {/* Left/Right Column: Seamless Unboxed Answer Column (Nudged Downward for Optical Balance) */}
-                    <div className={`w-full space-y-6 flex flex-col justify-center pt-3 lg:pt-16 xl:pt-20 ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-1' : 'lg:order-2'}`}>
+                    <div className={`w-full space-y-6 flex flex-col justify-center pt-2 lg:pt-6 xl:pt-8 ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-1' : 'lg:order-2'}`}>
                       <div className="w-full space-y-6 relative">
                         {/* Interactive Field Input */}
                         <div className="space-y-4">
@@ -3786,7 +3786,7 @@ function renderFieldInput(
   const strValue = typeof value === 'string' ? value : '';
   const choiceMotionClass = isPresentationSlide
     ? 'slide-up-anim presentation-option-card'
-    : 'transition-all duration-200 hover:translate-x-1 hover:border-primary/50 hover:bg-primary/5 hover:shadow-xs';
+    : 'presentation-option-card transition-all duration-200';
 
   switch (field.type) {
     case 'section_header':

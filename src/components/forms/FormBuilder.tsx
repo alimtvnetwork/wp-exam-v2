@@ -956,7 +956,7 @@ export const FormBuilder: React.FC = () => {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Form description..."
                 rows={2}
-                className="w-full text-sm text-muted-foreground bg-transparent border-0 border-b border-border/30 hover:border-border focus:border-primary focus:outline-none transition-colors px-1 py-1 resize-none placeholder:text-muted-foreground/40"
+                className="w-full text-sm text-foreground/80 hover:text-foreground focus:text-foreground bg-transparent border-0 border-b border-border/30 hover:border-primary/50 focus:border-primary focus:outline-none transition-colors px-1 py-1 resize-none placeholder:text-muted-foreground/50"
               />
 
               {/* Status and Configuration Pill Row */}
