@@ -201,7 +201,7 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
       '--accent': '246 32% 24%',
       '--accent-foreground': '0 0% 100%',
       '--muted': '246 32% 19%',
-      '--muted-foreground': '240 15% 75%',
+      '--muted-foreground': '240 15% 82%',
     },
   },
   obsidian: {

@@ -249,8 +249,8 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
                     title={isCollapsed ? item.label : undefined}
                     className={`relative w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-all group ${
                       isActive
-                        ? 'bg-muted text-foreground font-semibold shadow-xs'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-muted/80'
+                        ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-primary/30'
+                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/60'
                     }`}
                   >
                     {/* Active Accent Bar */}
@@ -268,7 +268,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
 
                     {!isCollapsed && (
                       <div className="flex-1 flex items-center justify-between overflow-hidden">
-                        <span className="truncate">{item.label}</span>
+                        <span className="truncate group-hover:underline group-hover:underline-offset-2 transition-all">{item.label}</span>
 
                         {item.badge && (
                           <span

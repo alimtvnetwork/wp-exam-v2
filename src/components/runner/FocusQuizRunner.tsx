@@ -1183,10 +1183,11 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                             currentQuestion.type === 'multiselect'
                           )
                         }
-                        className={`text-left p-4 rounded-2xl border transition-all duration-150 flex items-center justify-between ${
+                        className={`group text-left p-4 rounded-2xl border transition-all duration-200 flex items-center justify-between hover:opacity-100 ${
                           isFullWidth ? 'col-span-2' : ''
                         }`}
                         style={{
+                          opacity: isSelected ? 1 : 0.8,
                           backgroundColor: isSelected ? theme.colors.cardActiveBg : theme.colors.cardBg,
                           borderColor: isSelected ? theme.colors.cardActiveBorder : theme.colors.cardBorder,
                           boxShadow: isSelected
@@ -1195,7 +1196,19 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                         }}
                       >
                         <div className="flex items-center gap-3">
+                          <span
+                            className="min-w-[2rem] h-8 rounded-xl font-mono font-bold text-sm flex items-center justify-center border-2 transition-all duration-200 shrink-0"
+                            style={{
+                              borderColor: isSelected ? theme.colors.primary : theme.colors.cardBorder,
+                              backgroundColor: isSelected ? theme.colors.primary : 'transparent',
+                              color: isSelected ? theme.colors.primaryText : theme.colors.textSecondary,
+                            }}
+                          >
+                            {String.fromCharCode(65 + optIdx)}
+                          </span>
+
                           {optIcon && <span className="text-xl">{optIcon}</span>}
+
                           <div>
                             <span className="font-semibold text-sm leading-snug block">{optLabel}</span>
                             {branchTarget && (
@@ -1206,15 +1219,8 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                           </div>
                         </div>
 
-                        <div
-                          className={`w-5 h-5 rounded-full border flex items-center justify-center transition-colors ${
-                            isSelected ? 'border-transparent' : 'border-slate-600'
-                          }`}
-                          style={{
-                            backgroundColor: isSelected ? theme.colors.primary : 'transparent',
-                          }}
-                        >
-                          {isSelected && <Check className="w-3 h-3 text-white" />}
+                        <div className="w-5 h-5 flex items-center justify-center shrink-0">
+                          {isSelected && <Check className="w-4 h-4" style={{ color: '#10B981' }} />}
                         </div>
                       </button>
                     );
