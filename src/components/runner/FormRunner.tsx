@@ -42,6 +42,7 @@ import {
   HelpCircle,
   ArrowLeft,
   ChevronDown,
+  ChevronLeft,
   ChevronRight,
   Heading,
   Clock,
@@ -2445,7 +2446,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                       variant="outline"
                       size="sm"
                       onClick={() => setIsSidebarVisible(true)}
-                      className="h-10 px-4 text-xs font-sans font-medium gap-2 border-border bg-card/90 backdrop-blur-md text-foreground hover:bg-accent rounded-full shadow-lg transition-all cursor-pointer hover:scale-105"
+                      className="h-9 px-3.5 text-xs font-sans font-medium gap-2 border border-border/40 bg-card/85 backdrop-blur-xl text-foreground/90 hover:text-foreground hover:bg-accent rounded-xl shadow-lg hover:shadow-xl hover:border-primary/40 transition-all cursor-pointer"
                     >
                       <Menu className="w-4 h-4 text-foreground" />
                       <span>Questions ({currentStep + 1}/{visibleFields.length})</span>
@@ -2487,7 +2488,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               /* Presentation-Grade Split or Centered Question Canvas */
               <div
                 key={currentField.id}
-                className={`w-full min-h-[calc(100dvh-4rem)] lg:min-h-[calc(100dvh-3rem)] flex flex-col justify-center bg-transparent border-0 rounded-none shadow-none px-4 sm:px-8 lg:px-12 py-4 relative ${activeTransitionClass}`}
+                className={`w-full min-h-[82vh] lg:min-h-[85vh] xl:min-h-[88vh] flex flex-col justify-center bg-transparent border-0 rounded-none shadow-none px-4 sm:px-8 lg:px-12 py-4 relative ${activeTransitionClass}`}
               >
                 {hasSlideVideo ? (
                   <div className="space-y-4">
@@ -2513,28 +2514,40 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                             (typeof answers[currentField.id] === 'string' && (answers[currentField.id] as string).toLowerCase() === choice.toLowerCase());
 
                           return (
-                            <Button
+                            <button
                               key={choice}
                               type="button"
-                              size="lg"
-                              variant={isSelected ? 'default' : 'outline'}
                               onClick={() => handleAnswerChange(currentField.id, choice)}
-                              className={`flex-1 w-full sm:w-auto h-12 px-6 rounded-xl font-heading font-semibold text-base transition-all duration-200 flex items-center justify-center gap-2.5 shadow-sm hover:translate-x-1 cursor-pointer ${
+                              className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border flex-1 w-full sm:w-auto transition-all duration-200 ${
                                 isSelected
-                                  ? 'bg-primary text-primary-foreground border-primary shadow-md ring-2 ring-primary/30'
-                                  : 'border-border bg-card text-foreground hover:bg-muted/70 hover:border-foreground/30'
+                                  ? isRiseupTheme
+                                    ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
+                                    : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                                  : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground hover:border-border'
                               }`}
                             >
-                              <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-mono font-bold shrink-0 ${
-                                isSelected
-                                  ? 'bg-primary-foreground text-primary'
-                                  : 'bg-muted text-muted-foreground'
-                              }`}>
-                                {isSelected ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : String.fromCharCode(65 + cIdx)}
+                              <span
+                                className={`option-badge w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center font-mono font-bold text-xs sm:text-sm shrink-0 transition-all duration-200 ${
+                                  isSelected
+                                    ? isRiseupTheme
+                                      ? 'bg-[#E8C547] text-[#0A0A14] border-[#E8C547] shadow-xs'
+                                      : 'bg-primary text-primary-foreground border-primary shadow-xs'
+                                    : 'bg-muted/70 text-muted-foreground border-border/70 group-hover:border-foreground/30'
+                                }`}
+                              >
+                                {String.fromCharCode(65 + cIdx)}
                               </span>
-                              <span className="truncate">{choice}</span>
-                              {isSelected && <CheckCircle2 className={`w-4 h-4 ml-auto sm:ml-1 shrink-0 ${isRiseupTheme ? 'text-[#E8C547]' : 'text-primary-foreground'}`} />}
-                            </Button>
+                              <span className="option-text option-text-shadow flex-1 font-sans text-sm sm:text-base font-medium text-foreground/90 transition-colors duration-200 leading-snug text-left truncate">{choice}</span>
+                              <div className="w-6 h-6 flex items-center justify-center shrink-0 ml-auto">
+                                {isSelected && (
+                                  <CheckCircle2
+                                    className={`w-5 h-5 animate-in zoom-in-75 duration-150 ${
+                                      isRiseupTheme ? 'text-[#E8C547]' : 'text-primary dark:text-emerald-400'
+                                    }`}
+                                  />
+                                )}
+                              </div>
+                            </button>
                           );
                         })}
                       </div>
@@ -2624,60 +2637,58 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                       </div>
 
                       {/* Centered Navigation Footer */}
-                      <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
+                      <div className="pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 w-full">
+                        {/* Left: Previous with subtle Chevron icon */}
                         <Button
+                          type="button"
                           variant="ghost"
                           size="sm"
                           disabled={currentStep === 0}
                           onClick={handlePreviousStep}
-                          className="btn-tactile-spring text-xs h-10 px-4 font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 cursor-pointer w-full sm:w-auto rounded-xl transition-all"
+                          className={`h-11 px-4 rounded-xl text-xs sm:text-sm font-sans font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all flex items-center gap-1.5 cursor-pointer w-full sm:w-auto ${
+                            currentStep === 0 ? 'invisible sm:opacity-0 sm:pointer-events-none' : 'opacity-100'
+                          }`}
                         >
-                          Previous
+                          <ChevronLeft className="w-4 h-4 shrink-0" />
+                          <span>Previous</span>
                         </Button>
-                        <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+
+                        {/* Right: Auto Fill + Primary Action Cluster */}
+                        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
                           <Tooltip>
                             <TooltipTrigger asChild>
                               <Button
                                 type="button"
-                                variant="ghost"
+                                variant="outline"
                                 size="sm"
                                 onClick={handleTestAutoFill}
-                                className="btn-tactile-spring text-xs h-10 px-3.5 font-medium rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all cursor-pointer"
+                                className="h-9 px-3 text-xs font-mono font-medium rounded-lg border-border/50 bg-background/60 text-muted-foreground hover:text-foreground hover:bg-accent/60 hover:border-border transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
                               >
-                                ⚡ Auto Fill
+                                <Zap className="w-3.5 h-3.5 text-amber-500/80" />
+                                <span>Auto Fill</span>
                               </Button>
                             </TooltipTrigger>
                             <TooltipContent>Fill valid answer and advance</TooltipContent>
                           </Tooltip>
 
-                          {isLastVisibleStep ? (
-                            <Button
-                              type="button"
-                              size="sm"
-                              onClick={handleNextStep}
-                              className="btn-tactile-spring text-xs h-10 px-6 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-2 flex-1 sm:flex-initial justify-center rounded-xl"
-                            >
-                              <span>Submit Assessment</span>
-                              <span className="text-[10px] opacity-75 font-mono">Enter ↵</span>
-                            </Button>
-                          ) : (
-                            <Button
-                              type="button"
-                              size="sm"
-                              onClick={handleNextStep}
-                              className="btn-tactile-spring text-xs h-10 px-6 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-2 flex-1 sm:flex-initial justify-center rounded-xl"
-                            >
-                              <span>Next Question</span>
-                              <span className="text-[10px] opacity-75 font-mono">Enter ↵</span>
-                            </Button>
-                          )}
+                          <Button
+                            type="button"
+                            size="default"
+                            onClick={handleNextStep}
+                            className="h-11 px-6 sm:px-7 rounded-xl font-heading font-bold text-sm bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-2.5 flex-1 sm:flex-initial"
+                          >
+                            <span>{isLastVisibleStep ? 'Submit Assessment' : 'Next Question'}</span>
+                            <kbd className="inline-flex items-center justify-center h-5 min-w-[20px] px-1 text-[11px] font-mono font-bold bg-primary-foreground/20 text-primary-foreground rounded border border-primary-foreground/30 shadow-2xs">
+                              ↵
+                            </kbd>
+                          </Button>
                         </div>
                       </div>
                     </div>
                   </div>
                 ) : (
                   /* 2-Column Presentation Grid (50% / 50% on Desktop, Vertically Centered Left Column) */
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center w-full my-auto">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center w-full min-h-[60vh] lg:min-h-[68vh] xl:min-h-[72vh] my-auto">
                     <div className={`w-full space-y-6 flex flex-col justify-center lg:self-center ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-2' : 'lg:order-1'}`}>
                       {isRiseupTheme && (
                         <div className="h-0.5 w-16 bg-[#E8C547] rounded-full shadow-md mb-3" />
@@ -2737,7 +2748,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     </div>
 
                     {/* Left/Right Column: Seamless Unboxed Answer Column (Nudged Downward for Optical Balance) */}
-                    <div className={`w-full space-y-6 flex flex-col justify-center pt-2 lg:pt-6 xl:pt-8 ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-1' : 'lg:order-2'}`}>
+                    <div className={`w-full h-full flex flex-col justify-between pt-2 lg:pt-4 xl:pt-6 ${
+                      effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-1' : 'lg:order-2'
+                    }`}>
                       <div className="w-full space-y-6 relative">
                         {/* Interactive Field Input */}
                         <div className="space-y-4">
@@ -2751,58 +2764,54 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                             isRiseupTheme
                           )}
                         </div>
+                      </div>
 
-                        {/* Navigation & Advance Footer */}
-                        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+                      {/* Navigation & Advance Footer */}
+                      <div className="mt-auto pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 w-full">
+                        {/* Left: Previous with subtle Chevron icon */}
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          disabled={currentStep === 0}
+                          onClick={handlePreviousStep}
+                          className={`h-11 px-4 rounded-xl text-xs sm:text-sm font-sans font-medium text-muted-foreground hover:text-foreground hover:bg-muted/60 transition-all flex items-center gap-1.5 cursor-pointer w-full sm:w-auto ${
+                            currentStep === 0 ? 'invisible sm:opacity-0 sm:pointer-events-none' : 'opacity-100'
+                          }`}
+                        >
+                          <ChevronLeft className="w-4 h-4 shrink-0" />
+                          <span>Previous</span>
+                        </Button>
+
+                        {/* Right: Auto Fill + Primary Action Cluster */}
+                        <div className="flex items-center gap-2.5 w-full sm:w-auto justify-end">
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                onClick={handleTestAutoFill}
+                                className="h-9 px-3 text-xs font-mono font-medium rounded-lg border-border/50 bg-background/60 text-muted-foreground hover:text-foreground hover:bg-accent/60 hover:border-border transition-all cursor-pointer flex items-center gap-1.5 shadow-2xs"
+                              >
+                                <Zap className="w-3.5 h-3.5 text-amber-500/80" />
+                                <span>Auto Fill</span>
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Fill valid answer and advance</TooltipContent>
+                          </Tooltip>
+
                           <Button
                             type="button"
-                            variant="ghost"
-                            size="sm"
-                            disabled={currentStep === 0}
-                            onClick={handlePreviousStep}
-                            className="btn-tactile-spring text-xs h-10 px-4 font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 cursor-pointer w-full sm:w-auto rounded-xl transition-all"
+                            size="default"
+                            onClick={handleNextStep}
+                            className="h-11 px-6 sm:px-7 rounded-xl font-heading font-bold text-sm bg-primary hover:bg-primary/90 text-primary-foreground shadow-md hover:shadow-lg transition-all duration-200 cursor-pointer flex items-center justify-center gap-2.5 flex-1 sm:flex-initial"
                           >
-                            Previous
+                            <span>{isLastVisibleStep ? 'Submit Assessment' : 'Next Question'}</span>
+                            <kbd className="inline-flex items-center justify-center h-5 min-w-[20px] px-1 text-[11px] font-mono font-bold bg-primary-foreground/20 text-primary-foreground rounded border border-primary-foreground/30 shadow-2xs">
+                              ↵
+                            </kbd>
                           </Button>
-
-                          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Button
-                                  type="button"
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={handleTestAutoFill}
-                                  className="btn-tactile-spring text-xs h-10 px-3.5 font-medium rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all cursor-pointer"
-                                >
-                                  ⚡ Auto Fill
-                                </Button>
-                              </TooltipTrigger>
-                              <TooltipContent>Fill valid answer and advance</TooltipContent>
-                            </Tooltip>
-
-                            {isLastVisibleStep ? (
-                              <Button
-                                type="button"
-                                size="sm"
-                                onClick={handleNextStep}
-                                className="btn-tactile-spring text-xs h-10 px-6 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-2 flex-1 sm:flex-initial justify-center rounded-xl"
-                              >
-                                <span>Submit Assessment</span>
-                                <span className="text-[10px] opacity-75 font-mono">Enter ↵</span>
-                              </Button>
-                            ) : (
-                              <Button
-                                type="button"
-                                size="sm"
-                                onClick={handleNextStep}
-                                className="btn-tactile-spring text-xs h-10 px-6 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-2 flex-1 sm:flex-initial justify-center rounded-xl"
-                              >
-                                <span>Next Question</span>
-                                <span className="text-[10px] opacity-75 font-mono">Enter ↵</span>
-                              </Button>
-                            )}
-                          </div>
                         </div>
                       </div>
                     </div>
@@ -3950,20 +3959,24 @@ function renderFieldInput(
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} ${
+                className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} transition-all duration-200 ${
                   isSelected
                     ? isRiseupTheme
                       ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
                       : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
-                    : 'bg-card/75 border-border/80 text-foreground/80 hover:text-foreground'
+                    : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground hover:border-border'
                 }`}
               >
-                <span className={`option-badge w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-all duration-200 ${
-                  isSelected
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted/70 text-muted-foreground border-border/70'
-                }`}>
-                  {isSelected ? <Check className="w-4 h-4 stroke-[3]" /> : String.fromCharCode(65 + optIndex)}
+                <span
+                  className={`option-badge w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center font-mono font-bold text-xs sm:text-sm shrink-0 transition-all duration-200 ${
+                    isSelected
+                      ? isRiseupTheme
+                        ? 'bg-[#E8C547] text-[#0A0A14] border-[#E8C547] shadow-xs'
+                        : 'bg-primary text-primary-foreground border-primary shadow-xs'
+                      : 'bg-muted/70 text-muted-foreground border-border/70 group-hover:border-foreground/30'
+                  }`}
+                >
+                  {String.fromCharCode(65 + optIndex)}
                 </span>
                 <input
                   type="checkbox"
@@ -3973,34 +3986,40 @@ function renderFieldInput(
                   onChange={(e) => handleChange(opt, e.target.checked)}
                   className="sr-only"
                 />
-                <span className="option-text option-text-shadow flex-1 font-sans text-sm sm:text-base font-medium text-foreground/90 transition-colors duration-200">{opt}</span>
-                {isSelected && (
-                  <CheckCircle2
-                    className={`w-5 h-5 shrink-0 ml-auto ${
-                      isRiseupTheme ? 'text-[#E8C547]' : 'text-emerald-500'
-                    }`}
-                  />
-                )}
+                <span className="option-text option-text-shadow flex-1 font-sans text-sm sm:text-base font-medium text-foreground/90 transition-colors duration-200 leading-snug">{opt}</span>
+                <div className="w-6 h-6 flex items-center justify-center shrink-0 ml-auto">
+                  {isSelected && (
+                    <CheckCircle2
+                      className={`w-5 h-5 animate-in zoom-in-75 duration-150 ${
+                        isRiseupTheme ? 'text-[#E8C547]' : 'text-primary dark:text-emerald-400'
+                      }`}
+                    />
+                  )}
+                </div>
               </label>
             );
           })}
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
+                className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} transition-all duration-200 ${
                   hasOther
                     ? isRiseupTheme
                       ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
                       : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
-                    : 'bg-card/75 border-border/80 text-foreground/80 hover:text-foreground'
+                    : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground hover:border-border'
                 }`}
               >
-                <span className={`option-badge w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-all duration-200 ${
-                  hasOther
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted/70 text-muted-foreground border-border/70'
-                }`}>
-                  {hasOther ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : String.fromCharCode(65 + options.length)}
+                <span
+                  className={`option-badge w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center font-mono font-bold text-xs sm:text-sm shrink-0 transition-all duration-200 ${
+                    hasOther
+                      ? isRiseupTheme
+                        ? 'bg-[#E8C547] text-[#0A0A14] border-[#E8C547] shadow-xs'
+                        : 'bg-primary text-primary-foreground border-primary shadow-xs'
+                      : 'bg-muted/70 text-muted-foreground border-border/70 group-hover:border-foreground/30'
+                  }`}
+                >
+                  {String.fromCharCode(65 + options.length)}
                 </span>
                 <input
                   type="checkbox"
@@ -4028,7 +4047,7 @@ function renderFieldInput(
                   }}
                   className="sr-only"
                 />
-                <span className="shrink-0 font-medium">Other:</span>
+                <span className="shrink-0 font-medium leading-snug">Other:</span>
                 {hasOther && (
                   <Input
                     value={currentOtherText}
@@ -4038,13 +4057,15 @@ function renderFieldInput(
                     onClick={(e) => e.stopPropagation()}
                   />
                 )}
-                {hasOther && (
-                  <CheckCircle2
-                    className={`w-5 h-5 shrink-0 ml-auto ${
-                      isRiseupTheme ? 'text-[#E8C547]' : 'text-emerald-500'
-                    }`}
-                  />
-                )}
+                <div className="w-6 h-6 flex items-center justify-center shrink-0 ml-auto">
+                  {hasOther && (
+                    <CheckCircle2
+                      className={`w-5 h-5 animate-in zoom-in-75 duration-150 ${
+                        isRiseupTheme ? 'text-[#E8C547]' : 'text-primary dark:text-emerald-400'
+                      }`}
+                    />
+                  )}
+                </div>
               </label>
 
               {/* MCQ Others Suggestions Pills (Only when author configured) */}
@@ -4115,20 +4136,24 @@ function renderFieldInput(
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3.5 p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} ${alignClass} ${
+                className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} transition-all duration-200 ${alignClass} ${
                   isSelected
                     ? isRiseupTheme
                       ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
                       : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
-                    : 'bg-card/75 border-border/80 text-foreground/80 hover:text-foreground'
+                    : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground hover:border-border'
                 }`}
               >
-                <span className={`option-badge w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-all duration-200 ${
-                  isSelected
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted/70 text-muted-foreground border-border/70'
-                }`}>
-                  {isSelected ? <Check className="w-4 h-4 stroke-[3]" /> : String.fromCharCode(65 + optIndex)}
+                <span
+                  className={`option-badge w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center font-mono font-bold text-xs sm:text-sm shrink-0 transition-all duration-200 ${
+                    isSelected
+                      ? isRiseupTheme
+                        ? 'bg-[#E8C547] text-[#0A0A14] border-[#E8C547] shadow-xs'
+                        : 'bg-primary text-primary-foreground border-primary shadow-xs'
+                      : 'bg-muted/70 text-muted-foreground border-border/70 group-hover:border-foreground/30'
+                  }`}
+                >
+                  {String.fromCharCode(65 + optIndex)}
                 </span>
                 <input
                   type="radio"
@@ -4138,14 +4163,16 @@ function renderFieldInput(
                   onChange={() => onChange(opt)}
                   className="sr-only"
                 />
-                <span className="option-text option-text-shadow font-sans text-sm sm:text-base font-medium text-foreground/90 flex-1 transition-colors duration-200">{opt}</span>
-                {isSelected && (
-                  <CheckCircle2
-                    className={`w-5 h-5 shrink-0 ml-auto ${
-                      isRiseupTheme ? 'text-[#E8C547]' : 'text-emerald-500'
-                    }`}
-                  />
-                )}
+                <span className="option-text option-text-shadow flex-1 font-sans text-sm sm:text-base font-medium text-foreground/90 transition-colors duration-200 leading-snug">{opt}</span>
+                <div className="w-6 h-6 flex items-center justify-center shrink-0 ml-auto">
+                  {isSelected && (
+                    <CheckCircle2
+                      className={`w-5 h-5 animate-in zoom-in-75 duration-150 ${
+                        isRiseupTheme ? 'text-[#E8C547]' : 'text-primary dark:text-emerald-400'
+                      }`}
+                    />
+                  )}
+                </div>
               </label>
             );
           })}
@@ -4182,20 +4209,24 @@ function renderFieldInput(
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} ${
+                className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} transition-all duration-200 ${
                   isSelected
                     ? isRiseupTheme
                       ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
                       : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
-                    : 'bg-card/75 border-border/80 text-foreground/80 hover:text-foreground'
+                    : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground hover:border-border'
                 }`}
               >
-                <span className={`option-badge w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-all duration-200 ${
-                  isSelected
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted/70 text-muted-foreground border-border/70'
-                }`}>
-                  {isSelected ? <Check className="w-4 h-4 stroke-[3]" /> : String.fromCharCode(65 + optIndex)}
+                <span
+                  className={`option-badge w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center font-mono font-bold text-xs sm:text-sm shrink-0 transition-all duration-200 ${
+                    isSelected
+                      ? isRiseupTheme
+                        ? 'bg-[#E8C547] text-[#0A0A14] border-[#E8C547] shadow-xs'
+                        : 'bg-primary text-primary-foreground border-primary shadow-xs'
+                      : 'bg-muted/70 text-muted-foreground border-border/70 group-hover:border-foreground/30'
+                  }`}
+                >
+                  {String.fromCharCode(65 + optIndex)}
                 </span>
                 <input
                   type="radio"
@@ -4205,34 +4236,40 @@ function renderFieldInput(
                   onChange={() => onChange(opt)}
                   className="sr-only"
                 />
-                <span className="option-text option-text-shadow flex-1 font-sans text-sm sm:text-base font-medium text-foreground/90 transition-colors duration-200">{opt}</span>
-                {isSelected && (
-                  <CheckCircle2
-                    className={`w-5 h-5 shrink-0 ml-auto ${
-                      isRiseupTheme ? 'text-[#E8C547]' : 'text-emerald-500'
-                    }`}
-                  />
-                )}
+                <span className="option-text option-text-shadow flex-1 font-sans text-sm sm:text-base font-medium text-foreground/90 transition-colors duration-200 leading-snug">{opt}</span>
+                <div className="w-6 h-6 flex items-center justify-center shrink-0 ml-auto">
+                  {isSelected && (
+                    <CheckCircle2
+                      className={`w-5 h-5 animate-in zoom-in-75 duration-150 ${
+                        isRiseupTheme ? 'text-[#E8C547]' : 'text-primary dark:text-emerald-400'
+                      }`}
+                    />
+                  )}
+                </div>
               </label>
             );
           })}
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
+                className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} transition-all duration-200 ${
                   hasOther
                     ? isRiseupTheme
                       ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
                       : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
-                    : 'bg-card/75 border-border/80 text-foreground/80 hover:text-foreground'
+                    : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground hover:border-border'
                 }`}
               >
-                <span className={`option-badge w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-all duration-200 ${
-                  hasOther
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted/70 text-muted-foreground border-border/70'
-                }`}>
-                  {hasOther ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : String.fromCharCode(65 + options.length)}
+                <span
+                  className={`option-badge w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center font-mono font-bold text-xs sm:text-sm shrink-0 transition-all duration-200 ${
+                    hasOther
+                      ? isRiseupTheme
+                        ? 'bg-[#E8C547] text-[#0A0A14] border-[#E8C547] shadow-xs'
+                        : 'bg-primary text-primary-foreground border-primary shadow-xs'
+                      : 'bg-muted/70 text-muted-foreground border-border/70 group-hover:border-foreground/30'
+                  }`}
+                >
+                  {String.fromCharCode(65 + options.length)}
                 </span>
                 <input
                   type="radio"
@@ -4250,7 +4287,7 @@ function renderFieldInput(
                   }}
                   className="sr-only"
                 />
-                <span className="shrink-0 font-medium">Other:</span>
+                <span className="shrink-0 font-medium leading-snug">Other:</span>
                 {hasOther && (
                   <Input
                     value={currentOtherText}
@@ -4268,13 +4305,15 @@ function renderFieldInput(
                     onClick={(e) => e.stopPropagation()}
                   />
                 )}
-                {hasOther && (
-                  <CheckCircle2
-                    className={`w-5 h-5 shrink-0 ml-auto ${
-                      isRiseupTheme ? 'text-[#E8C547]' : 'text-emerald-500'
-                    }`}
-                  />
-                )}
+                <div className="w-6 h-6 flex items-center justify-center shrink-0 ml-auto">
+                  {hasOther && (
+                    <CheckCircle2
+                      className={`w-5 h-5 animate-in zoom-in-75 duration-150 ${
+                        isRiseupTheme ? 'text-[#E8C547]' : 'text-primary dark:text-emerald-400'
+                      }`}
+                    />
+                  )}
+                </div>
               </label>
 
               {/* Single Choice Others Suggestions Pills (Only when author configured) */}

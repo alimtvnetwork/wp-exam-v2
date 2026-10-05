@@ -62,12 +62,12 @@ export const PresenterHUD: React.FC<PresenterHUDProps> = ({
         drag
         dragMomentum={false}
         whileDrag={{ scale: 1.03, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)' }}
-        className="fixed z-[9999] bottom-8 right-8 flex items-center gap-2 p-1.5 bg-card/95 backdrop-blur-md border border-border/40 shadow-xl rounded-2xl select-none touch-none cursor-grab active:cursor-grabbing"
+        className="fixed z-50 bottom-6 right-6 flex items-center gap-1.5 p-1 bg-card/85 backdrop-blur-xl border border-border/40 shadow-lg hover:shadow-xl rounded-xl select-none touch-none cursor-grab active:cursor-grabbing hover:border-primary/30 transition-all"
       >
         <Tooltip>
           <TooltipTrigger asChild>
             <div
-              className="flex items-center gap-1 px-2 border-r border-border/30 text-xs font-semibold text-muted-foreground uppercase tracking-widest cursor-grab active:cursor-grabbing select-none touch-none hover:text-foreground hover:bg-muted/40 rounded-lg transition-colors"
+              className="flex items-center gap-1 px-1.5 py-0.5 border-r border-border/30 text-[11px] font-semibold text-muted-foreground uppercase tracking-widest cursor-grab active:cursor-grabbing select-none touch-none hover:text-foreground hover:bg-muted/40 rounded-lg transition-colors"
               title="Drag to reposition HUD anywhere on screen"
               aria-label="Drag to reposition HUD"
               role="button"
@@ -99,7 +99,7 @@ export const PresenterHUD: React.FC<PresenterHUDProps> = ({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 shrink-0 cursor-pointer rounded-xl hover:bg-muted/60"
+                  className="h-7 w-7 shrink-0 cursor-pointer rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground"
                   aria-label="View"
                 >
                   <Eye className="w-3.5 h-3.5" />
@@ -191,7 +191,7 @@ export const PresenterHUD: React.FC<PresenterHUDProps> = ({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 shrink-0 cursor-pointer rounded-xl hover:bg-muted/60"
+                  className="h-7 w-7 shrink-0 cursor-pointer rounded-lg hover:bg-muted/50 text-muted-foreground hover:text-foreground"
                   aria-label={activeThemeShortName}
                 >
                   <Palette className="w-3.5 h-3.5" />

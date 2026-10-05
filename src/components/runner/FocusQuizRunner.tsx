@@ -3,6 +3,7 @@ import {
   ArrowLeft,
   Flag,
   Check,
+  CheckCircle2,
   HelpCircle,
   ExternalLink,
   RefreshCw,
@@ -807,9 +808,12 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
     });
   };
 
+  const isRiseupTheme = Boolean(activeThemeId === 'riseup' || activeThemeId === 'riseup-asia' || activeThemeId === 'bright-gold');
+
   return (
     <div
-      className="min-h-screen flex flex-col justify-between transition-colors duration-300 font-sans"
+      data-theme={activeThemeId}
+      className={`min-h-screen flex flex-col justify-between transition-colors duration-300 font-sans theme-${activeThemeId}`}
       style={{
         backgroundColor: theme.colors.background,
         color: theme.colors.textPrimary,
@@ -918,7 +922,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
       </header>
 
       {/* Main Runner Stage Display */}
-      <main className="flex-1 max-w-md w-full mx-auto px-4 py-6 flex flex-col justify-center">
+      <main className="flex-1 max-w-2xl lg:max-w-3xl w-full mx-auto px-4 sm:px-6 py-8 flex flex-col justify-center">
         {/* Stage 0: Intro Hero */}
         {currentStage === 'intro' && (
           <div className="flex flex-col items-center text-center space-y-6 animate-in fade-in duration-300">
@@ -1085,6 +1089,10 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                 </Button>
               </div>
 
+              {isRiseupTheme && (
+                <div className="h-0.5 w-16 bg-[#E8C547] rounded-full shadow-md mx-auto mb-3" />
+              )}
+
               <h2 className="text-2xl font-black leading-tight text-center mx-auto max-w-md">
                 {renderFormattedTitle(currentQuestion.title)}
               </h2>
@@ -1183,25 +1191,27 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                             currentQuestion.type === 'multiselect'
                           )
                         }
-                        className={`group text-left p-4 rounded-2xl transition-all duration-200 flex items-center justify-between hover:opacity-100 hover:translate-x-1.5 cursor-pointer ${
+                        className={`group presentation-option-card text-left p-4 rounded-2xl transition-all duration-200 flex items-center justify-between hover:opacity-100 hover:translate-x-1.5 cursor-pointer ${
                           isFullWidth ? 'col-span-2' : ''
                         }`}
                         style={{
-                          opacity: isSelected ? 1 : 0.85,
+                          opacity: isSelected ? 1 : 0.88,
                           backgroundColor: isSelected ? theme.colors.cardActiveBg : theme.colors.cardBg,
                           border: isSelected ? `1px solid ${theme.colors.cardActiveBorder}` : `1px solid ${theme.colors.cardBorder}30`,
                           boxShadow: isSelected
                             ? `0 0 16px ${theme.colors.cardActiveBorder}44`
-                            : 'none',
+                            : undefined,
                         }}
                       >
                         <div className="flex items-center gap-3">
                           <span
-                            className="min-w-[2rem] h-8 rounded-xl font-mono font-bold text-sm flex items-center justify-center transition-all duration-200 shrink-0 group-hover:translate-x-1"
-                            style={{
-                              backgroundColor: isSelected ? theme.colors.primary : `${theme.colors.cardBorder}35`,
-                              color: isSelected ? theme.colors.primaryText : theme.colors.textSecondary,
-                            }}
+                            className={`option-badge w-8 h-8 rounded-lg border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-all duration-200 ${
+                              isSelected
+                                ? isRiseupTheme
+                                  ? 'bg-[#E8C547] text-[#0A0A14] border-[#E8C547]'
+                                  : 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-muted/70 text-muted-foreground border-border/70'
+                            }`}
                           >
                             {String.fromCharCode(65 + optIdx)}
                           </span>
@@ -1209,7 +1219,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                           {optIcon && <span className="text-xl">{optIcon}</span>}
 
                           <div>
-                            <span className="font-semibold text-sm leading-snug block">{optLabel}</span>
+                            <span className="option-text option-text-shadow font-sans text-sm sm:text-base font-medium text-foreground/90 leading-snug block">{optLabel}</span>
                             {branchTarget && (
                               <span className="text-xs text-amber-400 font-mono flex items-center gap-1 mt-0.5">
                                 <GitBranch className="w-2.5 h-2.5" /> Branches to: {branchTarget}
@@ -1219,7 +1229,13 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                         </div>
 
                         <div className="w-5 h-5 flex items-center justify-center shrink-0">
-                          {isSelected && <Check className="w-4 h-4" style={{ color: '#10B981' }} />}
+                          {isSelected && (
+                            <CheckCircle2
+                              className={`w-5 h-5 shrink-0 ${
+                                isRiseupTheme ? 'text-[#E8C547]' : 'text-emerald-500'
+                              }`}
+                            />
+                          )}
                         </div>
                       </button>
                     );
