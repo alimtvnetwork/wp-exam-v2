@@ -672,3 +672,31 @@ Allowed work:
 
 **Why:** Riseup brand identity specifies dark navy paired with cream primary; gold is strictly an active indicator mark, never a text highlight.
 
+---
+
+## Washed-Out Muddy Contrast in Dracula Admin Surfaces — TOTAL BAN
+
+🔴 **NEVER use `#6272A4` (`225 27% 51%`) for secondary text or descriptions on `#282A36` Dracula admin backgrounds.**
+
+Forbidden:
+- ❌ Using comment slate `#6272A4` on Dracula dark surfaces, yielding an illegible ~2.4:1 contrast ratio.
+- ❌ Faded, blending text in WordPress Admin sidebar or Form Builder controls.
+
+Allowed work:
+- ✅ Render secondary text, metadata, and hints in crisp lilac-slate `#BAC7E8` (`225 25% 76%`, 7.2:1 AAA contrast ratio).
+- ✅ Provide active navigation accent bars, border rings, and hover translation (`hover:translate-x-1`).
+
+---
+
+## Top-Heavy Presentation Layouts & Flush-Top Alignments — TOTAL BAN
+
+🔴 **NEVER pin question titles flush to the top of 2-column presentation slides or omit optical balance offsets.**
+
+Forbidden:
+- ❌ Placing question prompts at the top of the canvas with awkward bottom dead space.
+- ❌ Crowding the right-hand options column flush with the top border.
+
+Allowed work:
+- ✅ Vertically center question prompt containers in optical equilibrium (`items-center w-full my-auto lg:self-center`).
+- ✅ Apply a balanced downward offset (`pt-2 lg:pt-6 xl:pt-8`) to the right options column.
+
