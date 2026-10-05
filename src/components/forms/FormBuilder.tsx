@@ -517,7 +517,7 @@ export const FormBuilder: React.FC = () => {
   return (
     <div className="w-full px-3 sm:px-6 pt-1 pb-6 space-y-3.5">
       {/* Top Action Bar: Ultra-Compact Single-Line Controls */}
-      <div className="flex items-center justify-between gap-2 p-2 sm:px-3 bg-card rounded-xl border border-border/80 shadow-xs w-full overflow-x-auto">
+      <div className="flex items-center justify-between gap-2 p-2 sm:px-3 bg-card rounded-xl shadow-sm w-full overflow-x-auto">
         {/* Left Side: Single-Line Navigation, Title, Compact Slug Control & Icon Access */}
         <div className="flex items-center gap-2 min-w-0 shrink-0">
           <Button
@@ -525,7 +525,7 @@ export const FormBuilder: React.FC = () => {
             variant="ghost"
             size="icon"
             onClick={() => window.history.back()}
-            className="h-8 w-8 rounded-lg border border-border bg-card text-foreground hover:bg-accent hover:text-accent-foreground transition-all shadow-xs shrink-0 cursor-pointer"
+            className="h-8 w-8 rounded-lg bg-card/60 text-foreground hover:bg-accent hover:text-accent-foreground transition-all shrink-0 cursor-pointer"
             title="Back to Admin Dashboard"
           >
             <ArrowLeft className="w-4 h-4 text-foreground" />
@@ -650,7 +650,7 @@ export const FormBuilder: React.FC = () => {
               }}
               className={`inline-flex items-center gap-1.5 h-full px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                 settings.defaultQuestionLayout !== 'presentation_split'
-                  ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
+                  ? 'bg-card text-foreground shadow-2xs font-bold'
                   : 'text-muted-foreground hover:text-foreground'
               }`}
               title="Set default format to Quiz Format (Standard Card)"
@@ -687,7 +687,7 @@ export const FormBuilder: React.FC = () => {
                 }}
                 className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                   settings.defaultAnswerPlacement !== 'left'
-                    ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
+                    ? 'bg-card text-foreground shadow-2xs font-bold'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
                 title="Default layout: Question on Left, Answers/Checkboxes on Right"
@@ -702,7 +702,7 @@ export const FormBuilder: React.FC = () => {
                 }}
                 className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
                   settings.defaultAnswerPlacement === 'left'
-                    ? 'bg-card text-foreground shadow-2xs font-bold border border-border/80'
+                    ? 'bg-card text-foreground shadow-2xs font-bold'
                     : 'text-muted-foreground hover:text-foreground'
                 }`}
                 title="Default layout: Answers/Checkboxes on Left, Question on Right"
@@ -714,7 +714,7 @@ export const FormBuilder: React.FC = () => {
         </div>
 
         {/* Right Side: Combined Compact Preview & Save Segmented Control */}
-        <div className="inline-flex items-center rounded-lg border border-border bg-card p-0.5 h-8 shrink-0 shadow-2xs divide-x divide-border">
+        <div className="inline-flex items-center rounded-lg bg-card p-0.5 h-8 shrink-0 shadow-sm divide-x divide-border/40">
           <Tooltip>
             <TooltipTrigger asChild>
               <button
