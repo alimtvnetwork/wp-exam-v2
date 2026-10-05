@@ -2380,11 +2380,6 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   <div className={`w-full space-y-6 ${effectiveAnswerPlacement === 'left' ? 'lg:order-1' : 'lg:order-2'}`}>
                     <div className="w-full space-y-6 relative">
                       <div className="flex items-center justify-between pb-1">
-                        <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider flex items-center gap-1.5">
-                          <Sparkles className="w-3.5 h-3.5 text-foreground" />
-                          <span>Candidate Response</span>
-                        </span>
-
                         {hasPlaceholderHint ? (
                           <Popover>
                             <PopoverTrigger asChild>

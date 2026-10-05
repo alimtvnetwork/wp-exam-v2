@@ -1085,7 +1085,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                 </Button>
               </div>
 
-              <h2 className="text-2xl font-black leading-tight">
+              <h2 className="text-2xl font-black leading-tight text-center mx-auto max-w-md">
                 {renderFormattedTitle(currentQuestion.title)}
               </h2>
 

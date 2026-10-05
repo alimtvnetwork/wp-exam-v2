@@ -170,8 +170,8 @@ export const THEME_CONFIGS: Record<AppThemeType, ThemeConfig> = {
       '--ring': '265 89% 78%',
       '--accent': '232 14% 24%',
       '--accent-foreground': '60 30% 96%',
-      '--muted': '232 14% 24%',
-      '--muted-foreground': '225 25% 70%',
+      '--muted': '232 14% 28%',
+      '--muted-foreground': '225 25% 82%',
     },
   },
   purple: {
