@@ -1183,7 +1183,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                             currentQuestion.type === 'multiselect'
                           )
                         }
-                        className={`group text-left p-4 rounded-2xl border transition-all duration-200 flex items-center justify-between hover:opacity-100 ${
+                        className={`group text-left p-4 rounded-2xl border transition-all duration-200 flex items-center justify-between hover:opacity-100 hover:translate-x-1.5 cursor-pointer ${
                           isFullWidth ? 'col-span-2' : ''
                         }`}
                         style={{
@@ -1197,7 +1197,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                       >
                         <div className="flex items-center gap-3">
                           <span
-                            className="min-w-[2rem] h-8 rounded-xl font-mono font-bold text-sm flex items-center justify-center border-2 transition-all duration-200 shrink-0"
+                            className="min-w-[2rem] h-8 rounded-xl font-mono font-bold text-sm flex items-center justify-center border-2 transition-all duration-200 shrink-0 group-hover:translate-x-1"
                             style={{
                               borderColor: isSelected ? theme.colors.primary : theme.colors.cardBorder,
                               backgroundColor: isSelected ? theme.colors.primary : 'transparent',

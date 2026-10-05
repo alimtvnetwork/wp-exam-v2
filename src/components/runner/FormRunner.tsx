@@ -416,11 +416,11 @@ export const renderHighlightedQuestionTitle = (
   }
 
   const highlightClass = isRiseupTheme
-    ? 'text-[#E8C547] font-extrabold tracking-tight'
+    ? 'text-[#F7F1E6] underline decoration-[#E8C547] decoration-2 underline-offset-4 font-extrabold tracking-tight'
     : 'text-primary font-extrabold';
 
   const normalClass = isRiseupTheme
-    ? 'text-white font-bold'
+    ? 'text-[#FFF1D6] font-bold'
     : 'text-foreground font-bold';
 
   const trimmedHighlight = highlightWord ? highlightWord.trim() : '';
@@ -2258,7 +2258,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     value={Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}
                     className={`h-full rounded-none ${
                       isRiseupTheme
-                        ? 'bg-black/40 [&>div]:bg-[#E8C547]'
+                        ? 'bg-black/40 [&>div]:bg-[#3A3A55]'
                         : 'bg-secondary'
                     }`}
                   />
@@ -2317,10 +2317,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 ) : null}
 
                 {/* Top Meta Bar */}
-                <div className="flex items-center justify-between text-xs text-muted-foreground pb-2">
-                  <div className="flex items-center gap-2 flex-wrap">
-                  </div>
-
+                <div className="flex items-center justify-end text-xs text-muted-foreground pb-2">
                   <div className="flex items-center gap-2">
                     {timeLeftSeconds !== null && (
                       <Badge variant="outline" className={`font-mono text-xs gap-1 font-semibold ${
@@ -2349,8 +2346,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 </div>
 
                 {/* 2-Column Presentation Grid (50% / 50% on Desktop) */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 items-start">
-                  <div className={`w-full space-y-5 ${effectiveAnswerPlacement === 'left' ? 'lg:order-2' : 'lg:order-1'}`}>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 items-center min-h-[55vh] lg:min-h-[62vh]">
+                  <div className={`w-full space-y-5 flex flex-col justify-center ${effectiveAnswerPlacement === 'left' ? 'lg:order-2' : 'lg:order-1'}`}>
                     <h2 className="font-heading font-bold text-5xl lg:text-6xl text-foreground leading-tight tracking-tight">
                       {renderHighlightedQuestionTitle(
                         currentField.label,
@@ -2377,7 +2374,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   </div>
 
                   {/* Left/Right Column: Seamless Unboxed Answer Column */}
-                  <div className={`w-full space-y-6 ${effectiveAnswerPlacement === 'left' ? 'lg:order-1' : 'lg:order-2'}`}>
+                  <div className={`w-full space-y-6 lg:pt-8 ${effectiveAnswerPlacement === 'left' ? 'lg:order-1' : 'lg:order-2'}`}>
                     <div className="w-full space-y-6 relative">
                       <div className="flex items-center justify-between pb-1">
                         {hasPlaceholderHint ? (
@@ -3602,8 +3599,8 @@ function renderFieldInput(
                 key={opt}
                 className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${staggerClass} ${
                   isSelected
-                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30'
-                    : 'border-border/80 bg-card text-foreground hover:bg-muted/50 hover:border-border'
+                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30 opacity-100'
+                    : 'border-border/80 bg-card/75 text-foreground opacity-85 hover:opacity-100 hover:bg-accent/40 hover:border-primary/40'
                 }`}
               >
                 <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
@@ -3623,7 +3620,7 @@ function renderFieldInput(
                 />
                 <span className="flex-1 font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
                 {isSelected && (
-                  <CheckCircle2 className="w-5 h-5 text-foreground shrink-0 ml-auto" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 ml-auto" />
                 )}
               </label>
             );
@@ -3755,8 +3752,8 @@ function renderFieldInput(
                 key={opt}
                 className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${staggerClass} ${alignClass} ${
                   isSelected
-                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30'
-                    : 'border-border/80 bg-card text-foreground hover:bg-muted/50 hover:border-border'
+                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30 opacity-100'
+                    : 'border-border/80 bg-card/75 text-foreground opacity-85 hover:opacity-100 hover:bg-accent/40 hover:border-primary/40'
                 }`}
               >
                 <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
@@ -3776,7 +3773,7 @@ function renderFieldInput(
                 />
                 <span className="font-sans text-sm sm:text-base font-medium text-foreground flex-1">{opt}</span>
                 {isSelected && (
-                  <CheckCircle2 className="w-5 h-5 text-foreground shrink-0 ml-auto" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 ml-auto" />
                 )}
               </label>
             );
@@ -3816,8 +3813,8 @@ function renderFieldInput(
                 key={opt}
                 className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${staggerClass} ${
                   isSelected
-                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30'
-                    : 'border-border/80 bg-card text-foreground hover:bg-muted/50 hover:border-border'
+                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30 opacity-100'
+                    : 'border-border/80 bg-card/75 text-foreground opacity-85 hover:opacity-100 hover:bg-accent/40 hover:border-primary/40'
                 }`}
               >
                 <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
@@ -3837,7 +3834,7 @@ function renderFieldInput(
                 />
                 <span className="flex-1 font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
                 {isSelected && (
-                  <CheckCircle2 className="w-5 h-5 text-foreground shrink-0 ml-auto" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 ml-auto" />
                 )}
               </label>
             );

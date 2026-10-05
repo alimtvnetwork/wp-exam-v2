@@ -247,7 +247,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
                     type="button"
                     onClick={() => onSelectTab(item.id)}
                     title={isCollapsed ? item.label : undefined}
-                    className={`relative w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-all group ${
+                    className={`relative w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-all group cursor-pointer ${
                       isActive
                         ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-primary/30'
                         : 'text-muted-foreground hover:text-foreground hover:bg-accent/60'

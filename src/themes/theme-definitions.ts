@@ -87,7 +87,7 @@ export const THEME_PRESETS: Record<string, ThemeDefinition> = {
       primaryText: '#282A36',
       highlightWord: '#50FA7B',
       textPrimary: '#F8F8F2',
-      textSecondary: '#6272A4',
+      textSecondary: '#8D97C2',
       progressBar: '#BD93F9',
       badgeBg: '#44475A',
     },

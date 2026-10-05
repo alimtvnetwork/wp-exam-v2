@@ -2,7 +2,7 @@
 
 **Parent task:** `12-focus-quiz-ui-overhaul`
 **Spec:** `02-spec/21-app/03-focus-quiz-runner-ui-overhaul/03-theme-and-contrast.md`
-**Status:** pending
+**Status:** completed
 
 ## Owned Files
 
@@ -125,10 +125,10 @@ bg-muted text-foreground ring-1 ring-primary/30
 
 ## Acceptance Criteria
 
-- [ ] Dracula theme: `--muted-foreground` is `225 25% 82%` in `theme-context.tsx`
-- [ ] Dracula theme: `--muted` is `232 14% 28%` in `theme-context.tsx`
-- [ ] Purple theme: `--muted-foreground` is `240 15% 82%` in `theme-context.tsx`
-- [ ] Riseup Asia theme tokens are unchanged (no modifications made)
-- [ ] `hover:bg-muted/80` replaced with `hover:bg-accent/60` on all sidebar nav buttons
-- [ ] Active sidebar button includes `ring-1 ring-primary/30` class
-- [ ] Gold (`#E8C547`) is not used as any sidebar text, hover background, or surface fill
+- [x] Dracula theme: `--muted-foreground` is `225 25% 82%` in `theme-context.tsx`
+- [x] Dracula theme: `--muted` is `232 14% 28%` in `theme-context.tsx`
+- [x] Purple theme: `--muted-foreground` is `240 15% 82%` in `theme-context.tsx`
+- [x] Riseup Asia theme tokens are unchanged (no modifications made)
+- [x] `hover:bg-muted/80` replaced with `hover:bg-accent/60` on all sidebar nav buttons
+- [x] Active sidebar button includes `ring-1 ring-primary/30` class
+- [x] Gold (`#E8C547`) is not used as any sidebar text, hover background, or surface fill

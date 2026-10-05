@@ -769,7 +769,8 @@ export const FormBuilder: React.FC = () => {
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="Untitled Assessment Form"
-                  className="flex-1 text-xl sm:text-2xl font-bold bg-transparent border-0 border-b border-border/40 hover:border-border focus:border-primary focus:outline-none transition-colors px-1 py-1 text-foreground placeholder:text-muted-foreground/40 min-w-0"
+                  className="flex-1 text-xl sm:text-2xl font-bold bg-transparent border-0 border-b border-border/40 hover:border-primary/60 hover:bg-accent/20 focus:bg-accent/30 focus:border-primary focus:outline-none transition-all px-2 py-1 rounded-md text-foreground placeholder:text-muted-foreground/40 min-w-0 cursor-text"
+                  title="Click to edit assessment title"
                 />
 
                 {/* Config menu. Trash ledger stays beside it. */}

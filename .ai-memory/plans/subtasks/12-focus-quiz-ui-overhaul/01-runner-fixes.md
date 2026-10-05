@@ -2,7 +2,7 @@
 
 **Parent task:** `12-focus-quiz-ui-overhaul`
 **Spec:** `02-spec/21-app/03-focus-quiz-runner-ui-overhaul/02-animations-and-interactions.md`
-**Status:** pending
+**Status:** completed
 
 ## Owned Files
 
@@ -116,10 +116,10 @@ If `text-center` is already present, confirm `mx-auto` and a `max-w-*` constrain
 
 ## Acceptance Criteria
 
-- [ ] No "Candidate Response" label visible in the form runner
-- [ ] MCQ options display A/B/C/D badges to the left of option text
-- [ ] Unselected options render at 78% opacity; selected at 100%
-- [ ] Options have smooth `transition-all duration-200` animation
-- [ ] Hover restores full opacity via `hover:opacity-100`
-- [ ] Selected option shows a green checkmark SVG on the right; old round checkbox removed
-- [ ] Stage 3 quiz title is horizontally centered with a max-width constraint
+- [x] No "Candidate Response" label visible in the form runner
+- [x] MCQ options display A/B/C/D badges to the left of option text
+- [x] Unselected options render at 78% opacity; selected at 100%
+- [x] Options have smooth `transition-all duration-200` animation
+- [x] Hover restores full opacity via `hover:opacity-100`
+- [x] Selected option shows a green checkmark SVG on the right; old round checkbox removed
+- [x] Stage 3 quiz title is horizontally centered with a max-width constraint
