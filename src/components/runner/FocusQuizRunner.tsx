@@ -1183,13 +1183,13 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                             currentQuestion.type === 'multiselect'
                           )
                         }
-                        className={`group text-left p-4 rounded-2xl border transition-all duration-200 flex items-center justify-between hover:opacity-100 hover:translate-x-1.5 cursor-pointer ${
+                        className={`group text-left p-4 rounded-2xl transition-all duration-200 flex items-center justify-between hover:opacity-100 hover:translate-x-1.5 cursor-pointer ${
                           isFullWidth ? 'col-span-2' : ''
                         }`}
                         style={{
-                          opacity: isSelected ? 1 : 0.8,
+                          opacity: isSelected ? 1 : 0.85,
                           backgroundColor: isSelected ? theme.colors.cardActiveBg : theme.colors.cardBg,
-                          borderColor: isSelected ? theme.colors.cardActiveBorder : theme.colors.cardBorder,
+                          border: isSelected ? `1px solid ${theme.colors.cardActiveBorder}` : `1px solid ${theme.colors.cardBorder}30`,
                           boxShadow: isSelected
                             ? `0 0 16px ${theme.colors.cardActiveBorder}44`
                             : 'none',
@@ -1197,10 +1197,9 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                       >
                         <div className="flex items-center gap-3">
                           <span
-                            className="min-w-[2rem] h-8 rounded-xl font-mono font-bold text-sm flex items-center justify-center border transition-all duration-200 shrink-0 group-hover:translate-x-1"
+                            className="min-w-[2rem] h-8 rounded-xl font-mono font-bold text-sm flex items-center justify-center transition-all duration-200 shrink-0 group-hover:translate-x-1"
                             style={{
-                              borderColor: isSelected ? theme.colors.primary : `${theme.colors.cardBorder}80`,
-                              backgroundColor: isSelected ? theme.colors.primary : 'transparent',
+                              backgroundColor: isSelected ? theme.colors.primary : `${theme.colors.cardBorder}35`,
                               color: isSelected ? theme.colors.primaryText : theme.colors.textSecondary,
                             }}
                           >

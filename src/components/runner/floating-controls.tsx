@@ -49,12 +49,12 @@ export const PresenterHUD: React.FC<PresenterHUDProps> = ({
         drag
         dragMomentum={false}
         whileDrag={{ scale: 1.03, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.4)' }}
-        className="fixed z-[9999] bottom-8 right-8 flex items-center gap-2 p-2 bg-card/95 backdrop-blur-md border border-border shadow-2xl rounded-2xl select-none touch-none cursor-grab active:cursor-grabbing"
+        className="fixed z-[9999] bottom-8 right-8 flex items-center gap-2 p-1.5 bg-card/95 backdrop-blur-md border border-border/40 shadow-xl rounded-2xl select-none touch-none cursor-grab active:cursor-grabbing"
       >
         <Tooltip>
           <TooltipTrigger asChild>
             <div
-              className="flex items-center gap-1 px-2 border-r border-border/50 text-xs font-semibold text-muted-foreground uppercase tracking-widest cursor-grab active:cursor-grabbing select-none touch-none hover:text-foreground hover:bg-muted/40 rounded-lg transition-colors"
+              className="flex items-center gap-1 px-2 border-r border-border/30 text-xs font-semibold text-muted-foreground uppercase tracking-widest cursor-grab active:cursor-grabbing select-none touch-none hover:text-foreground hover:bg-muted/40 rounded-lg transition-colors"
               title="Drag to reposition HUD anywhere on screen"
               aria-label="Drag to reposition HUD"
               role="button"
@@ -68,12 +68,14 @@ export const PresenterHUD: React.FC<PresenterHUDProps> = ({
         </Tooltip>
 
         {timeLeftSeconds !== null && (
-          <Badge variant="outline" className={`font-mono text-xs gap-1 font-semibold cursor-default ${
-            timeLeftSeconds < 60 ? 'border-destructive text-destructive bg-destructive/10 animate-pulse' : 'border-border text-foreground'
+          <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-xs font-semibold cursor-default ${
+            timeLeftSeconds < 60
+              ? 'bg-destructive/10 text-destructive animate-pulse'
+              : 'bg-muted/60 text-muted-foreground'
           }`}>
             <Clock className="w-3.5 h-3.5" />
             <span>{formatTimerDisplay(timeLeftSeconds)}</span>
-          </Badge>
+          </div>
         )}
 
         <DropdownMenu>
@@ -82,9 +84,9 @@ export const PresenterHUD: React.FC<PresenterHUDProps> = ({
               <DropdownMenuTrigger asChild>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="icon"
-                  className="h-8 w-8 shrink-0 cursor-pointer"
+                  className="h-8 w-8 shrink-0 cursor-pointer rounded-xl hover:bg-muted/60"
                   aria-label="View"
                 >
                   <Eye className="w-3.5 h-3.5" />
@@ -93,7 +95,7 @@ export const PresenterHUD: React.FC<PresenterHUDProps> = ({
             </TooltipTrigger>
             <TooltipContent>View</TooltipContent>
           </Tooltip>
-          <DropdownMenuContent align="end" className="min-w-[12rem] border border-border bg-popover text-popover-foreground z-[10000]">
+          <DropdownMenuContent align="end" className="min-w-[12rem] border border-border/40 bg-popover text-popover-foreground z-[10000]">
             <DropdownMenuItem
               onSelect={() => {
                 setRunnerViewMode('standard');
@@ -128,9 +130,9 @@ export const PresenterHUD: React.FC<PresenterHUDProps> = ({
               <DropdownMenuTrigger asChild>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="ghost"
                   size="icon"
-                  className="h-8 w-8 shrink-0 cursor-pointer"
+                  className="h-8 w-8 shrink-0 cursor-pointer rounded-xl hover:bg-muted/60"
                   aria-label={activeThemeShortName}
                 >
                   <Palette className="w-3.5 h-3.5" />
@@ -139,7 +141,7 @@ export const PresenterHUD: React.FC<PresenterHUDProps> = ({
             </TooltipTrigger>
             <TooltipContent>{activeThemeShortName}</TooltipContent>
           </Tooltip>
-          <DropdownMenuContent align="end" className="min-w-[12rem] border border-border bg-popover text-popover-foreground z-[10000]">
+          <DropdownMenuContent align="end" className="min-w-[12rem] border border-border/40 bg-popover text-popover-foreground z-[10000]">
             {Object.values(THEME_PRESETS).map((themePreset) => (
               <DropdownMenuItem
                 key={themePreset.id}

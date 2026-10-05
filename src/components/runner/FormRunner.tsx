@@ -1856,7 +1856,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     >
       <div className={`mx-auto ${
         effectiveLayoutMode === 'presentation_split'
-          ? 'space-y-0 w-full max-w-[1400px] px-2 sm:px-4'
+          ? 'space-y-0 w-full max-w-6xl px-4 sm:px-6 lg:px-8'
           : activeThemeId === 'clean-wide'
           ? 'space-y-5 max-w-7xl'
           : 'space-y-5 max-w-6xl'
@@ -2185,7 +2185,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
       {/* Sequential Wizard Runner with Left-Hand Sequence Navigator */}
       {(isSequential || effectiveLayoutMode === 'presentation_split') && currentField ? (
-        <div className={effectiveLayoutMode === 'presentation_split' ? 'w-full max-w-[98vw] px-2 sm:px-4 mx-auto relative' : 'flex flex-col lg:flex-row items-start gap-6 w-full'}>
+        <div className={effectiveLayoutMode === 'presentation_split' ? 'w-full relative' : 'flex flex-col lg:flex-row items-start gap-6 w-full'}>
           {/* Question Sequence Sidebar: Floating HUD overlay in presentation mode, docked in standard mode */}
           {effectiveLayoutMode === 'presentation_split' ? (
             isSidebarVisible ? (
@@ -2316,14 +2316,33 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   </div>
                 ) : null}
 
-                {/* Top Meta Bar */}
-                <div className="flex items-center justify-end text-xs text-muted-foreground pb-2">
+                {/* Top Meta Bar: Balanced Header with Question Context on Left, Timer & Fullscreen on Right */}
+                <div className="flex items-center justify-between text-xs text-muted-foreground pb-2">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/40 text-xs font-mono font-medium text-muted-foreground">
+                      <span>Question {currentStep + 1} of {visibleFields.length}</span>
+                    </div>
+                    {currentField.difficulty && (
+                      <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${
+                        currentField.difficulty === 'hard'
+                          ? 'bg-rose-500/10 text-rose-500 dark:text-rose-400'
+                          : currentField.difficulty === 'medium'
+                          ? 'bg-amber-500/10 text-amber-500 dark:text-amber-400'
+                          : 'bg-emerald-500/10 text-emerald-500 dark:text-emerald-400'
+                      }`}>
+                        <span>{currentField.difficulty}</span>
+                        <span>•</span>
+                        <span>{currentField.customPointsOverride ?? (currentField.difficulty === 'hard' ? 20 : currentField.difficulty === 'medium' ? 10 : 5)} pt</span>
+                      </div>
+                    )}
+                  </div>
+
                   <div className="flex items-center gap-2">
                     {timeLeftSeconds !== null && (
                       <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-mono font-semibold ${
                         timeLeftSeconds < 60
                           ? 'bg-destructive/10 text-destructive animate-pulse'
-                          : 'bg-muted/60 text-muted-foreground'
+                          : 'bg-muted/40 text-muted-foreground'
                       }`}>
                         <Clock className="w-3.5 h-3.5" />
                         <span>{formatTimerDisplay(timeLeftSeconds)}</span>
@@ -2336,10 +2355,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                           variant="ghost"
                           size="icon"
                           onClick={handleToggleFullscreen}
-                          className="h-7 w-7 text-muted-foreground hover:text-foreground"
+                          className="h-8 w-8 text-muted-foreground hover:text-foreground rounded-full hover:bg-muted/40 cursor-pointer"
                           aria-label={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen Exam'}
                         >
-                          <Maximize2 className="w-3.5 h-3.5" />
+                          <Maximize2 className="w-4 h-4" />
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent>{isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen Exam'}</TooltipContent>
@@ -2347,10 +2366,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   </div>
                 </div>
 
-                {/* 2-Column Presentation Grid (50% / 50% on Desktop) */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 xl:gap-12 items-center min-h-[55vh] lg:min-h-[62vh]">
-                  <div className={`w-full space-y-5 flex flex-col justify-center ${effectiveAnswerPlacement === 'left' ? 'lg:order-2' : 'lg:order-1'}`}>
-                    <h2 className="font-heading font-bold text-5xl lg:text-6xl text-foreground leading-tight tracking-tight">
+                {/* 2-Column Presentation Grid (50% / 50% on Desktop, perfectly aligned at top baseline) */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-start pt-2">
+                  <div className={`w-full space-y-6 ${effectiveAnswerPlacement === 'left' ? 'lg:order-2' : 'lg:order-1'}`}>
+                    <h2 className="font-heading font-bold text-3xl sm:text-4xl lg:text-5xl text-foreground leading-[1.2] tracking-tight">
                       {renderHighlightedQuestionTitle(
                         currentField.label,
                         (currentField as FormField & { highlightWord?: string }).highlightWord,
@@ -2361,9 +2380,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                       ) : null}
                     </h2>
 
-                    <div className="space-y-3 pt-1">
+                    <div className="space-y-3">
                       {hasFieldSubtitle ? (
-                        <p className="font-sans text-base lg:text-lg text-foreground/85 leading-relaxed font-normal">
+                        <p className="font-sans text-base sm:text-lg text-foreground/80 leading-relaxed font-normal">
                           {currentField.subtitle}
                         </p>
                       ) : null}
@@ -2373,40 +2392,40 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                         </div>
                       ) : null}
                     </div>
+
+                    {hasPlaceholderHint ? (
+                      <div className="pt-2">
+                        <Popover>
+                          <PopoverTrigger asChild>
+                            <button
+                              type="button"
+                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 dark:text-amber-300 transition-all cursor-pointer text-xs font-medium"
+                            >
+                              <Lightbulb className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+                              <span>Need a Hint?</span>
+                            </button>
+                          </PopoverTrigger>
+                          <PopoverContent
+                            side="bottom"
+                            align="start"
+                            className="w-80 p-3.5 text-xs bg-popover/95 backdrop-blur-md border border-border/40 shadow-xl rounded-xl space-y-1.5"
+                          >
+                            <div className="flex items-center gap-1.5 text-amber-500 dark:text-amber-400 font-semibold">
+                              <Lightbulb className="w-3.5 h-3.5" />
+                              <span>Question Hint</span>
+                            </div>
+                            <p className="text-muted-foreground leading-relaxed whitespace-pre-line text-xs font-sans">
+                              {currentField.placeholder}
+                            </p>
+                          </PopoverContent>
+                        </Popover>
+                      </div>
+                    ) : null}
                   </div>
 
                   {/* Left/Right Column: Seamless Unboxed Answer Column */}
-                  <div className={`w-full space-y-6 lg:pt-8 ${effectiveAnswerPlacement === 'left' ? 'lg:order-1' : 'lg:order-2'}`}>
+                  <div className={`w-full space-y-6 ${effectiveAnswerPlacement === 'left' ? 'lg:order-1' : 'lg:order-2'}`}>
                     <div className="w-full space-y-6 relative">
-                      <div className="flex items-center justify-between pb-1">
-                        {hasPlaceholderHint ? (
-                          <Popover>
-                            <PopoverTrigger asChild>
-                              <button
-                                type="button"
-                                className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 transition-all cursor-pointer text-xs"
-                              >
-                                <Lightbulb className="w-4 h-4 text-amber-400 animate-pulse" />
-                                <span className="font-semibold text-[11px] text-amber-300">Need a Hint?</span>
-                              </button>
-                            </PopoverTrigger>
-                            <PopoverContent
-                              side="bottom"
-                              align="end"
-                              className="w-80 p-3.5 text-xs bg-popover/95 backdrop-blur-md border border-amber-500/30 shadow-xl rounded-xl space-y-1.5"
-                            >
-                              <div className="flex items-center gap-1.5 text-amber-400 font-semibold">
-                                <Lightbulb className="w-3.5 h-3.5 text-amber-400" />
-                                <span>Question Hint</span>
-                              </div>
-                              <p className="text-muted-foreground leading-relaxed whitespace-pre-line text-xs font-sans">
-                                {currentField.placeholder}
-                              </p>
-                            </PopoverContent>
-                          </Popover>
-                        ) : null}
-                      </div>
-
                       {/* Interactive Field Input */}
                       <div className="space-y-4">
                         {renderFieldInput(
@@ -2420,14 +2439,14 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                       </div>
 
                       {/* Navigation & Advance Footer */}
-                      <div className="pt-4 flex flex-col sm:flex-row items-center justify-between gap-3">
+                      <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
                         <Button
                           type="button"
-                          variant="outline"
+                          variant="ghost"
                           size="sm"
                           disabled={currentStep === 0}
                           onClick={handlePreviousStep}
-                          className="btn-tactile-spring transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] text-xs h-9 px-4 font-medium border-border hover:bg-accent cursor-pointer w-full sm:w-auto rounded-xl shadow-xs"
+                          className="btn-tactile-spring text-xs h-10 px-4 font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 cursor-pointer w-full sm:w-auto rounded-xl transition-all"
                         >
                           Previous
                         </Button>
@@ -2437,10 +2456,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                             <TooltipTrigger asChild>
                               <Button
                                 type="button"
-                                variant="outline"
+                                variant="ghost"
                                 size="sm"
                                 onClick={handleTestAutoFill}
-                                className="btn-tactile-spring transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] text-xs h-9 px-3 font-semibold rounded-xl border border-border bg-card text-foreground hover:bg-accent transition-all cursor-pointer shadow-xs"
+                                className="btn-tactile-spring text-xs h-10 px-3.5 font-medium rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all cursor-pointer"
                               >
                                 ⚡ Auto Fill
                               </Button>
@@ -2453,7 +2472,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                               type="button"
                               size="sm"
                               onClick={handleNextStep}
-                              className="btn-tactile-spring transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] text-xs h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-1.5 flex-1 sm:flex-initial justify-center rounded-xl"
+                              className="btn-tactile-spring text-xs h-10 px-6 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-2 flex-1 sm:flex-initial justify-center rounded-xl"
                             >
                               <span>Submit Assessment</span>
                               <span className="text-[10px] opacity-75 font-mono">Enter ↵</span>
@@ -2463,7 +2482,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                               type="button"
                               size="sm"
                               onClick={handleNextStep}
-                              className="btn-tactile-spring transition-all duration-300 ease-out hover:-translate-y-0.5 hover:shadow-lg active:translate-y-0 active:scale-[0.98] text-xs h-9 px-5 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-1.5 flex-1 sm:flex-initial justify-center rounded-xl"
+                              className="btn-tactile-spring text-xs h-10 px-6 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-2 flex-1 sm:flex-initial justify-center rounded-xl"
                             >
                               <span>Next Question</span>
                               <span className="text-[10px] opacity-75 font-mono">Enter ↵</span>
@@ -3591,7 +3610,7 @@ function renderFieldInput(
       };
 
       return (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {options.map((opt, optIndex) => {
             const isSelected = selectedOpts.includes(opt);
             const staggerClass = isPresentationSlide ? `stagger-${Math.min(optIndex + 1, 6)}` : '';
@@ -3599,16 +3618,16 @@ function renderFieldInput(
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${staggerClass} ${
+                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-200 ${choiceMotionClass} ${staggerClass} ${
                   isSelected
-                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30 opacity-100'
-                    : 'border-border/80 bg-card/75 text-foreground opacity-85 hover:opacity-100 hover:bg-accent/40 hover:border-primary/40'
+                    ? 'bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                    : 'bg-card/60 text-foreground/90 opacity-90 hover:opacity-100 hover:bg-muted/40 hover:text-foreground'
                 }`}
               >
-                <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
+                <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-colors ${
                   isSelected
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted/70 border-border/80 text-foreground/80'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted/70 text-muted-foreground'
                 }`}>
                   {isSelected ? <Check className="w-4 h-4 stroke-[3]" /> : String.fromCharCode(65 + optIndex)}
                 </span>
@@ -3618,7 +3637,7 @@ function renderFieldInput(
                   value={opt}
                   checked={isSelected}
                   onChange={(e) => handleChange(opt, e.target.checked)}
-                  className="text-primary focus:ring-primary h-4 w-4 rounded accent-primary cursor-pointer"
+                  className="sr-only"
                 />
                 <span className="flex-1 font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
                 {isSelected && (
@@ -3630,16 +3649,16 @@ function renderFieldInput(
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
+                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-200 ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
                   hasOther
-                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30'
-                    : 'border-border/80 bg-card text-foreground hover:bg-muted/50 hover:border-border'
+                    ? 'bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                    : 'bg-card/60 text-foreground/90 opacity-90 hover:opacity-100 hover:bg-muted/40 hover:text-foreground'
                 }`}
               >
-                <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-sans text-xs font-semibold shrink-0 transition-colors ${
+                <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-colors ${
                   hasOther
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted/70 border-border/80 text-foreground/80'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted/70 text-muted-foreground'
                 }`}>
                   {hasOther ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : String.fromCharCode(65 + options.length)}
                 </span>
@@ -3667,20 +3686,20 @@ function renderFieldInput(
                       onChange(filtered);
                     }
                   }}
-                  className="text-primary focus:ring-primary h-4 w-4 rounded"
+                  className="sr-only"
                 />
-                <span className="shrink-0">Other:</span>
+                <span className="shrink-0 font-medium">Other:</span>
                 {hasOther && (
                   <Input
                     value={currentOtherText}
                     onChange={(e) => handleOtherChange(e.target.value)}
                     placeholder="Type custom answer..."
-                    className="h-8 text-sm flex-1 max-w-md bg-background"
+                    className="h-8 text-sm flex-1 max-w-md bg-background/80 border-border/40 focus-visible:ring-1 focus-visible:ring-primary/40"
                     onClick={(e) => e.stopPropagation()}
                   />
                 )}
                 {hasOther && (
-                  <CheckCircle2 className="w-5 h-5 text-foreground shrink-0 ml-auto" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 ml-auto" />
                 )}
               </label>
 
@@ -3692,7 +3711,7 @@ function renderFieldInput(
                 }
 
                 return (
-                  <div className="flex flex-wrap items-center gap-1.5 pl-9 pt-0.5 animate-in fade-in duration-150">
+                  <div className="flex flex-wrap items-center gap-1.5 pl-2 pt-0.5 animate-in fade-in duration-150">
                     <span className="text-xs text-muted-foreground font-medium">Suggestions:</span>
                     {popularSuggestions.map((sug) => (
                       <button
@@ -3703,7 +3722,7 @@ function renderFieldInput(
                           e.stopPropagation();
                           handleOtherChange(sug);
                         }}
-                        className="text-xs px-3 py-1 rounded-full border border-border/80 bg-background text-foreground hover:bg-muted hover:border-foreground/40 hover:text-foreground transition-all font-medium cursor-pointer shadow-2xs"
+                        className="text-xs px-2.5 py-0.5 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground transition-all font-medium cursor-pointer shadow-2xs"
                         title={`Fill Other with "${sug}"`}
                       >
                         + {sug}
@@ -3752,16 +3771,16 @@ function renderFieldInput(
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3 p-4 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${staggerClass} ${alignClass} ${
+                className={`flex items-center gap-3.5 p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-200 ${choiceMotionClass} ${staggerClass} ${alignClass} ${
                   isSelected
-                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30 opacity-100'
-                    : 'border-border/80 bg-card/75 text-foreground opacity-85 hover:opacity-100 hover:bg-accent/40 hover:border-primary/40'
+                    ? 'bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                    : 'bg-card/60 text-foreground/90 opacity-90 hover:opacity-100 hover:bg-muted/40 hover:text-foreground'
                 }`}
               >
-                <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
+                <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-colors ${
                   isSelected
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted/70 border-border/80 text-foreground/80'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted/70 text-muted-foreground'
                 }`}>
                   {isSelected ? <Check className="w-4 h-4 stroke-[3]" /> : String.fromCharCode(65 + optIndex)}
                 </span>
@@ -3771,7 +3790,7 @@ function renderFieldInput(
                   value={opt}
                   checked={isSelected}
                   onChange={() => onChange(opt)}
-                  className="text-primary focus:ring-primary h-4 w-4 accent-primary cursor-pointer"
+                  className="sr-only"
                 />
                 <span className="font-sans text-sm sm:text-base font-medium text-foreground flex-1">{opt}</span>
                 {isSelected && (
@@ -3805,7 +3824,7 @@ function renderFieldInput(
         : (otherTexts?.[field.id] || '');
 
       return (
-        <div className="space-y-2">
+        <div className="space-y-2.5">
           {options.map((opt, optIndex) => {
             const isSelected = strValue === opt;
             const staggerClass = isPresentationSlide ? `stagger-${Math.min(optIndex + 1, 6)}` : '';
@@ -3813,16 +3832,16 @@ function renderFieldInput(
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${staggerClass} ${
+                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-200 ${choiceMotionClass} ${staggerClass} ${
                   isSelected
-                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30 opacity-100'
-                    : 'border-border/80 bg-card/75 text-foreground opacity-85 hover:opacity-100 hover:bg-accent/40 hover:border-primary/40'
+                    ? 'bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                    : 'bg-card/60 text-foreground/90 opacity-90 hover:opacity-100 hover:bg-muted/40 hover:text-foreground'
                 }`}
               >
-                <span className={`w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-sm font-semibold shrink-0 transition-colors ${
+                <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-colors ${
                   isSelected
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted/70 border-border/80 text-foreground/80'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted/70 text-muted-foreground'
                 }`}>
                   {isSelected ? <Check className="w-4 h-4 stroke-[3]" /> : String.fromCharCode(65 + optIndex)}
                 </span>
@@ -3832,7 +3851,7 @@ function renderFieldInput(
                   value={opt}
                   checked={isSelected}
                   onChange={() => onChange(opt)}
-                  className="text-primary focus:ring-primary h-4 w-4 accent-primary cursor-pointer"
+                  className="sr-only"
                 />
                 <span className="flex-1 font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
                 {isSelected && (
@@ -3844,16 +3863,16 @@ function renderFieldInput(
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3 p-3 sm:p-3.5 rounded-xl border text-sm sm:text-base font-sans font-medium cursor-pointer ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
+                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-200 ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
                   hasOther
-                    ? 'border-primary bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/30'
-                    : 'border-border/80 bg-card text-foreground hover:bg-muted/50 hover:border-border'
+                    ? 'bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                    : 'bg-card/60 text-foreground/90 opacity-90 hover:opacity-100 hover:bg-muted/40 hover:text-foreground'
                 }`}
               >
-                <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-sans text-xs font-semibold shrink-0 transition-colors ${
+                <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-colors ${
                   hasOther
-                    ? 'bg-primary text-primary-foreground border-primary'
-                    : 'bg-muted/70 border-border/80 text-foreground/80'
+                    ? 'bg-primary text-primary-foreground'
+                    : 'bg-muted/70 text-muted-foreground'
                 }`}>
                   {hasOther ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : String.fromCharCode(65 + options.length)}
                 </span>
@@ -3871,9 +3890,9 @@ function renderFieldInput(
                       onOtherTextChange(field.id, restoredText);
                     }
                   }}
-                  className="text-primary focus:ring-primary h-4 w-4"
+                  className="sr-only"
                 />
-                <span className="shrink-0">Other:</span>
+                <span className="shrink-0 font-medium">Other:</span>
                 {hasOther && (
                   <Input
                     value={currentOtherText}
@@ -3887,12 +3906,12 @@ function renderFieldInput(
                       }
                     }}
                     placeholder="Type custom answer..."
-                    className="h-8 text-sm flex-1 max-w-md bg-background"
+                    className="h-8 text-sm flex-1 max-w-md bg-background/80 border-border/40 focus-visible:ring-1 focus-visible:ring-primary/40"
                     onClick={(e) => e.stopPropagation()}
                   />
                 )}
                 {hasOther && (
-                  <CheckCircle2 className="w-5 h-5 text-foreground shrink-0 ml-auto" />
+                  <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 ml-auto" />
                 )}
               </label>
 
@@ -3904,7 +3923,7 @@ function renderFieldInput(
                 }
 
                 return (
-                  <div className="flex flex-wrap items-center gap-1.5 pl-9 pt-0.5 animate-in fade-in duration-150">
+                  <div className="flex flex-wrap items-center gap-1.5 pl-2 pt-0.5 animate-in fade-in duration-150">
                     <span className="text-xs text-muted-foreground font-medium">Suggestions:</span>
                     {popularSuggestions.map((sug) => (
                       <button
@@ -3919,7 +3938,7 @@ function renderFieldInput(
                             onOtherTextChange(field.id, sug);
                           }
                         }}
-                        className="text-xs px-3 py-1 rounded-full border border-border/80 bg-background text-foreground hover:bg-muted hover:border-foreground/40 hover:text-foreground transition-all font-medium cursor-pointer shadow-2xs"
+                        className="text-xs px-2.5 py-0.5 rounded-full bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground transition-all font-medium cursor-pointer shadow-2xs"
                         title={`Fill Other with "${sug}"`}
                       >
                         + {sug}
