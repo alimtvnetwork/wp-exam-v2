@@ -4161,7 +4161,7 @@ function renderFieldInput(
                     ? isRiseupTheme
                       ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
                       : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
-                    : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground hover:border-border'
+                    : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground'
                 }`}
               >
                 <span
@@ -4234,7 +4234,7 @@ function renderFieldInput(
                     ? isRiseupTheme
                       ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
                       : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
-                    : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground hover:border-border'
+                    : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground'
                 }`}
               >
                 <span
@@ -4277,7 +4277,7 @@ function renderFieldInput(
                     ? isRiseupTheme
                       ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
                       : 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
-                    : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground hover:border-border'
+                    : 'bg-card/75 border-border/60 text-foreground/80 hover:text-foreground'
                 }`}
               >
                 <span
