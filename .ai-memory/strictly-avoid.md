@@ -639,3 +639,36 @@ Allowed work:
 - ✅ Store theme preferences globally and synchronize immediately with document CSS variables.
 - ✅ Perform immutable state updates with clean fallback for empty categories.
 
+---
+
+## Candidate Response Subheadings in Runner & Presentation Views — TOTAL BAN
+
+🔴 **NEVER render a "Candidate Response" section, subheading, or DOM label across quiz runner, presentation slides, or candidate delivery views.**
+
+Forbidden:
+- ❌ Rendering `<div className="..."><Sparkles className="..." /> CANDIDATE RESPONSE</div>` or similar labels above option cards.
+- ❌ Cluttering runner or presentation question canvases with redundant "Candidate Response" subheadings.
+
+Allowed work:
+- ✅ Present question options cleanly and directly without artificial "Candidate Response" headers.
+- ✅ Keep optical focus on question prompts and interactive answer choice cards.
+
+**Why:** The candidate response subheading was repeatedly flagged by the user as redundant visual clutter that misaligns slide optical balance.
+
+---
+
+## Gold as Dominant Surface or Text Highlight in Riseup Theme — TOTAL BAN
+
+🔴 **NEVER use gold (`#E8C547`) as dominant surface, body text, or question title highlight in the Riseup theme. Gold is STRICTLY an active indicator mark.**
+
+Forbidden:
+- ❌ Rendering question title acronyms (e.g. `HTML`, `CSS`) in yellow or gold (`#E8C547`).
+- ❌ Using gold for dominant card backgrounds, headers, or general button text.
+
+Allowed work:
+- ✅ Render acronyms, technical terms, and title highlights in brand cream (`#F7F1E6`) with `font-extrabold`.
+- ✅ Restrict gold (`#E8C547`) exclusively to active indicator marks: selected radio circles, checkmarks, active tab underline pips, or progress pips.
+- ✅ Enforce dark navy background (`#0A0A14`) paired with cream primary (`#F7F1E6`).
+
+**Why:** Riseup brand identity specifies dark navy paired with cream primary; gold is strictly an active indicator mark, never a text highlight.
+
