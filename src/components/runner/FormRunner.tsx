@@ -2639,9 +2639,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     </div>
                   </div>
                 ) : (
-                  /* 2-Column Presentation Grid (50% / 50% on Desktop, perfectly aligned at top baseline) */
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-start pt-2">
-                    <div className={`w-full space-y-6 ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-2' : 'lg:order-1'}`}>
+                  /* 2-Column Presentation Grid (50% / 50% on Desktop, Vertically Centered Left Column) */
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center min-h-[55vh] lg:min-h-[62vh] pt-2">
+                    <div className={`w-full space-y-6 flex flex-col justify-center ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-2' : 'lg:order-1'}`}>
                       <h2 className={`font-heading font-bold ${dynamicTitleTypography} text-foreground tracking-tight`}>
                         {renderHighlightedQuestionTitle(
                           currentField.label,
@@ -2696,8 +2696,8 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                       )}
                     </div>
 
-                    {/* Left/Right Column: Seamless Unboxed Answer Column */}
-                    <div className={`w-full space-y-6 ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-1' : 'lg:order-2'}`}>
+                    {/* Left/Right Column: Seamless Unboxed Answer Column (Nudged Downward for Optical Balance) */}
+                    <div className={`w-full space-y-6 flex flex-col justify-center pt-3 lg:pt-6 ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-1' : 'lg:order-2'}`}>
                       <div className="w-full space-y-6 relative">
                         {/* Interactive Field Input */}
                         <div className="space-y-4">
@@ -3742,7 +3742,7 @@ function renderFieldInput(
   const strValue = typeof value === 'string' ? value : '';
   const choiceMotionClass = isPresentationSlide
     ? 'slide-up-anim presentation-option-card'
-    : 'transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs';
+    : 'transition-all duration-200 hover:translate-x-1 hover:border-primary/50 hover:bg-primary/5 hover:shadow-xs';
 
   switch (field.type) {
     case 'section_header':
@@ -3906,16 +3906,16 @@ function renderFieldInput(
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-200 ${choiceMotionClass} ${staggerClass} ${
+                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} ${
                   isSelected
-                    ? 'bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
-                    : 'bg-card/60 text-foreground/90 opacity-90 hover:opacity-100 hover:bg-muted/40 hover:text-foreground'
+                    ? 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                    : 'bg-card/75 border-border/80 text-foreground/80 hover:text-foreground'
                 }`}
               >
-                <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-colors ${
+                <span className={`option-badge w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-all duration-200 ${
                   isSelected
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted/70 text-muted-foreground'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-muted/70 text-muted-foreground border-border/70'
                 }`}>
                   {isSelected ? <Check className="w-4 h-4 stroke-[3]" /> : String.fromCharCode(65 + optIndex)}
                 </span>
@@ -3927,7 +3927,7 @@ function renderFieldInput(
                   onChange={(e) => handleChange(opt, e.target.checked)}
                   className="sr-only"
                 />
-                <span className="flex-1 font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
+                <span className="option-text flex-1 font-sans text-sm sm:text-base font-medium text-foreground/90 transition-colors duration-200">{opt}</span>
                 {isSelected && (
                   <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 ml-auto" />
                 )}
@@ -3937,16 +3937,16 @@ function renderFieldInput(
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-200 ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
+                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
                   hasOther
-                    ? 'bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
-                    : 'bg-card/60 text-foreground/90 opacity-90 hover:opacity-100 hover:bg-muted/40 hover:text-foreground'
+                    ? 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                    : 'bg-card/75 border-border/80 text-foreground/80 hover:text-foreground'
                 }`}
               >
-                <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-colors ${
+                <span className={`option-badge w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-all duration-200 ${
                   hasOther
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted/70 text-muted-foreground'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-muted/70 text-muted-foreground border-border/70'
                 }`}>
                   {hasOther ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : String.fromCharCode(65 + options.length)}
                 </span>
@@ -4059,16 +4059,16 @@ function renderFieldInput(
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3.5 p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-200 ${choiceMotionClass} ${staggerClass} ${alignClass} ${
+                className={`flex items-center gap-3.5 p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} ${alignClass} ${
                   isSelected
-                    ? 'bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
-                    : 'bg-card/60 text-foreground/90 opacity-90 hover:opacity-100 hover:bg-muted/40 hover:text-foreground'
+                    ? 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                    : 'bg-card/75 border-border/80 text-foreground/80 hover:text-foreground'
                 }`}
               >
-                <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-colors ${
+                <span className={`option-badge w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-all duration-200 ${
                   isSelected
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted/70 text-muted-foreground'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-muted/70 text-muted-foreground border-border/70'
                 }`}>
                   {isSelected ? <Check className="w-4 h-4 stroke-[3]" /> : String.fromCharCode(65 + optIndex)}
                 </span>
@@ -4080,7 +4080,7 @@ function renderFieldInput(
                   onChange={() => onChange(opt)}
                   className="sr-only"
                 />
-                <span className="font-sans text-sm sm:text-base font-medium text-foreground flex-1">{opt}</span>
+                <span className="option-text font-sans text-sm sm:text-base font-medium text-foreground/90 flex-1 transition-colors duration-200">{opt}</span>
                 {isSelected && (
                   <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 ml-auto" />
                 )}
@@ -4120,16 +4120,16 @@ function renderFieldInput(
             return (
               <label
                 key={opt}
-                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-200 ${choiceMotionClass} ${staggerClass} ${
+                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} ${
                   isSelected
-                    ? 'bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
-                    : 'bg-card/60 text-foreground/90 opacity-90 hover:opacity-100 hover:bg-muted/40 hover:text-foreground'
+                    ? 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                    : 'bg-card/75 border-border/80 text-foreground/80 hover:text-foreground'
                 }`}
               >
-                <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-colors ${
+                <span className={`option-badge w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-all duration-200 ${
                   isSelected
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted/70 text-muted-foreground'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-muted/70 text-muted-foreground border-border/70'
                 }`}>
                   {isSelected ? <Check className="w-4 h-4 stroke-[3]" /> : String.fromCharCode(65 + optIndex)}
                 </span>
@@ -4141,7 +4141,7 @@ function renderFieldInput(
                   onChange={() => onChange(opt)}
                   className="sr-only"
                 />
-                <span className="flex-1 font-sans text-sm sm:text-base font-medium text-foreground">{opt}</span>
+                <span className="option-text flex-1 font-sans text-sm sm:text-base font-medium text-foreground/90 transition-colors duration-200">{opt}</span>
                 {isSelected && (
                   <CheckCircle2 className="w-5 h-5 text-emerald-500 shrink-0 ml-auto" />
                 )}
@@ -4151,16 +4151,16 @@ function renderFieldInput(
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer transition-all duration-200 ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
+                className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
                   hasOther
-                    ? 'bg-primary/10 text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
-                    : 'bg-card/60 text-foreground/90 opacity-90 hover:opacity-100 hover:bg-muted/40 hover:text-foreground'
+                    ? 'bg-primary/15 border-primary text-foreground font-semibold shadow-xs ring-1 ring-primary/40 opacity-100'
+                    : 'bg-card/75 border-border/80 text-foreground/80 hover:text-foreground'
                 }`}
               >
-                <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-colors ${
+                <span className={`option-badge w-8 h-8 rounded-lg border flex items-center justify-center font-sans text-xs font-bold shrink-0 transition-all duration-200 ${
                   hasOther
-                    ? 'bg-primary text-primary-foreground'
-                    : 'bg-muted/70 text-muted-foreground'
+                    ? 'bg-primary text-primary-foreground border-primary'
+                    : 'bg-muted/70 text-muted-foreground border-border/70'
                 }`}>
                   {hasOther ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : String.fromCharCode(65 + options.length)}
                 </span>

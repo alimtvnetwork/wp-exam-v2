@@ -131,7 +131,7 @@ describe('Theme Definitions & CSS Variable Generator', () => {
     const riseup = getTheme('riseup-asia');
     expect(riseup.id).toBe('riseup-asia');
     expect(riseup.colors.primary).toBe('#F7F1E6');
-    expect(riseup.colors.highlightWord).toBe('#E8C547');
+    expect(riseup.colors.highlightWord).toBe('#F7F1E6');
 
     const navyGold = getTheme('vscode-navy-gold');
     expect(navyGold.id).toBe('vscode-navy-gold');

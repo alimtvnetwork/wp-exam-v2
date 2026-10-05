@@ -81,16 +81,31 @@
 .stagger-6 { animation-delay: 0.36s; }
 
 .presentation-option-card {
-  transition: transform 200ms cubic-bezier(0.2, 0, 0, 1),
-              box-shadow 200ms ease,
-              border-color 200ms ease,
-              background-color 200ms ease,
-              opacity 200ms ease;
-  will-change: transform, opacity;
+  opacity: 0.82;
+  transition: transform 220ms cubic-bezier(0.2, 0, 0, 1),
+              box-shadow 220ms ease,
+              border-color 220ms ease,
+              background-color 220ms ease,
+              opacity 220ms ease;
+  will-change: transform, opacity, box-shadow;
 
   &:hover {
+    opacity: 1;
     transform: translate3d(6px, 0, 0);
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25);
+    border-color: hsl(var(--primary) / 0.55);
+    background-color: hsl(var(--primary) / 0.08);
+    box-shadow: 0 8px 24px -4px hsl(var(--primary) / 0.18), 0 2px 6px -1px rgba(0, 0, 0, 0.25);
+
+    .option-text {
+      color: hsl(var(--foreground));
+      font-weight: 600;
+    }
+
+    .option-badge {
+      border-color: hsl(var(--primary) / 0.6);
+      background-color: hsl(var(--primary) / 0.15);
+      color: hsl(var(--primary));
+    }
   }
 }
 
@@ -173,7 +188,7 @@
   --wp-exam-card-active-bg: rgba(232, 197, 71, 0.12);
   --wp-exam-primary: #F7F1E6;
   --wp-exam-primary-text: #0A0A14;
-  --wp-exam-highlight: #E8C547;
+  --wp-exam-highlight: #F7F1E6;
   --wp-exam-text-primary: #FFF1D6;
   --wp-exam-text-secondary: #94A3B8;
   --wp-exam-progress-bar: #3A3A55;
@@ -192,15 +207,15 @@
   --card-foreground: 60 30% 96%;
   --popover: 231 15% 18%;
   --popover-foreground: 60 30% 96%;
-  --border: 232 14% 31%;
-  --input: 232 14% 31%;
+  --border: 232 14% 34%;
+  --input: 232 14% 34%;
   --ring: 265 89% 78%;
   --accent: 135 94% 65%;
   --accent-foreground: 231 15% 11%;
   --secondary: 232 14% 24%;
   --secondary-foreground: 60 30% 96%;
   --muted: 232 14% 24%;
-  --muted-foreground: 225 27% 51%;
+  --muted-foreground: 225 25% 76%;
   --destructive: 0 84% 60%;
   --destructive-foreground: 0 0% 100%;
   --radius: 0.75rem;
@@ -215,7 +230,7 @@
   --wp-exam-primary-text: #282A36;
   --wp-exam-highlight: #50FA7B;
   --wp-exam-text-primary: #F8F8F2;
-  --wp-exam-text-secondary: #6272A4;
+  --wp-exam-text-secondary: #BAC7E8;
   --wp-exam-progress-bar: #BD93F9;
   --wp-exam-badge-bg: rgba(189, 147, 249, 0.2);
   background-color: var(--wp-exam-bg);

@@ -188,13 +188,13 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
             src={onboardingQuizLogo}
             alt="Onboarding Quiz"
             title="Onboarding Quiz"
-            className="w-8 h-8 rounded-lg shrink-0 shadow-xs ring-1 ring-border/50"
+            className="w-8 h-8 rounded-lg shrink-0 shadow-xs ring-1 ring-border/50 group-hover:ring-primary/50 transition-all duration-200"
           />
 
           {!isCollapsed && (
             <div className="overflow-hidden">
               <div className="flex items-center gap-1.5">
-                <span className="font-bold text-xs tracking-tight text-foreground transition-colors truncate">
+                <span className="font-bold text-xs tracking-tight text-foreground group-hover:text-primary transition-colors truncate">
                   Onboarding Quiz
                 </span>
                 <span className="text-xs px-1 rounded bg-muted text-primary font-mono border border-border">
@@ -212,7 +212,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
           <button
             type="button"
             onClick={onToggleCollapse}
-            className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+            className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
             title="Collapse Sidebar"
           >
             <ChevronLeft className="w-4 h-4" />
@@ -226,7 +226,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
           <div key={sectionIdx} className="space-y-1">
             {!isCollapsed && (
               <div className="px-2.5 pb-1">
-                <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground font-mono">
+                <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground/90 font-mono flex items-center gap-1.5">
                   {section.title}
                 </span>
               </div>
@@ -247,10 +247,10 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
                     type="button"
                     onClick={() => onSelectTab(item.id)}
                     title={isCollapsed ? item.label : undefined}
-                    className={`relative w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-all group cursor-pointer ${
+                    className={`relative w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-all duration-200 group cursor-pointer ${
                       isActive
-                        ? 'bg-muted text-foreground font-semibold shadow-xs ring-1 ring-primary/30'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/60'
+                        ? 'bg-primary/15 text-foreground font-semibold shadow-xs ring-1 ring-primary/40 border-l-2 border-primary'
+                        : 'text-foreground/80 hover:text-foreground hover:bg-muted/70 hover:translate-x-1 hover:border-l-2 hover:border-primary/40'
                     }`}
                   >
                     {/* Active Accent Bar */}
@@ -259,10 +259,10 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
                     )}
 
                     <IconComponent
-                      className={`w-4 h-4 shrink-0 transition-colors ${
+                      className={`w-4 h-4 shrink-0 transition-colors duration-200 ${
                         isActive
-                          ? 'text-foreground'
-                          : 'text-muted-foreground group-hover:text-foreground'
+                          ? 'text-primary'
+                          : 'text-muted-foreground group-hover:text-primary'
                       }`}
                     />
 
@@ -272,12 +272,12 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
 
                         {item.badge && (
                           <span
-                            className={`text-xs px-1.5 py-0.2 rounded font-mono font-medium shrink-0 ml-1.5 ${
+                            className={`text-xs px-1.5 py-0.5 rounded font-mono font-medium shrink-0 ml-1.5 transition-colors ${
                               item.badgeVariant === 'amber'
-                                ? 'bg-muted text-foreground border border-border'
+                                ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
                                 : item.badgeVariant === 'secondary'
-                                ? 'bg-indigo-500/20 text-indigo-400 border border-indigo-500/30'
-                                : 'bg-muted text-muted-foreground border border-border'
+                                ? 'bg-primary/20 text-primary border border-primary/30 font-semibold'
+                                : 'bg-muted/80 text-foreground/80 border border-border'
                             }`}
                           >
                             {item.badge}

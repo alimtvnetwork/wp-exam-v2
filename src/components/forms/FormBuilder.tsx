@@ -90,6 +90,7 @@ import {
   LayoutTemplate,
   Link2,
   Hash,
+  Edit3,
 } from 'lucide-react';
 import {
   DndContext,
@@ -532,15 +533,17 @@ export const FormBuilder: React.FC = () => {
             <ArrowLeft className="w-4 h-4 text-foreground" />
           </Button>
 
-          <img
-            src={onboardingQuizLogo}
-            alt="Onboarding Quiz"
-            className="w-7 h-7 rounded-md shrink-0 shadow-2xs ring-1 ring-border/40"
-          />
+          <div className="flex items-center gap-2 group/brand cursor-pointer hover:opacity-90 transition-opacity">
+            <img
+              src={onboardingQuizLogo}
+              alt="Onboarding Quiz"
+              className="w-7 h-7 rounded-md shrink-0 shadow-2xs ring-1 ring-border/40 group-hover/brand:ring-primary/50 transition-all duration-200"
+            />
 
-          <h1 className="text-sm sm:text-base font-bold tracking-tight text-foreground whitespace-nowrap">
-            Onboarding Quiz <span className="text-primary font-semibold text-xs ml-0.5">Builder</span>
-          </h1>
+            <h1 className="text-sm sm:text-base font-bold tracking-tight text-foreground whitespace-nowrap group-hover/brand:text-primary transition-colors">
+              Onboarding Quiz <span className="text-primary font-semibold text-xs ml-0.5">Builder</span>
+            </h1>
+          </div>
 
           {/* Compact Slug Control with Link Icon Button & Popover Editor */}
           {/* Compact Slug Control with Link Icon Button & Popover Editor */}
@@ -782,14 +785,20 @@ export const FormBuilder: React.FC = () => {
             <CardContent className="p-5 sm:p-6 space-y-4">
               {/* Form Title & Config menu */}
               <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
-                <input
-                  type="text"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  placeholder="Untitled Assessment Form"
-                  className="flex-1 text-xl sm:text-2xl font-bold bg-transparent border-0 border-b border-border/40 hover:border-primary/60 hover:bg-accent/20 focus:bg-accent/30 focus:border-primary focus:outline-none transition-all px-2 py-1 rounded-md text-foreground placeholder:text-muted-foreground/40 min-w-0 cursor-text"
-                  title="Click to edit assessment title"
-                />
+                <div className="relative group/title flex-1 min-w-0">
+                  <input
+                    type="text"
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    placeholder="Untitled Assessment Form"
+                    className="w-full text-xl sm:text-2xl font-bold bg-transparent border-0 border-b border-border/30 hover:border-primary/60 hover:bg-accent/25 focus:bg-accent/35 focus:border-primary focus:outline-none transition-all duration-200 px-3 py-1.5 rounded-lg text-foreground placeholder:text-muted-foreground/40 cursor-text shadow-2xs hover:shadow-xs"
+                    title="Click to edit assessment title"
+                  />
+                  <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover/title:opacity-60 transition-opacity duration-200 pointer-events-none flex items-center gap-1.5 text-xs text-muted-foreground">
+                    <Edit3 className="w-3.5 h-3.5 text-primary" />
+                    <span className="text-[11px] font-mono hidden sm:inline">Edit Title</span>
+                  </div>
+                </div>
 
                 {/* Config menu. Trash ledger stays beside it. */}
                 <div className="flex items-center gap-1.5 shrink-0">
