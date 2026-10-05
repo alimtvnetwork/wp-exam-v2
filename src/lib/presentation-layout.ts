@@ -31,14 +31,14 @@ export function getDynamicTitleTypographyClass(title?: string): string {
   const charCount = title?.trim().length || 0;
 
   if (charCount > 80) {
-    return 'text-2xl sm:text-3xl lg:text-4xl leading-snug';
+    return 'text-xl sm:text-2xl md:text-3xl lg:text-4xl xl:text-4xl leading-snug font-bold';
   }
 
   if (charCount > 45) {
-    return 'text-3xl sm:text-4xl lg:text-5xl leading-[1.2]';
+    return 'text-2xl sm:text-3xl md:text-4xl lg:text-4xl xl:text-5xl leading-[1.2] font-bold';
   }
 
-  return 'text-4xl sm:text-5xl lg:text-6xl leading-[1.15]';
+  return 'text-3xl sm:text-4xl md:text-5xl lg:text-5xl xl:text-6xl 2xl:text-7xl leading-[1.12] font-black';
 }
 
 export interface ResolveLayoutModeParams {

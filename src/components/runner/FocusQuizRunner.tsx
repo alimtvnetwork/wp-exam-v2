@@ -824,7 +824,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
         className="sticky top-0 z-20 backdrop-blur-md bg-opacity-90"
         style={{ borderBottom: `1px solid ${theme.colors.cardBorder}40` }}
       >
-        <div className="max-w-md mx-auto px-4 py-3 flex items-center justify-between">
+        <div className="max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between">
           <button
             onClick={handlePrevious}
             className="p-2 rounded-full hover:opacity-80 transition"
@@ -922,7 +922,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
       </header>
 
       {/* Main Runner Stage Display */}
-      <main className="flex-1 max-w-2xl lg:max-w-3xl w-full mx-auto px-4 sm:px-6 py-8 flex flex-col justify-center">
+      <main className="flex-1 max-w-2xl lg:max-w-3xl xl:max-w-4xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 flex flex-col justify-center">
         {/* Stage 0: Intro Hero */}
         {currentStage === 'intro' && (
           <div className="flex flex-col items-center text-center space-y-6 animate-in fade-in duration-300">
@@ -1068,9 +1068,25 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
             <div className="space-y-2 text-center">
               <div className="flex items-center justify-between gap-2 pb-1">
                 <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="text-xs uppercase font-mono">
-                    Question {currentQuestionIndex + 1} of {totalQuestions}
-                  </Badge>
+                  <div
+                    className="inline-flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl border text-xs sm:text-sm font-heading font-semibold shadow-xs transition-all mx-auto"
+                    style={{
+                      backgroundColor: isRiseupTheme ? 'rgba(232,197,71,0.1)' : `${theme.colors.progressBar}15`,
+                      borderColor: isRiseupTheme ? 'rgba(232,197,71,0.3)' : `${theme.colors.progressBar}30`,
+                    }}
+                  >
+                    <span style={{ color: theme.colors.textSecondary }}>Question</span>
+                    <span
+                      className="px-2 py-0.5 rounded-md font-mono font-bold text-xs sm:text-sm shadow-2xs"
+                      style={{
+                        backgroundColor: isRiseupTheme ? '#E8C547' : theme.colors.progressBar,
+                        color: isRiseupTheme ? '#0A0A14' : '#FFFFFF',
+                      }}
+                    >
+                      {currentQuestionIndex + 1}
+                    </span>
+                    <span style={{ color: theme.colors.textSecondary }}>of {totalQuestions}</span>
+                  </div>
                   {isRandomized && (
                     <Badge variant="secondary" className="text-xs">
                       🔀 Shuffled
@@ -1093,7 +1109,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                 <div className="h-0.5 w-16 bg-[#E8C547] rounded-full shadow-md mx-auto mb-3" />
               )}
 
-              <h2 className="text-2xl font-black leading-tight text-center mx-auto max-w-md">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black leading-tight text-center mx-auto max-w-xl lg:max-w-2xl xl:max-w-3xl tracking-tight">
                 {renderFormattedTitle(currentQuestion.title)}
               </h2>
 
@@ -1205,7 +1221,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                       >
                         <div className="flex items-center gap-3">
                           <span
-                            className={`option-badge w-8 h-8 rounded-lg border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-all duration-200 ${
+                            className={`option-badge w-9 h-9 sm:w-10 sm:h-10 rounded-xl border flex items-center justify-center font-mono text-xs sm:text-sm font-bold shrink-0 transition-all duration-200 ${
                               isSelected
                                 ? isRiseupTheme
                                   ? 'bg-[#E8C547] text-[#0A0A14] border-[#E8C547]'
@@ -1556,7 +1572,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
           className="sticky bottom-0 z-20 backdrop-blur-md bg-opacity-95 p-4 border-t"
           style={{ borderColor: theme.colors.cardBorder }}
         >
-          <div className="max-w-md mx-auto space-y-2">
+          <div className="max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto space-y-2 px-4 sm:px-6 lg:px-8">
             <button
               onClick={handleContinue}
               className="w-full py-4 rounded-2xl font-bold text-base shadow-xl transition-opacity hover:opacity-95"

@@ -2025,7 +2025,11 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   return (
     <div
       className={`min-h-screen w-full transition-colors duration-300 font-sans theme-${activeThemeId} ${
-        isFullscreen
+        effectiveLayoutMode !== 'standard'
+          ? isFullscreen
+            ? 'fixed inset-0 z-50 overflow-y-auto p-3 sm:p-6 lg:p-8'
+            : 'p-2 sm:p-4 lg:p-6'
+          : isFullscreen
           ? 'fixed inset-0 z-50 overflow-y-auto p-4 sm:p-8'
           : 'p-3 sm:p-6 lg:p-8'
       }`}
@@ -2048,7 +2052,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       </div>
 
       {/* Top Slide Numbering Pill */}
-      {(activeForm.settings?.showSlideNumbers ?? true) && (
+      {(activeForm.settings?.showSlideNumbers ?? true) && effectiveLayoutMode === 'standard' && (
         <div className="fixed top-2.5 left-1/2 -translate-x-1/2 z-40 inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-card/90 backdrop-blur-md border border-border/40 text-[11px] font-mono font-semibold text-foreground shadow-xs pointer-events-none select-none">
           <span>{currentStep + 1} / {visibleFields.length}</span>
         </div>
@@ -2090,7 +2094,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
       <div className={`mx-auto ${
         effectiveLayoutMode !== 'standard'
-          ? 'space-y-0 w-full max-w-6xl px-4 sm:px-6 lg:px-8'
+          ? isFullscreen
+            ? 'space-y-0 w-full max-w-7xl xl:max-w-[92rem] 2xl:max-w-[100rem] px-3 sm:px-6 lg:px-8'
+            : 'space-y-0 w-full max-w-7xl xl:max-w-[92rem] px-3 sm:px-6 lg:px-8'
           : activeThemeId === 'clean-wide'
           ? 'space-y-5 max-w-7xl'
           : 'space-y-5 max-w-6xl'
@@ -2488,7 +2494,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               /* Presentation-Grade Split or Centered Question Canvas */
               <div
                 key={currentField.id}
-                className={`w-full min-h-[82vh] lg:min-h-[85vh] xl:min-h-[88vh] flex flex-col justify-center bg-transparent border-0 rounded-none shadow-none px-4 sm:px-8 lg:px-12 py-4 relative ${activeTransitionClass}`}
+                className={`w-full min-h-[82vh] lg:min-h-[85vh] xl:min-h-[88vh] flex flex-col justify-center bg-transparent border-0 rounded-none shadow-none px-2 sm:px-4 lg:px-6 py-4 relative ${activeTransitionClass}`}
               >
                 {hasSlideVideo ? (
                   <div className="space-y-4">
@@ -2559,8 +2565,21 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 <div className="flex items-center justify-between text-xs text-muted-foreground pb-2">
                   <div className="flex items-center gap-2 flex-wrap">
                     {(activeForm.settings?.showSlideNumbers ?? true) && (
-                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/40 text-xs font-mono font-medium text-muted-foreground">
-                        <span>Question {currentStep + 1} of {visibleFields.length}</span>
+                      <div className={`inline-flex items-center gap-2 px-3.5 py-1.5 sm:px-4 sm:py-2 rounded-xl border text-xs sm:text-sm font-heading font-semibold shadow-xs transition-all ${
+                        isRiseupTheme
+                          ? 'bg-[#151525]/90 border-[#3A3568] text-foreground'
+                          : 'bg-card/90 border-border/70 text-foreground'
+                      }`}>
+                        <span className="text-muted-foreground font-medium">Question</span>
+                        <span className={`px-2 py-0.5 rounded-md font-mono font-bold text-xs sm:text-sm shadow-2xs ${
+                          isRiseupTheme
+                            ? 'bg-[#E8C547] text-[#0A0A14]'
+                            : 'bg-primary text-primary-foreground'
+                        }`}>
+                          {currentStep + 1}
+                        </span>
+                        <span className="text-muted-foreground font-medium">of</span>
+                        <span className="font-mono font-bold text-foreground">{visibleFields.length}</span>
                       </div>
                     )}
                     {currentField.difficulty && (
@@ -2698,7 +2717,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   </div>
                 ) : (
                   /* 2-Column Presentation Grid (50% / 50% on Desktop, Vertically Centered Left Column) */
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center w-full min-h-[60vh] lg:min-h-[68vh] xl:min-h-[72vh] my-auto">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-start w-full min-h-[70vh] lg:min-h-[78vh] xl:min-h-[82vh] my-auto">
                     <div className={`w-full space-y-6 flex flex-col justify-center lg:self-center ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-2' : 'lg:order-1'}`}>
                       {isRiseupTheme && (
                         <div className="h-0.5 w-16 bg-[#E8C547] rounded-full shadow-md mb-3" />
@@ -2758,7 +2777,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     </div>
 
                     {/* Left/Right Column: Seamless Unboxed Answer Column (Nudged Downward for Optical Balance) */}
-                    <div className={`w-full h-full flex flex-col justify-between pt-2 lg:pt-6 xl:pt-8 ${
+                    <div className={`w-full lg:self-stretch flex flex-col justify-between h-full pt-4 sm:pt-6 lg:pt-10 xl:pt-14 ${
                       effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-1' : 'lg:order-2'
                     }`}>
                       <div className="w-full space-y-6 relative">
@@ -2777,7 +2796,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                       </div>
 
                       {/* Navigation & Advance Footer */}
-                      <div className="mt-auto pt-6 sm:pt-8 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 w-full">
+                      <div className="mt-auto pt-6 sm:pt-8 border-t border-border/20 flex flex-col sm:flex-row items-center justify-between gap-3 sm:gap-4 w-full">
                         {/* Left: Previous with subtle Chevron icon */}
                         <Button
                           type="button"
