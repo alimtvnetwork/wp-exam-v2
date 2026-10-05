@@ -1,27 +1,71 @@
 import { FormField, QuestionLayoutMode, QuestionActionChecklistItem, QuestionReferenceLinkItem, AnswerPlacementMode } from './types/form';
 
+export type SupportedQuestionLayoutMode =
+  | 'standard'
+  | 'centered'
+  | 'presentation_split'
+  | 'split_right'
+  | 'split_left'
+  | 'cards_grid';
+
+export interface LayoutModeOption {
+  id: QuestionLayoutMode | SupportedQuestionLayoutMode;
+  name: string;
+  desc: string;
+}
+
+export const QUESTION_LAYOUT_OPTIONS: LayoutModeOption[] = [
+  { id: 'standard', name: 'Standard Quiz', desc: 'Single-card vertical question stack' },
+  { id: 'centered', name: 'Centered Slide', desc: 'Focused vertical-center presentation slide' },
+  { id: 'presentation_split', name: 'Split Screen (Auto)', desc: 'Adaptive dual-column presentation' },
+  { id: 'split_right', name: 'Split (Answers Right)', desc: 'Question on left, answers on right' },
+  { id: 'split_left', name: 'Split (Answers Left)', desc: 'Answers on left, question on right' },
+  { id: 'cards_grid', name: 'Cards Grid', desc: 'Multi-column grid for choice options' },
+];
+
+/**
+ * Computes dynamic Tailwind typography classes based on question title length
+ * to ensure optimal visual balance across slide presentation viewports.
+ */
+export function getDynamicTitleTypographyClass(title?: string): string {
+  const charCount = title?.trim().length || 0;
+
+  if (charCount > 80) {
+    return 'text-2xl sm:text-3xl lg:text-4xl leading-snug';
+  }
+
+  if (charCount > 45) {
+    return 'text-3xl sm:text-4xl lg:text-5xl leading-[1.2]';
+  }
+
+  return 'text-4xl sm:text-5xl lg:text-6xl leading-[1.15]';
+}
+
 export interface ResolveLayoutModeParams {
-  runtimeOverride?: QuestionLayoutMode | 'default';
-  fieldMode?: QuestionLayoutMode;
-  formDefaultMode?: QuestionLayoutMode;
+  runtimeOverride?: QuestionLayoutMode | SupportedQuestionLayoutMode | 'default';
+  fieldMode?: QuestionLayoutMode | SupportedQuestionLayoutMode;
+  formDefaultMode?: QuestionLayoutMode | SupportedQuestionLayoutMode;
 }
 
 export function resolveQuestionLayoutMode(params: ResolveLayoutModeParams): QuestionLayoutMode {
   const runtime = params.runtimeOverride;
+
   if (runtime) {
     if (runtime !== 'default') {
-      return runtime;
+      return runtime as QuestionLayoutMode;
     }
   }
 
   const field = params.fieldMode;
+
   if (field) {
-    return field;
+    return field as QuestionLayoutMode;
   }
 
   const formDef = params.formDefaultMode;
+
   if (formDef) {
-    return formDef;
+    return formDef as QuestionLayoutMode;
   }
 
   return 'standard';

@@ -106,6 +106,7 @@ import {
   extractQuestionChecklist,
   verifyChecklistCompletion,
   isQuestionLockedForNavigation,
+  getDynamicTitleTypographyClass,
 } from '@/lib/presentation-layout';
 import { PresenterHUD } from './floating-controls';
 
@@ -583,16 +584,45 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   }, [activeThemeId, setGlobalTheme]);
 
   const [isDebugMode, setIsDebugMode] = useState<boolean>(false);
+  const [fieldOverrides, setFieldOverrides] = useState<Record<string, Partial<FormField>>>({});
+  const [settingsOverrides, setSettingsOverrides] = useState<Partial<FormSettings>>({});
 
   const activeForm: FormModel = useMemo(() => {
+    let baseForm: FormModel;
+
     if (selectedProjectId === 'custom-active') {
-      return initialForm || storeForm;
+      baseForm = initialForm || storeForm;
+    } else if (PRESET_PROJECTS[selectedProjectId]) {
+      baseForm = PRESET_PROJECTS[selectedProjectId];
+    } else {
+      baseForm = initialForm || storeForm || PRESET_PROJECTS['intern-programmer'];
     }
-    if (PRESET_PROJECTS[selectedProjectId]) {
-      return PRESET_PROJECTS[selectedProjectId];
+
+    const hasSettingsOverrides = Object.keys(settingsOverrides).length > 0;
+    const hasFieldOverrides = Object.keys(fieldOverrides).length > 0;
+    const hasAnyOverrides = hasSettingsOverrides || hasFieldOverrides;
+
+    if (!hasAnyOverrides) {
+      return baseForm;
     }
-    return initialForm || storeForm || PRESET_PROJECTS['intern-programmer'];
-  }, [selectedProjectId, initialForm, storeForm]);
+
+    return {
+      ...baseForm,
+      settings: {
+        ...baseForm.settings,
+        ...settingsOverrides,
+      },
+      fields: baseForm.fields.map((f) => {
+        const override = fieldOverrides[f.id];
+
+        if (override) {
+          return { ...f, ...override };
+        }
+
+        return f;
+      }),
+    };
+  }, [selectedProjectId, initialForm, storeForm, settingsOverrides, fieldOverrides]);
 
   const [currentStep, setCurrentStep] = useState(0);
   const [stepHistory, setStepHistory] = useState<number[]>([]);
@@ -936,6 +966,14 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const hasFieldSubtitle = typeof currentField?.subtitle === 'string' && currentField.subtitle.length > 0;
   const hasFieldDescription = typeof currentField?.description === 'string' && currentField.description.length > 0;
   const hasPlaceholderHint = typeof currentField?.placeholder === 'string' && currentField.placeholder.length > 0;
+
+  const dynamicTitleTypography = getDynamicTitleTypographyClass(currentField?.label);
+
+  const isCenteredPresentation =
+    effectiveLayoutMode === 'centered' ||
+    currentField?.layoutMode === 'centered' ||
+    currentField?.alignment === 'center' ||
+    currentField?.choiceAlignment === 'center';
 
   const dualChoices = useMemo(() => {
     if (!currentField) return null;
@@ -1704,6 +1742,122 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     );
   }
 
+  const handleHUDUpdateSettings = useCallback((updated: Partial<FormSettings>) => {
+    setSettingsOverrides((prev) => ({ ...prev, ...updated }));
+    quizStore.updateSettings(updated);
+
+    try {
+      const draftKey = `wp_exam_draft_${activeSlug}`;
+      let draftPayload: Record<string, unknown> = {};
+
+      if (typeof window !== 'undefined' && window.localStorage) {
+        const existing = window.localStorage.getItem(draftKey);
+
+        if (existing) {
+          try {
+            draftPayload = JSON.parse(existing);
+          } catch {
+            draftPayload = {};
+          }
+        }
+
+        const mergedSettings = {
+          ...((draftPayload.settings as Record<string, unknown>) || {}),
+          ...((activeForm.settings as Record<string, unknown>) || {}),
+          ...updated,
+        };
+
+        const updatedDraft = {
+          ...draftPayload,
+          title: activeForm.title,
+          description: activeForm.description,
+          slug: activeSlug,
+          formType: activeForm.formType,
+          formAccess: activeForm.formAccess,
+          isSequential: activeForm.isSequential,
+          settings: mergedSettings,
+          fields: activeForm.fields,
+          updatedAt: new Date().toISOString(),
+        };
+
+        window.localStorage.setItem(draftKey, JSON.stringify(updatedDraft));
+      }
+    } catch {
+      // Storage fallback
+    }
+  }, [quizStore, activeSlug, activeForm]);
+
+  const handleHUDUpdateLayout = useCallback((mode: QuestionLayoutMode, applyToAll: boolean) => {
+    if (applyToAll) {
+      handleHUDUpdateSettings({ defaultQuestionLayout: mode });
+      toast.success(`Default layout updated to ${mode.replace('_', ' ')}`);
+
+      return;
+    }
+
+    const fieldId = currentField?.id;
+
+    if (fieldId) {
+      setFieldOverrides((prev) => ({
+        ...prev,
+        [fieldId]: { ...prev[fieldId], layoutMode: mode },
+      }));
+      quizStore.updateField(fieldId, { layoutMode: mode });
+
+      try {
+        const draftKey = `wp_exam_draft_${activeSlug}`;
+        let draftPayload: Record<string, unknown> = {};
+
+        if (typeof window !== 'undefined' && window.localStorage) {
+          const existing = window.localStorage.getItem(draftKey);
+
+          if (existing) {
+            try {
+              draftPayload = JSON.parse(existing);
+            } catch {
+              draftPayload = {};
+            }
+          }
+
+          const updatedFields = activeForm.fields.map((f) => {
+            if (f.id === fieldId) {
+              return { ...f, layoutMode: mode };
+            }
+
+            return f;
+          });
+
+          const updatedDraft = {
+            ...draftPayload,
+            title: activeForm.title,
+            description: activeForm.description,
+            slug: activeSlug,
+            formType: activeForm.formType,
+            formAccess: activeForm.formAccess,
+            isSequential: activeForm.isSequential,
+            settings: activeForm.settings || {},
+            fields: updatedFields,
+            updatedAt: new Date().toISOString(),
+          };
+
+          window.localStorage.setItem(draftKey, JSON.stringify(updatedDraft));
+        }
+      } catch {
+        // Storage fallback
+      }
+
+      toast.success(`Question layout updated to ${mode.replace('_', ' ')}`);
+    }
+  }, [currentField?.id, activeSlug, activeForm, quizStore, handleHUDUpdateSettings]);
+
+  const handleToggleSlideNumbers = useCallback(() => {
+    const isCurrentlyShown = activeForm.settings?.showSlideNumbers ?? true;
+    const nextState = !isCurrentlyShown;
+
+    handleHUDUpdateSettings({ showSlideNumbers: nextState });
+    toast.info(nextState ? 'Slide numbers enabled' : 'Slide numbers hidden');
+  }, [activeForm.settings?.showSlideNumbers, handleHUDUpdateSettings]);
+
   const renderSidebarInner = () => (
     <>
       {/* Progress Tracker */}
@@ -1854,15 +2008,34 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
         color: currentTheme?.colors?.textPrimary || '#0F172A',
       }}
     >
+      {/* Ceiling-Flush Viewport Top Progress Bar */}
+      <div className="fixed top-0 left-0 right-0 w-full h-1 sm:h-1.5 z-50 pointer-events-none bg-black/20 dark:bg-black/40">
+        <div
+          className={`h-full transition-all duration-300 ease-out ${
+            isRiseupTheme ? 'bg-[#3A3A55]' : 'bg-primary'
+          }`}
+          style={{
+            width: `${Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}%`,
+          }}
+        />
+      </div>
+
+      {/* Top Slide Numbering Pill */}
+      {(activeForm.settings?.showSlideNumbers ?? true) && (
+        <div className="fixed top-2.5 left-1/2 -translate-x-1/2 z-40 inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-card/90 backdrop-blur-md border border-border/40 text-[11px] font-mono font-semibold text-foreground shadow-xs pointer-events-none select-none">
+          <span>{currentStep + 1} / {visibleFields.length}</span>
+        </div>
+      )}
+
       <div className={`mx-auto ${
-        effectiveLayoutMode === 'presentation_split'
+        effectiveLayoutMode !== 'standard'
           ? 'space-y-0 w-full max-w-6xl px-4 sm:px-6 lg:px-8'
           : activeThemeId === 'clean-wide'
           ? 'space-y-5 max-w-7xl'
           : 'space-y-5 max-w-6xl'
       }`}>
         {/* Streamlined Single-Line Project Selector, Slug & Actions Bar */}
-        {effectiveLayoutMode !== 'presentation_split' ? (
+        {effectiveLayoutMode === 'standard' ? (
           <div
             className="p-2.5 sm:px-4 border border-border bg-card text-card-foreground rounded-xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors"
           >
@@ -2184,10 +2357,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       )}
 
       {/* Sequential Wizard Runner with Left-Hand Sequence Navigator */}
-      {(isSequential || effectiveLayoutMode === 'presentation_split') && currentField ? (
-        <div className={effectiveLayoutMode === 'presentation_split' ? 'w-full relative' : 'flex flex-col lg:flex-row items-start gap-6 w-full'}>
+      {(isSequential || effectiveLayoutMode !== 'standard') && currentField ? (
+        <div className={effectiveLayoutMode !== 'standard' ? 'w-full relative' : 'flex flex-col lg:flex-row items-start gap-6 w-full'}>
           {/* Question Sequence Sidebar: Floating HUD overlay in presentation mode, docked in standard mode */}
-          {effectiveLayoutMode === 'presentation_split' ? (
+          {effectiveLayoutMode !== 'standard' ? (
             isSidebarVisible ? (
               <>
                 <div
@@ -2246,23 +2419,13 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           )}
 
           {/* Right-Hand Main Question Canvas */}
-          <main className={effectiveLayoutMode === 'presentation_split' ? 'w-full' : 'flex-1 min-w-0 w-full'}>
-            {effectiveLayoutMode === 'presentation_split' ? (
-              /* Presentation-Grade 2-Column Split Question Canvas */
+          <main className={effectiveLayoutMode !== 'standard' ? 'w-full' : 'flex-1 min-w-0 w-full'}>
+            {effectiveLayoutMode !== 'standard' ? (
+              /* Presentation-Grade Split or Centered Question Canvas */
               <div
                 key={currentField.id}
                 className="w-full min-h-[calc(100dvh-3rem)] bg-transparent border-0 rounded-none shadow-none p-4 sm:p-8 lg:p-12 space-y-8 animate-card-entrance relative"
               >
-                <div className="fixed top-0 left-0 right-0 w-full h-1 z-50 pointer-events-none">
-                  <Progress
-                    value={Math.round(((stepHistory.length + 1) / Math.max(visibleFields.length, 1)) * 100)}
-                    className={`h-full rounded-none ${
-                      isRiseupTheme
-                        ? 'bg-black/40 [&>div]:bg-[#3A3A55]'
-                        : 'bg-secondary'
-                    }`}
-                  />
-                </div>
                 {hasSlideVideo ? (
                   <div className="space-y-4">
                     <div className="max-w-3xl mx-auto w-full max-h-[380px] aspect-video rounded-2xl overflow-hidden border border-border shadow-lg bg-black/80">
@@ -2319,9 +2482,11 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                 {/* Top Meta Bar: Balanced Header with Question Context on Left, Timer & Fullscreen on Right */}
                 <div className="flex items-center justify-between text-xs text-muted-foreground pb-2">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/40 text-xs font-mono font-medium text-muted-foreground">
-                      <span>Question {currentStep + 1} of {visibleFields.length}</span>
-                    </div>
+                    {(activeForm.settings?.showSlideNumbers ?? true) && (
+                      <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-muted/40 text-xs font-mono font-medium text-muted-foreground">
+                        <span>Question {currentStep + 1} of {visibleFields.length}</span>
+                      </div>
+                    )}
                     {currentField.difficulty && (
                       <div className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium uppercase tracking-wider ${
                         currentField.difficulty === 'hard'
@@ -2366,82 +2531,63 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   </div>
                 </div>
 
-                {/* 2-Column Presentation Grid (50% / 50% on Desktop, perfectly aligned at top baseline) */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-start pt-2">
-                  <div className={`w-full space-y-6 ${effectiveAnswerPlacement === 'left' ? 'lg:order-2' : 'lg:order-1'}`}>
-                    <h2 className="font-heading font-bold text-3xl sm:text-4xl lg:text-5xl text-foreground leading-[1.2] tracking-tight">
-                      {renderHighlightedQuestionTitle(
-                        currentField.label,
-                        (currentField as FormField & { highlightWord?: string }).highlightWord,
-                        isRiseupTheme
-                      )}
-                      {isCurrentFieldRequired ? (
-                        <span className="text-destructive font-bold ml-1.5" title="Required question">*</span>
-                      ) : null}
-                    </h2>
-
-                    <div className="space-y-3">
-                      {hasFieldSubtitle ? (
-                        <p className="font-sans text-base sm:text-lg text-foreground/80 leading-relaxed font-normal">
+                {isCenteredPresentation ? (
+                  <div className="max-w-3xl mx-auto w-full space-y-8 pt-2 flex flex-col items-center">
+                    {/* Centered Question Header */}
+                    <div className="w-full text-center space-y-4">
+                      <h2 className={`font-heading font-bold ${dynamicTitleTypography} text-foreground tracking-tight text-center mx-auto max-w-2xl`}>
+                        {renderHighlightedQuestionTitle(currentField.label, (currentField as FormField & { highlightWord?: string }).highlightWord, isRiseupTheme)}
+                        {isCurrentFieldRequired && <span className="text-destructive font-bold ml-1.5">*</span>}
+                      </h2>
+                      {hasFieldSubtitle && (
+                        <p className="font-sans text-base sm:text-lg text-foreground/80 leading-relaxed font-normal text-center mx-auto max-w-xl">
                           {currentField.subtitle}
                         </p>
-                      ) : null}
-                      {hasFieldDescription ? (
-                        <div className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-line pl-0 py-0.5">
+                      )}
+                      {hasFieldDescription && (
+                        <div className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-line text-center mx-auto max-w-xl">
                           {currentField.description}
                         </div>
-                      ) : null}
+                      )}
+                      {hasPlaceholderHint && (
+                        <div className="pt-2 flex justify-center">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 dark:text-amber-300 transition-all cursor-pointer text-xs font-medium"
+                              >
+                                <Lightbulb className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+                                <span>Need a Hint?</span>
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              side="bottom"
+                              align="center"
+                              className="w-80 p-3.5 text-xs bg-popover/95 backdrop-blur-md border border-border/40 shadow-xl rounded-xl space-y-1.5"
+                            >
+                              <div className="flex items-center gap-1.5 text-amber-500 dark:text-amber-400 font-semibold">
+                                <Lightbulb className="w-3.5 h-3.5" />
+                                <span>Question Hint</span>
+                              </div>
+                              <p className="text-muted-foreground leading-relaxed whitespace-pre-line text-xs font-sans">
+                                {currentField.placeholder}
+                              </p>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      )}
                     </div>
 
-                    {hasPlaceholderHint ? (
-                      <div className="pt-2">
-                        <Popover>
-                          <PopoverTrigger asChild>
-                            <button
-                              type="button"
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 dark:text-amber-300 transition-all cursor-pointer text-xs font-medium"
-                            >
-                              <Lightbulb className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
-                              <span>Need a Hint?</span>
-                            </button>
-                          </PopoverTrigger>
-                          <PopoverContent
-                            side="bottom"
-                            align="start"
-                            className="w-80 p-3.5 text-xs bg-popover/95 backdrop-blur-md border border-border/40 shadow-xl rounded-xl space-y-1.5"
-                          >
-                            <div className="flex items-center gap-1.5 text-amber-500 dark:text-amber-400 font-semibold">
-                              <Lightbulb className="w-3.5 h-3.5" />
-                              <span>Question Hint</span>
-                            </div>
-                            <p className="text-muted-foreground leading-relaxed whitespace-pre-line text-xs font-sans">
-                              {currentField.placeholder}
-                            </p>
-                          </PopoverContent>
-                        </Popover>
-                      </div>
-                    ) : null}
-                  </div>
-
-                  {/* Left/Right Column: Seamless Unboxed Answer Column */}
-                  <div className={`w-full space-y-6 ${effectiveAnswerPlacement === 'left' ? 'lg:order-1' : 'lg:order-2'}`}>
-                    <div className="w-full space-y-6 relative">
-                      {/* Interactive Field Input */}
-                      <div className="space-y-4">
-                        {renderFieldInput(
-                          currentField,
-                          answers[currentField.id],
-                          (val) => handleAnswerChange(currentField.id, val),
-                          true,
-                          otherTexts,
-                          handleOtherTextChange
-                        )}
+                    {/* Centered MCQ Options Stack */}
+                    <div className="w-full max-w-xl mx-auto space-y-6">
+                      <div className="space-y-3.5">
+                        {renderFieldInput(currentField, answers[currentField.id], (val) => handleAnswerChange(currentField.id, val), true, otherTexts, handleOtherTextChange)}
                       </div>
 
-                      {/* Navigation & Advance Footer */}
-                      <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+                      {/* Centered Navigation Footer */}
+                      <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3 w-full">
                         <Button
-                          type="button"
                           variant="ghost"
                           size="sm"
                           disabled={currentStep === 0}
@@ -2450,7 +2596,6 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                         >
                           Previous
                         </Button>
-
                         <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -2492,7 +2637,135 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                       </div>
                     </div>
                   </div>
-                </div>
+                ) : (
+                  /* 2-Column Presentation Grid (50% / 50% on Desktop, perfectly aligned at top baseline) */
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-start pt-2">
+                    <div className={`w-full space-y-6 ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-2' : 'lg:order-1'}`}>
+                      <h2 className={`font-heading font-bold ${dynamicTitleTypography} text-foreground tracking-tight`}>
+                        {renderHighlightedQuestionTitle(
+                          currentField.label,
+                          (currentField as FormField & { highlightWord?: string }).highlightWord,
+                          isRiseupTheme
+                        )}
+                        {isCurrentFieldRequired && (
+                          <span className="text-destructive font-bold ml-1.5" title="Required question">*</span>
+                        )}
+                      </h2>
+
+                      <div className="space-y-3">
+                        {hasFieldSubtitle && (
+                          <p className="font-sans text-base sm:text-lg text-foreground/80 leading-relaxed font-normal">
+                            {currentField.subtitle}
+                          </p>
+                        )}
+                        {hasFieldDescription && (
+                          <div className="font-sans text-sm sm:text-base text-muted-foreground leading-relaxed whitespace-pre-line pl-0 py-0.5">
+                            {currentField.description}
+                          </div>
+                        )}
+                      </div>
+
+                      {hasPlaceholderHint && (
+                        <div className="pt-2">
+                          <Popover>
+                            <PopoverTrigger asChild>
+                              <button
+                                type="button"
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 hover:bg-amber-500/20 text-amber-500 dark:text-amber-300 transition-all cursor-pointer text-xs font-medium"
+                              >
+                                <Lightbulb className="w-3.5 h-3.5 text-amber-500 dark:text-amber-400" />
+                                <span>Need a Hint?</span>
+                              </button>
+                            </PopoverTrigger>
+                            <PopoverContent
+                              side="bottom"
+                              align="start"
+                              className="w-80 p-3.5 text-xs bg-popover/95 backdrop-blur-md border border-border/40 shadow-xl rounded-xl space-y-1.5"
+                            >
+                              <div className="flex items-center gap-1.5 text-amber-500 dark:text-amber-400 font-semibold">
+                                <Lightbulb className="w-3.5 h-3.5" />
+                                <span>Question Hint</span>
+                              </div>
+                              <p className="text-muted-foreground leading-relaxed whitespace-pre-line text-xs font-sans">
+                                {currentField.placeholder}
+                              </p>
+                            </PopoverContent>
+                          </Popover>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Left/Right Column: Seamless Unboxed Answer Column */}
+                    <div className={`w-full space-y-6 ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-1' : 'lg:order-2'}`}>
+                      <div className="w-full space-y-6 relative">
+                        {/* Interactive Field Input */}
+                        <div className="space-y-4">
+                          {renderFieldInput(
+                            currentField,
+                            answers[currentField.id],
+                            (val) => handleAnswerChange(currentField.id, val),
+                            true,
+                            otherTexts,
+                            handleOtherTextChange
+                          )}
+                        </div>
+
+                        {/* Navigation & Advance Footer */}
+                        <div className="pt-6 flex flex-col sm:flex-row items-center justify-between gap-3">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            disabled={currentStep === 0}
+                            onClick={handlePreviousStep}
+                            className="btn-tactile-spring text-xs h-10 px-4 font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 cursor-pointer w-full sm:w-auto rounded-xl transition-all"
+                          >
+                            Previous
+                          </Button>
+
+                          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={handleTestAutoFill}
+                                  className="btn-tactile-spring text-xs h-10 px-3.5 font-medium rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all cursor-pointer"
+                                >
+                                  ⚡ Auto Fill
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Fill valid answer and advance</TooltipContent>
+                            </Tooltip>
+
+                            {isLastVisibleStep ? (
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={handleNextStep}
+                                className="btn-tactile-spring text-xs h-10 px-6 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-2 flex-1 sm:flex-initial justify-center rounded-xl"
+                              >
+                                <span>Submit Assessment</span>
+                                <span className="text-[10px] opacity-75 font-mono">Enter ↵</span>
+                              </Button>
+                            ) : (
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={handleNextStep}
+                                className="btn-tactile-spring text-xs h-10 px-6 font-bold bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm cursor-pointer flex items-center gap-2 flex-1 sm:flex-initial justify-center rounded-xl"
+                              >
+                                <span>Next Question</span>
+                                <span className="text-[10px] opacity-75 font-mono">Enter ↵</span>
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               /* Standard Quiz Card View */
@@ -2824,6 +3097,20 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
         isSidebarVisible={isSidebarVisible}
         setIsSidebarVisible={setIsSidebarVisible}
         timeLeftSeconds={timeLeftSeconds}
+        {...({
+          showSlideNumbers: activeForm.settings?.showSlideNumbers ?? true,
+          onToggleSlideNumbers: handleToggleSlideNumbers,
+          currentFieldId: currentField?.id,
+          currentFieldLayout: currentField?.layoutMode || activeForm.settings?.defaultQuestionLayout || 'standard',
+          onUpdateLayout: handleHUDUpdateLayout,
+          onUpdateFieldLayout: (fieldId: string, layoutMode: QuestionLayoutMode) => {
+            handleHUDUpdateLayout(layoutMode, false);
+          },
+          onSaveToQuiz: () => {
+            handleHUDUpdateSettings(activeForm.settings || {});
+            toast.success('Saved layout customizations to quiz draft!');
+          },
+        } as any)}
       />
     </div>
   );
@@ -3453,7 +3740,7 @@ function renderFieldInput(
 ) {
   const strValue = typeof value === 'string' ? value : '';
   const choiceMotionClass = isPresentationSlide
-    ? 'slide-up-anim presentation-option-card hover:translate-x-2'
+    ? 'slide-up-anim presentation-option-card'
     : 'transition-all duration-150 hover:border-foreground/40 hover:bg-muted/70 hover:shadow-xs';
 
   switch (field.type) {

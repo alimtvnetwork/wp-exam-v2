@@ -89,6 +89,7 @@ import {
   Columns,
   LayoutTemplate,
   Link2,
+  Hash,
 } from 'lucide-react';
 import {
   DndContext,
@@ -711,6 +712,23 @@ export const FormBuilder: React.FC = () => {
               </button>
             </div>
           )}
+
+          {/* Slide # Toggle Button */}
+          <div className="inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5 h-8 shrink-0 shadow-2xs">
+            <button
+              type="button"
+              onClick={() => updateSettings({ showSlideNumbers: !(settings.showSlideNumbers ?? true) })}
+              className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
+                (settings.showSlideNumbers ?? true)
+                  ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+              title="Toggle Slide Numbering badge in Presentation Mode"
+            >
+              <Hash className="w-3.5 h-3.5" />
+              <span>Slide #</span>
+            </button>
+          </div>
         </div>
 
         {/* Right Side: Combined Compact Preview & Save Segmented Control */}
@@ -1766,6 +1784,23 @@ export const FormBuilder: React.FC = () => {
                       </SelectContent>
                     </Select>
                   </div>
+                </div>
+
+                {/* Slide Numbering Switch */}
+                <div className="flex items-center justify-between p-3 rounded-xl border border-border/70 bg-card/60">
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1.5 text-foreground font-semibold text-sm">
+                      <Hash className="w-3.5 h-3.5 text-primary" />
+                      <span>Slide Numbering</span>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      Display "Slide X of Y" counter badge during presentation mode
+                    </span>
+                  </div>
+                  <Switch
+                    checked={settings.showSlideNumbers ?? true}
+                    onCheckedChange={(checked) => updateSettings({ showSlideNumbers: checked })}
+                  />
                 </div>
 
                 {/* 5. Presentation Theme Selector */}

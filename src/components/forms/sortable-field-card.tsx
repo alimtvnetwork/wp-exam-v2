@@ -707,43 +707,32 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
               </SelectContent>
             </Select>
 
-            {/* Direct Layout Mode Toggle: Quiz Format vs Presentation Slide */}
-            <div className="inline-flex items-center rounded-lg border border-border bg-card p-0.5 h-8 shrink-0 shadow-2xs">
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    onClick={() => onUpdate(id, { layoutMode: 'standard' })}
-                    className={`inline-flex items-center justify-center h-full w-7 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                      field.layoutMode !== 'presentation_split'
-                        ? 'bg-primary text-primary-foreground shadow-xs font-bold'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
-                    }`}
-                    aria-label="Quiz Format"
-                  >
-                    <LayoutTemplate className="w-3.5 h-3.5" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>Quiz Format</TooltipContent>
-              </Tooltip>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button
-                    type="button"
-                    onClick={() => onUpdate(id, { layoutMode: 'presentation_split' })}
-                    className={`inline-flex items-center justify-center h-full w-7 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                      field.layoutMode === 'presentation_split'
-                        ? 'bg-primary text-primary-foreground shadow-xs font-bold'
-                        : 'text-muted-foreground hover:text-foreground hover:bg-accent/40'
-                    }`}
-                    aria-label="Presentation Slide"
-                  >
-                    <Columns className="w-3.5 h-3.5" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent>Presentation Slide</TooltipContent>
-              </Tooltip>
-            </div>
+            {/* Question Layout Dropdown Selector */}
+            <Select
+              value={field.layoutMode || 'standard'}
+              onValueChange={(val) => onUpdate(field.id, { layoutMode: val as QuestionLayoutMode })}
+            >
+              <SelectTrigger className="h-8 text-xs bg-background text-foreground border border-input rounded-lg font-medium w-[125px] shrink-0 cursor-pointer shadow-2xs">
+                <SelectValue placeholder="Layout style" />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border-border z-[100]">
+                <SelectItem value="standard" className="text-xs py-1.5 cursor-pointer">
+                  Standard Card
+                </SelectItem>
+                <SelectItem value="centered" className="text-xs py-1.5 cursor-pointer">
+                  Centered Slide
+                </SelectItem>
+                <SelectItem value="presentation_split" className="text-xs py-1.5 cursor-pointer">
+                  Split Right
+                </SelectItem>
+                <SelectItem value="split_left" className="text-xs py-1.5 cursor-pointer">
+                  Split Left
+                </SelectItem>
+                <SelectItem value="cards_grid" className="text-xs py-1.5 cursor-pointer">
+                  Cards Grid
+                </SelectItem>
+              </SelectContent>
+            </Select>
 
             {/* Answer Placement for Presentation Slide mode */}
             {field.layoutMode === 'presentation_split' && (

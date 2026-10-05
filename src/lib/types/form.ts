@@ -212,7 +212,13 @@ export interface FormField {
   referenceLinks?: QuestionReferenceLinkItem[];
 }
 
-export type QuestionLayoutMode = 'standard' | 'presentation_split';
+export type QuestionLayoutMode =
+  | 'standard'
+  | 'centered'
+  | 'presentation_split'
+  | 'split_right'
+  | 'split_left'
+  | 'cards_grid';
 
 export type AnswerPlacementMode = 'right' | 'left';
 
@@ -253,6 +259,7 @@ export interface FormSettings {
   shuffleOptions?: boolean;
   showFeedbackImmediately?: boolean;
   theme?: string;
+  showSlideNumbers?: boolean;
 }
 
 export interface FormModel {

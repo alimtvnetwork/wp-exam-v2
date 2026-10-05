@@ -1,16 +1,18 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { Palette, Eye, Clock, GripVertical } from 'lucide-react';
+import { Palette, Eye, Clock, GripVertical, Check } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Tooltip, TooltipContent, TooltipTrigger, TooltipProvider } from '@/components/ui/tooltip';
 import { THEME_PRESETS, getTheme } from '@/lib/themes';
+import { QuestionLayoutMode } from '@/lib/types/form';
 import { toast } from 'sonner';
 
 export interface PresenterHUDProps {
@@ -23,6 +25,12 @@ export interface PresenterHUDProps {
   isSidebarVisible: boolean;
   setIsSidebarVisible: (visible: boolean) => void;
   timeLeftSeconds: number | null;
+
+  showSlideNumbers?: boolean;
+  onToggleSlideNumbers?: (show: boolean) => void;
+  currentFieldId?: string;
+  currentFieldLayout?: QuestionLayoutMode;
+  onUpdateLayout?: (mode: QuestionLayoutMode, applyToAll: boolean) => void;
 }
 
 const formatTimerDisplay = (seconds: number): string => {
@@ -42,6 +50,11 @@ export const PresenterHUD: React.FC<PresenterHUDProps> = ({
   isSidebarVisible,
   setIsSidebarVisible,
   timeLeftSeconds,
+  showSlideNumbers,
+  onToggleSlideNumbers,
+  currentFieldId,
+  currentFieldLayout,
+  onUpdateLayout,
 }) => {
   return (
     <TooltipProvider>
@@ -95,26 +108,72 @@ export const PresenterHUD: React.FC<PresenterHUDProps> = ({
             </TooltipTrigger>
             <TooltipContent>View</TooltipContent>
           </Tooltip>
-          <DropdownMenuContent align="end" className="min-w-[12rem] border border-border/40 bg-popover text-popover-foreground z-[10000]">
+          <DropdownMenuContent align="end" className="min-w-[13rem] border border-border/40 bg-popover text-popover-foreground z-[10000]">
             <DropdownMenuItem
               onSelect={() => {
+                onUpdateLayout?.('centered', false);
+                setRunnerViewMode('presentation_split');
+                toast.info('Switched to Centered Slide');
+              }}
+              className={effectiveLayoutMode === 'centered' ? 'bg-accent text-foreground' : undefined}
+            >
+              Centered slide
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() => {
+                onUpdateLayout?.('presentation_split', false);
+                setRunnerViewMode('presentation_split');
+                toast.info('Switched to Split Right');
+              }}
+              className={effectiveLayoutMode === 'presentation_split' ? 'bg-accent text-foreground' : undefined}
+            >
+              Split right
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() => {
+                onUpdateLayout?.('split_left', false);
+                setRunnerViewMode('presentation_split');
+                toast.info('Switched to Split Left');
+              }}
+              className={effectiveLayoutMode === 'split_left' ? 'bg-accent text-foreground' : undefined}
+            >
+              Split left
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              onSelect={() => {
+                onUpdateLayout?.('standard', false);
                 setRunnerViewMode('standard');
                 toast.info('Switched to Standard Quiz View');
               }}
               className={effectiveLayoutMode === 'standard' ? 'bg-accent text-foreground' : undefined}
             >
-              Quiz format
+              Standard quiz
             </DropdownMenuItem>
+
+            <DropdownMenuSeparator className="my-1 border-border/40" />
+
             <DropdownMenuItem
               onSelect={() => {
-                setRunnerViewMode('presentation_split');
-                setIsSidebarVisible(false);
-                toast.info('Switched to Presentation Slide format');
+                onUpdateLayout?.(currentFieldLayout || 'centered', true);
+                toast.success('Saved layout to all slides');
               }}
-              className={effectiveLayoutMode === 'presentation_split' ? 'bg-accent text-foreground' : undefined}
+              className="cursor-pointer text-xs font-semibold text-primary"
             >
-              Presentation slide
+              Save Layout to All Slides
             </DropdownMenuItem>
+
+            {onToggleSlideNumbers && (
+              <DropdownMenuItem
+                onSelect={() => onToggleSlideNumbers(!showSlideNumbers)}
+                className="flex items-center justify-between cursor-pointer"
+              >
+                <span>Slide Numbers</span>
+                {showSlideNumbers && <Check className="w-3.5 h-3.5 text-primary" />}
+              </DropdownMenuItem>
+            )}
+
+            <DropdownMenuSeparator className="my-1 border-border/40" />
+
             <DropdownMenuItem
               onSelect={() => setIsSidebarVisible(!isSidebarVisible)}
               className={isSidebarVisible ? 'bg-accent text-foreground' : undefined}
