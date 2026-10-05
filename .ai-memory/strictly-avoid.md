@@ -700,3 +700,29 @@ Allowed work:
 - ✅ Vertically center question prompt containers in optical equilibrium (`items-center w-full my-auto lg:self-center`).
 - ✅ Apply a balanced downward offset (`pt-2 lg:pt-6 xl:pt-8`) to the right options column.
 
+---
+
+## Excessive Right-Column Option Displacement — TOTAL BAN
+
+🔴 **NEVER displace the right-hand options column downward beyond `pt-2 lg:pt-6 xl:pt-8` (e.g., `lg:pt-10 xl:pt-14` is banned).**
+
+Forbidden:
+- ❌ Pushing choice options excessively down towards the bottom of the screen (`lg:pt-10 xl:pt-14`).
+- ❌ Misaligning options relative to the vertically centered prompt.
+
+Allowed work:
+- ✅ Apply subtle, controlled downward offset (`pt-2 lg:pt-6 xl:pt-8`) ensuring harmonious optical alignment.
+
+---
+
+## Suppression of Option Card Hover Animations — TOTAL BAN
+
+🔴 **NEVER attach conflicting inline Tailwind transition classes (`transition-all duration-200`) to `.presentation-option-card` label elements.**
+
+Forbidden:
+- ❌ Overriding `.presentation-option-card` custom cubic-bezier sliding animation and gradient tinting with generic Tailwind transitions.
+
+Allowed work:
+- ✅ Let `.presentation-option-card` manage the smooth sliding transform (`translate3d(6px, 0, 0)`), opacity fade-in (`opacity: 1`), colorful primary gradient, and border glow.
+
+

@@ -82,19 +82,21 @@
 
 .presentation-option-card {
   opacity: 0.82;
-  transition: transform 220ms cubic-bezier(0.2, 0, 0, 1),
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
+  transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 220ms ease,
-              border-color 220ms ease,
-              background-color 220ms ease,
-              opacity 220ms ease;
+              border-color 200ms ease,
+              background-color 200ms ease,
+              background 200ms ease,
+              opacity 200ms ease;
   will-change: transform, opacity, box-shadow;
 
   &:hover {
     opacity: 1 !important;
     transform: translate3d(6px, 0, 0) !important;
-    border-color: hsl(var(--primary) / 0.65) !important;
-    background-color: hsl(var(--card) / 0.95) !important;
-    box-shadow: 0 10px 28px -4px hsl(var(--primary) / 0.22), 0 2px 8px -1px rgba(0, 0, 0, 0.3) !important;
+    border-color: hsl(var(--primary) / 0.75) !important;
+    background: linear-gradient(90deg, hsl(var(--primary) / 0.14) 0%, hsl(var(--card) / 0.92) 100%) !important;
+    box-shadow: 0 10px 30px -4px hsl(var(--primary) / 0.28), 0 2px 8px -1px rgba(0, 0, 0, 0.35) !important;
 
     .option-text,
     .option-text-shadow {
@@ -104,12 +106,45 @@
     }
 
     .option-badge {
-      border-color: hsl(var(--primary) / 0.7) !important;
-      background-color: hsl(var(--primary) / 0.2) !important;
+      border-color: hsl(var(--primary) / 0.75) !important;
+      background-color: hsl(var(--primary) / 0.22) !important;
       color: hsl(var(--primary)) !important;
       transform: scale(1.05);
     }
   }
+}
+
+// --- Canonical Default Text-Shadow System ---
+:root {
+  --option-text-shadow-rest: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+  --option-text-shadow-hover: rgba(0, 0, 0, 0.35) 1px 0.7px 0px;
+}
+
+.dark,
+[data-theme="riseup-asia"],
+[data-theme="riseup"],
+[data-theme="purple"],
+[data-theme="dracula"],
+[data-theme="vscode-dark"],
+[data-theme="obsidian"],
+[data-theme="vscode-navy-gold"] {
+  --option-text-shadow-rest: 0 1px 4px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.25);
+  --option-text-shadow-hover: rgb(0 0 0) 1px 0.7px 0px;
+}
+
+.light,
+[data-theme="clean"],
+[data-theme="clean-wide"],
+[data-theme="green-choice"],
+[data-theme="sweet-digs"] {
+  --option-text-shadow-rest: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --option-text-shadow-hover: rgba(0, 0, 0, 0.3) 1px 0.7px 0px;
+}
+
+.option-text,
+.option-text-shadow {
+  transition: text-shadow 200ms ease, color 200ms ease;
+  text-shadow: var(--option-text-shadow-rest);
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -440,6 +475,14 @@
   color-scheme: light;
 }
 
+.theme-green-choice,
+[data-theme="green-choice"] {
+  background-image:
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(22, 163, 74, 0.07), transparent 70%),
+    radial-gradient(circle 500px at 100% 100%, rgba(13, 148, 136, 0.03), transparent 60%);
+  background-attachment: fixed;
+}
+
 // Green Choice Dark Mode Variant
 .theme-green-choice.dark, [data-theme="green-choice"].dark, .theme-sweet-digs.dark, [data-theme="sweet-digs"].dark {
   --background: 160 20% 7%;
@@ -556,6 +599,16 @@
   background-color: var(--wp-exam-bg);
   color: var(--wp-exam-text-primary);
   color-scheme: light;
+}
+
+.theme-clean,
+[data-theme="clean"],
+.theme-clean-wide,
+[data-theme="clean-wide"] {
+  background-image:
+    radial-gradient(ellipse 70% 50% at 50% -10%, rgba(37, 99, 235, 0.06), transparent 70%),
+    radial-gradient(circle 500px at 100% 100%, rgba(99, 102, 241, 0.03), transparent 60%);
+  background-attachment: fixed;
 }
 
 // CSS3 Animations & Keyframes
@@ -708,5 +761,96 @@
   scrollbar-width: thin;
   scrollbar-color: hsl(var(--border) / 0.8) transparent;
 }
+
+@keyframes timerMinutePulse {
+  0% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  30% {
+    transform: scale(1.12);
+    box-shadow: 0 0 24px 6px rgba(239, 68, 68, 0.55);
+  }
+  70% {
+    transform: scale(1.04);
+    box-shadow: 0 0 14px 3px rgba(239, 68, 68, 0.35);
+  }
+  100% {
+    transform: scale(1);
+    box-shadow: 0 0 8px 1px rgba(239, 68, 68, 0.2);
+  }
+}
+
+.animate-timer-minute-pulse {
+  animation: timerMinutePulse 0.95s cubic-bezier(0.16, 1, 0.3, 1) both;
+  will-change: transform, box-shadow;
+}
+
+.timer-urgency-glow {
+  color: #ef4444 !important;
+  border-color: rgba(239, 68, 68, 0.55) !important;
+  background-color: rgba(239, 68, 68, 0.12) !important;
+  box-shadow: 0 0 14px 2px rgba(239, 68, 68, 0.3);
+}
+
+@keyframes pptSlideRight {
+  0% {
+    opacity: 0;
+    transform: translate3d(36px, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pptSlideLeft {
+  0% {
+    opacity: 0;
+    transform: translate3d(-36px, 0, 0);
+  }
+  100% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes pptFade {
+  0% {
+    opacity: 0;
+    transform: scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-ppt-slide-forward {
+  animation: pptSlideRight 340ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-ppt-slide-backward {
+  animation: pptSlideLeft 340ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+.animate-ppt-fade {
+  animation: pptFade 280ms cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-ppt-slide-forward,
+  .animate-ppt-slide-backward,
+  .animate-ppt-fade,
+  .animate-timer-minute-pulse {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transform: none !important;
+  }
+}
+
 
 

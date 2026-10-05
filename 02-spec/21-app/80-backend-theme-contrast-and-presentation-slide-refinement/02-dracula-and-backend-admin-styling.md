@@ -9,7 +9,7 @@
 
 As illustrated in visual artifact `assets/screenshots/user-feedback-admin-dracula-faded.png`, the Antigravity Dracula theme previously rendered with muddy secondary text (`#6272A4`) in the admin console. Because the card backgrounds use `#282A36` and `#191A21`, this resulted in an illegible ~2.4:1 contrast ratio that blended menus, labels, and descriptions into a dull dark mass.
 
-Furthermore, the quiz assessment title ("Sample Sequential Knowledge Quiz") lacked interactive feedback, appearing as flat, static text without tactile indication of editability.
+Furthermore, the quiz assessment title ("Sample Sequential Knowledge Quiz") lacked interactive feedback, appearing as flat, static text without tactile indication of editability, and lacked a distinct blended container.
 
 ---
 
@@ -38,10 +38,10 @@ The updated token values must be synchronized across:
 
 ## 3. WordPress Admin Sidebar Enhancements (`wp-admin-sidebar.tsx`)
 
-1. **Navigation Section Headers:** Render uppercase group labels in crisp `text-[11px] font-bold uppercase tracking-wider text-muted-foreground/90 font-mono` to ensure clear section hierarchy.
+1. **Navigation Section Headers:** Render uppercase group labels in crisp `text-[11px] font-bold uppercase tracking-wider text-foreground/70 font-mono` to ensure unmistakable visual hierarchy.
 2. **Inactive Navigation Items:**
-   - Base state: `text-foreground/80 font-medium`
-   - Hover state: `hover:text-foreground hover:bg-muted/70 hover:translate-x-1 hover:border-l-2 hover:border-primary/40 transition-all duration-200`
+   - Base state: `text-foreground/85 font-medium`
+   - Hover state: `hover:text-foreground hover:bg-primary/10 hover:translate-x-1 hover:border-l-2 hover:border-primary/60 transition-all duration-200`
    - Icon styling: `text-muted-foreground group-hover:text-primary transition-colors`
 3. **Active Navigation Items:**
    - Accent bar: `absolute left-0 top-1.5 bottom-1.5 w-1 rounded-r bg-primary`
@@ -54,10 +54,10 @@ The updated token values must be synchronized across:
 
 ## 4. Assessment Title & Description Interactivity (`FormBuilder.tsx`)
 
-1. **Interactive Quiz Title (`group/title`):**
-   - Base state: Crisp `text-xl sm:text-2xl font-bold bg-transparent border-0 border-b border-border/30 rounded-lg text-foreground px-3 py-1.5`
-   - Hover state: `hover:border-primary/60 hover:bg-accent/25 hover:shadow-xs transition-all duration-200`
-   - Focus state: `focus:bg-accent/35 focus:border-primary focus:outline-none`
-   - Interactive Pencil Cue: Absolute-positioned badge `opacity-0 group-hover/title:opacity-60 transition-opacity duration-200 pointer-events-none flex items-center gap-1.5 text-xs text-muted-foreground` displaying `<Edit3 className="w-3.5 h-3.5 text-primary" />` and `Edit Title`.
+1. **Interactive Quiz Title Container (`group/title`):**
+   - Base state: Blended container `bg-muted/30 border border-border/40 rounded-xl px-4 py-2.5 text-foreground font-bold shadow-2xs transition-all duration-200`
+   - Hover state: `hover:border-primary/70 hover:bg-muted/50 hover:shadow-xs group-hover/title:border-primary/60`
+   - Focus state: `focus:bg-muted/60 focus:border-primary focus:ring-1 focus:ring-primary/40 focus:outline-none`
+   - Interactive Pencil Cue: Absolute-positioned badge `opacity-0 group-hover/title:opacity-90 transition-opacity duration-200 pointer-events-none flex items-center gap-1.5 text-xs text-muted-foreground bg-card/90 backdrop-blur-xs px-2 py-0.5 rounded-md border border-border/60 shadow-xs` displaying `<Edit3 className="w-3.5 h-3.5 text-primary" />` and `Edit Title`.
 2. **Form Description Field:**
-   - Render in `text-sm text-foreground/80 hover:text-foreground focus:text-foreground bg-transparent border-0 border-b border-border/30 hover:border-border focus:border-primary focus:outline-none transition-colors px-1 py-1` with placeholder `placeholder:text-muted-foreground/50`.
+   - Render in `text-sm text-foreground/90 hover:text-foreground focus:text-foreground bg-muted/20 hover:bg-muted/30 focus:bg-muted/40 border border-border/40 hover:border-border/80 focus:border-primary focus:outline-none rounded-xl transition-all px-3 py-2 resize-none placeholder:text-muted-foreground/60 leading-relaxed`.

@@ -2717,7 +2717,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                   </div>
                 ) : (
                   /* 2-Column Presentation Grid (50% / 50% on Desktop, Vertically Centered Left Column) */
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-start w-full min-h-[70vh] lg:min-h-[78vh] xl:min-h-[82vh] my-auto">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 xl:gap-16 items-center w-full min-h-[70vh] lg:min-h-[78vh] xl:min-h-[82vh] my-auto">
                     <div className={`w-full space-y-6 flex flex-col justify-center lg:self-center ${effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-2' : 'lg:order-1'}`}>
                       {isRiseupTheme && (
                         <div className="h-0.5 w-16 bg-[#E8C547] rounded-full shadow-md mb-3" />
@@ -2777,7 +2777,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
                     </div>
 
                     {/* Left/Right Column: Seamless Unboxed Answer Column (Nudged Downward for Optical Balance) */}
-                    <div className={`w-full lg:self-stretch flex flex-col justify-between h-full pt-4 sm:pt-6 lg:pt-10 xl:pt-14 ${
+                    <div className={`w-full lg:self-stretch flex flex-col justify-between h-full pt-2 lg:pt-6 xl:pt-8 ${
                       effectiveAnswerPlacement === 'left' || effectiveLayoutMode === 'split_left' ? 'lg:order-1' : 'lg:order-2'
                     }`}>
                       <div className="w-full space-y-6 relative">
@@ -3998,7 +3998,7 @@ function renderFieldInput(
             return (
               <label
                 key={opt}
-                className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} transition-all duration-200 ${
+                className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} ${
                   isSelected
                     ? isRiseupTheme
                       ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
@@ -4041,7 +4041,7 @@ function renderFieldInput(
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} transition-all duration-200 ${
+                className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
                   hasOther
                     ? isRiseupTheme
                       ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
@@ -4175,7 +4175,7 @@ function renderFieldInput(
             return (
               <label
                 key={opt}
-                className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} transition-all duration-200 ${alignClass} ${
+                className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} ${alignClass} ${
                   isSelected
                     ? isRiseupTheme
                       ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
@@ -4248,7 +4248,7 @@ function renderFieldInput(
             return (
               <label
                 key={opt}
-                className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} transition-all duration-200 ${
+                className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${staggerClass} ${
                   isSelected
                     ? isRiseupTheme
                       ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'
@@ -4291,7 +4291,7 @@ function renderFieldInput(
           {field.allowOtherOption && (
             <div className="space-y-2 pt-1">
               <label
-                className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} transition-all duration-200 ${
+                className={`group flex items-center gap-3.5 sm:gap-4 p-4 sm:p-4.5 lg:p-5 rounded-2xl text-sm sm:text-base font-sans font-medium cursor-pointer border ${choiceMotionClass} ${isPresentationSlide ? `stagger-${Math.min(options.length + 1, 6)}` : ''} ${
                   hasOther
                     ? isRiseupTheme
                       ? 'bg-[rgba(232,197,71,0.08)] border-[#E8C547] text-foreground font-semibold shadow-xs ring-1 ring-[#E8C547]/40 opacity-100'

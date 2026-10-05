@@ -791,7 +791,7 @@ export const FormBuilder: React.FC = () => {
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
                     placeholder="Untitled Assessment Form"
-                    className="w-full text-xl sm:text-2xl font-bold bg-muted/20 border border-transparent hover:border-primary/60 hover:bg-accent/30 focus:bg-accent/40 focus:border-primary focus:ring-1 focus:ring-primary/40 focus:outline-none transition-all duration-200 px-3.5 py-2 rounded-xl text-foreground placeholder:text-muted-foreground/50 cursor-text shadow-2xs hover:shadow-xs"
+                    className="w-full text-xl sm:text-2xl font-bold bg-muted/30 border border-border/40 hover:border-primary/70 hover:bg-muted/50 focus:bg-muted/60 focus:border-primary focus:ring-1 focus:ring-primary/40 focus:outline-none transition-all duration-200 px-4 py-2.5 rounded-xl text-foreground placeholder:text-muted-foreground/50 cursor-text shadow-2xs hover:shadow-xs"
                     title="Click to edit assessment title"
                   />
                   <div className="absolute right-3 top-1/2 -translate-y-1/2 opacity-0 group-hover/title:opacity-90 transition-opacity duration-200 pointer-events-none flex items-center gap-1.5 text-xs text-muted-foreground bg-card/90 backdrop-blur-xs px-2 py-0.5 rounded-md border border-border/60 shadow-xs">
@@ -956,7 +956,7 @@ export const FormBuilder: React.FC = () => {
                 onChange={(e) => setDescription(e.target.value)}
                 placeholder="Form description..."
                 rows={2}
-                className="w-full text-sm text-foreground/90 hover:text-foreground focus:text-foreground bg-muted/15 hover:bg-muted/25 focus:bg-muted/35 border border-transparent hover:border-primary/40 focus:border-primary focus:outline-none rounded-lg transition-all px-3 py-1.5 resize-none placeholder:text-muted-foreground/60 leading-relaxed"
+                className="w-full text-sm text-foreground/90 hover:text-foreground focus:text-foreground bg-muted/20 hover:bg-muted/30 focus:bg-muted/40 border border-border/40 hover:border-border/80 focus:border-primary focus:outline-none rounded-xl transition-all px-3 py-2 resize-none placeholder:text-muted-foreground/60 leading-relaxed"
               />
 
               {/* Status and Configuration Pill Row */}

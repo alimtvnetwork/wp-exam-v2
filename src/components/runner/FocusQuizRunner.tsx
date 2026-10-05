@@ -1207,7 +1207,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                             currentQuestion.type === 'multiselect'
                           )
                         }
-                        className={`group presentation-option-card text-left p-4 rounded-2xl transition-all duration-200 flex items-center justify-between hover:opacity-100 hover:translate-x-1.5 cursor-pointer ${
+                        className={`group presentation-option-card text-left p-4 rounded-2xl flex items-center justify-between cursor-pointer ${
                           isFullWidth ? 'col-span-2' : ''
                         }`}
                         style={{

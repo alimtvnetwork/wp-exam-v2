@@ -19,9 +19,11 @@ export default defineConfig({
     poolOptions: {
       threads: {
         execArgv: ["--max-old-space-size=4096"],
+        singleThread: true,
       },
       forks: {
         execArgv: ["--max-old-space-size=4096"],
+        singleFork: true,
       },
     },
   },
