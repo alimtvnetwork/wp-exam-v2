@@ -1695,79 +1695,6 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     setIsSubmitted(true);
   };
 
-  if (isSubmitted) {
-    return (
-      <Card className="w-full max-w-xl mx-auto border-emerald-500/40 shadow-xl bg-card animate-in fade-in duration-150">
-        <CardHeader className="text-center pb-2">
-          <div className="mx-auto my-2 w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold text-xl">
-            ✓
-          </div>
-          <CardTitle className="text-xl font-bold">
-            {activeForm.formType === 'quiz' ? 'Assessment Completed' : 'Submission Received'}
-          </CardTitle>
-          <CardDescription className="text-xs">{result?.message}</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4 p-6">
-          {activeForm.formType === 'quiz' ? (
-            <div className="p-4 rounded-xl bg-muted/30 text-center space-y-2 border">
-              <div className="text-4xl font-extrabold text-primary font-mono">{result?.score_percentage}%</div>
-              <div className="text-xs text-muted-foreground">
-                Score: {result?.score} / {result?.total_possible_score} Total Points
-              </div>
-              <div>
-                <Badge variant={result?.is_passed ? 'default' : 'destructive'} className="text-xs">
-                  {result?.is_passed ? 'Passed Examination' : 'Threshold Not Met'}
-                </Badge>
-              </div>
-            </div>
-          ) : (
-            <div className="p-4 rounded-xl bg-muted/30 space-y-1 text-xs border">
-              <div><strong>Candidate:</strong> {guestName || 'Anonymous'}</div>
-              <div><strong>Email:</strong> {guestEmail || 'N/A'}</div>
-              <div><strong>Fields Recorded:</strong> {Object.keys(answers).length} of {fields.length}</div>
-            </div>
-          )}
-
-          <div className="p-3 bg-muted/20 rounded-lg text-xs text-muted-foreground text-center border">
-            ✓ Official verification record signed and saved to SQLite Split-DB engine.
-          </div>
-
-          <div className="flex justify-between items-center pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                clearDraftFromIndexedDB(activeSlug);
-                setOtherTexts({});
-                setIsSubmitted(false);
-                setCurrentStep(0);
-                setAnswers({});
-              }}
-              className="text-xs"
-            >
-              Take Assessment Again
-            </Button>
-
-            <Button
-              onClick={() => {
-                if (onClose) {
-                  onClose();
-                } else {
-                  navigate('/');
-                }
-              }}
-              size="sm"
-              variant="default"
-              className="text-xs"
-            >
-              Exit to Portal
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   const handleHUDUpdateSettings = useCallback((updated: Partial<FormSettings>) => {
     setSettingsOverrides((prev) => ({ ...prev, ...updated }));
     quizStore.updateSettings(updated);
@@ -1883,6 +1810,79 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     handleHUDUpdateSettings({ showSlideNumbers: nextState });
     toast.info(nextState ? 'Slide numbers enabled' : 'Slide numbers hidden');
   }, [activeForm.settings?.showSlideNumbers, handleHUDUpdateSettings]);
+
+  if (isSubmitted) {
+    return (
+      <Card className="w-full max-w-xl mx-auto border-emerald-500/40 shadow-xl bg-card animate-in fade-in duration-150">
+        <CardHeader className="text-center pb-2">
+          <div className="mx-auto my-2 w-12 h-12 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 font-bold text-xl">
+            ✓
+          </div>
+          <CardTitle className="text-xl font-bold">
+            {activeForm.formType === 'quiz' ? 'Assessment Completed' : 'Submission Received'}
+          </CardTitle>
+          <CardDescription className="text-xs">{result?.message}</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 p-6">
+          {activeForm.formType === 'quiz' ? (
+            <div className="p-4 rounded-xl bg-muted/30 text-center space-y-2 border">
+              <div className="text-4xl font-extrabold text-primary font-mono">{result?.score_percentage}%</div>
+              <div className="text-xs text-muted-foreground">
+                Score: {result?.score} / {result?.total_possible_score} Total Points
+              </div>
+              <div>
+                <Badge variant={result?.is_passed ? 'default' : 'destructive'} className="text-xs">
+                  {result?.is_passed ? 'Passed Examination' : 'Threshold Not Met'}
+                </Badge>
+              </div>
+            </div>
+          ) : (
+            <div className="p-4 rounded-xl bg-muted/30 space-y-1 text-xs border">
+              <div><strong>Candidate:</strong> {guestName || 'Anonymous'}</div>
+              <div><strong>Email:</strong> {guestEmail || 'N/A'}</div>
+              <div><strong>Fields Recorded:</strong> {Object.keys(answers).length} of {fields.length}</div>
+            </div>
+          )}
+
+          <div className="p-3 bg-muted/20 rounded-lg text-xs text-muted-foreground text-center border">
+            ✓ Official verification record signed and saved to SQLite Split-DB engine.
+          </div>
+
+          <div className="flex justify-between items-center pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                clearDraftFromIndexedDB(activeSlug);
+                setOtherTexts({});
+                setIsSubmitted(false);
+                setCurrentStep(0);
+                setAnswers({});
+              }}
+              className="text-xs"
+            >
+              Take Assessment Again
+            </Button>
+
+            <Button
+              onClick={() => {
+                if (onClose) {
+                  onClose();
+                } else {
+                  navigate('/');
+                }
+              }}
+              size="sm"
+              variant="default"
+              className="text-xs"
+            >
+              Exit to Portal
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const renderSidebarInner = () => (
     <>
