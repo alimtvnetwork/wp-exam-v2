@@ -64,7 +64,20 @@ foreach ($testFiles as $file) {
     }
 
     $reflector = new ReflectionClass($className);
-    $instance = $reflector->newInstanceArgs(['test']);
+    $constructor = $reflector->getConstructor();
+    $instance = null;
+
+    if ($constructor !== null) {
+        $numParams = $constructor->getNumberOfParameters();
+
+        if ($numParams > 0) {
+            $instance = $reflector->newInstanceArgs(['test']);
+        }
+    }
+
+    if ($instance === null) {
+        $instance = new $className();
+    }
 
     echo "Running {$className}...\n";
 

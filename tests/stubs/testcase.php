@@ -77,6 +77,12 @@ if (!class_exists(TestCase::class)) {
         public function markTestSkipped(string $message = ''): void {
             // Skipped in standalone mode
         }
+
+        protected function setUp(): void {
+        }
+
+        protected function tearDown(): void {
+        }
     }
 }
 
