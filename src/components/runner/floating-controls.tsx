@@ -31,6 +31,8 @@ export interface PresenterHUDProps {
   currentFieldId?: string;
   currentFieldLayout?: QuestionLayoutMode;
   onUpdateLayout?: (mode: QuestionLayoutMode, applyToAll: boolean) => void;
+  onUpdateFieldLayout?: (fieldId: string, layoutMode: QuestionLayoutMode) => void;
+  onSaveToQuiz?: () => void;
 }
 
 const formatTimerDisplay = (seconds: number): string => {

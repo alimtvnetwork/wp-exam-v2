@@ -3189,20 +3189,18 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
         isSidebarVisible={isSidebarVisible}
         setIsSidebarVisible={setIsSidebarVisible}
         timeLeftSeconds={timeLeftSeconds}
-        {...({
-          showSlideNumbers: activeForm.settings?.showSlideNumbers ?? true,
-          onToggleSlideNumbers: handleToggleSlideNumbers,
-          currentFieldId: currentField?.id,
-          currentFieldLayout: currentField?.layoutMode || activeForm.settings?.defaultQuestionLayout || 'standard',
-          onUpdateLayout: handleHUDUpdateLayout,
-          onUpdateFieldLayout: (fieldId: string, layoutMode: QuestionLayoutMode) => {
-            handleHUDUpdateLayout(layoutMode, false);
-          },
-          onSaveToQuiz: () => {
-            handleHUDUpdateSettings(activeForm.settings || {});
-            toast.success('Saved layout customizations to quiz draft!');
-          },
-        } as any)}
+        showSlideNumbers={activeForm.settings?.showSlideNumbers ?? true}
+        onToggleSlideNumbers={handleToggleSlideNumbers}
+        currentFieldId={currentField?.id}
+        currentFieldLayout={currentField?.layoutMode || activeForm.settings?.defaultQuestionLayout || 'standard'}
+        onUpdateLayout={handleHUDUpdateLayout}
+        onUpdateFieldLayout={(fieldId: string, layoutMode: QuestionLayoutMode) => {
+          handleHUDUpdateLayout(layoutMode, false);
+        }}
+        onSaveToQuiz={() => {
+          handleHUDUpdateSettings(activeForm.settings || {});
+          toast.success('Saved layout customizations to quiz draft!');
+        }}
       />
     </div>
   );
