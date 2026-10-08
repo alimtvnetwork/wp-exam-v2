@@ -3,6 +3,7 @@ import React from 'react';
 import { render, screen, fireEvent, act } from '@testing-library/react';
 import { MemoryRouter } from 'react-router-dom';
 import { FormRunner } from '@/components/runner/FormRunner';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { FormModel } from '@/lib/types/form';
 
 // Mock matchMedia
@@ -36,7 +37,7 @@ const mockForm: FormModel = {
       options: ['Option A', 'Option B'],
       correctAnswer: 'Option A',
       points: 10,
-      isRequired: true,
+      isRequired: false, // make optional so handleSubmit proceeds directly
     },
   ],
   settings: {
@@ -46,12 +47,24 @@ const mockForm: FormModel = {
 
 describe('FormRunner Submission', () => {
   it('renders FormRunner and submits without React hooks error', async () => {
-    const { container } = render(
-      <MemoryRouter>
-        <FormRunner form={mockForm} />
-      </MemoryRouter>
+    render(
+      <TooltipProvider>
+        <MemoryRouter>
+          <FormRunner form={mockForm} />
+        </MemoryRouter>
+      </TooltipProvider>
     );
 
-    expect(container).toBeTruthy();
+    const buttons = screen.getAllByRole('button');
+    const submitBtn = buttons.find(b => (b.textContent || '').includes('Submit'));
+    expect(submitBtn).toBeDefined();
+
+    // Click submit
+    act(() => {
+      fireEvent.click(submitBtn!);
+    });
+
+    // Check if submission completed card renders
+    expect(screen.getByText('Assessment Completed')).toBeTruthy();
   });
 });
