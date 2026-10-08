@@ -347,7 +347,7 @@ export const NotificationTriggerModal: React.FC<NotificationTriggerModalProps> =
   const formSettings = store.settings || {};
   const currentTriggers = formSettings.notificationTriggers || [];
   const currentCustomization = formSettings.emailCustomization;
-  const storeFields = store.fields || [];
+  const storeFields = useMemo(() => store.fields || [], [store.fields]);
 
   const [ruleMode, setRuleMode] = useState<'create' | 'presets'>('create');
   const [presetFilter, setPresetFilter] = useState<'all' | 'saved'>('all');
