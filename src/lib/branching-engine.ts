@@ -467,3 +467,215 @@ export function detectBranchingCycles(fields: FormField[]): BranchingCycleReport
     description: 'No circular branching detected',
   };
 }
+
+/**
+ * Simulates navigation for a fixed answer set and returns the ordered step
+ * indices that would be visited. Powers the preview branch-map strip.
+ * Preview/debug surface only — never call inside the render loop.
+ */
+export function previewBranchOutcomes(
+  fields: FormField[],
+  answers: Record<string, unknown>
+): number[] {
+  const visited: number[] = [];
+  const seenSteps = new Set<number>();
+  let currentStep = 0;
+
+  while (currentStep < fields.length) {
+    const hasSeenStep = seenSteps.has(currentStep);
+
+    if (hasSeenStep) {
+      break;
+    }
+
+    seenSteps.add(currentStep);
+    visited.push(currentStep);
+
+    const nextStep = getNextStepIndex(fields, currentStep, answers);
+    const hasProgressed = nextStep > currentStep;
+
+    if (!hasProgressed) {
+      break;
+    }
+
+    currentStep = nextStep;
+  }
+
+  return visited;
+}
+
+/**
+ * Finds the human-readable reason a skipped step was leapfrogged, by locating
+ * the visited step pair that jumps over it and describing the rule that caused
+ * the jump. Returns null when no single jump explains the skip.
+ */
+function findSkipReason(
+  fields: FormField[],
+  fromIndex: number,
+  toIndex: number,
+  answers: Record<string, unknown>
+): string | null {
+  const fromField = fields[fromIndex];
+  const toField = fields[toIndex];
+
+  if (!fromField || !toField) {
+    return null;
+  }
+
+  const currentAnswer = answers[fromField.id];
+  const hasAnswer = currentAnswer !== undefined && currentAnswer !== null;
+
+  if (hasAnswer && fromField.optionBranching) {
+    const branchTargetId = fromField.optionBranching[String(currentAnswer)];
+    const isBranchMatch = branchTargetId === toField.id;
+
+    if (isBranchMatch) {
+      return `option "${String(currentAnswer)}" branches directly to "${toField.label || toField.id}"`;
+    }
+  }
+
+  const jumpRules = (fromField.conditions || []).filter(
+    (rule) => rule.action === 'jump_to' && rule.jumpToFieldId === toField.id
+  );
+
+  for (const rule of jumpRules) {
+    const isRuleMet = evaluateConditionRule(rule, answers);
+
+    if (isRuleMet) {
+      return formatRuleDescription(rule, fields);
+    }
+  }
+
+  const hasBranchTarget = fromField.branchTarget === toField.id;
+
+  if (hasBranchTarget) {
+    return `default branch target is "${toField.label || toField.id}"`;
+  }
+
+  return null;
+}
+
+/**
+ * Returns human-readable labels for every step skipped by the current answer
+ * set. Rule wording is reused from formatRuleDescription — never duplicated.
+ * Preview/debug surface only — never call inside the render loop.
+ */
+export function describeSkippedSteps(
+  fields: FormField[],
+  answers: Record<string, unknown>
+): string[] {
+  const visitedSteps = previewBranchOutcomes(fields, answers);
+  const visitedSet = new Set(visitedSteps);
+  const skippedLabels: string[] = [];
+
+  for (let index = 0; index < fields.length; index += 1) {
+    const hasVisited = visitedSet.has(index);
+
+    if (hasVisited) {
+      continue;
+    }
+
+    const field = fields[index];
+    const fieldLabel = field.label || field.id || `Step ${index + 1}`;
+
+    let skipReason: string | null = null;
+
+    for (let pair = 0; pair < visitedSteps.length - 1; pair += 1) {
+      const fromStep = visitedSteps[pair];
+      const toStep = visitedSteps[pair + 1];
+      const isLeapfrogged = fromStep < index && index < toStep;
+
+      if (isLeapfrogged) {
+        skipReason = findSkipReason(fields, fromStep, toStep, answers);
+
+        break;
+      }
+    }
+
+    const hasReason = skipReason !== null && skipReason !== '';
+
+    if (hasReason) {
+      skippedLabels.push(`Skipped "${fieldLabel}" — ${skipReason}`);
+
+      continue;
+    }
+
+    skippedLabels.push(`Skipped "${fieldLabel}" — not reached by current answers`);
+  }
+
+  return skippedLabels;
+}
+
+export interface ConditionalFixtureValidation {
+  isValid: boolean;
+  issues: string[];
+}
+
+/**
+ * Validates a conditional-step fixture: runs detectBranchingCycles plus
+ * target-step existence checks for every jump_to rule, option-branching
+ * entry, and branch target. Returns { isValid, issues }.
+ * Preview/debug surface only — never call inside the render loop.
+ */
+export function validateConditionalFixture(form: {
+  fields: FormField[];
+}): ConditionalFixtureValidation {
+  const fields = form.fields || [];
+  const issues: string[] = [];
+
+  const cycleReport = detectBranchingCycles(fields);
+
+  if (cycleReport.hasCycles) {
+    issues.push(cycleReport.description);
+  }
+
+  const knownIds = new Set(fields.map((field) => field.id));
+
+  for (const field of fields) {
+    const fieldLabel = field.label || field.id;
+
+    for (const rule of field.conditions || []) {
+      const targetId = rule.jumpToFieldId || '';
+      const hasJumpTarget = rule.action === 'jump_to' && targetId !== '';
+
+      if (hasJumpTarget) {
+        const isTargetKnown = knownIds.has(targetId);
+
+        if (!isTargetKnown) {
+          issues.push(`"${fieldLabel}" jumps to unknown step "${targetId}"`);
+        }
+      }
+    }
+
+    if (field.optionBranching) {
+      for (const targetId of Object.values(field.optionBranching)) {
+        const isTerminal = !targetId || targetId === '__next__';
+
+        if (isTerminal) {
+          continue;
+        }
+
+        const isTargetKnown = knownIds.has(targetId);
+
+        if (!isTargetKnown) {
+          issues.push(`"${fieldLabel}" branches to unknown step "${targetId}"`);
+        }
+      }
+    }
+
+    const branchTargetId = field.branchTarget || '';
+    const hasBranchTarget = branchTargetId !== '';
+
+    if (hasBranchTarget) {
+      const isTargetKnown = knownIds.has(branchTargetId);
+
+      if (!isTargetKnown) {
+        issues.push(`"${fieldLabel}" has unknown branch target "${branchTargetId}"`);
+      }
+    }
+  }
+
+  const isValid = issues.length === 0;
+
+  return { isValid, issues };
+}

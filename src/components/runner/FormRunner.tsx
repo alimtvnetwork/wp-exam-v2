@@ -66,6 +66,7 @@ import {
   Menu,
   Lightbulb,
 } from 'lucide-react';
+import '../../styles/quiz-preview.css';
 import { PhoneWithCountrySelect } from '@/components/ui/phone-input';
 import { MultilineListItemsInput } from '@/components/forms/multiline-list-items-input';
 import { toast } from 'sonner';
@@ -268,6 +269,82 @@ const PRESET_PROJECTS: Record<string, FormModel> = {
         options: ['Parameterized Queries / Prepared Statements', 'Input String Escaping', 'Client-side Regex Filtering', 'Web Application Firewalls only'],
         correctAnswer: 'Parameterized Queries / Prepared Statements',
         points: 20,
+      },
+    ],
+  },
+
+  'preview-chrome-demo': {
+    id: 'preview-chrome-demo',
+    title: 'Preview Chrome Demo — Standard Card',
+    description: 'Smoke-test preset for the preview banner, badge, exit affordance, and slide-horizontal step transitions.',
+    formType: 'quiz',
+    formAccess: 'public',
+    isSequential: true,
+    isPublished: true,
+    settings: {
+      timeLimitSeconds: 600,
+      passingScore: 70,
+      successMessage: 'Preview chrome demo complete.',
+      slideTransition: 'slide_horizontal',
+      defaultQuestionLayout: 'standard',
+      theme: 'dracula',
+    },
+    fields: [
+      {
+        id: 'pcd-1',
+        type: 'multiple_choice',
+        label: 'Which transition should the preview use when moving forward?',
+        isRequired: true,
+        options: ['Slide horizontally', 'Fade', 'Card entrance'],
+        correctAnswer: 'Slide horizontally',
+        points: 10,
+      },
+      {
+        id: 'pcd-2',
+        type: 'true_false',
+        label: 'The preview banner uses a 2px hairline accent edge.',
+        isRequired: true,
+        options: ['True', 'False'],
+        correctAnswer: 'True',
+        points: 10,
+      },
+    ],
+  },
+
+  'preview-presentation-demo': {
+    id: 'preview-presentation-demo',
+    title: 'Preview Presentation Demo — Split Layout',
+    description: 'Smoke-test preset for the presentation split layout with fade transitions in preview mode.',
+    formType: 'quiz',
+    formAccess: 'public',
+    isSequential: true,
+    isPublished: true,
+    settings: {
+      timeLimitSeconds: 600,
+      passingScore: 70,
+      successMessage: 'Preview presentation demo complete.',
+      slideTransition: 'fade',
+      defaultQuestionLayout: 'presentation_split',
+      theme: 'riseup',
+    },
+    fields: [
+      {
+        id: 'ppd-1',
+        type: 'multiple_choice',
+        label: 'Which layout does this demo exercise?',
+        isRequired: true,
+        options: ['Standard card', 'Presentation split', 'Compact list'],
+        correctAnswer: 'Presentation split',
+        points: 10,
+      },
+      {
+        id: 'ppd-2',
+        type: 'true_false',
+        label: 'Fade transitions keep the question readable during step changes.',
+        isRequired: true,
+        options: ['True', 'False'],
+        correctAnswer: 'True',
+        points: 10,
       },
     ],
   },
@@ -1296,6 +1373,17 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     toast.success(`Copied live canonical URL: ${link}`);
   };
 
+  const handleExitPreview = useCallback(() => {
+
+    if (window.opener) {
+      window.close();
+
+      return;
+    }
+
+    window.history.back();
+  }, []);
+
   const handleVerifyToken = () => {
     if (!tokenInput.trim()) {
       setAuthMessage('Please enter an invitation access token.');
@@ -2032,13 +2120,20 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           : isFullscreen
           ? 'fixed inset-0 z-50 overflow-y-auto p-4 sm:p-8'
           : 'p-3 sm:p-6 lg:p-8'
-      }`}
+      } ${isPreviewRoute ? 'quiz-preview-canvas' : ''}`}
       style={{
         ...themeVars,
         backgroundColor: currentTheme?.colors?.background || '#FFFFFF',
         color: currentTheme?.colors?.textPrimary || '#0F172A',
       }}
     >
+      {/* Preview Mode Identity Chrome (preview routes only) */}
+      {isPreviewRoute && (
+        <div className="quiz-preview-banner" role="status" aria-label="Preview mode">
+          <span className="quiz-preview-banner-label">Preview mode</span>
+        </div>
+      )}
+
       {/* Ceiling-Flush Viewport Top Progress Bar */}
       <div className="fixed top-0 left-0 right-0 w-full h-1 sm:h-1.5 z-50 pointer-events-none bg-black/20 dark:bg-black/40">
         <div
@@ -2060,6 +2155,18 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
       {/* Floating Top-Right Executive Timer & Fullscreen HUD */}
       <div className="fixed top-3 right-4 sm:top-4 sm:right-6 z-40 flex items-center gap-2 select-none">
+        {isPreviewRoute && (
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleExitPreview}
+            className="quiz-preview-exit h-8 shadow-sm"
+          >
+            <X className="w-3.5 h-3.5" />
+            <span>Exit Preview</span>
+          </Button>
+        )}
         {timeLeftSeconds !== null && (
           <div
             className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full border text-sm sm:text-base font-mono font-bold tracking-tight shadow-sm transition-all duration-300 ${
@@ -2148,6 +2255,11 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               <span className="font-heading font-bold text-sm sm:text-base text-foreground truncate min-w-0">
                 {activeForm.title || 'Candidate Assessment'}
               </span>
+              {isPreviewRoute && (
+                <Badge variant="outline" className="quiz-preview-badge shrink-0">
+                  Preview
+                </Badge>
+              )}
               {!isCandidateOrPreview && (
                 <Badge variant="outline" className="text-[11px] font-mono border-border text-foreground bg-muted/40 shrink-0">
                   Official Assessment
@@ -2861,7 +2973,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               /* Standard Quiz Card View */
               <Card
                 key={currentField.id}
-                className="w-full border border-border shadow-md bg-card text-card-foreground rounded-2xl overflow-hidden animate-card-entrance"
+                className={`w-full border border-border shadow-md bg-card text-card-foreground rounded-2xl overflow-hidden ${activeTransitionClass} quiz-choreo-scope`}
               >
                 <CardHeader className="py-4 px-6 border-b border-border bg-muted/20">
                   <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
@@ -3832,7 +3944,7 @@ function renderFieldInput(
   const strValue = typeof value === 'string' ? value : '';
   const choiceMotionClass = isPresentationSlide
     ? 'slide-up-anim presentation-option-card'
-    : 'presentation-option-card transition-all duration-200';
+    : 'presentation-option-card quiz-option-standard-motion';
 
   switch (field.type) {
     case 'section_header':

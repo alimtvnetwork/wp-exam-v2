@@ -1,0 +1,184 @@
+/* Quiz preview chrome + motion styles.
+ * Owner: Worker B (67-ui-ux-enhancement-and-animation-improvement).
+ * Companion: src/styles/theme.css (Worker A) — shared keyframes and the
+ * sanctioned .presentation-option-card hover system live there; they are
+ * referenced here, never duplicated.
+ * Imported by src/components/runner/FormRunner.tsx (preview routes only
+ * render the chrome classes; the stylesheet itself is inert otherwise).
+ */
+
+:root {
+  --ease-out-editorial: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-state: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ------------------------------------------------------------------ */
+/* Preview identity chrome (rendered only when isPreviewRoute is true) */
+/* ------------------------------------------------------------------ */
+
+/* 5% primary tint overlay on the preview canvas. An inset shadow is used
+ * instead of background-color so the tint paints above the inline theme
+ * background set on the runner root element. */
+.quiz-preview-canvas {
+  box-shadow: inset 0 0 0 9999px hsl(var(--primary) / 0.05);
+}
+
+/* Fixed hairline strip marking preview mode: 2px (h-0.5) accent edge with
+ * shadow-md, per the repo hairline chrome rule. Never a solid or gradient
+ * banner. Pointer-transparent so it never blocks canvas interaction. */
+.quiz-preview-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 60;
+  pointer-events: none;
+  border-top: 2px solid hsl(var(--primary));
+  box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+}
+
+.quiz-preview-banner-label {
+  position: absolute;
+  top: 8px;
+  left: 12px;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: hsl(var(--primary));
+  background: hsl(var(--card) / 0.9);
+  border: 1px solid hsl(var(--primary) / 0.35);
+  border-radius: 9999px;
+  padding: 2px 10px;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+/* PREVIEW pill badge, rendered adjacent to the assessment title. */
+.quiz-preview-badge {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  border-radius: 9999px;
+  padding: 2px 10px;
+  border: 1px solid hsl(var(--primary) / 0.55);
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.08);
+  white-space: nowrap;
+}
+
+/* Riseup: gold is an active-mark only — ring in gold, transparent surface. */
+.theme-riseup .quiz-preview-badge,
+.theme-riseup-asia .quiz-preview-badge {
+  border-color: #e8c547;
+  color: #e8c547;
+  background: transparent;
+}
+
+/* Dracula: crisp lilac-slate muted text (7.2:1 contrast). */
+.theme-dracula .quiz-preview-badge {
+  color: #bac7e8;
+}
+
+/* Exit Preview button hook (inherits Button outline styles). */
+.quiz-preview-exit {
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------------ */
+/* Sanctioned option-card motion (standard card view)                   */
+/* ------------------------------------------------------------------ */
+
+/* Replaces the banned `transition-all` on .presentation-option-card in the
+ * standard card path. Transform/opacity only, <=0.3s, --ease-state timing.
+ * The rest/hover visual system (opacity 0.82, translate3d slide, gradient
+ * tint, border glow) lives in src/styles/theme.css and is left untouched. */
+.quiz-option-standard-motion {
+  transition:
+    transform 0.3s var(--ease-state),
+    opacity 0.3s var(--ease-state),
+    border-color 0.2s ease,
+    background 0.2s ease,
+    box-shadow 0.22s ease;
+}
+
+/* ------------------------------------------------------------------ */
+/* Entrance choreography: header -> card -> options cascade            */
+/* ------------------------------------------------------------------ */
+
+@keyframes quiz-choreo-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Header/title block enters first (0ms). The card itself is animated by
+ * activeTransitionClass (slide/fade); this scope sequences its children. */
+.quiz-choreo-scope > :first-child {
+  animation: quiz-choreo-in 0.45s var(--ease-out-editorial) 0ms backwards;
+}
+
+/* Options cascade after the card, staggered ~70ms each. `backwards` fill
+ * applies the `from` state during the delay, then releases to natural
+ * styles so the sanctioned hover transform keeps working afterwards. */
+.quiz-choreo-scope .presentation-option-card {
+  animation: quiz-choreo-in 0.4s var(--ease-out-editorial) 140ms backwards;
+}
+
+.quiz-choreo-scope .presentation-option-card:nth-child(2) {
+  animation-delay: 210ms;
+}
+
+.quiz-choreo-scope .presentation-option-card:nth-child(3) {
+  animation-delay: 280ms;
+}
+
+.quiz-choreo-scope .presentation-option-card:nth-child(4) {
+  animation-delay: 350ms;
+}
+
+.quiz-choreo-scope .presentation-option-card:nth-child(5) {
+  animation-delay: 420ms;
+}
+
+.quiz-choreo-scope .presentation-option-card:nth-child(n+6) {
+  animation-delay: 490ms;
+}
+
+/* ------------------------------------------------------------------ */
+/* Reduced motion: collapse choreography to a 120ms opacity fade       */
+/* ------------------------------------------------------------------ */
+
+@keyframes quiz-choreo-fade {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .quiz-choreo-scope > :first-child,
+  .quiz-choreo-scope .presentation-option-card {
+    animation: quiz-choreo-fade 0.12s ease 0ms backwards;
+  }
+
+  .quiz-option-standard-motion {
+    transition-duration: 0.12s;
+  }
+
+  .quiz-preview-banner {
+    animation: none;
+  }
+}

@@ -39,6 +39,8 @@ export const Index: React.FC = () => {
   const tabFromUrl = (routeTab || searchParams.get('tab')) as AdminTab;
   const [activeTab, setActiveTabState] = useState<AdminTab>(tabFromUrl || 'builder');
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [previousTab, setPreviousTab] = useState<AdminTab>(activeTab);
+  const [isLeaving, setIsLeaving] = useState(false);
   const [selectedFocusProject, setSelectedFocusProject] = useState<FocusQuizConfig | undefined>(undefined);
   const { isAuthenticated, login, logout } = useAdminAuth();
   const { theme } = useTheme();
@@ -78,6 +80,31 @@ export const Index: React.FC = () => {
       setActiveTabState(currentTabInUrl);
     }
   }, [routeTab, searchParams, activeTab]);
+
+  // Tab-content transition: play the outgoing panel's exit animation, then swap.
+  useEffect(() => {
+    if (activeTab === previousTab) {
+      setIsLeaving(false);
+
+      return;
+    }
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      setPreviousTab(activeTab);
+
+      return;
+    }
+
+    setIsLeaving(true);
+    const swapTimer = window.setTimeout(() => {
+      setPreviousTab(activeTab);
+      setIsLeaving(false);
+    }, 150);
+
+    return () => {
+      window.clearTimeout(swapTimer);
+    };
+  }, [activeTab, previousTab]);
 
   // Login form states for unauthenticated users
   const [loginUser, setLoginUser] = useState('admin');
@@ -272,108 +299,110 @@ export const Index: React.FC = () => {
         {/* Fluid Right Content Canvas */}
         <main className="flex-1 min-w-0 bg-background/50 overflow-y-auto">
           <div className="p-0">
-            {activeTab === 'builder' && <QuizEditor />}
+            <div key={activeTab} className={isLeaving ? 'animate-tab-panel-out' : 'animate-tab-panel-in'}>
+              {previousTab === 'builder' && <QuizEditor />}
 
-            {activeTab === 'focus-editor' && (
-              <div className="max-w-5xl mx-auto">
-                <FocusQuizEditor
-                  onLaunchRunner={(cfg) => {
-                    setSelectedFocusProject(cfg);
-                    handleSelectTab('focus-runner');
-                  }}
-                />
-              </div>
-            )}
+              {previousTab === 'focus-editor' && (
+                <div className="max-w-5xl mx-auto">
+                  <FocusQuizEditor
+                    onLaunchRunner={(cfg) => {
+                      setSelectedFocusProject(cfg);
+                      handleSelectTab('focus-runner');
+                    }}
+                  />
+                </div>
+              )}
 
-            {activeTab === 'projects' && (
-              <div className="max-w-6xl mx-auto">
-                <ProjectHierarchyManager onLaunchFocusRunner={handleLaunchFocusProject} />
-              </div>
-            )}
+              {previousTab === 'projects' && (
+                <div className="max-w-6xl mx-auto">
+                  <ProjectHierarchyManager onLaunchFocusRunner={handleLaunchFocusProject} />
+                </div>
+              )}
 
-            {activeTab === 'focus-runner' && (
-              <div className="max-w-xl mx-auto py-2">
-                <FocusQuizRunner
-                  config={
-                    selectedFocusProject ||
-                    (() => {
-                      if (typeof window !== 'undefined') {
-                        const saved = localStorage.getItem('wp_exam_saved_focus_quiz');
-                        if (saved) {
-                          try {
-                            return JSON.parse(saved);
-                          } catch {
-                            // Fallback to default
+              {previousTab === 'focus-runner' && (
+                <div className="max-w-xl mx-auto py-2">
+                  <FocusQuizRunner
+                    config={
+                      selectedFocusProject ||
+                      (() => {
+                        if (typeof window !== 'undefined') {
+                          const saved = localStorage.getItem('wp_exam_saved_focus_quiz');
+                          if (saved) {
+                            try {
+                              return JSON.parse(saved);
+                            } catch {
+                              // Fallback to default
+                            }
                           }
                         }
-                      }
-                      return undefined;
-                    })()
-                  }
-                  onBackToAdmin={() => handleSelectTab('focus-editor')}
-                />
-              </div>
-            )}
+                        return undefined;
+                      })()
+                    }
+                    onBackToAdmin={() => handleSelectTab('focus-editor')}
+                  />
+                </div>
+              )}
 
-            {activeTab === 'runner' && (
-              <div className="w-full max-w-7xl mx-auto py-1 px-1 sm:px-2">
-                <FormRunner
-                  form={{
-                    title: store.title,
-                    description: store.description,
-                    formType: store.formType,
-                    formAccess: store.formAccess,
-                    isSequential: store.isSequential,
-                    isPublished: true,
-                    settings: store.settings,
-                    fields: store.fields,
-                  }}
-                  onClose={() => handleSelectTab('builder')}
-                />
-              </div>
-            )}
+              {previousTab === 'runner' && (
+                <div className="w-full max-w-7xl mx-auto py-1 px-1 sm:px-2">
+                  <FormRunner
+                    form={{
+                      title: store.title,
+                      description: store.description,
+                      formType: store.formType,
+                      formAccess: store.formAccess,
+                      isSequential: store.isSequential,
+                      isPublished: true,
+                      settings: store.settings,
+                      fields: store.fields,
+                    }}
+                    onClose={() => handleSelectTab('builder')}
+                  />
+                </div>
+              )}
 
-            {activeTab === 'invites' && (
-              <div className="max-w-4xl mx-auto">
-                <InvitesManager onNavigateToRunner={() => handleSelectTab('runner')} />
-              </div>
-            )}
+              {previousTab === 'invites' && (
+                <div className="max-w-4xl mx-auto">
+                  <InvitesManager onNavigateToRunner={() => handleSelectTab('runner')} />
+                </div>
+              )}
 
-            {activeTab === 'history' && (
-              <div className="max-w-4xl mx-auto">
-                <HistoryManager />
-              </div>
-            )}
+              {previousTab === 'history' && (
+                <div className="max-w-4xl mx-auto">
+                  <HistoryManager />
+                </div>
+              )}
 
-            {activeTab === 'analytics' && (
-              <div className="max-w-6xl mx-auto">
-                <AnalyticsDashboard />
-              </div>
-            )}
+              {previousTab === 'analytics' && (
+                <div className="max-w-6xl mx-auto">
+                  <AnalyticsDashboard />
+                </div>
+              )}
 
-            {activeTab === 'email' && (
-              <div className="max-w-4xl mx-auto">
-                <EmailSettings />
-              </div>
-            )}
+              {previousTab === 'email' && (
+                <div className="max-w-4xl mx-auto">
+                  <EmailSettings />
+                </div>
+              )}
 
-            {activeTab === 'ai-studio' && (
-              <div className="max-w-4xl mx-auto">
-                <AIInstructionStudio />
-              </div>
-            )}
+              {previousTab === 'ai-studio' && (
+                <div className="max-w-4xl mx-auto">
+                  <AIInstructionStudio />
+                </div>
+              )}
 
-            {activeTab === 'storage' && (
-              <div className="max-w-5xl mx-auto">
-                <SqliteStatus />
-              </div>
-            )}
+              {previousTab === 'storage' && (
+                <div className="max-w-5xl mx-auto">
+                  <SqliteStatus />
+                </div>
+              )}
 
-            {activeTab === 'backups' && (
-              <div className="max-w-5xl mx-auto">
-                <BackupManager />
-              </div>
-            )}
+              {previousTab === 'backups' && (
+                <div className="max-w-5xl mx-auto">
+                  <BackupManager />
+                </div>
+              )}
+            </div>
           </div>
         </main>
       </div>

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import type { FormModel } from '@/lib/types/form';
 
 export interface UserInviteRecord {
   id: number;
@@ -43,6 +44,7 @@ interface ExamAppState {
   invites: UserInviteRecord[];
   submissions: SubmissionHistoryRecord[];
   session: RunnerSession;
+  conditionalFixtures: ConditionalStepFixture[];
 
   // Invites actions
   addInvite: (invite: Omit<UserInviteRecord, 'id' | 'created_at'>) => UserInviteRecord;
@@ -136,10 +138,161 @@ const defaultSession: RunnerSession = {
   isAuthenticated: false,
 };
 
+export interface ConditionalStepFixture {
+  slug: string;
+  form: FormModel;
+}
+
+/**
+ * Plain-data fixtures for previewing conditional steps, the branch-map
+ * strip, and Dracula/Riseup theme states. No credentials, tokens, or
+ * secrets — safe to ship as seed data.
+ */
+export const seedConditionalFixtures: ConditionalStepFixture[] = [
+  {
+    slug: 'branching-onboarding',
+    form: {
+      id: 'branching-onboarding',
+      title: 'Engineering Onboarding — Branching Demo',
+      description: 'Conditional-step fixture: the Role answer routes engineers, designers, and everyone else down different tracks.',
+      formType: 'quiz',
+      formAccess: 'public',
+      isSequential: true,
+      isPublished: true,
+      settings: {
+        passingScore: 70,
+        successMessage: 'Onboarding track complete.',
+        theme: 'dracula',
+      },
+      fields: [
+        {
+          id: 'ob-name',
+          type: 'short_answer',
+          label: 'What is your full name?',
+          isRequired: true,
+        },
+        {
+          id: 'ob-role',
+          type: 'multiple_choice',
+          label: 'Role',
+          isRequired: true,
+          options: ['Engineer', 'Designer', 'Other'],
+          conditions: [
+            { parentFieldId: 'ob-role', operator: 'equals', expectedValue: 'Engineer', action: 'jump_to', jumpToFieldId: 'ob-engineer-track' },
+            { parentFieldId: 'ob-role', operator: 'equals', expectedValue: 'Designer', action: 'jump_to', jumpToFieldId: 'ob-designer-track' },
+            { parentFieldId: 'ob-role', operator: 'equals', expectedValue: 'Other', action: 'jump_to', jumpToFieldId: 'ob-general-track' },
+          ],
+        },
+        {
+          id: 'ob-engineer-track',
+          type: 'multiple_choice',
+          label: 'Engineering track: which stack will you primarily work in?',
+          isRequired: true,
+          options: ['TypeScript / React', 'Go services', 'WordPress / PHP'],
+          points: 10,
+          conditions: [
+            { parentFieldId: 'ob-engineer-track', operator: 'is_not_empty', action: 'jump_to', jumpToFieldId: 'ob-general-track' },
+          ],
+        },
+        {
+          id: 'ob-designer-track',
+          type: 'multiple_choice',
+          label: 'Design track: which tool is your daily driver?',
+          isRequired: true,
+          options: ['Figma', 'Penpot', 'Illustrator'],
+          points: 10,
+          conditions: [
+            { parentFieldId: 'ob-designer-track', operator: 'is_not_empty', action: 'jump_to', jumpToFieldId: 'ob-general-track' },
+          ],
+        },
+        {
+          id: 'ob-general-track',
+          type: 'paragraph',
+          label: 'General track: tell us what you would like to learn first.',
+          isRequired: false,
+        },
+      ],
+    },
+  },
+  {
+    slug: 'branching-cycle-guard',
+    form: {
+      id: 'branching-cycle-guard',
+      title: 'Cycle Guard — Deliberately Cyclic Fixture',
+      description: 'Negative fixture: two steps jump to each other. Consumed only by validateConditionalFixture, never rendered.',
+      formType: 'quiz',
+      formAccess: 'public',
+      isSequential: true,
+      isPublished: false,
+      settings: {
+        theme: 'riseup',
+      },
+      fields: [
+        {
+          id: 'cg-a',
+          type: 'multiple_choice',
+          label: 'Cycle guard A: pick an option to jump forward.',
+          isRequired: true,
+          options: ['A'],
+          conditions: [
+            { parentFieldId: 'cg-a', operator: 'is_not_empty', action: 'jump_to', jumpToFieldId: 'cg-b' },
+          ],
+        },
+        {
+          id: 'cg-b',
+          type: 'multiple_choice',
+          label: 'Cycle guard B: pick an option to jump back.',
+          isRequired: true,
+          options: ['B'],
+          conditions: [
+            { parentFieldId: 'cg-b', operator: 'is_not_empty', action: 'jump_to', jumpToFieldId: 'cg-a' },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    slug: 'conditional-visibility-demo',
+    form: {
+      id: 'conditional-visibility-demo',
+      title: 'Conditional Visibility Demo',
+      description: 'Field-level visibility fixture: the long-text field only appears when the updates checkbox is selected.',
+      formType: 'quiz',
+      formAccess: 'public',
+      isSequential: true,
+      isPublished: true,
+      settings: {
+        passingScore: 70,
+        successMessage: 'Visibility demo complete.',
+        theme: 'dracula',
+      },
+      fields: [
+        {
+          id: 'cv-notify',
+          type: 'multiple_choice',
+          label: 'How should we reach you about new quizzes?',
+          isRequired: true,
+          options: ['Yes, send me updates', 'No thanks'],
+        },
+        {
+          id: 'cv-topics',
+          type: 'paragraph',
+          label: 'Which topics interest you most?',
+          isRequired: false,
+          conditions: [
+            { parentFieldId: 'cv-notify', operator: 'contains', expectedValue: 'Yes, send me updates', action: 'show' },
+          ],
+        },
+      ],
+    },
+  },
+];
+
 export const useExamAppStore = create<ExamAppState>((set, get) => ({
   invites: seedInvites,
   submissions: seedSubmissions,
   session: defaultSession,
+  conditionalFixtures: seedConditionalFixtures,
 
   addInvite: (data) => {
     const newRecord: UserInviteRecord = {

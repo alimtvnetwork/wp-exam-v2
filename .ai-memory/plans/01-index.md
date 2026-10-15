@@ -11,6 +11,7 @@ Master directory of architectural and execution plans.
 
 ## Completed Plans
 
+- [ui-ux-enhancement-and-animation-improvement.md](ui-ux-enhancement-and-animation-improvement.md): UI/UX Enhancement and Animation Improvement (admin sidebar synced collapse + sliding active indicator + animated tab switches; quiz preview chrome with banner/badge/exit; direction-aware step transitions; 3 additive conditional-step helpers; 5 seed fixtures; motion tokens from the coding-guideline design system).
 - [75-onboarding-quiz-presentation-modernization.md](completed/75-onboarding-quiz-presentation-modernization.md): Onboarding Quiz UI Presentation Modernization (Restrained 2px green accent edge, unified 7-action Config dropdown menu, Onboarding Quiz vector branding, 4 unclipped icon dock tabs, 1-row category filter pills, White Presentation 50/50 slide split with staggered upward slide CSS3 motion, tactile hover glide, full-width video player with dual-choice conditional routes, and high-contrast Purple, Riseup, and Navy Gold themes).
 
 - [74-onboarding-quiz-presentation-ui.md](completed/74-onboarding-quiz-presentation-ui.md): Onboarding Quiz Presentation UI & Builder Chrome Polish (Restrained 2px top edge, card shadow-md, unified SlidersHorizontal config dropdown, Onboarding Quiz logo, Radix tooltips on icon buttons, full presentation preview, and restrained Riseup/Navy themes).
