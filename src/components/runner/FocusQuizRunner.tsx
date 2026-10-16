@@ -36,10 +36,12 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { toast } from 'sonner';
+import { VideoAnswerRecorder } from './video-answer-recorder';
+import { VideoAnswerSubmission, isVideoAnswerSubmission } from '@/lib/types/form';
 
 export interface FocusQuestion {
   id: string;
-  type: 'mcq' | 'multiselect' | 'paragraph' | 'url_submission' | 'mindmap' | 'file_upload';
+  type: 'mcq' | 'multiselect' | 'paragraph' | 'url_submission' | 'mindmap' | 'file_upload' | 'video_answer';
   title: string;
   subtitle?: string;
   options?: Array<{ label: string; icon?: string; isFullWidth?: boolean; branchTarget?: string } | string>;
@@ -60,6 +62,8 @@ export interface FocusQuestion {
   verificationType?: 'google_docs' | 'workflowy' | 'xmind' | 'figma' | 'url' | 'any';
   layout?: '1-column' | '2-column';
   points?: number;
+  /** Per-question maximum recording length (seconds) for `video_answer` questions. Defaults to 120. */
+  videoAnswerMaxSeconds?: number;
 }
 
 export interface ReadingPage {
@@ -101,6 +105,30 @@ export interface FocusQuizConfig {
   emailCadence?: 'per_section' | 'end_of_day' | 'end_of_week';
   questions: FocusQuestion[];
   passingScore?: number;
+}
+
+/** Parses a stored video-answer JSON string back into a submission payload (or null). */
+function parseStoredVideoAnswer(raw: string | string[] | undefined): VideoAnswerSubmission | null {
+  if (typeof raw !== 'string') {
+    return null;
+  }
+
+  const trimmed = raw.trim();
+  const isJsonObject = trimmed.startsWith('{');
+
+  if (isJsonObject) {
+    try {
+      const parsed: unknown = JSON.parse(trimmed);
+
+      if (isVideoAnswerSubmission(parsed)) {
+        return parsed;
+      }
+    } catch {
+      // Malformed payload; treated as no stored answer below.
+    }
+  }
+
+  return null;
 }
 
 interface FocusQuizRunnerProps {
@@ -1349,6 +1377,32 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
                     {String(answers[currentQuestion.id])}
                   </Badge>
                 )}
+              </div>
+            )}
+
+            {/* Video Answer (record via camera) */}
+            {currentQuestion.type === 'video_answer' && (
+              <div
+                className="p-6 rounded-2xl border space-y-3"
+                style={{
+                  backgroundColor: theme.colors.cardBg,
+                  borderColor: theme.colors.cardBorder,
+                }}
+              >
+                <VideoAnswerRecorder
+                  fieldId={currentQuestion.id}
+                  label={currentQuestion.title}
+                  value={parseStoredVideoAnswer(answers[currentQuestion.id])}
+                  maxSeconds={currentQuestion.videoAnswerMaxSeconds}
+                  onChange={(val) => {
+                    const isCleared = val === null || val === undefined;
+
+                    handleTextAnswerChange(
+                      currentQuestion.id,
+                      isCleared ? '' : JSON.stringify(val)
+                    );
+                  }}
+                />
               </div>
             )}
 

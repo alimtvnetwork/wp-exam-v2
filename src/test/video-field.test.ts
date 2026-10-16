@@ -1,5 +1,13 @@
 import { describe, it, expect } from 'vitest';
-import { parseVideoEmbedUrl, FormField } from '@/lib/types/form';
+import {
+  parseVideoEmbedUrl,
+  FormField,
+  VideoAnswerSubmission,
+  isVideoAnswerSubmission,
+  normalizeVideoAnswerMaxSeconds,
+  formatVideoAnswerDuration,
+  DEFAULT_VIDEO_ANSWER_MAX_SECONDS,
+} from '@/lib/types/form';
 import { auditFormDesign } from '@/lib/design-validation-engine';
 
 describe('Video Field Engine & URL Parser', () => {
@@ -81,8 +89,7 @@ describe('Video Field Engine & URL Parser', () => {
     expect(videoField.videoCaption).toBe('Watch the first 3 minutes before taking the test');
   });
 
-  it('exempts video fields from quiz points penalty in design-validation-engine', () => {
-    const fields: FormField[] = [
+  it('exempts video fields from quiz points penalty in design-validation-engine', () => {    const fields: FormField[] = [
       {
         id: 'v1',
         type: 'video',
@@ -106,5 +113,70 @@ describe('Video Field Engine & URL Parser', () => {
     const pointsIssue = report.issues.find((i) => i.id === 'issue-points-v1');
 
     expect(pointsIssue).toBeUndefined();
+  });
+});
+
+describe('Video Answer Submission Types & Helpers', () => {
+  it('exposes a 120s default recording cap', () => {
+    expect(DEFAULT_VIDEO_ANSWER_MAX_SECONDS).toBe(120);
+  });
+
+  it('normalizes per-question recording caps with a 120s fallback', () => {
+    expect(normalizeVideoAnswerMaxSeconds(undefined)).toBe(120);
+    expect(normalizeVideoAnswerMaxSeconds(null)).toBe(120);
+    expect(normalizeVideoAnswerMaxSeconds(0)).toBe(120);
+    expect(normalizeVideoAnswerMaxSeconds(-30)).toBe(120);
+    expect(normalizeVideoAnswerMaxSeconds(NaN)).toBe(120);
+    expect(normalizeVideoAnswerMaxSeconds(60)).toBe(60);
+    expect(normalizeVideoAnswerMaxSeconds(90.7)).toBe(90);
+  });
+
+  it('formats recording durations as m:ss', () => {
+    expect(formatVideoAnswerDuration(0)).toBe('0:00');
+    expect(formatVideoAnswerDuration(5)).toBe('0:05');
+    expect(formatVideoAnswerDuration(65)).toBe('1:05');
+    expect(formatVideoAnswerDuration(120)).toBe('2:00');
+  });
+
+  it('recognizes valid video-answer submissions and rejects lookalikes', () => {
+    const submission: VideoAnswerSubmission = {
+      blobRef: 'blob:https://quiz.example/abc123',
+      durationSeconds: 42,
+      mimeType: 'video/webm',
+      recordedAt: new Date().toISOString(),
+    };
+
+    expect(isVideoAnswerSubmission(submission)).toBe(true);
+    expect(isVideoAnswerSubmission({ blobRef: 'blob:x', durationSeconds: 10 })).toBe(false);
+    expect(isVideoAnswerSubmission(null)).toBe(false);
+    expect(isVideoAnswerSubmission('blob:x')).toBe(false);
+  });
+
+  it('supports skipped video answers via skippedWithNote', () => {
+    const skipped: VideoAnswerSubmission = {
+      blobRef: '',
+      durationSeconds: 0,
+      mimeType: '',
+      recordedAt: new Date().toISOString(),
+      skippedWithNote: 'No camera on this device',
+    };
+
+    expect(isVideoAnswerSubmission(skipped)).toBe(true);
+    expect(skipped.skippedWithNote).toBe('No camera on this device');
+  });
+
+  it('supports video_answer fields with additive per-question config', () => {
+    const field: FormField = {
+      id: 'field-video-answer-1',
+      type: 'video_answer',
+      label: 'Introduce yourself in a short video',
+      isRequired: true,
+      videoAnswerMaxSeconds: 90,
+      videoAnswerPrompt: 'Keep it under 90 seconds.',
+    };
+
+    expect(field.type).toBe('video_answer');
+    expect(field.videoAnswerMaxSeconds).toBe(90);
+    expect(field.videoAnswerPrompt).toBe('Keep it under 90 seconds.');
   });
 });

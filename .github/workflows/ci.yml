@@ -58,3 +58,40 @@ jobs:
           echo "- **Python E2E Suite:** Passed" >> $GITHUB_STEP_SUMMARY
           echo "- **Quality Gates:** 11/11 Gates Verified" >> $GITHUB_STEP_SUMMARY
           echo "- **Storage Usage:** 0 MB (Zero-Storage Mandate Enforced)" >> $GITHUB_STEP_SUMMARY
+
+  playwright-smoke:
+    name: Playwright Smoke E2E (Scoped)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install npm Dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright Smoke Specs (chromium)
+        run: |
+          set +e
+          npx playwright test tests/e2e/smoke-landing.spec.ts tests/e2e/smoke-onboarding-start.spec.ts tests/e2e/smoke-theme-builder.spec.ts tests/e2e/smoke-video-answer.spec.ts
+          status=$?
+          if [ $status -eq 0 ]; then
+            echo "### 🎭 Playwright Smoke E2E: Passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "::error::Playwright smoke specs failed with exit code $status"
+            echo "### 🎭 Playwright Smoke E2E: Failed (exit $status)" >> $GITHUB_STEP_SUMMARY
+          fi
+          exit $status
+
+      - name: Emit Smoke Diagnostics Summary
+        if: always()
+        run: |
+          echo "- **Storage Usage:** 0 MB (Zero-Storage Mandate Enforced — no artifacts uploaded)" >> $GITHUB_STEP_SUMMARY

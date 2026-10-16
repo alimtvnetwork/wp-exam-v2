@@ -89,7 +89,7 @@ export const THEME_PRESETS: Record<string, ThemeDefinition> = {
       textPrimary: '#F8F8F2',
       textSecondary: '#BAC7E8',
       progressBar: '#BD93F9',
-      badgeBg: '#44475A',
+      badgeBg: 'rgba(189, 147, 249, 0.2)',
     },
   },
 

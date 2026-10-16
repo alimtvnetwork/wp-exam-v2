@@ -5,28 +5,64 @@ import {
   Layers,
   Sparkles,
   GitBranch,
-  Cpu,
   Mail,
-  CheckCircle2,
-  ArrowRight,
-  ExternalLink,
-  Lock,
   Play,
-  FileText,
   Database,
-  Globe,
-  Award,
-  Zap,
+  Lock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AdminLoginModal, useAdminAuth } from '@/components/auth/AdminLoginModal';
-import { ThemeSwitcher, useTheme } from '@/lib/theme-context';
+import { ThemeSwitcher } from '@/lib/theme-context';
+import onboardingQuizLogo from '@/assets/onboarding-quiz-logo.svg';
+
+const featureCards = [
+  {
+    icon: Layers,
+    iconClassName: 'bg-primary/10 text-primary',
+    title: 'Multi-Section Architecture',
+    description: 'Curriculum structured into sections with prerequisite gating and passing thresholds.',
+  },
+  {
+    icon: GitBranch,
+    iconClassName: 'bg-sky-500/10 text-sky-400',
+    title: 'Visual Branching Logic',
+    description: 'Interactive node graph detecting cyclic paths in real time with condition-based progression.',
+  },
+  {
+    icon: Database,
+    iconClassName: 'bg-emerald-500/10 text-emerald-400',
+    title: 'Split SQLite Storage',
+    description: 'Hybrid multi-database model for zero lock contention and offline local sync.',
+  },
+  {
+    icon: Mail,
+    iconClassName: 'bg-purple-500/10 text-purple-400',
+    title: 'Email & Certificate Automation',
+    description: 'Automated score digests, certificates, and SMTP/SES delivery presets.',
+  },
+  {
+    icon: Shield,
+    iconClassName: 'bg-rose-500/10 text-rose-400',
+    title: 'Role Access & Anti-Cheat',
+    description: 'Token-based candidate authentication with attempt limits and anti-cheat answer stripping.',
+  },
+  {
+    icon: Sparkles,
+    iconClassName: 'bg-amber-500/10 text-amber-400',
+    title: 'AI Studio & JSON Engine',
+    description: 'Embedded prompt templates and 1-click JSON import/export for automated question generation.',
+  },
+];
+
+const metricCards = [
+  { value: 'Real-Time', label: 'Validation & Scoring' },
+  { value: '< 10ms', label: 'Instant Response' },
+  { value: '5 Themes', label: 'Fluid Customization' },
+];
 
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
-  const { theme, config } = useTheme();
-
   const { isAuthenticated } = useAdminAuth();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
@@ -44,12 +80,14 @@ export const LandingPage: React.FC = () => {
       <header className="border-b border-border/60 backdrop-blur-md bg-background/80 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-primary flex items-center justify-center font-black text-primary-foreground text-base shadow-lg shadow-primary/20">
-              WP
-            </div>
+            <img
+              src={onboardingQuizLogo}
+              alt="Onboarding Quiz"
+              className="w-9 h-9 rounded-xl shadow-md ring-1 ring-border/50"
+            />
             <div>
               <span className="font-extrabold text-lg tracking-tight text-foreground flex items-center gap-1.5 font-heading">
-                WP Exam
+                Onboarding Quiz
                 <Badge variant="outline" className="border-primary/40 text-primary text-xs font-mono py-0">
                   Enterprise
                 </Badge>
@@ -85,25 +123,24 @@ export const LandingPage: React.FC = () => {
       </header>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden pt-16 pb-20 border-b border-border/60 bg-gradient-to-b from-background via-muted/20 to-background">
+      <section className="relative overflow-hidden pt-16 pb-20 border-b border-border/60 bg-background">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center space-y-6">
           <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs font-semibold">
             <Sparkles className="w-3.5 h-3.5" />
-            <span>Intelligent Assessment & Form Engine</span>
+            <span>Onboarding assessments, simplified</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl font-black tracking-tight text-foreground leading-tight font-heading">
-            Intelligent Exams & <br />
+            Onboard Faster with <br />
             <span className="text-primary">
-              Dynamic Forms
+              Intelligent Quizzes
             </span>
           </h1>
 
           <p className="text-base sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Build interactive assessments, branching quizzes, and dynamic forms with instant validation, fluid themes, and candidate scoring workflows.
+            Design onboarding assessments, branching quizzes, and feedback forms with instant scoring and fluid themes.
           </p>
 
-          {/* Action Gateway Buttons */}
           <div className="flex flex-wrap items-center justify-center gap-3 pt-2">
             <Button
               size="lg"
@@ -113,46 +150,17 @@ export const LandingPage: React.FC = () => {
               <Play className="w-4 h-4 fill-current" />
               <span>Start Assessment</span>
             </Button>
-
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => navigate('/admin?tab=builder')}
-              className="border-border bg-card hover:bg-accent hover:text-accent-foreground text-foreground text-sm h-11 px-6 gap-2"
-            >
-              <Layers className="w-4 h-4 text-primary" />
-              <span>Open Form Builder</span>
-            </Button>
-
-            <Button
-              size="lg"
-              variant="outline"
-              onClick={() => navigate('/runner')}
-              className="border-border bg-card hover:bg-accent hover:text-accent-foreground text-foreground text-sm h-11 px-6 gap-2"
-            >
-              <Zap className="w-4 h-4 text-sky-400" />
-              <span>Live Preview</span>
-            </Button>
           </div>
 
           {/* Quick Metrics Bar */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto pt-8">
-            <div className="p-3.5 rounded-xl bg-card border border-border">
-              <span className="text-2xl font-black text-primary block font-mono font-heading">Real-Time</span>
-              <span className="text-xs text-muted-foreground">Validation & Scoring</span>
-            </div>
-            <div className="p-3.5 rounded-xl bg-card border border-border">
-              <span className="text-2xl font-black text-sky-400 block font-mono font-heading">&lt; 10ms</span>
-              <span className="text-xs text-muted-foreground">Instant Response</span>
-            </div>
-            <div className="p-3.5 rounded-xl bg-card border border-border">
-              <span className="text-2xl font-black text-emerald-400 block font-mono font-heading">5 Themes</span>
-              <span className="text-xs text-muted-foreground">Fluid Customization</span>
-            </div>
-            <div className="p-3.5 rounded-xl bg-card border border-border">
-              <span className="text-2xl font-black text-purple-400 block font-mono font-heading">Enterprise</span>
-              <span className="text-xs text-muted-foreground">Multi-Section Engine</span>
-            </div>
+          <div className="grid grid-cols-3 gap-4 max-w-3xl mx-auto pt-8">
+            {metricCards.map((metric) => (
+              <div key={metric.label} className="p-3.5 rounded-xl bg-card border border-border shadow-md">
+                <div className="h-0.5 w-full bg-primary/60 rounded-full mb-3" />
+                <span className="text-2xl font-black text-primary block font-heading">{metric.value}</span>
+                <span className="text-xs text-muted-foreground">{metric.label}</span>
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -164,77 +172,27 @@ export const LandingPage: React.FC = () => {
             Key Capabilities
           </Badge>
           <h2 className="text-3xl sm:text-4xl font-black text-foreground font-heading">Platform Features</h2>
+          <div className="mx-auto h-0.5 w-16 bg-primary/70 rounded-full" />
           <p className="text-sm text-muted-foreground max-w-xl mx-auto">
             Engineered for high throughput, evaluation precision, and candidate security.
           </p>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {/* Card 1 */}
-          <div className="p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-primary/10 text-primary flex items-center justify-center">
-              <Layers className="w-5 h-5" />
+          {featureCards.map((card) => (
+            <div key={card.title} className="rounded-2xl bg-card border border-border shadow-md overflow-hidden hover:border-primary/50 transition-all">
+              <div className="h-0.5 w-full bg-primary/70" />
+              <div className="p-6 space-y-3">
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${card.iconClassName}`}>
+                  <card.icon className="w-5 h-5" />
+                </div>
+                <h3 className="text-base font-bold text-foreground font-heading">{card.title}</h3>
+                <p className="text-xs text-muted-foreground leading-relaxed">
+                  {card.description}
+                </p>
+              </div>
             </div>
-            <h3 className="text-base font-bold text-foreground font-heading">Multi-Section Architecture</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Curriculum structured into sections with prerequisite gating and passing thresholds.
-            </p>
-          </div>
-
-          {/* Card 2 */}
-          <div className="p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-sky-500/10 text-sky-400 flex items-center justify-center">
-              <GitBranch className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-foreground font-heading">Visual Branching Logic</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Interactive node graph detecting cyclic paths in real time with condition-based progression.
-            </p>
-          </div>
-
-          {/* Card 3 */}
-          <div className="p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-              <Database className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-foreground font-heading">Split SQLite Storage</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Hybrid multi-database model for zero lock contention and offline local sync.
-            </p>
-          </div>
-
-          {/* Card 4 */}
-          <div className="p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-purple-500/10 text-purple-400 flex items-center justify-center">
-              <Mail className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-foreground font-heading">Email & Certificate Automation</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Automated score digests, certificates, and SMTP/SES delivery presets.
-            </p>
-          </div>
-
-          {/* Card 5 */}
-          <div className="p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-rose-500/10 text-rose-400 flex items-center justify-center">
-              <Shield className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-foreground font-heading">Role Access & Anti-Cheat</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Token-based candidate authentication with attempt limits and anti-cheat answer stripping.
-            </p>
-          </div>
-
-          {/* Card 6 */}
-          <div className="p-6 rounded-2xl bg-card border border-border hover:border-primary/50 transition-all space-y-3">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 text-amber-400 flex items-center justify-center">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <h3 className="text-base font-bold text-foreground font-heading">AI Studio & JSON Engine</h3>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              Embedded prompt templates and 1-click JSON import/export for automated question generation.
-            </p>
-          </div>
+          ))}
         </div>
       </section>
 
@@ -247,15 +205,16 @@ export const LandingPage: React.FC = () => {
           <h2 className="text-2xl sm:text-3xl font-black text-foreground font-heading">
             Manage Exams, Questions & Scoring Models
           </h2>
+          <div className="mx-auto h-0.5 w-16 bg-primary/70 rounded-full" />
           <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
-            Access the administrative console to author forms, inspect candidate submissions, and customize logic.
+            Author forms, inspect candidate submissions, and customize logic from the admin console.
           </p>
 
           <div className="pt-1">
             <Button
               size="lg"
               onClick={handleAdminClick}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm h-11 px-8 gap-2 shadow-lg shadow-primary/20"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm h-11 px-6 gap-2 shadow-lg shadow-primary/20"
             >
               <Lock className="w-4 h-4" />
               <span>Open Admin Dashboard &rarr;</span>
@@ -268,7 +227,12 @@ export const LandingPage: React.FC = () => {
       <footer className="border-t border-border py-6 bg-card text-xs text-muted-foreground">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-foreground font-heading">WP Exam Engine</span>
+            <img
+              src={onboardingQuizLogo}
+              alt=""
+              className="w-5 h-5 rounded-md"
+            />
+            <span className="font-bold text-foreground font-heading">Onboarding Quiz</span>
             <span>•</span>
             <span>Enterprise Assessment Platform</span>
           </div>

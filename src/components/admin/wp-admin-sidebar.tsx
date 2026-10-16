@@ -16,6 +16,7 @@ import {
   Shield,
   Layers,
   Settings,
+  Palette,
   ExternalLink,
   ChevronDown,
 } from 'lucide-react';
@@ -34,7 +35,8 @@ export type AdminTab =
   | 'email'
   | 'ai-studio'
   | 'backups'
-  | 'storage';
+  | 'storage'
+  | 'theme-builder';
 
 interface NavItem {
   id: AdminTab;
@@ -152,6 +154,14 @@ const NAV_SECTIONS: NavSection[] = [
         badge: 'WAL',
         badgeVariant: 'outline',
         description: 'Multi-shard engine status',
+      },
+      {
+        id: 'theme-builder',
+        label: 'Theme Builder',
+        icon: Palette,
+        badge: 'New',
+        badgeVariant: 'secondary',
+        description: 'Live theme token studio',
       },
     ],
   },

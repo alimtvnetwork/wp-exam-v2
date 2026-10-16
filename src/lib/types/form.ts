@@ -19,6 +19,7 @@ export type FieldType =
   | 'link'
   | 'regex_text'
   | 'video'
+  | 'video_answer'
   | 'list_items'
   | 'section_header'
   | 'faq'
@@ -171,6 +172,10 @@ export interface FormField {
   imageCaption?: string;
   videoUrl?: string;
   videoCaption?: string;
+  /** Per-question maximum recording length (seconds) for `video_answer` fields. Defaults to 120. */
+  videoAnswerMaxSeconds?: number;
+  /** Instructional text shown above the `video_answer` recorder. */
+  videoAnswerPrompt?: string;
   validationRule?: FieldValidationRule;
   validationRules?: FieldValidationRule | FieldValidationRule[] | Record<string, unknown>;
   fileValidation?: FileValidationRule;
@@ -644,5 +649,73 @@ export function parseVideoEmbedUrl(rawUrl?: string): VideoEmbedDetails | null {
     embedUrl: cleanUrl,
     isDirectVideo: false,
   };
+}
+
+// ---------------------------------------------------------------------------
+// Video answer submission (candidate video-answer question mode, R-7.1..R-7.3)
+// ---------------------------------------------------------------------------
+
+/** Default maximum recording length for `video_answer` questions, in seconds. */
+export const DEFAULT_VIDEO_ANSWER_MAX_SECONDS = 120;
+
+/** MIME type candidates attempted when constructing a MediaRecorder, in preference order. */
+export const VIDEO_RECORDER_MIME_TYPE_CANDIDATES: string[] = [
+  'video/webm;codecs=vp9,opus',
+  'video/webm;codecs=vp8,opus',
+  'video/webm',
+  'video/mp4',
+];
+
+/**
+ * Answer payload for a `video_answer` field. The recorded media blob stays
+ * client-side; `blobRef` carries an object URL (or storage key), never raw bytes.
+ */
+export interface VideoAnswerSubmission {
+  /** Object URL (`blob:`) or storage key referencing the recorded clip. */
+  blobRef: string;
+  /** Recorded clip length in whole seconds. */
+  durationSeconds: number;
+  /** MIME type of the recorded clip, e.g. `video/webm`. */
+  mimeType: string;
+  /** ISO-8601 timestamp when the recording completed. */
+  recordedAt: string;
+  /** Note left when the candidate skipped recording (camera unavailable / permission denied). */
+  skippedWithNote?: string;
+}
+
+/** Type guard for video-answer payloads read back from the answers record. */
+export function isVideoAnswerSubmission(value: unknown): value is VideoAnswerSubmission {
+  if (typeof value !== 'object' || value === null) {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+
+  return (
+    typeof candidate.blobRef === 'string' &&
+    typeof candidate.durationSeconds === 'number' &&
+    typeof candidate.mimeType === 'string' &&
+    typeof candidate.recordedAt === 'string'
+  );
+}
+
+/** Normalizes a per-question recording cap: falls back to the 120s default for missing or invalid values. */
+export function normalizeVideoAnswerMaxSeconds(raw?: number | null): number {
+  const isUsable = typeof raw === 'number' && Number.isFinite(raw) && raw > 0;
+
+  if (isUsable && typeof raw === 'number') {
+    return Math.floor(raw);
+  }
+
+  return DEFAULT_VIDEO_ANSWER_MAX_SECONDS;
+}
+
+/** Formats a duration in seconds as `m:ss` for the recording timer. */
+export function formatVideoAnswerDuration(totalSeconds: number): string {
+  const clamped = Math.max(0, Math.floor(totalSeconds));
+  const minutes = Math.floor(clamped / 60);
+  const seconds = clamped % 60;
+
+  return `${minutes}:${String(seconds).padStart(2, '0')}`;
 }
 

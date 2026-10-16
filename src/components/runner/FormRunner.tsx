@@ -112,6 +112,7 @@ import {
   getDynamicTitleTypographyClass,
 } from '@/lib/presentation-layout';
 import { PresenterHUD } from './floating-controls';
+import { VideoAnswerRecorder } from './video-answer-recorder';
 
 interface FormRunnerProps {
   form?: FormModel;
@@ -4004,6 +4005,17 @@ function renderFieldInput(
           videoUrl={field.videoUrl}
           videoCaption={field.videoCaption}
           title={field.label}
+        />
+      );
+    case 'video_answer':
+      return (
+        <VideoAnswerRecorder
+          fieldId={field.id}
+          label={field.label}
+          value={value}
+          onChange={onChange}
+          maxSeconds={field.videoAnswerMaxSeconds}
+          prompt={field.videoAnswerPrompt}
         />
       );
     case 'file_upload':

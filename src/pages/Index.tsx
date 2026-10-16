@@ -12,6 +12,7 @@ import { ProjectHierarchyManager, ProjectItem } from '@/components/admin/project
 import { AIInstructionStudio } from '@/components/admin/ai-instruction-studio';
 import { BackupManager } from '@/components/admin/backup-manager';
 import { AnalyticsDashboard } from '@/components/admin/analytics-dashboard';
+import { ThemeBuilder } from '@/components/theme-builder';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
 import { useAdminAuth } from '@/components/auth/AdminLoginModal';
 import { ThemeSwitcher, useTheme, AppThemeType } from '@/lib/theme-context';
@@ -127,7 +128,9 @@ export const Index: React.FC = () => {
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 font-sans selection:bg-primary selection:text-primary-foreground">
-        <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-2xl p-8 space-y-6">
+        <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-md overflow-hidden">
+          <div className="h-0.5 w-full bg-primary/70" />
+          <div className="p-8 space-y-6">
           <div className="text-center space-y-2">
             <div className="w-12 h-12 rounded-2xl bg-muted border border-border text-primary flex items-center justify-center mx-auto overflow-hidden shadow-xs ring-1 ring-border/50">
               <img
@@ -136,9 +139,9 @@ export const Index: React.FC = () => {
                 className="w-8 h-8 rounded-lg"
               />
             </div>
-            <h1 className="text-2xl font-black tracking-tight text-foreground">Onboarding Quiz Console</h1>
+            <h1 className="text-2xl font-black tracking-tight text-foreground font-heading">Onboarding Quiz Console</h1>
             <p className="text-sm text-muted-foreground">
-              Restricted administrative portal for curriculum authoring and candidate scoring.
+              Admin portal for quiz authoring and candidate scoring.
             </p>
           </div>
 
@@ -203,6 +206,7 @@ export const Index: React.FC = () => {
               </button>
             </div>
           </form>
+          </div>
         </div>
       </div>
     );
@@ -400,6 +404,12 @@ export const Index: React.FC = () => {
               {previousTab === 'backups' && (
                 <div className="max-w-5xl mx-auto">
                   <BackupManager />
+                </div>
+              )}
+
+              {previousTab === 'theme-builder' && (
+                <div className="max-w-7xl mx-auto">
+                  <ThemeBuilder />
                 </div>
               )}
             </div>
