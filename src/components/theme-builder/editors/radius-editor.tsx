@@ -29,17 +29,19 @@ export const RadiusEditor: React.FC<RadiusEditorProps> = ({ radius, onChange }) 
       <div className="space-y-2">
         <div className="flex items-center justify-between">
           <Label className="text-xs font-semibold">Base radius</Label>
-          <span className="font-mono text-xs text-muted-foreground">{radius.toFixed(2)}rem</span>
+          <span key={radius} className="theme-transition-readout-in font-mono text-xs text-muted-foreground">{radius.toFixed(2)}rem</span>
         </div>
 
-        <Slider
-          min={0}
-          max={1.5}
-          step={0.05}
-          value={[radius]}
-          aria-label="Base radius"
-          onValueChange={(values) => onChange(values[0] ?? radius)}
-        />
+        <div className="theme-transition-slider-fill">
+          <Slider
+            min={0}
+            max={1.5}
+            step={0.05}
+            value={[radius]}
+            aria-label="Base radius"
+            onValueChange={(values) => onChange(values[0] ?? radius)}
+          />
+        </div>
 
         <div className="flex justify-between font-mono text-xs text-muted-foreground">
           <span>0rem</span>

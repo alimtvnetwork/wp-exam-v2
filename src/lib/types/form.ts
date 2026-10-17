@@ -20,6 +20,7 @@ export type FieldType =
   | 'regex_text'
   | 'video'
   | 'video_answer'
+  | 'video_prompt'
   | 'list_items'
   | 'section_header'
   | 'faq'
@@ -172,6 +173,12 @@ export interface FormField {
   imageCaption?: string;
   videoUrl?: string;
   videoCaption?: string;
+  /** WordPress media library attachment id for an uploaded `video_prompt` question video. Never a blob. */
+  videoAttachmentId?: number;
+  /** Poster image URL for the `video_prompt` player hero. */
+  posterUrl?: string;
+  /** Answer mode for `video_prompt`: 'text' (default) or 'video' (chains into the video answer recorder). */
+  answerKind?: 'text' | 'video';
   /** Per-question maximum recording length (seconds) for `video_answer` fields. Defaults to 120. */
   videoAnswerMaxSeconds?: number;
   /** Instructional text shown above the `video_answer` recorder. */

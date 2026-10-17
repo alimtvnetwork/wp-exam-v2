@@ -7,6 +7,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { Button } from '@/components/ui/button';
+import '../styles/theme-transition.css';
 
 export type AppThemeType = 'riseup' | 'dracula' | 'purple' | 'obsidian' | 'vscode-navy-gold' | 'clean' | 'clean-wide' | 'sweet-digs' | 'green-choice';
 
@@ -307,6 +308,169 @@ export const ORDERED_THEME_KEYS: AppThemeType[] = [
   'vscode-navy-gold',
 ];
 
+/**
+ * Crossfade-on-apply timing constants (Task-03). The instant `theme-*` class
+ * swap is wrapped in a dip-through-background overlay: 180ms fade in, swap,
+ * 280ms fade out. Transform/opacity only.
+ */
+export const THEME_TRANSITION_FADE_IN_MS = 180;
+export const THEME_TRANSITION_FADE_OUT_MS = 280;
+
+let themeTransitionOverlay: HTMLDivElement | null = null;
+let themeTransitionTimers: number[] = [];
+
+function clearThemeTransitionTimers(): void {
+
+  for (const timerId of themeTransitionTimers) {
+    window.clearTimeout(timerId);
+  }
+
+  themeTransitionTimers = [];
+}
+
+function isReducedMotionPreferred(): boolean {
+
+  if (typeof window === 'undefined' || typeof window.matchMedia !== 'function') {
+
+    return true;
+  }
+
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+}
+
+/**
+ * playThemeTransition — runs `applyTheme` under a dip-through-background
+ * overlay so a theme swap never flashes unstyled content.
+ *
+ * - `prefers-reduced-motion`: skips the overlay entirely (instant swap).
+ * - Rapid re-selects reuse the single overlay node and restart the cycle;
+ *   overlays never stack.
+ * - Boot-time restores should call their apply function directly instead of
+ *   going through this helper (no overlay on load).
+ */
+export function playThemeTransition(applyTheme: () => void): void {
+
+  if (isReducedMotionPreferred()) {
+    applyTheme();
+
+    return;
+  }
+
+  clearThemeTransitionTimers();
+
+  let overlay = themeTransitionOverlay;
+
+  if (!overlay) {
+    overlay = document.createElement('div');
+    overlay.className = 'theme-transition-overlay';
+    overlay.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(overlay);
+    themeTransitionOverlay = overlay;
+  }
+
+  const surface = window.getComputedStyle(document.body).backgroundColor;
+
+  if (surface) {
+    overlay.style.backgroundColor = surface;
+  }
+
+  overlay.classList.remove('is-hiding');
+  overlay.classList.add('is-visible');
+
+  const swapTimer = window.setTimeout(() => {
+    applyTheme();
+
+    const hidingOverlay = themeTransitionOverlay;
+
+    if (hidingOverlay) {
+      hidingOverlay.classList.remove('is-visible');
+      hidingOverlay.classList.add('is-hiding');
+    }
+
+    const cleanupTimer = window.setTimeout(() => {
+      const staleOverlay = themeTransitionOverlay;
+
+      if (staleOverlay && staleOverlay.parentNode) {
+        staleOverlay.parentNode.removeChild(staleOverlay);
+      }
+
+      themeTransitionOverlay = null;
+    }, THEME_TRANSITION_FADE_OUT_MS);
+
+    themeTransitionTimers.push(cleanupTimer);
+  }, THEME_TRANSITION_FADE_IN_MS);
+
+  themeTransitionTimers.push(swapTimer);
+}
+
+/**
+ * applyThemeToDocument — the synchronous DOM write for a theme. Used by the
+ * provider effect (boot/restore, instant) and by the crossfade midpoint.
+ */
+function applyThemeToDocument(targetTheme: AppThemeType, targetConfig: ThemeConfig): void {
+  const root = document.documentElement;
+
+  root.setAttribute('data-theme', targetTheme);
+  root.style.setProperty('--wp-exam-primary', targetConfig.primaryColor);
+  root.style.setProperty('--wp-exam-bg', targetConfig.bgColor);
+  root.style.setProperty('--wp-exam-card', targetConfig.cardColor);
+  root.style.setProperty('--wp-exam-card-border', targetConfig.borderColor);
+  root.style.setProperty('--wp-exam-accent', targetConfig.accentColor);
+  root.style.setProperty('--color-theme-primary', targetConfig.primaryColor);
+  root.style.setProperty('--color-theme-bg', targetConfig.bgColor);
+  root.style.setProperty('--color-theme-card', targetConfig.cardColor);
+  root.style.setProperty('--color-theme-border', targetConfig.borderColor);
+  root.style.setProperty('--color-theme-accent', targetConfig.accentColor);
+
+  // Propagate standard Tailwind HSL color tokens
+  if (targetConfig.hslValues) {
+    Object.entries(targetConfig.hslValues).forEach(([cssKey, hslValue]) => {
+      root.style.setProperty(cssKey, hslValue);
+    });
+  }
+
+  const allThemeClasses = [
+    'theme-green-choice',
+    'theme-sweet-digs',
+    'theme-clean',
+    'theme-clean-wide',
+    'theme-purple',
+    'theme-letterly',
+    'theme-dracula',
+    'theme-obsidian',
+    'theme-vscode-dark',
+    'theme-vscode-navy-gold',
+    'theme-riseup',
+    'theme-riseup-asia',
+  ];
+  root.classList.remove(...allThemeClasses);
+  root.classList.add(`theme-${targetTheme}`);
+
+  if (targetTheme === 'green-choice') {
+    root.classList.add('theme-sweet-digs');
+  }
+
+  if (targetTheme === 'purple') {
+    root.classList.add('theme-letterly');
+  }
+
+  if (targetTheme === 'obsidian') {
+    root.classList.add('theme-vscode-dark');
+  }
+
+  if (targetTheme === 'riseup') {
+    root.classList.add('theme-riseup-asia');
+  }
+
+  if (targetTheme === 'clean' || targetTheme === 'clean-wide' || targetTheme === 'sweet-digs' || targetTheme === 'green-choice') {
+    root.classList.remove('dark');
+    root.classList.add('light');
+  } else {
+    root.classList.remove('light');
+    root.classList.add('dark');
+  }
+}
+
 interface ThemeContextType {
   theme: AppThemeType;
   setTheme: (theme: AppThemeType) => void;
@@ -343,67 +507,18 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const config = THEME_CONFIGS[theme] || THEME_CONFIGS['green-choice'];
 
   const setTheme = (newTheme: AppThemeType) => {
-    setThemeState(newTheme);
-    localStorage.setItem(STORAGE_KEY, newTheme);
+    const nextConfig = THEME_CONFIGS[newTheme] || THEME_CONFIGS['green-choice'];
+
+    playThemeTransition(() => {
+      setThemeState(newTheme);
+      localStorage.setItem(STORAGE_KEY, newTheme);
+      applyThemeToDocument(newTheme, nextConfig);
+    });
   };
 
   useEffect(() => {
-    const root = document.documentElement;
-    root.setAttribute('data-theme', theme);
-    root.style.setProperty('--wp-exam-primary', config.primaryColor);
-    root.style.setProperty('--wp-exam-bg', config.bgColor);
-    root.style.setProperty('--wp-exam-card', config.cardColor);
-    root.style.setProperty('--wp-exam-card-border', config.borderColor);
-    root.style.setProperty('--wp-exam-accent', config.accentColor);
-    root.style.setProperty('--color-theme-primary', config.primaryColor);
-    root.style.setProperty('--color-theme-bg', config.bgColor);
-    root.style.setProperty('--color-theme-card', config.cardColor);
-    root.style.setProperty('--color-theme-border', config.borderColor);
-    root.style.setProperty('--color-theme-accent', config.accentColor);
-
-    // Propagate standard Tailwind HSL color tokens
-    if (config.hslValues) {
-      Object.entries(config.hslValues).forEach(([cssKey, hslValue]) => {
-        root.style.setProperty(cssKey, hslValue);
-      });
-    }
-
-    const allThemeClasses = [
-      'theme-green-choice',
-      'theme-sweet-digs',
-      'theme-clean',
-      'theme-clean-wide',
-      'theme-purple',
-      'theme-letterly',
-      'theme-dracula',
-      'theme-obsidian',
-      'theme-vscode-dark',
-      'theme-vscode-navy-gold',
-      'theme-riseup',
-      'theme-riseup-asia',
-    ];
-    root.classList.remove(...allThemeClasses);
-    root.classList.add(`theme-${theme}`);
-    if (theme === 'green-choice') {
-      root.classList.add('theme-sweet-digs');
-    }
-    if (theme === 'purple') {
-      root.classList.add('theme-letterly');
-    }
-    if (theme === 'obsidian') {
-      root.classList.add('theme-vscode-dark');
-    }
-    if (theme === 'riseup') {
-      root.classList.add('theme-riseup-asia');
-    }
-
-    if (theme === 'clean' || theme === 'clean-wide' || theme === 'sweet-digs' || theme === 'green-choice') {
-      root.classList.remove('dark');
-      root.classList.add('light');
-    } else {
-      root.classList.remove('light');
-      root.classList.add('dark');
-    }
+    // Boot / restore path: instant, no overlay (avoids flash on load).
+    applyThemeToDocument(theme, config);
   }, [theme, config]);
 
   return (
@@ -436,12 +551,12 @@ export const ThemeSwitcher: React.FC<{ className?: string }> = ({ className }) =
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
-        className="w-64 p-1.5 rounded-xl border border-border bg-popover text-popover-foreground shadow-xl backdrop-blur-md"
+        className="w-64 p-1.5 rounded-xl border border-border bg-popover text-popover-foreground shadow-xl backdrop-blur-md theme-transition-menu"
       >
         <div className="px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-muted-foreground border-b border-border/60 mb-1">
           Select Presentation Theme
         </div>
-        {ORDERED_THEME_KEYS.map((themeKey) => {
+        {ORDERED_THEME_KEYS.map((themeKey, index) => {
           const item = THEME_CONFIGS[themeKey];
           const isSelected = theme === themeKey || (theme === 'sweet-digs' && themeKey === 'green-choice');
 
@@ -449,19 +564,30 @@ export const ThemeSwitcher: React.FC<{ className?: string }> = ({ className }) =
             <DropdownMenuItem
               key={themeKey}
               onClick={() => setTheme(themeKey)}
-              className="flex items-center justify-between px-3 py-2 rounded-lg text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground"
+              style={{ animationDelay: `${index * 60}ms` }}
+              className="flex items-center justify-between px-3 py-2 rounded-lg text-sm cursor-pointer hover:bg-accent hover:text-accent-foreground theme-transition-row-in"
             >
               <div className="flex items-center gap-2.5">
-                <span
-                  className="w-4 h-4 rounded-full border border-border/80 shadow-xs shrink-0"
-                  style={{ backgroundColor: item.primaryColor }}
-                />
+                <span className="flex items-center gap-1 shrink-0" aria-hidden="true">
+                  <span
+                    className="w-2.5 h-2.5 rounded-full border border-border/80 shadow-xs"
+                    style={{ backgroundColor: item.primaryColor }}
+                  />
+                  <span
+                    className="w-2.5 h-2.5 rounded-full border border-border/80 shadow-xs"
+                    style={{ backgroundColor: item.cardColor }}
+                  />
+                  <span
+                    className="w-2.5 h-2.5 rounded-full border border-border/80 shadow-xs"
+                    style={{ backgroundColor: item.bgColor }}
+                  />
+                </span>
                 <div>
                   <div className="font-semibold text-foreground">{item.name}</div>
                   <div className="text-xs text-muted-foreground">{item.tagline}</div>
                 </div>
               </div>
-              {isSelected && <Check className="w-4 h-4 text-primary shrink-0" />}
+              {isSelected && <Check className="w-4 h-4 text-primary shrink-0 theme-transition-check-pop" />}
             </DropdownMenuItem>
           );
         })}

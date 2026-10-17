@@ -1,0 +1,212 @@
+/**
+ * theme-transition.css — animated theme controls (Task-03, run 69).
+ *
+ * Motion only; never theme colors. Styles are imported once from
+ * src/lib/theme-context.tsx (never from main.tsx or theme.css).
+ *
+ * Timing tokens reference the global motion tokens with local fallbacks so
+ * the sheet stays correct regardless of stylesheet load order.
+ */
+
+:root {
+  --tt-ease-out: var(--ease-out-editorial, cubic-bezier(0.16, 1, 0.3, 1));
+  --tt-ease-state: var(--ease-state, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+/* ------------------------------------------------------------------ */
+/* Crossfade-on-apply overlay (dip-through-background)                 */
+/* ------------------------------------------------------------------ */
+
+.theme-transition-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 180ms var(--tt-ease-state);
+}
+
+.theme-transition-overlay.is-visible {
+  opacity: 1;
+}
+
+.theme-transition-overlay.is-hiding {
+  opacity: 0;
+  transition: opacity 280ms var(--tt-ease-out);
+}
+
+/* ------------------------------------------------------------------ */
+/* ThemeSwitcher dropdown: menu + staggered rows + animated checkmark  */
+/* ------------------------------------------------------------------ */
+
+.theme-transition-menu {
+  animation: theme-transition-menu-in 150ms var(--tt-ease-state) both;
+}
+
+/* Radix sets data-state="closed" while the menu dismisses. */
+.theme-transition-menu[data-state="closed"] {
+  animation: theme-transition-menu-out 120ms var(--tt-ease-state) both;
+}
+
+@keyframes theme-transition-menu-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes theme-transition-menu-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+.theme-transition-row-in {
+  animation: theme-transition-row-in 120ms var(--tt-ease-out) both;
+}
+
+@keyframes theme-transition-row-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scale-free checkmark pop: opacity + translate only, 150ms. */
+.theme-transition-check-pop {
+  animation: theme-transition-check-pop 150ms var(--tt-ease-state) both;
+}
+
+@keyframes theme-transition-check-pop {
+  from {
+    opacity: 0;
+    transform: translateY(2px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Theme-builder editor animations                                     */
+/* ------------------------------------------------------------------ */
+
+/* Swatch select ring: box-shadow only (no layout shift), 0.2s. */
+.theme-transition-swatch {
+  transition: box-shadow 0.2s var(--tt-ease-state), border-color 0.2s var(--tt-ease-state);
+}
+
+.theme-transition-swatch.is-selected {
+  box-shadow: 0 0 0 2px var(--tt-swatch-ring, hsl(var(--primary) / 0.9));
+  border-color: transparent;
+}
+
+.theme-transition-swatch-check {
+  animation: theme-transition-check-pop 150ms var(--tt-ease-state) both;
+}
+
+/* 150ms tint pulse on hex commit. */
+.theme-transition-tint-pulse {
+  animation: theme-transition-tint-pulse 150ms var(--tt-ease-state);
+}
+
+@keyframes theme-transition-tint-pulse {
+  0% {
+    background-color: hsl(var(--primary) / 0.12);
+  }
+
+  100% {
+    background-color: transparent;
+  }
+}
+
+/* Slider fill smoothing: width transition on the Radix range node. */
+.theme-transition-slider-fill [data-orientation="horizontal"] {
+  transition: width 0.15s var(--tt-ease-state);
+}
+
+/* Numeric readout crossfade — re-triggered per value change via key={}. */
+.theme-transition-readout-in {
+  display: inline-block;
+  animation: theme-transition-readout-in 120ms var(--tt-ease-state) both;
+}
+
+@keyframes theme-transition-readout-in {
+  from {
+    opacity: 0.2;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* Font preview line crossfade on family change — re-triggered via key={}. */
+.theme-transition-font-preview-in {
+  animation: theme-transition-font-preview-in 150ms var(--tt-ease-state) both;
+}
+
+@keyframes theme-transition-font-preview-in {
+  from {
+    opacity: 0.25;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+/* 200ms confirmation pulse on the preview canvas after Apply. */
+.theme-transition-canvas-pulse {
+  animation: theme-transition-canvas-pulse 200ms var(--tt-ease-state);
+}
+
+@keyframes theme-transition-canvas-pulse {
+  0% {
+    box-shadow: 0 0 0 0 hsl(var(--primary) / 0.55);
+  }
+
+  100% {
+    box-shadow: 0 0 0 10px hsl(var(--primary) / 0);
+  }
+}
+
+/* ------------------------------------------------------------------ */
+/* Reduced motion: every control degrades to instant.                  */
+/* ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .theme-transition-overlay {
+    display: none;
+  }
+
+  .theme-transition-menu,
+  .theme-transition-row-in,
+  .theme-transition-check-pop,
+  .theme-transition-swatch-check,
+  .theme-transition-tint-pulse,
+  .theme-transition-readout-in,
+  .theme-transition-font-preview-in,
+  .theme-transition-canvas-pulse {
+    animation: none;
+  }
+
+  .theme-transition-swatch,
+  .theme-transition-slider-fill [data-orientation="horizontal"] {
+    transition: none;
+  }
+}

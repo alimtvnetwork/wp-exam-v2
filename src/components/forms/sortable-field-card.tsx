@@ -316,7 +316,7 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   const isRatingField = field.type === 'rating' || field.type === 'rating_feedback';
   const isListItemsField = field.type === 'list_items';
   const isLinkField = field.type === 'link';
-  const isVideoField = field.type === 'video';
+  const isVideoField = field.type === 'video' || field.type === 'video_prompt';
 
   const lastSavedSnapshotRef = useRef<string>(JSON.stringify(field));
   const currentQuestionSnapshot = JSON.stringify(field);
@@ -349,6 +349,72 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
   };
   const hasAttachedVideo = Boolean(field.videoUrl && field.videoUrl.trim().length > 0);
   const [showVideoConfig, setShowVideoConfig] = useState(Boolean(field.videoUrl));
+  const videoUploadInputRef = useRef<HTMLInputElement | null>(null);
+  const [isUploadingVideo, setIsUploadingVideo] = useState(false);
+  const [videoUploadError, setVideoUploadError] = useState<string | null>(null);
+
+  const VIDEO_UPLOAD_MAX_BYTES = 128 * 1024 * 1024;
+
+  const handleVideoFileSelected = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files && e.target.files[0];
+
+    if (!file) {
+      return;
+    }
+
+    setVideoUploadError(null);
+
+    if (file.size > VIDEO_UPLOAD_MAX_BYTES) {
+      setVideoUploadError('Video exceeds the 128 MB upload limit.');
+      e.target.value = '';
+
+      return;
+    }
+
+    const isMp4OrWebm = file.type === 'video/mp4' || file.type === 'video/webm';
+
+    if (!isMp4OrWebm) {
+      setVideoUploadError('Only MP4 or WebM videos can be uploaded.');
+      e.target.value = '';
+
+      return;
+    }
+
+    setIsUploadingVideo(true);
+
+    try {
+      const formData = new FormData();
+
+      formData.append('file', file);
+
+      const response = await fetch('/wp-json/wp-exam/v1/media/video', {
+        method: 'POST',
+        body: formData,
+        credentials: 'same-origin',
+      });
+
+      const payload = await response.json();
+      const data = payload && payload.data ? payload.data : null;
+      const uploadedUrl = data && typeof data.url === 'string' ? data.url : '';
+      const attachmentId = data && typeof data.attachmentId === 'number' ? data.attachmentId : undefined;
+
+      if (!response.ok || !uploadedUrl) {
+        const message = data && typeof data.message === 'string' ? data.message : 'Video upload was rejected.';
+
+        setVideoUploadError(message);
+
+        return;
+      }
+
+      onUpdate(id, { videoUrl: uploadedUrl, videoAttachmentId: attachmentId });
+      setShowVideoConfig(true);
+    } catch (err) {
+      setVideoUploadError('Video upload failed. Paste a URL instead.');
+    } finally {
+      setIsUploadingVideo(false);
+      e.target.value = '';
+    }
+  };
   const hasAttachedImage = Boolean(field.imageUrl && field.imageUrl.trim().length > 0);
   const [showImageConfig, setShowImageConfig] = useState(Boolean(field.imageUrl));
   const hasAttachedDescription = Boolean(field.description && field.description.trim().length > 0);
@@ -1555,6 +1621,54 @@ export const SortableFieldCard: React.FC<SortableFieldCardProps> = ({
                     placeholder="e.g. Watch until 02:45 before answering below"
                     className="text-sm sm:text-base h-10 font-sans bg-background text-foreground rounded-lg shadow-2xs w-full"
                   />
+                </div>
+                {field.type === 'video_prompt' && (
+                  <div className="space-y-1.5">
+                    <Label className="text-sm font-semibold text-foreground font-sans">Answer Mode</Label>
+                    <div className="flex gap-2">
+                      {(['text', 'video'] as const).map((kind) => {
+                        const isActive = (field.answerKind || 'text') === kind;
+
+                        return (
+                          <button
+                            key={kind}
+                            type="button"
+                            onClick={() => onUpdate(id, { answerKind: kind })}
+                            className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition ${
+                              isActive
+                                ? 'bg-primary text-primary-foreground border-primary'
+                                : 'bg-background text-muted-foreground border-border hover:border-primary/60'
+                            }`}
+                          >
+                            {kind === 'text' ? 'Written answer' : 'Recorded video answer'}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
+                <div className="space-y-1.5">
+                  <Label className="text-sm font-semibold text-foreground font-sans">Upload MP4 / WebM to Media Library</Label>
+                  <input
+                    ref={videoUploadInputRef}
+                    type="file"
+                    accept="video/mp4,video/webm"
+                    className="hidden"
+                    onChange={handleVideoFileSelected}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={isUploadingVideo}
+                    onClick={() => videoUploadInputRef.current && videoUploadInputRef.current.click()}
+                  >
+                    {isUploadingVideo ? 'Uploading…' : 'Choose video file (max 128 MB)'}
+                  </Button>
+
+                  {videoUploadError && (
+                    <p className="text-xs text-destructive">{videoUploadError}</p>
+                  )}
                 </div>
               </div>
             </div>

@@ -13,6 +13,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AdminLoginModal, useAdminAuth } from '@/components/auth/AdminLoginModal';
+import { QuizSimulator } from '@/components/simulation/quiz-simulator';
 import { ThemeSwitcher } from '@/lib/theme-context';
 import onboardingQuizLogo from '@/assets/onboarding-quiz-logo.svg';
 
@@ -193,6 +194,24 @@ export const LandingPage: React.FC = () => {
               </div>
             </div>
           ))}
+        </div>
+      </section>
+
+      {/* Interactive Demo Section */}
+      <section className="py-14 border-b border-border">
+        <div className="max-w-3xl mx-auto px-4 text-center space-y-4">
+          <Badge variant="outline" className="border-primary/40 text-primary text-xs font-mono">
+            Try a Demo
+          </Badge>
+          <h2 className="text-2xl sm:text-3xl font-black text-foreground font-heading">
+            See Conditional Quizzes in Action
+          </h2>
+          <div className="mx-auto h-0.5 w-16 bg-primary/70 rounded-full" />
+          <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto">
+            Walk through a live simulation — answer questions and watch the quiz
+            adapt, with a guided story explaining every branching decision.
+          </p>
+          <QuizSimulator fixtureSlug="branching-onboarding" />
         </div>
       </section>
 

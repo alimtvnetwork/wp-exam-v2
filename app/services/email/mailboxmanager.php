@@ -7,34 +7,19 @@ namespace App\Services\Email;
 class MailboxManager
 {
     /**
-     * Retrieve local mailbox configuration derived from test-pass.json or defaults.
+     * Retrieve local mailbox configuration derived from defaults.
+     *
+     * SECURITY: this method never reads credential files and never returns a
+     * password. The old test-pass.json read was removed (see
+     * 02-spec/21-app/ui-ux-improvement-for-wp-exam/07-security-hardening-spec.md).
+     * SMTP passwords are sealed with libsodium secretbox in the email_settings
+     * table and are only ever handled by EmailSettingsRestController.
      *
      * @return array<string, mixed>
      */
     public static function getConfig(): array
     {
-        $passFile = dirname(__DIR__, 3) . '/test-pass.json';
         $email = 'ai-agm-tool-v1@hire-seoexperts.com';
-        $pass = '';
-
-        $hasPassFile = file_exists($passFile);
-
-        if ($hasPassFile) {
-            $raw = file_get_contents($passFile);
-            $data = json_decode((string) $raw, true);
-
-            $hasEmail = (!empty($data['email']) && is_string($data['email']));
-
-            if ($hasEmail) {
-                $email = $data['email'];
-            }
-
-            $hasPass = (!empty($data['pass']) && is_string($data['pass']));
-
-            if ($hasPass) {
-                $pass = $data['pass'];
-            }
-        }
 
         $parts = explode('@', $email);
         $user = $parts[0] ?? 'ai-agm-tool-v1';
@@ -44,7 +29,7 @@ class MailboxManager
         return [
             'is_success' => true,
             'email' => $email,
-            'pass' => $pass,
+            'has_configured_pass' => false,
             'alias' => $alias,
             'domain' => $domain,
             'smtp_host' => 'mail.' . $domain,

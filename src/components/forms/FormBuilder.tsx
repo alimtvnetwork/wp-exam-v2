@@ -91,6 +91,8 @@ import {
   Link2,
   Hash,
   Edit3,
+  PanelRightOpen,
+  PanelRightClose,
 } from 'lucide-react';
 import {
   DndContext,
@@ -144,11 +146,47 @@ export const FormBuilder: React.FC = () => {
   const [isSlugModalOpen, setIsSlugModalOpen] = useState(false);
   const [isNotificationModalOpen, setIsNotificationModalOpen] = useState(false);
   const [isCentralConfigOpen, setIsCentralConfigOpen] = useState(false);
-  const [saveStatus, setSaveStatus] = useState<string | null>(null);
   const [selectedGroupFilter, setSelectedGroupFilter] = useState<string>('all');
   const [outlineFilter, setOutlineFilter] = useState<string>('');
   const [isDesignPanelOpen, setIsDesignPanelOpen] = useState(false);
   const [inspectorTab, setInspectorTab] = useState<string>('palette');
+
+  // Collapsible right dock — persisted so the builder keeps a single focus.
+  const [isDockCollapsed, setIsDockCollapsed] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.localStorage.getItem('wp_exam_builder_dock_collapsed') === 'true';
+    }
+
+    return false;
+  });
+
+  const toggleDockCollapsed = () => {
+    const next = !isDockCollapsed;
+    setIsDockCollapsed(next);
+
+    if (typeof window !== 'undefined') {
+      window.localStorage.setItem('wp_exam_builder_dock_collapsed', next ? 'true' : 'false');
+    }
+  };
+
+  // Focus tracking: exactly one question card owns the elevation treatment.
+  const [focusedFieldId, setFocusedFieldId] = useState<string | null>(null);
+
+  const handleCanvasFocus = (e: React.FocusEvent<HTMLDivElement>) => {
+    const card = (e.target as HTMLElement).closest?.('[data-field-id]');
+
+    if (card) {
+      setFocusedFieldId(card.getAttribute('data-field-id'));
+    }
+  };
+
+  const handleCanvasBlur = (e: React.FocusEvent<HTMLDivElement>) => {
+    const next = e.relatedTarget as HTMLElement | null;
+
+    if (!next || !next.closest?.('[data-field-id]')) {
+      setFocusedFieldId(null);
+    }
+  };
   const [draggedControlInfo, setDraggedControlInfo] = useState<{ type: FieldType; label: string } | null>(null);
   const [activeDropIndex, setActiveDropIndex] = useState<number | null>(null);
 
@@ -323,6 +361,12 @@ export const FormBuilder: React.FC = () => {
         videoUrl: 'https://www.youtube.com/watch?v=dQw4w9WgXcQ',
         videoCaption: 'Watch the briefing video carefully before proceeding.',
       },
+      video_prompt: {
+        label: 'Watch the video, then answer the question',
+        videoUrl: '',
+        videoCaption: 'Watch the video carefully, then answer below.',
+        answerKind: 'text',
+      },
     };
 
     const isMedia = type === 'video' || type === 'link';
@@ -377,6 +421,7 @@ export const FormBuilder: React.FC = () => {
       linkText: defaults[type]?.linkText,
       videoUrl: defaults[type]?.videoUrl,
       videoCaption: defaults[type]?.videoCaption,
+      answerKind: defaults[type]?.answerKind,
       validationRule: defaults[type]?.validationRule,
       points: defaultPts,
     };
@@ -456,14 +501,12 @@ export const FormBuilder: React.FC = () => {
 
   const handleSave = async () => {
     try {
-      setSaveStatus('Saving form to WordPress backend...');
+      toast.info('Saving form to WordPress backend...');
       await saveForm();
-      setSaveStatus('Form saved successfully!');
-      setTimeout(() => setSaveStatus(null), 3500);
+      toast.success('Form saved successfully!');
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : String(err);
-      setSaveStatus(`Saved locally (API simulated: ${message})`);
-      setTimeout(() => setSaveStatus(null), 4000);
+      toast.error(`Saved locally (API simulated: ${message})`);
     }
   };
 
@@ -644,94 +687,106 @@ export const FormBuilder: React.FC = () => {
             )}
           </Button>
 
-          {/* Compact Format Selector: Quiz Format vs Presentation Slide */}
-          <div className="inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5 h-8 shrink-0 shadow-2xs">
-            <button
-              type="button"
-              onClick={() => {
-                updateSettings({ defaultQuestionLayout: 'standard' });
-                toast.info('Default format set to Quiz Format');
-              }}
-              className={`inline-flex items-center gap-1.5 h-full px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                settings.defaultQuestionLayout !== 'presentation_split'
-                  ? 'bg-card text-foreground shadow-2xs font-bold'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              title="Set default format to Quiz Format (Standard Card)"
-            >
-              <LayoutTemplate className="w-3.5 h-3.5 text-primary" />
-              <span>Quiz</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                updateSettings({ defaultQuestionLayout: 'presentation_split' });
-                toast.success('Default format set to Presentation Slide');
-              }}
-              className={`inline-flex items-center gap-1.5 h-full px-2.5 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                settings.defaultQuestionLayout === 'presentation_split'
-                  ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              title="Set default format to Presentation Slide (2-Column Split)"
-            >
-              <Columns className="w-3.5 h-3.5" />
-              <span>Slide</span>
-            </button>
-          </div>
-
-          {/* Default Answer Placement for Presentation Slides */}
-          {settings.defaultQuestionLayout === 'presentation_split' && (
-            <div className="hidden md:inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5 h-8 shrink-0 shadow-2xs">
-              <button
-                type="button"
+          {/* View menu: consolidates format, answer placement, and slide-number
+              toggles into one control so the header keeps a single focus */}
+          <DropdownMenu>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    aria-label="View options"
+                    className="h-8 gap-1.5 px-2.5 rounded-lg border-border hover:bg-accent text-xs font-semibold shrink-0 cursor-pointer"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-primary" />
+                    <span>View</span>
+                  </Button>
+                </DropdownMenuTrigger>
+              </TooltipTrigger>
+              <TooltipContent>View options</TooltipContent>
+            </Tooltip>
+            <DropdownMenuContent align="start" className="w-56 bg-popover border border-border shadow-xl p-1 text-xs">
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-1.5">
+                Format
+              </DropdownMenuLabel>
+              <DropdownMenuItem
                 onClick={() => {
-                  updateSettings({ defaultAnswerPlacement: 'right' });
-                  toast.info('Default answer placement: Right-hand side');
+                  updateSettings({ defaultQuestionLayout: 'standard' });
+                  toast.info('Default format set to Quiz Format');
                 }}
-                className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                  settings.defaultAnswerPlacement !== 'left'
-                    ? 'bg-card text-foreground shadow-2xs font-bold'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-                title="Default layout: Question on Left, Answers/Checkboxes on Right"
+                className="gap-2 cursor-pointer py-1.5"
               >
-                <span>Answers Right</span>
-              </button>
-              <button
-                type="button"
+                <LayoutTemplate className="w-3.5 h-3.5 text-primary" />
+                <span>Quiz Format</span>
+                {settings.defaultQuestionLayout !== 'presentation_split' && (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-primary ml-auto" />
+                )}
+              </DropdownMenuItem>
+              <DropdownMenuItem
                 onClick={() => {
-                  updateSettings({ defaultAnswerPlacement: 'left' });
-                  toast.info('Default answer placement: Left-hand side');
+                  updateSettings({ defaultQuestionLayout: 'presentation_split' });
+                  toast.success('Default format set to Presentation Slide');
                 }}
-                className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                  settings.defaultAnswerPlacement === 'left'
-                    ? 'bg-card text-foreground shadow-2xs font-bold'
-                    : 'text-muted-foreground hover:text-foreground'
-                }`}
-                title="Default layout: Answers/Checkboxes on Left, Question on Right"
+                className="gap-2 cursor-pointer py-1.5"
               >
-                <span>Answers Left</span>
-              </button>
-            </div>
-          )}
+                <Columns className="w-3.5 h-3.5 text-primary" />
+                <span>Presentation Slide</span>
+                {settings.defaultQuestionLayout === 'presentation_split' && (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-primary ml-auto" />
+                )}
+              </DropdownMenuItem>
 
-          {/* Slide # Toggle Button */}
-          <div className="inline-flex items-center rounded-lg border border-border bg-muted/40 p-0.5 h-8 shrink-0 shadow-2xs">
-            <button
-              type="button"
-              onClick={() => updateSettings({ showSlideNumbers: !(settings.showSlideNumbers ?? true) })}
-              className={`inline-flex items-center gap-1 h-full px-2 rounded-md text-xs font-semibold transition-all cursor-pointer ${
-                (settings.showSlideNumbers ?? true)
-                  ? 'bg-primary text-primary-foreground shadow-2xs font-bold'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-              title="Toggle Slide Numbering badge in Presentation Mode"
-            >
-              <Hash className="w-3.5 h-3.5" />
-              <span>Slide #</span>
-            </button>
-          </div>
+              {settings.defaultQuestionLayout === 'presentation_split' && (
+                <>
+                  <DropdownMenuSeparator className="my-1 border-border/60" />
+                  <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-1.5">
+                    Answer placement
+                  </DropdownMenuLabel>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      updateSettings({ defaultAnswerPlacement: 'right' });
+                      toast.info('Default answer placement: Right-hand side');
+                    }}
+                    className="gap-2 cursor-pointer py-1.5"
+                  >
+                    <span>Answers Right</span>
+                    {settings.defaultAnswerPlacement !== 'left' && (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-primary ml-auto" />
+                    )}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => {
+                      updateSettings({ defaultAnswerPlacement: 'left' });
+                      toast.info('Default answer placement: Left-hand side');
+                    }}
+                    className="gap-2 cursor-pointer py-1.5"
+                  >
+                    <span>Answers Left</span>
+                    {settings.defaultAnswerPlacement === 'left' && (
+                      <CheckCircle2 className="w-3.5 h-3.5 text-primary ml-auto" />
+                    )}
+                  </DropdownMenuItem>
+                </>
+              )}
+
+              <DropdownMenuSeparator className="my-1 border-border/60" />
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-1.5">
+                Badges
+              </DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={() => updateSettings({ showSlideNumbers: !(settings.showSlideNumbers ?? true) })}
+                className="gap-2 cursor-pointer py-1.5"
+              >
+                <Hash className="w-3.5 h-3.5 text-primary" />
+                <span>Slide #</span>
+                {(settings.showSlideNumbers ?? true) && (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-primary ml-auto" />
+                )}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
 
         {/* Right Side: Combined Compact Preview & Save Segmented Control */}
@@ -771,11 +826,7 @@ export const FormBuilder: React.FC = () => {
         </div>
       </div>
 
-      {saveStatus && (
-        <div className="p-3 bg-primary/10 border border-primary/20 text-primary rounded-lg text-sm text-center font-medium">
-          {saveStatus}
-        </div>
-      )}
+      {/* Save feedback is a transient toast (see handleSave) — never a layout-shifting banner */}
 
       {/* 1. Full-Width Assessment Header Section (Spans Whole Section) */}
       <Card className="border border-border/80 bg-card shadow-md rounded-2xl overflow-hidden animate-sweet-fade-in w-full">
@@ -1062,8 +1113,12 @@ export const FormBuilder: React.FC = () => {
 
       {/* 2. Responsive 2-Column Section: Questions Canvas (8 cols) + Sticky Controls Dock (4 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* Main Column: Assessment Canvas */}
-        <div className="lg:col-span-8 space-y-5">
+        {/* Main Column: Assessment Canvas — the single focus owner */}
+        <div
+          className={`${isDockCollapsed ? 'lg:col-span-12' : 'lg:col-span-8'} space-y-5`}
+          onFocus={handleCanvasFocus}
+          onBlur={handleCanvasBlur}
+        >
 
           {/* Top Drop Target (Insert at index 0) */}
           <div
@@ -1145,6 +1200,14 @@ export const FormBuilder: React.FC = () => {
 
                       <div
                         id={`field-card-${field.id}`}
+                        data-field-id={field.id}
+                        className={`rounded-xl transition-opacity duration-200 ${
+                          focusedFieldId === null
+                            ? 'opacity-100'
+                            : focusedFieldId === field.id
+                              ? 'opacity-100 shadow-md ring-1 ring-primary/30'
+                              : 'opacity-60 hover:opacity-100 focus-within:opacity-100'
+                        }`}
                         onDragOver={(e) => {
                           if (e.dataTransfer.types.includes('application/json') || e.dataTransfer.types.includes('text/plain')) {
                             e.preventDefault();
@@ -1298,8 +1361,36 @@ export const FormBuilder: React.FC = () => {
           )}
         </div>
 
-        {/* Right Column: Unified Inspector Dock */}
+        {/* Right Column: Unified Inspector Dock (collapsible rail) */}
+        {isDockCollapsed ? (
+          <div className="hidden lg:flex lg:col-span-12 justify-end -mt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={toggleDockCollapsed}
+              className="h-8 gap-1.5 px-2.5 rounded-lg text-xs font-semibold text-muted-foreground hover:text-foreground shrink-0"
+              title="Show inspector dock"
+            >
+              <PanelRightOpen className="w-3.5 h-3.5 text-primary" />
+              <span>Show Dock</span>
+            </Button>
+          </div>
+        ) : (
         <div className="lg:col-span-4 sticky top-6">
+          <div className="flex justify-end -mb-1">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={toggleDockCollapsed}
+              className="h-7 px-2 text-[11px] text-muted-foreground hover:text-foreground gap-1.5"
+              title="Collapse inspector dock"
+            >
+              <PanelRightClose className="w-3.5 h-3.5" />
+              <span>Hide Dock</span>
+            </Button>
+          </div>
           <Card className="border border-border bg-card shadow-md rounded-xl overflow-hidden">
             <Tabs value={inspectorTab} onValueChange={setInspectorTab} className="w-full">
               {/* Sleek Segmented Dock Tabs Header (Larger, more tactile) */}
@@ -1862,6 +1953,7 @@ export const FormBuilder: React.FC = () => {
             </Tabs>
           </Card>
         </div>
+        )}
       </div>
 
       {/* JSON Import/Export Modal */}

@@ -46,3 +46,34 @@ function run_wp_exam(): void {
 }
 
 run_wp_exam();
+
+/**
+ * Task-06: candidate checklist endpoints + reminder cron.
+ *
+ * The checklist REST routes are registered here (rather than in
+ * includes/Core/Plugin.php) to keep this program's file ownership disjoint.
+ * The WP-Cron job sends one reminder email per candidate per day for pending
+ * items due within 48 hours.
+ */
+add_action('rest_api_init', function (): void {
+    (new \WpExam\Api\ChecklistRestController())->registerRoutes();
+});
+
+add_action('wp_exam_checklist_reminder', function (): void {
+    (new \WpExam\Api\ChecklistRestController())->sendDueReminders();
+});
+
+if (function_exists('wp_next_scheduled') && !wp_next_scheduled('wp_exam_checklist_reminder')) {
+    wp_schedule_event(time(), 'daily', 'wp_exam_checklist_reminder');
+}
+
+/**
+ * Task-08: video upload endpoint for `video_prompt` questions.
+ *
+ * Registered here (rather than in includes/Core/Plugin.php) to keep this
+ * program's file ownership disjoint. Server-side: upload_files capability,
+ * video/mp4 + video/webm allowlist, 128 MB cap (filterable).
+ */
+add_action('rest_api_init', function (): void {
+    (new \WpExam\Api\MediaUploadRestController())->registerRoutes();
+});

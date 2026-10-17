@@ -9,6 +9,7 @@ import WizardRunner from "./components/forms/wizard-runner.tsx";
 import VisualNodeCanvas from "./components/forms/visual-node-canvas.tsx";
 import LandingPage from "./components/public/LandingPage.tsx";
 import { FormRunner } from "@/components/runner/FormRunner.tsx";
+import { CandidateChecklist } from "@/components/checklist/candidate-checklist.tsx";
 import { ThemeProvider } from "@/lib/theme-context";
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
@@ -107,6 +108,7 @@ const App = () => (
             <Route path="/preview" element={<FormRunner isPreviewRoute />} />
             <Route path="/runner" element={<FormRunner />} />
             <Route path="/wp-exam-runner" element={<LegacyRunnerRedirect />} />
+            <Route path="/checklist/:token" element={<CandidateChecklist />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

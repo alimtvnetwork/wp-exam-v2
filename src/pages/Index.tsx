@@ -13,25 +13,28 @@ import { AIInstructionStudio } from '@/components/admin/ai-instruction-studio';
 import { BackupManager } from '@/components/admin/backup-manager';
 import { AnalyticsDashboard } from '@/components/admin/analytics-dashboard';
 import { ThemeBuilder } from '@/components/theme-builder';
+import { GuidedTourManager, GuidedTourReplayButton } from '@/components/onboarding/guided-tour';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
 import { useAdminAuth } from '@/components/auth/AdminLoginModal';
 import { ThemeSwitcher, useTheme, AppThemeType } from '@/lib/theme-context';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 import { WpAdminSidebar, AdminTab } from '@/components/admin/wp-admin-sidebar';
 import onboardingQuizLogo from '@/assets/onboarding-quiz-logo.svg';
 import {
-  Shield,
   ExternalLink,
   LogOut,
   User,
-  AlertCircle,
-  CheckCircle2,
-  KeyRound,
+  Loader2,
 } from 'lucide-react';
-import { toast } from 'sonner';
 
 export const Index: React.FC = () => {
   const navigate = useNavigate();
@@ -43,7 +46,7 @@ export const Index: React.FC = () => {
   const [previousTab, setPreviousTab] = useState<AdminTab>(activeTab);
   const [isLeaving, setIsLeaving] = useState(false);
   const [selectedFocusProject, setSelectedFocusProject] = useState<FocusQuizConfig | undefined>(undefined);
-  const { isAuthenticated, login, logout } = useAdminAuth();
+  const { isAdmin, isVerified, verify, logout } = useAdminAuth();
   const { theme } = useTheme();
   const store = useQuizStore();
 
@@ -107,94 +110,77 @@ export const Index: React.FC = () => {
     };
   }, [activeTab, previousTab]);
 
-  // Login form states for unauthenticated users
-  const [loginUser, setLoginUser] = useState('admin');
-  const [loginPass, setLoginPass] = useState('admin');
-  const [loginError, setLoginError] = useState<string | null>(null);
+  // Admin access is delegated to the WordPress session: the server reports
+  // whether the current user can manage options. No credential form exists
+  // here by design (see 07-security-hardening-spec.md).
+  const [isRetrying, setIsRetrying] = useState(false);
 
-  const handleInlineLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    const isSuccess = login(loginUser, loginPass);
-
-    if (isSuccess) {
-      toast.success('Admin authentication verified!');
-      setLoginError(null);
-    } else {
-      setLoginError('Invalid credentials. Default test credentials: admin / admin.');
-    }
+  const handleRetryAccess = async () => {
+    setIsRetrying(true);
+    await verify();
+    setIsRetrying(false);
   };
 
-  // If not authenticated, render professional admin login screen
-  if (!isAuthenticated) {
+  // While the server verdict is pending, show a verifying screen.
+  if (!isVerified || isRetrying) {
+    return (
+      <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 font-sans">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Verifying administrator access…</p>
+        </div>
+      </div>
+    );
+  }
+
+  // If not an administrator, explain and point at WordPress sign-in.
+  // No credential fields are rendered here — WordPress owns authentication.
+  if (!isAdmin) {
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 font-sans selection:bg-primary selection:text-primary-foreground">
         <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-md overflow-hidden">
           <div className="h-0.5 w-full bg-primary/70" />
           <div className="p-8 space-y-6">
-          <div className="text-center space-y-2">
-            <div className="w-12 h-12 rounded-2xl bg-muted border border-border text-primary flex items-center justify-center mx-auto overflow-hidden shadow-xs ring-1 ring-border/50">
-              <img
-                src={onboardingQuizLogo}
-                alt="Onboarding Quiz"
-                className="w-8 h-8 rounded-lg"
-              />
-            </div>
-            <h1 className="text-2xl font-black tracking-tight text-foreground font-heading">Onboarding Quiz Console</h1>
-            <p className="text-sm text-muted-foreground">
-              Admin portal for quiz authoring and candidate scoring.
-            </p>
-          </div>
-
-          <form onSubmit={handleInlineLogin} className="space-y-4">
-            {loginError && (
-              <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-sm text-destructive flex items-center gap-2">
-                <AlertCircle className="w-4 h-4 shrink-0" />
-                <span>{loginError}</span>
-              </div>
-            )}
-
-            <div className="space-y-1.5">
-              <Label className="text-sm font-semibold text-foreground">Username</Label>
-              <div className="relative">
-                <User className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
-                <Input
-                  type="text"
-                  value={loginUser}
-                  onChange={(e) => setLoginUser(e.target.value)}
-                  className="pl-9 bg-background border-border text-sm h-9 text-foreground font-mono"
-                  required
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 rounded-2xl bg-muted border border-border text-primary flex items-center justify-center mx-auto overflow-hidden shadow-xs ring-1 ring-border/50">
+                <img
+                  src={onboardingQuizLogo}
+                  alt="Onboarding Quiz"
+                  className="w-8 h-8 rounded-lg"
                 />
               </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <Label className="text-sm font-semibold text-foreground">Password</Label>
-              <div className="relative">
-                <KeyRound className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
-                <Input
-                  type="password"
-                  value={loginPass}
-                  onChange={(e) => setLoginPass(e.target.value)}
-                  className="pl-9 bg-background border-border text-sm h-9 text-foreground font-mono"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="p-3 rounded-xl bg-muted/40 border border-border text-sm space-y-1">
-              <div className="flex items-center gap-1.5 text-primary font-semibold">
-                <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Test Credentials:</span>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                User: <code className="text-foreground font-mono bg-muted px-1 rounded">admin</code> |
-                Password: <code className="text-foreground font-mono bg-muted px-1 rounded">admin</code>
+              <h1 className="text-2xl font-black tracking-tight text-foreground font-heading">Onboarding Quiz Console</h1>
+              <p className="text-sm text-muted-foreground">
+                Restricted to WordPress administrators.
               </p>
             </div>
 
-            <Button type="submit" className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm h-10 shadow-xs">
-              Sign In to Administration &rarr;
-            </Button>
+            <div className="p-3 rounded-xl bg-muted/40 border border-border text-sm space-y-1">
+              <p className="text-xs text-muted-foreground">
+                Sign in to WordPress as an administrator, then retry. Your
+                WordPress session is the only credential this console accepts —
+                there is no separate admin password.
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2">
+              <Button
+                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm h-10 shadow-xs"
+                onClick={() => {
+                  window.location.href = '/wp-login.php';
+                }}
+              >
+                Sign in to WordPress &rarr;
+              </Button>
+              <Button
+                variant="outline"
+                className="w-full text-sm h-10"
+                onClick={handleRetryAccess}
+                disabled={isRetrying}
+              >
+                Retry verification
+              </Button>
+            </div>
 
             <div className="text-center pt-2">
               <button
@@ -205,7 +191,6 @@ export const Index: React.FC = () => {
                 &larr; Return to Public Website
               </button>
             </div>
-          </form>
           </div>
         </div>
       </div>
@@ -227,6 +212,8 @@ export const Index: React.FC = () => {
 
   return (
     <div className={`min-h-screen ${themeClassMap[theme] || themeClassMap.riseup} transition-colors duration-300 font-sans`}>
+      <GuidedTourManager />
+
       {/* WordPress Top Admin Bar */}
       <header className="h-12 border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-4 flex items-center justify-between">
         {/* Left Side: Brand, Portal Link */}
@@ -245,47 +232,51 @@ export const Index: React.FC = () => {
               v2.5
             </Badge>
           </div>
-
-          <div className="h-4 w-px bg-border hidden sm:block" />
-
-          {/* Quick link to public site */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => navigate('/')}
-            className="text-sm h-7 px-2 gap-1.5 text-muted-foreground hover:text-foreground hover:bg-accent/50 cursor-pointer"
-            title="Visit Public Candidate Portal"
-          >
-            <ExternalLink className="w-3.5 h-3.5" />
-            <span className="text-sm">Visit Portal</span>
-          </Button>
         </div>
 
-        {/* Right Side: Theme Switcher, Howdy Admin, Logout */}
+        {/* Right Side: Theme Switcher + account overflow menu (≤3 primary items) */}
         <div className="flex items-center gap-2 sm:gap-3">
+          <GuidedTourReplayButton />
+
           <ThemeSwitcher />
 
           <div className="h-4 w-px bg-border" />
 
-          {/* User Profile */}
-          <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
-            <span className="hidden md:inline">Howdy,</span>
-            <span className="font-semibold text-foreground">admin</span>
-            <div className="w-5 h-5 rounded-full bg-muted border border-border flex items-center justify-center text-foreground">
-              <User className="w-3 h-3" />
-            </div>
-          </div>
-
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={logout}
-            className="text-sm h-7 px-2 gap-1 text-muted-foreground hover:text-destructive hover:bg-destructive/10 cursor-pointer"
-            title="Log Out"
-          >
-            <LogOut className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Log Out</span>
-          </Button>
+          {/* Account menu: secondary actions (portal link, log out) live here */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                aria-label="Account menu"
+                className="h-8 w-8 p-0 rounded-full hover:bg-accent/50 cursor-pointer"
+              >
+                <div className="w-6 h-6 rounded-full bg-muted border border-border flex items-center justify-center text-foreground">
+                  <User className="w-3.5 h-3.5" />
+                </div>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52 bg-popover border border-border shadow-xl p-1 text-xs">
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-1.5">
+                Howdy, administrator
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator className="my-1 border-border/60" />
+              <DropdownMenuItem
+                onClick={() => navigate('/')}
+                className="gap-2 cursor-pointer py-1.5"
+              >
+                <ExternalLink className="w-3.5 h-3.5 text-primary" />
+                <span>Visit Public Portal</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={logout}
+                className="gap-2 cursor-pointer py-1.5 text-destructive focus:text-destructive"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Log Out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </header>
 

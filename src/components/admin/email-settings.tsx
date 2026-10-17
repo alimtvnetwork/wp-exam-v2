@@ -137,7 +137,7 @@ export const EmailSettings: React.FC = () => {
   const [smtpHost, setSmtpHost] = useState('mail.hire-seoexperts.com');
   const [smtpPort, setSmtpPort] = useState(465);
   const [smtpUser, setSmtpUser] = useState('ai-agm-tool-v1@hire-seoexperts.com');
-  const [smtpPass, setSmtpPass] = useState('}+-8-hM{bw1x(F92ai-agm-tool-v1@hire-seoexperts.com');
+  const [smtpPass, setSmtpPass] = useState(''); // F1 run 69: hardcoded default removed — enter the mailbox password after rotating it at the mail server
   const [smtpSecure, setSmtpSecure] = useState<'ssl' | 'tls' | 'none'>('ssl');
   const [imapHost, setImapHost] = useState('mail.hire-seoexperts.com');
   const [imapPort, setImapPort] = useState(993);
@@ -540,7 +540,7 @@ export const EmailSettings: React.FC = () => {
 
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold">
-                    Password / App Password <span className="text-muted-foreground font-normal">(Auto-loaded from vault)</span>
+                    Password / App Password <span className="text-muted-foreground font-normal">(Stored encrypted)</span>
                   </Label>
                   <div className="relative">
                     <Input
@@ -553,7 +553,7 @@ export const EmailSettings: React.FC = () => {
                     <Key className="w-4 h-4 text-muted-foreground absolute right-2.5 top-3 pointer-events-none" />
                   </div>
                   <p className="text-xs text-muted-foreground pt-0.5">
-                    Stored in isolated split database <code className="font-mono text-foreground">email_passwords.db</code> with salted SSH RSA identity and machine-bound encryption.
+                    Encrypted with libsodium secretbox; the key is derived from your WordPress AUTH_KEY and never stored in the database. Leave blank to keep the stored password.
                   </p>
                 </div>
               </div>

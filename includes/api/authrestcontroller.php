@@ -49,6 +49,14 @@ class AuthRestController extends WP_REST_Controller {
             ],
         ]);
 
+        register_rest_route($this->namespace, '/auth/admin-status', [
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [$this, 'getAdminStatus'],
+                'permission_callback' => '__return_true',
+            ],
+        ]);
+
         register_rest_route($this->namespace, '/auth/register', [
             [
                 'methods'             => WP_REST_Server::CREATABLE,
@@ -62,6 +70,24 @@ class AuthRestController extends WP_REST_Controller {
         $isAdmin = current_user_can('manage_options');
 
         return $isAdmin;
+    }
+
+    /**
+     * Reports whether the current WordPress session belongs to an administrator.
+     *
+     * Public by design: it reveals nothing except the caller's own capability,
+     * and every privileged action is still re-checked server-side per request.
+     */
+    public function getAdminStatus(): WP_REST_Response {
+        $isAdmin = current_user_can('manage_options');
+
+        $builder = EnvelopeBuilder::createSuccess(
+            ['is_admin' => $isAdmin],
+            HttpStatusType::Ok->value,
+            ResponseMessageType::Ok->value
+        );
+
+        return new WP_REST_Response($builder->build(), HttpStatusType::Ok->value);
     }
 
     public function checkRegistrationPermission(WP_REST_Request $request): bool {
@@ -356,15 +382,19 @@ class AuthRestController extends WP_REST_Controller {
     }
 
     private function getSecretKey(): string {
-        if (defined('AUTH_KEY') && !empty(AUTH_KEY)) {
+        $hasAuthKey = !empty(AUTH_KEY);
+
+        if ($hasAuthKey) {
             return AUTH_KEY;
         }
 
-        if (defined('NONCE_KEY') && !empty(NONCE_KEY)) {
+        $hasNonceKey = !empty(NONCE_KEY);
+
+        if ($hasNonceKey) {
             return NONCE_KEY;
         }
 
-        return 'wp_exam_jwt_secret_signing_key_44b39fa';
+        throw new \RuntimeException('WordPress salts are not configured');
     }
 
     private function base64UrlEncode(string $data): string {

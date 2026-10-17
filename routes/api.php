@@ -46,7 +46,21 @@ Route::get('/api/v1/forms/draft/{token}', [FormController::class, 'resumeDraft']
 Route::post('/api/v1/forms/{slug}/submit', [FormController::class, 'submit']);
 
 // AGM Mailbox Auto-Config & Real-Time Verification
+// Both endpoints are admin-only: they handle mailbox credentials, so an
+// unauthenticated caller gets a 401 and never sees any secret material.
 Route::get('/api/v1/email/config', function() {
+    $isAdmin = function_exists('current_user_can') && current_user_can('manage_options');
+
+    if (!$isAdmin) {
+        http_response_code(401);
+
+        return [
+            'status' => 'error',
+            'is_success' => false,
+            'message' => 'Unauthorized: administrator access required.',
+        ];
+    }
+
     return [
         'status' => 'success',
         'is_success' => true,
@@ -55,6 +69,18 @@ Route::get('/api/v1/email/config', function() {
 });
 
 Route::post('/api/v1/email/verify-connection', function(array $params, array $body) {
+    $isAdmin = function_exists('current_user_can') && current_user_can('manage_options');
+
+    if (!$isAdmin) {
+        http_response_code(401);
+
+        return [
+            'status' => 'error',
+            'is_success' => false,
+            'message' => 'Unauthorized: administrator access required.',
+        ];
+    }
+
     $host = (string) ($body['host'] ?? 'mail.hire-seoexperts.com');
     $port = (int) ($body['port'] ?? 465);
     $secure = (string) ($body['secure'] ?? 'ssl');
@@ -62,6 +88,8 @@ Route::post('/api/v1/email/verify-connection', function(array $params, array $bo
     $user = (string) ($body['user'] ?? '');
     $pass = (string) ($body['pass'] ?? '');
 
+    // The supplied password is used transiently for this verification attempt
+    // only: it is never persisted and never logged.
     $result = \App\Services\Email\MailboxManager::verifyConnection($host, $port, $secure, $type, $user, $pass);
 
     return [

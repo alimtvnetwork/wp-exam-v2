@@ -95,6 +95,9 @@ class UserInviteRestController extends WP_REST_Controller {
             wp_mail($email, $subject, $message);
         }
 
+        // Dispatch the checklist email (quizzes/exams/projects assigned to this candidate)
+        (new \WpExam\Api\ChecklistRestController())->sendChecklistEmail($email, $token);
+
         $result = [
             'id'           => $newId,
             'email'        => $email,

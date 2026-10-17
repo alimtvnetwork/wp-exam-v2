@@ -22,6 +22,7 @@ export const InvitesManager: React.FC<InvitesManagerProps> = ({ onNavigateToRunn
   const store = useQuizStore();
   const examStore = useExamAppStore();
   const invites = examStore.invites;
+  const checklistItems = examStore.checklistItems;
 
   const [email, setEmail] = useState('');
   const [role, setRole] = useState('subscriber');
@@ -147,6 +148,31 @@ export const InvitesManager: React.FC<InvitesManagerProps> = ({ onNavigateToRunn
                     <div className="text-xs text-muted-foreground">
                       Token: <span className="font-mono text-primary font-medium">{inv.invite_token}</span> • Created: {inv.created_at}
                     </div>
+
+                    {/* Task-06 additive: per-invite checklist completion summary */}
+                    {(() => {
+                      const relatedItems = checklistItems.filter(
+                        (checklistItem) => checklistItem.invite_token === inv.invite_token,
+                      );
+
+                      if (relatedItems.length === 0) {
+                        return null;
+                      }
+
+                      const pendingCount = relatedItems.filter((checklistItem) => checklistItem.status === 'pending').length;
+                      const inProgressCount = relatedItems.filter((checklistItem) => checklistItem.status === 'in_progress').length;
+                      const completedCount = relatedItems.filter((checklistItem) => checklistItem.status === 'completed').length;
+
+                      return (
+                        <div className="text-xs text-muted-foreground">
+                          Checklist: <span className="font-medium text-foreground">{pendingCount} pending</span>
+                          {' • '}
+                          <span className="font-medium text-foreground">{inProgressCount} in progress</span>
+                          {' • '}
+                          <span className="font-medium text-emerald-600 dark:text-emerald-400">{completedCount} completed</span>
+                        </div>
+                      );
+                    })()}
                   </div>
 
                   <div className="flex items-center gap-2 self-end sm:self-auto flex-wrap">

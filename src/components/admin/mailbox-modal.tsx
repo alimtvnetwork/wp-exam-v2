@@ -228,7 +228,7 @@ export const MailboxModal: React.FC<MailboxModalProps> = ({
               <Key className="w-4 h-4 text-slate-400 absolute right-3 top-3 pointer-events-none" />
             </div>
             <p className="text-xs text-slate-400 leading-relaxed pt-0.5">
-              Stored in isolated split database <code className="text-slate-300 font-mono">email_passwords.db</code> with salted SSH RSA identity and machine-bound encryption.
+              Encrypted with libsodium secretbox; the key is derived from your WordPress AUTH_KEY and never stored in the database.
             </p>
           </div>
 

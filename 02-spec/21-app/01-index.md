@@ -68,6 +68,17 @@ App-specific specification content for the WP Exam plugin. This engine provides 
 | 74 | [74-onboarding-quiz-presentation-ui/01-architecture-spec.md](./74-onboarding-quiz-presentation-ui/01-architecture-spec.md) | Onboarding Quiz mark, collapsed Config menu, thin accent, full presentation preview, Riseup cream primary, Navy Gold theme | Complete |
 | 67 | [ui-ux-enhancement-and-animation-improvement/01-admin-sidebar-motion-spec.md](./ui-ux-enhancement-and-animation-improvement/01-admin-sidebar-motion-spec.md) | Admin Sidebar Motion: synced collapse transitions, sliding active indicator, animated tab switches | Complete |
 | 67 | [ui-ux-enhancement-and-animation-improvement/02-quiz-preview-and-seeds-spec.md](./ui-ux-enhancement-and-animation-improvement/02-quiz-preview-and-seeds-spec.md) | Quiz Preview Chrome, Step Transitions, Conditional-Step Helpers & Seed Fixtures | Complete |
+| 68 | [wp-exam-ui-ux-improvements-and-installer-script/00-overview.md](./wp-exam-ui-ux-improvements-and-installer-script/00-overview.md) | UI/UX Improvements and Installer Script: professional polish, one-liner installer, E2E smoke + CI job, live theme-builder, onboarding polish, video-answer recorder | Complete |
+| 68 | [wp-exam-ui-ux-improvements-and-installer-script/01-requirements.md](./wp-exam-ui-ux-improvements-and-installer-script/01-requirements.md) | Requirements R-2.1 through R-7.5 for polish, installer, E2E, theme-builder, onboarding, video answers | Complete |
+| 68 | [wp-exam-ui-ux-improvements-and-installer-script/02-plan-and-subtasks.md](./wp-exam-ui-ux-improvements-and-installer-script/02-plan-and-subtasks.md) | Execution plan and subtask breakdown for the installer-script program | Complete |
+| 69 | [ui-ux-improvement-for-wp-exam/00-overview.md](./ui-ux-improvement-for-wp-exam/00-overview.md) | UI/UX Improvement for WP Exam: minimalism, animated theme controls, simulation, onboarding, checklist, video questions, security hardening | Complete |
+| 69 | [ui-ux-improvement-for-wp-exam/01-focus-minimalism-spec.md](./ui-ux-improvement-for-wp-exam/01-focus-minimalism-spec.md) | Single-focus minimalism: per-view focus owners and concrete declutter actions | Complete |
+| 69 | [ui-ux-improvement-for-wp-exam/02-animated-theme-controls-spec.md](./ui-ux-improvement-for-wp-exam/02-animated-theme-controls-spec.md) | Animated ThemeSwitcher, crossfade-on-apply, animated theme-builder editors | Complete |
+| 69 | [ui-ux-improvement-for-wp-exam/03-conditional-simulation-spec.md](./ui-ux-improvement-for-wp-exam/03-conditional-simulation-spec.md) | Candidate-facing simulation with story points, branch-map strip, complex conditional seeds | Complete |
+| 69 | [ui-ux-improvement-for-wp-exam/04-guided-onboarding-spec.md](./ui-ux-improvement-for-wp-exam/04-guided-onboarding-spec.md) | 6-step guided onboarding tour: spotlight cutout, skip, replay | Complete |
+| 69 | [ui-ux-improvement-for-wp-exam/05-email-checklist-spec.md](./ui-ux-improvement-for-wp-exam/05-email-checklist-spec.md) | Token-scoped candidate checklist dashboard plus checklist and reminder emails | Complete |
+| 69 | [ui-ux-improvement-for-wp-exam/06-video-questions-spec.md](./ui-ux-improvement-for-wp-exam/06-video-questions-spec.md) | Video as question content: media-library uploads, video or text answers | Complete |
+| 69 | [ui-ux-improvement-for-wp-exam/07-security-hardening-spec.md](./ui-ux-improvement-for-wp-exam/07-security-hardening-spec.md) | Kill hardcoded auth, libsodium secretbox for secrets, JWT fail-closed, endpoint auth gating | Complete |
 
 ---
 

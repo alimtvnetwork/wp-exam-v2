@@ -40,11 +40,22 @@ export interface RunnerSession {
   isAuthenticated: boolean;
 }
 
+export interface ChecklistItemRecord {
+  id: number;
+  invite_token: string;
+  title: string;
+  kind: 'quiz' | 'exam' | 'project';
+  status: 'pending' | 'in_progress' | 'completed';
+  due_at: string;
+  invite_url: string;
+}
+
 interface ExamAppState {
   invites: UserInviteRecord[];
   submissions: SubmissionHistoryRecord[];
   session: RunnerSession;
   conditionalFixtures: ConditionalStepFixture[];
+  checklistItems: ChecklistItemRecord[];
 
   // Invites actions
   addInvite: (invite: Omit<UserInviteRecord, 'id' | 'created_at'>) => UserInviteRecord;
@@ -137,6 +148,51 @@ const defaultSession: RunnerSession = {
   respondentName: '',
   isAuthenticated: false,
 };
+
+/**
+ * Demo checklist items for the token-scoped candidate checklist dashboard
+ * (spec 05). One invite with mixed statuses plus a due-soon item for the
+ * WP-Cron reminder path. The due-soon date is relative to the seed date
+ * 2026-10-17 (within 48h). No credentials, tokens, or secrets.
+ */
+const seedChecklistItems: ChecklistItemRecord[] = [
+  {
+    id: 1,
+    invite_token: 'a9f1c4e72b83',
+    title: 'Engineering Onboarding Quiz',
+    kind: 'quiz',
+    status: 'pending',
+    due_at: '2026-10-24 17:00',
+    invite_url: '/wp-exam-runner/?invite=a9f1c4e72b83',
+  },
+  {
+    id: 2,
+    invite_token: 'a9f1c4e72b83',
+    title: 'Workplace Safety Exam',
+    kind: 'exam',
+    status: 'in_progress',
+    due_at: '2026-10-22 12:00',
+    invite_url: '/wp-exam-runner/?invite=a9f1c4e72b83',
+  },
+  {
+    id: 3,
+    invite_token: 'a9f1c4e72b83',
+    title: 'Portfolio Project Submission',
+    kind: 'project',
+    status: 'completed',
+    due_at: '2026-10-15 09:00',
+    invite_url: '/wp-exam-runner/?invite=a9f1c4e72b83',
+  },
+  {
+    id: 4,
+    invite_token: 'a9f1c4e72b83',
+    title: 'Data Privacy Refresher',
+    kind: 'quiz',
+    status: 'pending',
+    due_at: '2026-10-19 09:00',
+    invite_url: '/wp-exam-runner/?invite=a9f1c4e72b83',
+  },
+];
 
 export interface ConditionalStepFixture {
   slug: string;
@@ -286,6 +342,132 @@ export const seedConditionalFixtures: ConditionalStepFixture[] = [
       ],
     },
   },
+  {
+    slug: 'simulation-showcase',
+    form: {
+      id: 'simulation-showcase',
+      title: 'Simulation Showcase — Nested Conditional Sections',
+      description: 'Complex conditional fixture: track routing, a multi-select contains rule, a visibility rule nested inside a jump-rule branch, and a terminal dead-end guard step.',
+      formType: 'quiz',
+      formAccess: 'public',
+      isSequential: true,
+      isPublished: true,
+      settings: {
+        passingScore: 70,
+        successMessage: 'Simulation showcase complete.',
+        theme: 'dracula',
+      },
+      fields: [
+        {
+          id: 'ss-track',
+          type: 'multiple_choice',
+          label: 'Section 1 of 4 — pick your simulation track.',
+          isRequired: true,
+          options: ['Engineering', 'Design'],
+          conditions: [
+            { parentFieldId: 'ss-track', operator: 'equals', expectedValue: 'Engineering', action: 'jump_to', jumpToFieldId: 'ss-eng-stack' },
+            { parentFieldId: 'ss-track', operator: 'equals', expectedValue: 'Design', action: 'jump_to', jumpToFieldId: 'ss-design-stack' },
+          ],
+        },
+        {
+          id: 'ss-eng-stack',
+          type: 'multiple_choice',
+          label: 'Section 2 of 4 — which engineering stack will you explore?',
+          isRequired: true,
+          options: ['TypeScript / React', 'Go services'],
+          points: 10,
+          conditions: [
+            { parentFieldId: 'ss-eng-stack', operator: 'is_not_empty', action: 'jump_to', jumpToFieldId: 'ss-skills' },
+          ],
+        },
+        {
+          id: 'ss-design-stack',
+          type: 'multiple_choice',
+          label: 'Section 2 of 4 — which design discipline will you explore?',
+          isRequired: true,
+          options: ['Product design', 'Motion design'],
+          points: 10,
+          conditions: [
+            { parentFieldId: 'ss-design-stack', operator: 'is_not_empty', action: 'jump_to', jumpToFieldId: 'ss-skills' },
+          ],
+        },
+        {
+          id: 'ss-skills',
+          type: 'multiple_choice',
+          label: 'Section 3 of 4 — select your skill areas.',
+          isRequired: true,
+          options: ['Frontend', 'Backend', 'Frontend + Backend'],
+          points: 10,
+          conditions: [
+            { parentFieldId: 'ss-skills', operator: 'contains', expectedValue: 'Frontend + Backend', action: 'jump_to', jumpToFieldId: 'ss-wrap' },
+            { parentFieldId: 'ss-skills', operator: 'contains', expectedValue: 'Frontend', action: 'jump_to', jumpToFieldId: 'ss-frontend-q' },
+            { parentFieldId: 'ss-skills', operator: 'contains', expectedValue: 'Backend', action: 'jump_to', jumpToFieldId: 'ss-backend-q' },
+          ],
+        },
+        {
+          id: 'ss-frontend-q',
+          type: 'multiple_choice',
+          label: 'Section 4 of 4 — which frontend framework?',
+          isRequired: true,
+          options: ['React', 'Vue'],
+          points: 10,
+          conditions: [
+            { parentFieldId: 'ss-skills', operator: 'contains', expectedValue: 'Frontend', action: 'show' },
+            { parentFieldId: 'ss-frontend-q', operator: 'is_not_empty', action: 'jump_to', jumpToFieldId: 'ss-wrap' },
+          ],
+        },
+        {
+          id: 'ss-backend-q',
+          type: 'multiple_choice',
+          label: 'Section 4 of 4 — which backend runtime?',
+          isRequired: true,
+          options: ['Node.js', 'Go'],
+          points: 10,
+          conditions: [
+            { parentFieldId: 'ss-skills', operator: 'contains', expectedValue: 'Backend', action: 'show' },
+            { parentFieldId: 'ss-backend-q', operator: 'is_not_empty', action: 'jump_to', jumpToFieldId: 'ss-wrap' },
+          ],
+        },
+        {
+          id: 'ss-wrap',
+          type: 'paragraph',
+          label: 'Anything else you would like to add before we wrap up?',
+          isRequired: false,
+        },
+      ],
+    },
+  },
+  {
+    slug: 'video-prompt-demo',
+    form: {
+      id: 'video-prompt-demo',
+      title: 'Video Prompt Demo — Watch & Answer',
+      description: 'Seed fixture: a video_prompt question (URL-based, no blob) with a recorded-video answer chain.',
+      formType: 'quiz',
+      formAccess: 'public',
+      isSequential: true,
+      isPublished: true,
+      settings: {
+        passingScore: 70,
+        successMessage: 'Video prompt demo complete.',
+        theme: 'dracula',
+      },
+      fields: [
+        {
+          id: 'vp-watch',
+          type: 'video_prompt',
+          label: 'Watch the product walkthrough, then introduce yourself.',
+          isRequired: true,
+          videoUrl: 'https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4',
+          videoCaption: 'Watch the full clip before recording your answer.',
+          answerKind: 'video',
+          videoAnswerMaxSeconds: 60,
+          videoAnswerPrompt: 'Record a 60-second introduction after watching.',
+          points: 10,
+        },
+      ],
+    },
+  },
 ];
 
 export const useExamAppStore = create<ExamAppState>((set, get) => ({
@@ -293,6 +475,7 @@ export const useExamAppStore = create<ExamAppState>((set, get) => ({
   submissions: seedSubmissions,
   session: defaultSession,
   conditionalFixtures: seedConditionalFixtures,
+  checklistItems: seedChecklistItems,
 
   addInvite: (data) => {
     const newRecord: UserInviteRecord = {

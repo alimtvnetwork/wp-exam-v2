@@ -21,9 +21,16 @@ use WpExam\Database\Orm;
 use WpExam\Helpers\EnvelopeBuilder;
 use WpExam\Enums\HttpStatusType;
 use WpExam\Enums\ResponseMessageType;
+use App\Services\Security\Secretbox;
 
 class EmailSettingsRestController extends WP_REST_Controller {
     protected string $namespace = 'wp-exam/v1';
+
+    /**
+     * Mask sentinel: when the client sends this (or an empty string) as
+     * smtp_pass, the stored sealed value is kept untouched.
+     */
+    private const PASS_MASK_SENTINEL = '••••••';
 
     public function registerRoutes(): void {
         register_rest_route($this->namespace, '/admin/email-settings', [
@@ -74,16 +81,50 @@ class EmailSettingsRestController extends WP_REST_Controller {
             ];
         }
 
-        $builder = EnvelopeBuilder::createSuccess($settings, HttpStatusType::Ok->value, ResponseMessageType::Ok->value);
+        // The sealed smtp_pass is never returned to clients. The frontend
+        // shows a mask and a replace affordance driven by has_smtp_pass.
+        $response = $settings;
+        $response['smtp_pass'] = '';
+        $response['has_smtp_pass'] = !empty($settings['smtp_pass']);
+
+        $builder = EnvelopeBuilder::createSuccess($response, HttpStatusType::Ok->value, ResponseMessageType::Ok->value);
         return new WP_REST_Response($builder->build(), HttpStatusType::Ok->value);
     }
 
     public function saveEmailSettings(WP_REST_Request $request): WP_REST_Response {
+        $incomingPass = (string) $request->get_param('smtp_pass');
+        $hasNewPass = ($incomingPass !== '' && $incomingPass !== self::PASS_MASK_SENTINEL);
+
+        $existing = Orm::forTable('email_settings')->where('id', 1)->findOne();
+        $storedPass = (string) ($existing['smtp_pass'] ?? '');
+
+        if ($hasNewPass) {
+            // A fresh password is always sealed before it touches the database.
+            $sealedPass = Secretbox::seal($incomingPass);
+        } elseif ($existing === null) {
+            $sealedPass = '';
+        } else {
+            $sealedPass = $storedPass;
+
+            // Opportunistic migration: a legacy plaintext value left over from
+            // before sealing is sealed in place on save. Best effort — if the
+            // key is unavailable the save still proceeds with the old value.
+            $isLegacyPlaintext = ($storedPass !== '' && !Secretbox::isSealed($storedPass));
+
+            if ($isLegacyPlaintext) {
+                try {
+                    $sealedPass = Secretbox::seal($storedPass);
+                } catch (\RuntimeException $e) {
+                    $sealedPass = $storedPass;
+                }
+            }
+        }
+
         $data = [
             'smtp_host'       => sanitize_text_field((string) $request->get_param('smtp_host')),
             'smtp_port'       => (int) ($request->get_param('smtp_port') ?: 587),
             'smtp_user'       => sanitize_text_field((string) $request->get_param('smtp_user')),
-            'smtp_pass'       => (string) $request->get_param('smtp_pass'),
+            'smtp_pass'       => $sealedPass,
             'smtp_secure'     => sanitize_text_field((string) ($request->get_param('smtp_secure') ?: 'tls')),
             'from_email'      => sanitize_email((string) $request->get_param('from_email')),
             'from_name'       => sanitize_text_field((string) $request->get_param('from_name')),
@@ -93,7 +134,6 @@ class EmailSettingsRestController extends WP_REST_Controller {
                 : (string) ($request->get_param('templates_json') ?: '{}'),
         ];
 
-        $existing = Orm::forTable('email_settings')->where('id', 1)->findOne();
         if ($existing === null) {
             $data['id'] = 1;
             Orm::forTable('email_settings')->insert($data);
@@ -101,7 +141,13 @@ class EmailSettingsRestController extends WP_REST_Controller {
             Orm::forTable('email_settings')->update(1, $data);
         }
 
-        $builder = EnvelopeBuilder::createSuccess($data, HttpStatusType::Ok->value, ResponseMessageType::Ok->value);
+        // Never echo the sealed blob back; the client only learns whether a
+        // password is stored.
+        $response = $data;
+        $response['smtp_pass'] = '';
+        $response['has_smtp_pass'] = !empty($sealedPass);
+
+        $builder = EnvelopeBuilder::createSuccess($response, HttpStatusType::Ok->value, ResponseMessageType::Ok->value);
         return new WP_REST_Response($builder->build(), HttpStatusType::Ok->value);
     }
 

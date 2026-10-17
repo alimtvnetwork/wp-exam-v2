@@ -41,17 +41,19 @@ export const SpacingEditor: React.FC<SpacingEditorProps> = ({ spacing, onChange 
                 <Label className="text-xs font-semibold">{field.label}</Label>
                 <p className="text-xs text-muted-foreground">{field.hint}</p>
               </div>
-              <span className="font-mono text-xs text-muted-foreground">{value}px</span>
+              <span key={value} className="theme-transition-readout-in font-mono text-xs text-muted-foreground">{value}px</span>
             </div>
 
-            <Slider
-              min={field.min}
-              max={field.max}
-              step={field.step}
-              value={[value]}
-              aria-label={field.label}
-              onValueChange={(values) => onChange({ ...spacing, [field.id]: values[0] ?? value })}
-            />
+            <div className="theme-transition-slider-fill">
+              <Slider
+                min={field.min}
+                max={field.max}
+                step={field.step}
+                value={[value]}
+                aria-label={field.label}
+                onValueChange={(values) => onChange({ ...spacing, [field.id]: values[0] ?? value })}
+              />
+            </div>
 
             <div className="flex justify-between font-mono text-xs text-muted-foreground">
               <span>{field.min}px</span>

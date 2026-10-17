@@ -34,6 +34,7 @@ import { createDefaultDraft, cloneTokens } from './default-theme';
 import { loadDraft, saveDraft, saveActiveTheme, clearActiveTheme } from './storage';
 import { activateTheme, deactivateTheme, hasActiveCustomTheme } from './theme-engine';
 import { applyPersistedActiveTheme } from './activation';
+import { playThemeTransition } from '@/lib/theme-context';
 import { ThemePreview } from './theme-preview';
 import { ColorEditor } from './editors/color-editor';
 import { RadiusEditor } from './editors/radius-editor';
@@ -73,6 +74,7 @@ export const ThemeBuilder: React.FC = () => {
   const [status, setStatus] = useState<SaveStatus>('clean');
   const [isApplied, setIsApplied] = useState<boolean>(false);
   const [activeArea, setActiveArea] = useState<ThemeBuilderArea>('colors');
+  const [canvasPulseKey, setCanvasPulseKey] = useState<number>(0);
   const lastSavedRef = useRef<string>(JSON.stringify(draft.tokens));
   const saveTimerRef = useRef<number | null>(null);
 
@@ -134,9 +136,12 @@ export const ThemeBuilder: React.FC = () => {
   }, []);
 
   const handleApply = useCallback(() => {
-    activateTheme(draft.tokens);
+    playThemeTransition(() => {
+      activateTheme(draft.tokens);
+    });
     saveActiveTheme(draft.tokens);
     setIsApplied(true);
+    setCanvasPulseKey((key) => key + 1);
   }, [draft.tokens]);
 
   const handleReset = useCallback(() => {
@@ -146,7 +151,11 @@ export const ThemeBuilder: React.FC = () => {
     lastSavedRef.current = JSON.stringify(fresh.tokens);
     saveDraft(fresh);
     clearActiveTheme();
-    deactivateTheme();
+
+    playThemeTransition(() => {
+      deactivateTheme();
+    });
+
     setIsApplied(false);
     setStatus('saved');
   }, []);
@@ -248,7 +257,12 @@ export const ThemeBuilder: React.FC = () => {
             </span>
           </div>
 
-          <ThemePreview tokens={draft.tokens} />
+          <div
+            key={canvasPulseKey}
+            className={canvasPulseKey === 0 ? undefined : 'theme-transition-canvas-pulse'}
+          >
+            <ThemePreview tokens={draft.tokens} />
+          </div>
         </div>
 
         <aside className="flex w-full flex-col border-border bg-card lg:w-[400px] lg:border-l">

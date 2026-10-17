@@ -1,8 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Lock, Shield, KeyRound, User, CheckCircle2, AlertCircle } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Shield, AlertCircle, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import {
   Dialog,
   DialogContent,
@@ -12,35 +10,63 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 
-export const ADMIN_AUTH_KEY = 'wp_exam_admin_authenticated';
+const ADMIN_STATUS_ENDPOINT = '/wp-json/wp-exam/v1/auth/admin-status';
 
+interface AdminStatusResponse {
+  Results?: { is_admin?: boolean };
+  is_admin?: boolean;
+}
+
+async function fetchAdminStatus(): Promise<boolean> {
+  const response = await fetch(ADMIN_STATUS_ENDPOINT, { credentials: 'same-origin' });
+  const payload = (await response.json()) as AdminStatusResponse;
+  const nestedFlag = Boolean(payload?.Results?.is_admin);
+  const flatFlag = Boolean(payload?.is_admin);
+
+  return nestedFlag || flatFlag;
+}
+
+/**
+ * WordPress-delegated admin auth.
+ *
+ * There is no credential form and no client-side secret here by design: the
+ * browser asks the server whether the current WordPress session belongs to
+ * an administrator (`current_user_can('manage_options')`). See
+ * 02-spec/21-app/ui-ux-improvement-for-wp-exam/07-security-hardening-spec.md
+ * ("For future AI") for why a plugin-owned login form was deleted.
+ */
 export function useAdminAuth() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem(ADMIN_AUTH_KEY) === 'true';
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [isVerified, setIsVerified] = useState<boolean>(false);
+
+  const verify = useCallback(async (): Promise<boolean> => {
+    setIsVerified(false);
+
+    try {
+      const isAdminNow = await fetchAdminStatus();
+      setIsAdmin(isAdminNow);
+      setIsVerified(true);
+
+      return isAdminNow;
+    } catch {
+      setIsAdmin(false);
+      setIsVerified(true);
+
+      return false;
     }
-    return false;
-  });
+  }, []);
 
-  const login = (usernameInput: string, passwordInput: string): boolean => {
-    const isUserValid = usernameInput.trim().toLowerCase() === 'admin';
-    const isPassValid = passwordInput.trim() === 'admin';
+  useEffect(() => {
+    verify();
+  }, [verify]);
 
-    if (isUserValid && isPassValid) {
-      localStorage.setItem(ADMIN_AUTH_KEY, 'true');
-      setIsAuthenticated(true);
-      return true;
-    }
+  const logout = useCallback(() => {
+    // Authentication lives in the WordPress session now; the only honest
+    // logout is WordPress's own.
+    window.location.href = '/wp-login.php?action=logout';
+  }, []);
 
-    return false;
-  };
-
-  const logout = () => {
-    localStorage.removeItem(ADMIN_AUTH_KEY);
-    setIsAuthenticated(false);
-  };
-
-  return { isAuthenticated, login, logout };
+  return { isAuthenticated: isAdmin, isAdmin, isVerified, verify, logout };
 }
 
 interface AdminLoginModalProps {
@@ -50,23 +76,24 @@ interface AdminLoginModalProps {
 }
 
 export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose, onSuccess }) => {
-  const { login } = useAdminAuth();
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('admin');
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const { isAdmin, isVerified, verify } = useAdminAuth();
+  const [isRetrying, setIsRetrying] = useState<boolean>(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const isSuccess = login(username, password);
-
-    if (isSuccess) {
-      toast.success('Admin authentication verified! Welcome back.');
+  useEffect(() => {
+    if (isOpen && isVerified && isAdmin) {
+      toast.success('Admin access verified. Welcome back.');
       onSuccess();
       onClose();
-    } else {
-      setErrorMessage('Invalid credentials. Default test credentials are admin / admin.');
     }
+  }, [isOpen, isVerified, isAdmin, onSuccess, onClose]);
+
+  const handleRetry = async () => {
+    setIsRetrying(true);
+    await verify();
+    setIsRetrying(false);
   };
+
+  const isChecking = !isVerified || isRetrying;
 
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -79,69 +106,56 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
             WP Exam Admin Access
           </DialogTitle>
           <DialogDescription className="text-xs text-muted-foreground">
-            Enter administrative credentials to access the curriculum builder, candidate invites, and database engine.
+            Restricted to WordPress administrators. Access is verified with your
+            WordPress session — no separate password is needed or accepted.
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-          {errorMessage && (
-            <div className="p-2.5 rounded-lg bg-destructive/10 border border-destructive/20 text-xs text-destructive flex items-center gap-1.5">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{errorMessage}</span>
+        {isChecking ? (
+          <div className="flex flex-col items-center gap-3 py-8">
+            <Loader2 className="w-6 h-6 animate-spin text-primary" />
+            <p className="text-sm text-muted-foreground">Verifying administrator access…</p>
+          </div>
+        ) : (
+          <div className="space-y-4 pt-2">
+            <div className="p-3 rounded-xl bg-muted/30 border border-border text-sm space-y-1">
+              <div className="flex items-center gap-1.5 text-foreground font-semibold">
+                <AlertCircle className="w-4 h-4 text-primary" />
+                <span>Administrator sign-in required</span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Sign in to WordPress as an administrator, then retry. Your
+                WordPress session is the only credential this console accepts.
+              </p>
             </div>
-          )}
 
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold">Username</Label>
-            <div className="relative">
-              <User className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
-              <Input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="admin"
-                className="pl-9 text-xs bg-background h-9"
-                required
-              />
+            <div className="flex items-center justify-end gap-2 pt-2">
+              <Button type="button" variant="ghost" size="sm" onClick={onClose} className="text-xs">
+                Cancel
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={handleRetry}
+                className="text-xs"
+                disabled={isRetrying}
+              >
+                Retry
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                className="text-xs font-semibold px-4"
+                onClick={() => {
+                  window.location.href = '/wp-login.php';
+                }}
+              >
+                Sign in to WordPress &rarr;
+              </Button>
             </div>
           </div>
-
-          <div className="space-y-1.5">
-            <Label className="text-xs font-semibold">Password</Label>
-            <div className="relative">
-              <KeyRound className="w-4 h-4 absolute left-3 top-2.5 text-muted-foreground" />
-              <Input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="•••••"
-                className="pl-9 text-xs bg-background h-9"
-                required
-              />
-            </div>
-          </div>
-
-          {/* Test Credentials Hint */}
-          <div className="p-3 bg-muted/30 rounded-xl border border-border text-xs space-y-1">
-            <div className="flex items-center gap-1.5 text-primary font-semibold">
-              <CheckCircle2 className="w-3.5 h-3.5" />
-              <span>Default Test Credentials:</span>
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Username: <code className="bg-muted px-1.5 py-0.5 rounded font-mono text-foreground">admin</code> |
-              Password: <code className="bg-muted px-1.5 py-0.5 rounded font-mono text-foreground">admin</code>
-            </p>
-          </div>
-
-          <div className="flex items-center justify-end gap-2 pt-2">
-            <Button type="button" variant="ghost" size="sm" onClick={onClose} className="text-xs">
-              Cancel
-            </Button>
-            <Button type="submit" size="sm" className="bg-primary text-xs font-semibold px-4">
-              Enter Admin Portal &rarr;
-            </Button>
-          </div>
-        </form>
+        )}
       </DialogContent>
     </Dialog>
   );

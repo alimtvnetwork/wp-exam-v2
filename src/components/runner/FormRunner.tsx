@@ -65,6 +65,7 @@ import {
   Lock,
   Menu,
   Lightbulb,
+  SlidersHorizontal,
 } from 'lucide-react';
 import '../../styles/quiz-preview.css';
 import { PhoneWithCountrySelect } from '@/components/ui/phone-input';
@@ -113,6 +114,7 @@ import {
 } from '@/lib/presentation-layout';
 import { PresenterHUD } from './floating-controls';
 import { VideoAnswerRecorder } from './video-answer-recorder';
+import { VideoQuestionField } from './video-question-field';
 
 interface FormRunnerProps {
   form?: FormModel;
@@ -716,6 +718,76 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [result, setResult] = useState<FormSubmissionResult | null>(null);
 
+  // PresenterHUD idle-collapse: the HUD recedes to a single floating button
+  // after 3s without interaction so the current question owns the focus.
+  const [isHudExpanded, setIsHudExpanded] = useState(true);
+  const hudIdleTimer = useRef<number | null>(null);
+
+  const pokeHud = useCallback(() => {
+    setIsHudExpanded(true);
+
+    if (hudIdleTimer.current) {
+      window.clearTimeout(hudIdleTimer.current);
+      hudIdleTimer.current = null;
+    }
+
+    if (typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    hudIdleTimer.current = window.setTimeout(() => {
+      setIsHudExpanded(false);
+    }, 3000);
+  }, []);
+
+  useEffect(() => {
+    pokeHud();
+
+    return () => {
+      if (hudIdleTimer.current) {
+        window.clearTimeout(hudIdleTimer.current);
+      }
+    };
+  }, [pokeHud]);
+
+  // Preview banner idle-collapse: chrome recedes to a slim hairline strip
+  // after 2s so the quiz under preview owns the focus; re-expands on hover.
+  const [isPreviewBannerCollapsed, setIsPreviewBannerCollapsed] = useState(false);
+  const previewBannerTimer = useRef<number | null>(null);
+
+  const pokePreviewBanner = useCallback(() => {
+    setIsPreviewBannerCollapsed(false);
+
+    if (previewBannerTimer.current) {
+      window.clearTimeout(previewBannerTimer.current);
+      previewBannerTimer.current = null;
+    }
+
+    if (typeof window === 'undefined' || !isPreviewRoute) {
+      return;
+    }
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      return;
+    }
+
+    previewBannerTimer.current = window.setTimeout(() => {
+      setIsPreviewBannerCollapsed(true);
+    }, 2000);
+  }, [isPreviewRoute]);
+
+  useEffect(() => {
+    if (isPreviewRoute) {
+      pokePreviewBanner();
+    }
+
+    return () => {
+      if (previewBannerTimer.current) {
+        window.clearTimeout(previewBannerTimer.current);
+      }
+    };
+  }, [isPreviewRoute, pokePreviewBanner]);
+
   const activeSlug = selectedProjectId === 'custom-active'
     ? (quizStore.slug || 'custom-form')
     : selectedProjectId;
@@ -999,6 +1071,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
 
   const urgencyThreshold = activeForm.settings?.urgencyThresholdSeconds ?? 300;
   const isUrgent = Boolean(timeLeftSeconds !== null && timeLeftSeconds <= urgencyThreshold && timeLeftSeconds > 0);
+
+  // Header condense flag: while answering, the header recedes to progress +
+  // timer so the current question owns the focus.
+  const isAnswering = isExamStarted && !isSubmitted;
   const isMinuteRollover = Boolean(isUrgent && timeLeftSeconds !== null && timeLeftSeconds % 60 === 0);
 
   const activeTransitionClass = useMemo(() => {
@@ -1913,12 +1989,10 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           <CardDescription className="text-xs">{result?.message}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4 p-6">
+          {/* Focus owner: the score / outcome. Secondary stats recede into a disclosure. */}
           {activeForm.formType === 'quiz' ? (
-            <div className="p-4 rounded-xl bg-muted/30 text-center space-y-2 border">
-              <div className="text-4xl font-extrabold text-primary font-mono">{result?.score_percentage}%</div>
-              <div className="text-xs text-muted-foreground">
-                Score: {result?.score} / {result?.total_possible_score} Total Points
-              </div>
+            <div className="p-4 rounded-xl bg-muted/30 text-center space-y-2 border" aria-live="polite">
+              <div className="text-4xl font-extrabold text-primary font-mono tabular-nums">{result?.score_percentage}%</div>
               <div>
                 <Badge variant={result?.is_passed ? 'default' : 'destructive'} className="text-xs">
                   {result?.is_passed ? 'Passed Examination' : 'Threshold Not Met'}
@@ -1926,33 +2000,34 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               </div>
             </div>
           ) : (
-            <div className="p-4 rounded-xl bg-muted/30 space-y-1 text-xs border">
-              <div><strong>Candidate:</strong> {guestName || 'Anonymous'}</div>
-              <div><strong>Email:</strong> {guestEmail || 'N/A'}</div>
-              <div><strong>Fields Recorded:</strong> {Object.keys(answers).length} of {fields.length}</div>
+            <div className="p-4 rounded-xl bg-muted/30 text-center border" aria-live="polite">
+              <div className="text-sm font-semibold text-foreground">Your answers were recorded.</div>
             </div>
           )}
 
-          <div className="p-3 bg-muted/20 rounded-lg text-xs text-muted-foreground text-center border">
-            ✓ Official verification record signed and saved to SQLite Split-DB engine.
-          </div>
+          <details className="rounded-lg border border-border/60 bg-muted/20 text-xs">
+            <summary className="cursor-pointer px-3 py-2 font-semibold text-muted-foreground hover:text-foreground flex items-center gap-1.5 list-none">
+              <ChevronDown className="w-3.5 h-3.5" />
+              <span>Details</span>
+            </summary>
+            <div className="px-3 pb-3 pt-1 space-y-1 text-muted-foreground">
+              {activeForm.formType === 'quiz' ? (
+                <div>
+                  Score: {result?.score} / {result?.total_possible_score} Total Points
+                </div>
+              ) : (
+                <>
+                  <div><strong>Candidate:</strong> {guestName || 'Anonymous'}</div>
+                  <div><strong>Email:</strong> {guestEmail || 'N/A'}</div>
+                  <div><strong>Fields Recorded:</strong> {Object.keys(answers).length} of {fields.length}</div>
+                </>
+              )}
+              <div>✓ Official verification record signed and saved to SQLite Split-DB engine.</div>
+            </div>
+          </details>
 
-          <div className="flex justify-between items-center pt-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                clearDraftFromIndexedDB(activeSlug);
-                setOtherTexts({});
-                setIsSubmitted(false);
-                setCurrentStep(0);
-                setAnswers({});
-              }}
-              className="text-xs"
-            >
-              Take Assessment Again
-            </Button>
-
+          {/* One primary CTA; the secondary action is a quiet text link */}
+          <div className="flex flex-col items-center gap-2 pt-2">
             <Button
               onClick={() => {
                 if (onClose) {
@@ -1963,10 +2038,23 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
               }}
               size="sm"
               variant="default"
-              className="text-xs"
+              className="text-xs w-full"
             >
               Exit to Portal
             </Button>
+            <button
+              type="button"
+              onClick={() => {
+                clearDraftFromIndexedDB(activeSlug);
+                setOtherTexts({});
+                setIsSubmitted(false);
+                setCurrentStep(0);
+                setAnswers({});
+              }}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+            >
+              Take Assessment Again
+            </button>
           </div>
         </CardContent>
       </Card>
@@ -2128,10 +2216,23 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
         color: currentTheme?.colors?.textPrimary || '#0F172A',
       }}
     >
-      {/* Preview Mode Identity Chrome (preview routes only) */}
+      {/* Preview Mode Identity Chrome (preview routes only) — collapses to a
+          slim hairline strip after 2s idle so the quiz owns the focus */}
       {isPreviewRoute && (
-        <div className="quiz-preview-banner" role="status" aria-label="Preview mode">
-          <span className="quiz-preview-banner-label">Preview mode</span>
+        <div
+          onMouseEnter={pokePreviewBanner}
+          onFocus={pokePreviewBanner}
+          className={`transition-all duration-200 ${
+            isPreviewBannerCollapsed ? 'h-[3px] overflow-hidden' : ''
+          }`}
+        >
+          <div
+            className={`quiz-preview-banner ${isPreviewBannerCollapsed ? '[&_.quiz-preview-banner-label]:opacity-0' : ''}`}
+            role="status"
+            aria-label="Preview mode"
+          >
+            <span className="quiz-preview-banner-label transition-opacity duration-200">Preview mode</span>
+          </div>
         </div>
       )}
 
@@ -2211,6 +2312,20 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       }`}>
         {/* Streamlined Single-Line Project Selector, Slug & Actions Bar */}
         {effectiveLayoutMode === 'standard' ? (
+          isAnswering ? (
+            <div
+              className="px-4 py-1.5 border border-border/60 bg-card/60 rounded-xl flex items-center justify-between gap-2"
+              aria-live="polite"
+              aria-label="Assessment progress"
+            >
+              <span className="text-xs font-semibold text-muted-foreground truncate">
+                {activeForm.title || 'Candidate Assessment'}
+              </span>
+              <span className="text-[11px] font-mono text-muted-foreground tabular-nums shrink-0">
+                {currentStep + 1} / {visibleFields.length}
+              </span>
+            </div>
+          ) : (
           <div
             className="p-2.5 sm:px-4 border border-border bg-card text-card-foreground rounded-xl shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3 transition-colors"
           >
@@ -2348,6 +2463,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           )}
         </div>
       </div>
+          )
         ) : null}
 
       {/* Hero Model: Assessment Introduction & Overview (Omitted during active questions and in preview mode) */}
@@ -3292,6 +3408,17 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       )}
       </div>
 
+      {/* PresenterHUD with idle-collapse: recedes to a single floating button
+          after 3s without interaction so the current question owns the focus */}
+      <div
+        onMouseEnter={pokeHud}
+        onFocus={pokeHud}
+        onClick={pokeHud}
+        className={`transition-opacity duration-200 ${
+          isHudExpanded ? 'opacity-100' : 'opacity-0 pointer-events-none translate-x-3'
+        }`}
+        aria-hidden={!isHudExpanded}
+      >
       <PresenterHUD
         activeThemeId={activeThemeId}
         setActiveThemeId={setActiveThemeId}
@@ -3315,6 +3442,21 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
           toast.success('Saved layout customizations to quiz draft!');
         }}
       />
+      </div>
+
+      {!isHudExpanded && (
+        <button
+          type="button"
+          onMouseEnter={pokeHud}
+          onFocus={pokeHud}
+          onClick={pokeHud}
+          aria-label="Show presenter controls"
+          title="Show presenter controls"
+          className="fixed z-50 bottom-6 right-6 w-10 h-10 rounded-xl bg-card/85 backdrop-blur-xl border border-border/40 shadow-lg hover:shadow-xl hover:border-primary/30 flex items-center justify-center text-muted-foreground hover:text-foreground transition-all duration-200 cursor-pointer"
+        >
+          <SlidersHorizontal className="w-4 h-4" />
+        </button>
+      )}
     </div>
   );
 };
@@ -4018,6 +4160,8 @@ function renderFieldInput(
           prompt={field.videoAnswerPrompt}
         />
       );
+    case 'video_prompt':
+      return <VideoQuestionField field={field} value={value} onChange={onChange} />;
     case 'file_upload':
       return <RunnerFileUpload field={field} value={value} onChange={onChange} />;
     case 'link':

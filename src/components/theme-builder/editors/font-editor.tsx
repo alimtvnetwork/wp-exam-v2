@@ -54,7 +54,8 @@ export const FontEditor: React.FC<FontEditorProps> = ({ fonts, onChange }) => {
         </Select>
 
         <p
-          className="rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-sm"
+          key={current}
+          className="theme-transition-font-preview-in rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-sm"
           style={{ fontFamily: current }}
         >
           The quick brown fox jumps over the lazy dog 0123456789

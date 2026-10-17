@@ -163,6 +163,15 @@ const PALETTE_OPTIONS: PaletteOption[] = [
     category: 'media',
     colorClass: 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20',
   },
+  {
+    type: 'video_prompt',
+    label: 'Video Question (Watch & Answer)',
+    shortLabel: 'Video Q&A',
+    description: 'Video prompt with a text or recorded-video answer',
+    icon: Video,
+    category: 'media',
+    colorClass: 'text-rose-600 dark:text-rose-400 bg-rose-500/10 border-rose-500/20',
+  },
 
   // Layout Category
   {
