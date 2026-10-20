@@ -342,6 +342,18 @@ class SqliteDatabase {
             completed_at TEXT DEFAULT (datetime('now')),
             UNIQUE(token, step_id)
         );
+
+        CREATE TABLE IF NOT EXISTS form_drafts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            form_id INTEGER DEFAULT 0,
+            form_slug TEXT DEFAULT '',
+            applicant_email TEXT NOT NULL,
+            resume_token TEXT NOT NULL UNIQUE,
+            current_step INTEGER NOT NULL DEFAULT 1,
+            payload_json TEXT NOT NULL DEFAULT '{}',
+            created_at TEXT DEFAULT (datetime('now')),
+            expires_at TEXT DEFAULT (datetime('now', '+30 days'))
+        );
         ";
 
         $this->pdo->exec($schema);

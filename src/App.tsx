@@ -94,6 +94,14 @@ const App = () => (
               }
             />
             <Route
+              path="/apply/resume/:token"
+              element={
+                <div className="min-h-screen bg-background text-foreground transition-colors duration-300 py-8 px-4 sm:px-6 flex items-center justify-center">
+                  <WizardRunner />
+                </div>
+              }
+            />
+            <Route
               path="/forms/wizard"
               element={
                 <div className="min-h-screen bg-background text-foreground transition-colors duration-300 py-8 px-4 sm:px-6 flex items-center justify-center">

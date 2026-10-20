@@ -25,6 +25,7 @@ use WpExam\Api\AIInstructionRestController;
 use WpExam\Api\SystemBackupRestController;
 use WpExam\Api\ApplicantPipelineRestController;
 use WpExam\Api\CandidatePortalRestController;
+use WpExam\Api\FormDraftRestController;
 use WpExam\Database\SqliteDatabase;
 use WpExam\Logging\FileLogger;
 use WpExam\ErrorHandling\BootErrorCollector;
@@ -42,6 +43,7 @@ class Plugin {
     private ?SystemBackupRestController $systemBackupController = null;
     private ?ApplicantPipelineRestController $applicantPipelineController = null;
     private ?CandidatePortalRestController $candidatePortalController = null;
+    private ?FormDraftRestController $formDraftController = null;
 
     public static function getInstance(): self {
         if (self::$instance === null) {
@@ -72,6 +74,7 @@ class Plugin {
             $this->systemBackupController = new SystemBackupRestController();
             $this->applicantPipelineController = new ApplicantPipelineRestController();
             $this->candidatePortalController = new CandidatePortalRestController();
+            $this->formDraftController = new FormDraftRestController();
 
             add_action('rest_api_init', [$this->restController, 'registerRoutes']);
             add_action('rest_api_init', [$this->authController, 'registerRoutes']);
@@ -84,6 +87,7 @@ class Plugin {
             add_action('rest_api_init', [$this->systemBackupController, 'register_routes']);
             add_action('rest_api_init', [$this->applicantPipelineController, 'register_routes']);
             add_action('rest_api_init', [$this->candidatePortalController, 'register_routes']);
+            add_action('rest_api_init', [$this->formDraftController, 'register_routes']);
             add_action('elementor/widgets/register', [$this, 'registerElementorWidgets']);
 
             if (is_admin()) {

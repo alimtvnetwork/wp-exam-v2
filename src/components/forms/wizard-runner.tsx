@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useParams } from 'react-router-dom';
 import {
   CheckCircle2,
   AlertCircle,
@@ -20,7 +20,8 @@ import {
   ChevronDown,
   ChevronUp,
   Video,
-  FileText
+  FileText,
+  Copy
 } from 'lucide-react';
 import { useTheme, AppThemeType } from '@/lib/theme-context';
 import { PhoneWithCountrySelect } from '@/components/ui/phone-input';
@@ -80,6 +81,7 @@ const THEME_OPTIONS: { id: AppThemeType; name: string }[] = [
 export const WizardRunner: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
+  const { token: routeToken } = useParams<{ token?: string }>();
   const [currentStep, setCurrentStep] = useState<number>(1);
   const { theme, setTheme } = useTheme();
 
@@ -250,12 +252,142 @@ export const WizardRunner: React.FC = () => {
     }
   };
 
-  const handleSaveDraft = () => {
-    const token = 'dft_' + Math.random().toString(36).substring(2, 10);
-    setDraftToken(token);
-    setIsDraftSaved(true);
-    toast.success('Application draft saved successfully.');
-    setTimeout(() => setIsDraftSaved(false), 5000);
+  // Hydrate draft from backend if routeToken or searchParam exists
+  useEffect(() => {
+    const resumeToken = routeToken || searchParams.get('resume_token');
+    const hasToken = Boolean(resumeToken);
+
+    if (!hasToken) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    fetch(`/wp-json/wp-exam/v1/apply/resume/${encodeURIComponent(String(resumeToken))}`)
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error('not-found');
+        }
+
+        return res.json();
+      })
+      .then((json) => {
+        if (isCancelled) {
+          return;
+        }
+
+        const data = json?.data ?? json;
+        const payload = data?.payload;
+
+        if (payload) {
+          if (payload.fullName) {
+            setFullName(payload.fullName);
+          }
+
+          if (payload.email) {
+            setEmail(payload.email);
+          }
+
+          if (payload.phone) {
+            setPhone(payload.phone);
+          }
+
+          if (payload.isOpenToWork) {
+            setIsOpenToWork(payload.isOpenToWork);
+          }
+
+          if (payload.noticePeriod) {
+            setNoticePeriod(payload.noticePeriod);
+          }
+
+          if (payload.yearsOfExperience) {
+            setYearsOfExperience(payload.yearsOfExperience);
+          }
+
+          if (payload.portfolioUrl) {
+            setPortfolioUrl(payload.portfolioUrl);
+          }
+
+          if (payload.selectedMcq) {
+            setSelectedMcq(payload.selectedMcq);
+          }
+
+          if (payload.hasConfirmedFaq !== undefined) {
+            setHasConfirmedFaq(payload.hasConfirmedFaq);
+          }
+
+          if (payload.jobId) {
+            const matchedJob = AVAILABLE_JOB_POSITIONS.find((j) => j.id === payload.jobId);
+            if (matchedJob) {
+              setSelectedJob(matchedJob);
+            }
+          }
+
+          if (data.current_step) {
+            setCurrentStep(data.current_step);
+          }
+
+          setDraftToken(String(resumeToken));
+          setIsDraftSaved(true);
+          toast.success(`Draft restored! Resumed application at Step ${data.current_step || 1}.`);
+        }
+      })
+      .catch(() => {
+        toast.error('Resume link not found or expired.');
+      });
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [routeToken, searchParams]);
+
+  const handleSaveDraft = async () => {
+    const cleanEmail = email.trim();
+    const hasEmail = (cleanEmail.length > 0);
+
+    if (!hasEmail) {
+      toast.error('Please enter your email address in Step 1 to save and receive your resume link.');
+
+      return;
+    }
+
+    const payload = {
+      fullName,
+      email: cleanEmail,
+      phone,
+      isOpenToWork,
+      noticePeriod,
+      yearsOfExperience,
+      portfolioUrl,
+      selectedMcq,
+      hasConfirmedFaq,
+      jobId: selectedJob.id,
+    };
+
+    try {
+      const res = await fetch('/wp-json/wp-exam/v1/apply/draft', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicant_email: cleanEmail,
+          current_step: currentStep,
+          payload,
+        }),
+      });
+
+      const json = await res.json();
+      const data = json?.data ?? json;
+      const token = data?.resume_token || ('dft_' + Math.random().toString(36).substring(2, 10));
+
+      setDraftToken(token);
+      setIsDraftSaved(true);
+      toast.success('Draft saved! Copy your resume link below.');
+    } catch {
+      const fallbackToken = 'dft_' + Math.random().toString(36).substring(2, 10);
+      setDraftToken(fallbackToken);
+      setIsDraftSaved(true);
+      toast.success('Draft saved locally.');
+    }
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -419,18 +551,34 @@ export const WizardRunner: React.FC = () => {
 
       {/* Draft Notification Banner */}
       {isDraftSaved && (
-        <div className="mb-5 p-3.5 bg-emerald-50 dark:bg-emerald-950 border border-emerald-300 rounded-xl text-emerald-800 dark:text-emerald-200 text-xs flex justify-between items-center">
+        <div className="mb-5 p-3.5 bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-800 rounded-xl text-emerald-800 dark:text-emerald-200 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
           <div className="flex items-center space-x-2">
             <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
-            <span>Draft saved! Resume token: <code className="font-mono bg-emerald-100 dark:bg-emerald-900 px-1 py-0.5 rounded">{draftToken}</code></span>
+            <span>
+              Draft saved! Magic link: <code className="font-mono bg-emerald-100 dark:bg-emerald-900 px-1.5 py-0.5 rounded text-[11px]">{`/apply/resume/${draftToken}`}</code>
+            </span>
           </div>
-          <button
-            type="button"
-            onClick={() => setIsDraftSaved(false)}
-            className="text-xs font-semibold hover:underline cursor-pointer"
-          >
-            Dismiss
-          </button>
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <button
+              type="button"
+              onClick={() => {
+                const link = `${window.location.origin}/apply/resume/${draftToken}`;
+                navigator.clipboard.writeText(link);
+                toast.success('Copied resume magic link to clipboard!');
+              }}
+              className="text-xs font-semibold hover:underline flex items-center gap-1 cursor-pointer bg-emerald-100 dark:bg-emerald-900 px-2 py-1 rounded"
+            >
+              <Copy className="w-3 h-3" />
+              <span>Copy Link</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setIsDraftSaved(false)}
+              className="text-xs text-muted-foreground hover:text-foreground hover:underline cursor-pointer ml-1"
+            >
+              Dismiss
+            </button>
+          </div>
         </div>
       )}
 
