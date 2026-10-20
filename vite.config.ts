@@ -13,6 +13,10 @@ export default defineConfig(({ mode }) => ({
         target: "http://127.0.0.1:8080",
         changeOrigin: true,
       },
+      "/wp-json": {
+        target: "http://127.0.0.1:8080",
+        changeOrigin: true,
+      },
     },
     hmr: {
       overlay: false,
