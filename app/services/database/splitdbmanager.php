@@ -152,6 +152,41 @@ class SplitDbManager
             FOREIGN KEY (FormSubmissionId) REFERENCES FormSubmission(FormSubmissionId) ON DELETE CASCADE,
             FOREIGN KEY (FormFieldId) REFERENCES FormField(FormFieldId) ON DELETE CASCADE
         );
+
+        CREATE TABLE IF NOT EXISTS ApplicantStage (
+            ApplicantStageId INTEGER PRIMARY KEY AUTOINCREMENT,
+            StageKey TEXT NOT NULL UNIQUE,
+            StageName TEXT NOT NULL,
+            DisplayOrder INTEGER NOT NULL DEFAULT 0,
+            ColorCode TEXT DEFAULT '#3b82f6',
+            CreatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS Applicant (
+            ApplicantId INTEGER PRIMARY KEY AUTOINCREMENT,
+            CandidateName TEXT NOT NULL,
+            CandidateEmail TEXT NOT NULL,
+            Phone TEXT DEFAULT '',
+            CurrentStageKey TEXT NOT NULL DEFAULT 'applied',
+            FormId INTEGER DEFAULT 0,
+            FormSubmissionId INTEGER DEFAULT 0,
+            Score REAL DEFAULT 0,
+            Rating INTEGER DEFAULT 0,
+            Notes TEXT DEFAULT '',
+            CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+            UpdatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS ApplicantTransition (
+            ApplicantTransitionId INTEGER PRIMARY KEY AUTOINCREMENT,
+            ApplicantId INTEGER NOT NULL,
+            FromStageKey TEXT,
+            ToStageKey TEXT NOT NULL,
+            MovedByUserId INTEGER DEFAULT 0,
+            Notes TEXT DEFAULT '',
+            CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (ApplicantId) REFERENCES Applicant(ApplicantId) ON DELETE CASCADE
+        );
         ";
 
         return QueryWrapper::execute(

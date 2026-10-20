@@ -298,9 +298,69 @@ class SqliteDatabase {
             status TEXT NOT NULL DEFAULT 'open',
             created_at TEXT DEFAULT (datetime('now'))
         );
+
+        CREATE TABLE IF NOT EXISTS applicant_stages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            stage_key TEXT NOT NULL UNIQUE,
+            stage_name TEXT NOT NULL,
+            display_order INTEGER NOT NULL DEFAULT 0,
+            color_code TEXT DEFAULT '#3b82f6',
+            created_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS applicants (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            candidate_name TEXT NOT NULL,
+            candidate_email TEXT NOT NULL,
+            phone TEXT DEFAULT '',
+            current_stage_key TEXT NOT NULL DEFAULT 'applied',
+            form_id INTEGER DEFAULT 0,
+            submission_id INTEGER DEFAULT 0,
+            score REAL DEFAULT 0,
+            rating INTEGER DEFAULT 0,
+            notes TEXT DEFAULT '',
+            created_at TEXT DEFAULT (datetime('now')),
+            updated_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS applicant_transitions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            applicant_id INTEGER NOT NULL,
+            from_stage_key TEXT,
+            to_stage_key TEXT NOT NULL,
+            moved_by_user_id INTEGER DEFAULT 0,
+            notes TEXT DEFAULT '',
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (applicant_id) REFERENCES applicants(id) ON DELETE CASCADE
+        );
         ";
 
         $this->pdo->exec($schema);
+
+        try {
+            $stageCount = (int) $this->pdo->query('SELECT COUNT(*) FROM applicant_stages')->fetchColumn();
+            $hasNoStages = ($stageCount === 0);
+
+            if ($hasNoStages) {
+                $defaultStages = [
+                    ['applied', 'Applied', 0, '#64748b'],
+                    ['screening', 'Screening', 1, '#0284c7'],
+                    ['exam', 'Assessment / Exam', 2, '#8b5cf6'],
+                    ['interview', 'Interview', 3, '#f59e0b'],
+                    ['offered', 'Offer Extended', 4, '#10b981'],
+                    ['hired', 'Hired', 5, '#059669'],
+                    ['rejected', 'Archived / Rejected', 6, '#ef4444'],
+                ];
+
+                $insertStageStmt = $this->pdo->prepare('INSERT INTO applicant_stages (stage_key, stage_name, display_order, color_code) VALUES (?, ?, ?, ?)');
+
+                foreach ($defaultStages as $stage) {
+                    $insertStageStmt->execute($stage);
+                }
+            }
+        } catch (Throwable) {
+            // Table may already be populated or in migration
+        }
 
         try {
             $this->pdo->exec("ALTER TABLE form_submissions ADD COLUMN client_ip TEXT DEFAULT ''");

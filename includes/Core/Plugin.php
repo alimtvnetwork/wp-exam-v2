@@ -23,6 +23,7 @@ use WpExam\Api\JsonImportExportRestController;
 use WpExam\Api\ProjectHierarchyRestController;
 use WpExam\Api\AIInstructionRestController;
 use WpExam\Api\SystemBackupRestController;
+use WpExam\Api\ApplicantPipelineRestController;
 use WpExam\Database\SqliteDatabase;
 use WpExam\Logging\FileLogger;
 use WpExam\ErrorHandling\BootErrorCollector;
@@ -38,6 +39,7 @@ class Plugin {
     private ?ProjectHierarchyRestController $projectHierarchyController = null;
     private ?AIInstructionRestController $aiInstructionController = null;
     private ?SystemBackupRestController $systemBackupController = null;
+    private ?ApplicantPipelineRestController $applicantPipelineController = null;
 
     public static function getInstance(): self {
         if (self::$instance === null) {
@@ -66,6 +68,7 @@ class Plugin {
             $this->projectHierarchyController = new ProjectHierarchyRestController();
             $this->aiInstructionController = new AIInstructionRestController();
             $this->systemBackupController = new SystemBackupRestController();
+            $this->applicantPipelineController = new ApplicantPipelineRestController();
 
             add_action('rest_api_init', [$this->restController, 'registerRoutes']);
             add_action('rest_api_init', [$this->authController, 'registerRoutes']);
@@ -76,6 +79,7 @@ class Plugin {
             add_action('rest_api_init', [$this->projectHierarchyController, 'register_routes']);
             add_action('rest_api_init', [$this->aiInstructionController, 'register_routes']);
             add_action('rest_api_init', [$this->systemBackupController, 'register_routes']);
+            add_action('rest_api_init', [$this->applicantPipelineController, 'register_routes']);
             add_action('elementor/widgets/register', [$this, 'registerElementorWidgets']);
 
             if (is_admin()) {

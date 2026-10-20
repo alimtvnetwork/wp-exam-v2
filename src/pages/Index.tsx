@@ -12,6 +12,7 @@ import { ProjectHierarchyManager, ProjectItem } from '@/components/admin/project
 import { AIInstructionStudio } from '@/components/admin/ai-instruction-studio';
 import { BackupManager } from '@/components/admin/backup-manager';
 import { AnalyticsDashboard } from '@/components/admin/analytics-dashboard';
+import { ApplicantPipelineKanban } from '@/components/admin/applicant-pipeline-kanban';
 import { ThemeBuilder } from '@/components/theme-builder';
 import { GuidedTourManager, GuidedTourReplayButton } from '@/components/onboarding/guided-tour';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
@@ -353,6 +354,12 @@ export const Index: React.FC = () => {
                     }}
                     onClose={() => handleSelectTab('builder')}
                   />
+                </div>
+              )}
+
+              {previousTab === 'pipeline' && (
+                <div className="w-full">
+                  <ApplicantPipelineKanban />
                 </div>
               )}
 

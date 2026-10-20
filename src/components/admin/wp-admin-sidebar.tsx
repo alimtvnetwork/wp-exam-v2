@@ -19,6 +19,7 @@ import {
   Palette,
   ExternalLink,
   ChevronDown,
+  UserCheck,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import onboardingQuizLogo from '@/assets/onboarding-quiz-logo.svg';
@@ -29,6 +30,7 @@ export type AdminTab =
   | 'projects'
   | 'focus-runner'
   | 'runner'
+  | 'pipeline'
   | 'invites'
   | 'history'
   | 'analytics'
@@ -104,6 +106,14 @@ const NAV_SECTIONS: NavSection[] = [
         label: 'Live Form Runner',
         icon: PlayCircle,
         description: 'Direct interactive preview',
+      },
+      {
+        id: 'pipeline',
+        label: 'Applicant Pipeline',
+        icon: UserCheck,
+        badge: 'Kanban',
+        badgeVariant: 'amber',
+        description: 'Recruitment stage transitions',
       },
       {
         id: 'invites',
