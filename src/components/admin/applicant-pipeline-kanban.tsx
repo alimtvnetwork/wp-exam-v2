@@ -550,6 +550,16 @@ export const ApplicantPipelineKanban: React.FC = () => {
                                 Add Evaluation Note
                               </DropdownMenuItem>
                               <DropdownMenuItem
+                                onClick={() => {
+                                  const portalToken = candidate.candidate_email.split('@')[0] || 'demo';
+                                  window.open(`/portal/${portalToken}`, '_blank');
+                                }}
+                                className="text-xs gap-2"
+                              >
+                                <ExternalLink className="w-3.5 h-3.5" />
+                                View Candidate Portal
+                              </DropdownMenuItem>
+                              <DropdownMenuItem
                                 onClick={() => handleDeleteApplicant(candidate.id)}
                                 className="text-xs gap-2 text-destructive focus:text-destructive"
                               >

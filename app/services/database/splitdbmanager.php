@@ -187,6 +187,15 @@ class SplitDbManager
             CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
             FOREIGN KEY (ApplicantId) REFERENCES Applicant(ApplicantId) ON DELETE CASCADE
         );
+
+        CREATE TABLE IF NOT EXISTS PortalStepCompletion (
+            PortalStepCompletionId INTEGER PRIMARY KEY AUTOINCREMENT,
+            Token TEXT NOT NULL,
+            StepId TEXT NOT NULL,
+            StepDataJson TEXT DEFAULT '{}',
+            CompletedAt TEXT NOT NULL DEFAULT (datetime('now')),
+            UNIQUE(Token, StepId)
+        );
         ";
 
         return QueryWrapper::execute(

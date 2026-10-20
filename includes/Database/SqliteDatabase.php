@@ -333,6 +333,15 @@ class SqliteDatabase {
             created_at TEXT DEFAULT (datetime('now')),
             FOREIGN KEY (applicant_id) REFERENCES applicants(id) ON DELETE CASCADE
         );
+
+        CREATE TABLE IF NOT EXISTS portal_step_completions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            token TEXT NOT NULL,
+            step_id TEXT NOT NULL,
+            step_data_json TEXT DEFAULT '{}',
+            completed_at TEXT DEFAULT (datetime('now')),
+            UNIQUE(token, step_id)
+        );
         ";
 
         $this->pdo->exec($schema);
