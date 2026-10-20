@@ -553,8 +553,31 @@ class FormRestController extends WP_REST_Controller {
             'correct_answer'    => $correctAnswer,
         ];
 
-        WpDbQueryWrapper::execute($wpdb, function($db) use ($tableFields, $fieldData) {
-            return $db->insert($tableFields, $fieldData);
+        WpDbQueryWrapper::execute($wpdb, function($db) use ($tableFields, $fieldData, $options, $correctAnswer) {
+            $inserted = $db->insert($tableFields, $fieldData);
+            $insertedFieldId = ($inserted !== false) ? (int) $db->insert_id : 0;
+            $hasOptions = (!empty($insertedFieldId) && !empty($options) && is_array($options));
+
+            if ($hasOptions) {
+                foreach ($options as $optIndex => $opt) {
+                    $optLabel = is_array($opt) ? ($opt['label'] ?? '') : (string) $opt;
+                    $optKey = is_array($opt) ? ($opt['value'] ?? (string) $optIndex) : (string) $optIndex;
+                    $isCorrect = (trim(strtolower((string) $optLabel)) === trim(strtolower((string) $correctAnswer))) ? 1 : 0;
+
+                    try {
+                        Orm::forTable('form_options')->insert([
+                            'field_id'      => $insertedFieldId,
+                            'option_key'    => (string) $optKey,
+                            'option_label'  => (string) $optLabel,
+                            'display_order' => (int) $optIndex,
+                            'is_correct'    => $isCorrect,
+                        ]);
+                    } catch (\Throwable) {
+                    }
+                }
+            }
+
+            return $inserted;
         });
     }
 }

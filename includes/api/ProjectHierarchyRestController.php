@@ -260,7 +260,11 @@ class ProjectHierarchyRestController extends WP_REST_Controller {
 
         // Sync into project split SQLite database
         $projPdo = $db->getProjectDatabase($id);
-        if ($projPdo !== null && !empty($sections)) {
+        $hasProjPdo = ($projPdo !== null);
+        $hasSections = (!empty($sections));
+        $canSyncSections = ($hasProjPdo && $hasSections);
+
+        if ($canSyncSections) {
             try {
                 $projPdo->exec('DELETE FROM project_sections');
                 $stmt = $projPdo->prepare("

@@ -93,7 +93,11 @@ class JsonImportExportRestController extends WP_REST_Controller {
                 'settings_json' => json_encode($formData['settings'] ?? []),
             ]);
 
-            if ($newFormId > 0 && !empty($formData['fields']) && is_array($formData['fields'])) {
+            $hasNewFormId = ($newFormId > 0);
+            $hasFields = (!empty($formData['fields']) && is_array($formData['fields']));
+            $canInsertFields = ($hasNewFormId && $hasFields);
+
+            if ($canInsertFields) {
                 foreach ($formData['fields'] as $index => $field) {
                     Orm::forTable('form_fields')->insert([
                         'form_id'           => $newFormId,

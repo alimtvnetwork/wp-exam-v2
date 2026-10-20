@@ -128,6 +128,30 @@ class SplitDbManager
             PayloadJson TEXT NOT NULL,
             ExpiresAt TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS FormOption (
+            FormOptionId INTEGER PRIMARY KEY AUTOINCREMENT,
+            FormFieldId INTEGER NOT NULL,
+            OptionKey TEXT NOT NULL,
+            OptionLabel TEXT NOT NULL,
+            DisplayOrder INTEGER NOT NULL DEFAULT 0,
+            IsCorrect INTEGER NOT NULL DEFAULT 0,
+            BranchTargetSectionId INTEGER DEFAULT NULL,
+            FOREIGN KEY (FormFieldId) REFERENCES FormField(FormFieldId) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS FormSubmissionValue (
+            FormSubmissionValueId INTEGER PRIMARY KEY AUTOINCREMENT,
+            FormSubmissionId INTEGER NOT NULL,
+            FormFieldId INTEGER NOT NULL,
+            StringValue TEXT,
+            NumericValue REAL,
+            BooleanValue INTEGER,
+            JsonValue TEXT,
+            CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (FormSubmissionId) REFERENCES FormSubmission(FormSubmissionId) ON DELETE CASCADE,
+            FOREIGN KEY (FormFieldId) REFERENCES FormField(FormFieldId) ON DELETE CASCADE
+        );
         ";
 
         return QueryWrapper::execute(
@@ -139,4 +163,3 @@ class SplitDbManager
         );
     }
 }
-

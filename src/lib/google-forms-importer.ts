@@ -467,14 +467,19 @@ function generateHeuristicQuestions(html: string): FormField[] {
 
   for (const match of questionMatches) {
     const label = match[1].trim();
-    if (label && !label.includes('Google Forms') && !label.includes('Sign in')) {
-      fields.push({
-        id: `field-${Date.now()}-${Math.random().toString(36).substring(7)}`,
-        type: 'short_answer',
-        label,
-        isRequired: true,
-        points: 10,
-      });
+    const hasLabel = label.length > 0;
+    const isExcluded = label.includes('Google Forms') || label.includes('Sign in');
+
+    if (hasLabel) {
+      if (!isExcluded) {
+        fields.push({
+          id: `field-${Date.now()}-${Math.random().toString(36).substring(7)}`,
+          type: 'short_answer',
+          label,
+          isRequired: true,
+          points: 10,
+        });
+      }
     }
   }
 

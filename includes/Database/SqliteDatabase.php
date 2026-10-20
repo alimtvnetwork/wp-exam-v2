@@ -200,6 +200,18 @@ class SqliteDatabase {
             FOREIGN KEY (form_id) REFERENCES forms(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS form_options (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            field_id INTEGER NOT NULL,
+            option_key TEXT NOT NULL,
+            option_label TEXT NOT NULL,
+            display_order INTEGER NOT NULL DEFAULT 0,
+            is_correct INTEGER NOT NULL DEFAULT 0,
+            branch_target_section_id INTEGER DEFAULT NULL,
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (field_id) REFERENCES form_fields(id) ON DELETE CASCADE
+        );
+
         CREATE TABLE IF NOT EXISTS form_submissions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             form_id INTEGER NOT NULL,
