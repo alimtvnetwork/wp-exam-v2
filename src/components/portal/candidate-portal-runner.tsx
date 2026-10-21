@@ -15,7 +15,8 @@ import {
   ExternalLink,
   Sparkles,
   Download,
-  AlertCircle
+  AlertCircle,
+  Lock,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -73,8 +74,7 @@ const DEFAULT_SESSION: PortalSession = {
       description: 'Confirm your applicant identity and contact details.',
       step_number: 1,
       is_required: true,
-      is_completed: true,
-      completed_at: '2026-10-20 10:00:00',
+      is_completed: false,
     },
     {
       id: 'step_nda',
@@ -109,9 +109,9 @@ const DEFAULT_SESSION: PortalSession = {
       is_completed: false,
     },
   ],
-  completed_step_count: 1,
+  completed_step_count: 0,
   total_step_count: 5,
-  completion_percentage: 20,
+  completion_percentage: 0,
   is_fully_verified: false,
 };
 
@@ -294,6 +294,72 @@ Completed Milestones:
   const candidateEmail = session?.candidate?.candidate_email || (session?.candidate as any)?.email || 'candidate@example.com';
   const candidateInitial = (candidateName.trim().charAt(0) || 'C').toUpperCase();
 
+  const firstUncompletedIndex = session.steps.findIndex((s) => !s.is_completed);
+  const activeUncompletedIndex = (firstUncompletedIndex === -1) ? session.steps.length : firstUncompletedIndex;
+
+  const isStepAccessible = (stepNumber: number, isDone: boolean): boolean => {
+    if (isDone) {
+      return true;
+    }
+
+    const stepIndex = stepNumber - 1;
+    const isAvailable = (stepIndex <= activeUncompletedIndex);
+
+    return isAvailable;
+  };
+
+  // Step 1 satisfaction
+  const isStep1Done = Boolean(session.steps.find((s) => s.id === 'step_welcome')?.is_completed);
+  const isStep1Satisfied = confirmProfileChecked || isStep1Done;
+
+  // Step 2 satisfaction
+  const isStep2Done = Boolean(session.steps.find((s) => s.id === 'step_nda')?.is_completed);
+  const isStep2Satisfied = (ndaAgreed && ndaSignName.trim().length >= 2) || isStep2Done;
+
+  // Step 3 satisfaction
+  const isStep3Done = Boolean(session.steps.find((s) => s.id === 'step_assessment')?.is_completed);
+  const isStep3Satisfied = Boolean((q1Answer && q2Answer && q3Answer) || isStep3Done);
+
+  // Step 4 satisfaction
+  const isStep4Done = Boolean(session.steps.find((s) => s.id === 'step_submission')?.is_completed);
+  const isStep4Satisfied = (videoUrl.trim().length > 0) || isStep4Done;
+
+  const handleStep1Submit = () => {
+    if (!isStep1Satisfied) {
+      toast.error('Please verify and confirm your contact details before proceeding.');
+      return;
+    }
+
+    handleCompleteStep('step_welcome', { phone: confirmPhone });
+  };
+
+  const handleStep2Submit = () => {
+    if (!isStep2Satisfied) {
+      toast.error('Please sign your digital signature and accept the agreement.');
+      return;
+    }
+
+    handleCompleteStep('step_nda', { signature: ndaSignName, signed_at: new Date().toISOString() });
+  };
+
+  const handleStep3Submit = () => {
+    if (!isStep3Satisfied) {
+      toast.error('Please answer all 3 assessment questions before proceeding.');
+      return;
+    }
+
+    handleCompleteStep('step_assessment', { q1: q1Answer, q2: q2Answer, q3: q3Answer, score: 100 });
+  };
+
+  const handleStep4Submit = () => {
+    if (!isStep4Satisfied) {
+      toast.error('Please provide an introductory video recording link.');
+      return;
+    }
+
+    handleCompleteStep('step_submission', { video_url: videoUrl, portfolio_url: portfolioUrl, notes: submissionNotes });
+  };
+
   return (
     <div className="min-h-screen bg-background text-foreground py-8 px-4 sm:px-6 lg:px-8">
       <div className="max-w-4xl mx-auto space-y-6">
@@ -356,20 +422,32 @@ Completed Milestones:
         {/* Milestone Steps Bar */}
         <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
           {session.steps.map((step) => {
-            const isActive = activeStepId === step.id;
+            const isActive = (activeStepId === step.id);
             const isDone = step.is_completed;
+            const isAccessible = isStepAccessible(step.step_number, isDone);
+            const isLocked = !isAccessible;
 
             return (
               <button
                 key={step.id}
                 type="button"
-                onClick={() => setActiveStepId(step.id)}
-                className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all cursor-pointer ${
+                disabled={isLocked}
+                onClick={() => {
+                  if (isAccessible) {
+                    setActiveStepId(step.id);
+                    return;
+                  }
+
+                  toast.warning(`Please complete previous steps before advancing to Step ${step.step_number}.`);
+                }}
+                className={`flex flex-col items-start p-3 rounded-xl border text-left transition-all ${
                   isActive
-                    ? 'border-primary bg-primary/10 shadow-xs'
+                    ? 'border-primary bg-primary/10 shadow-xs ring-1 ring-primary/40'
                     : isDone
-                    ? 'border-border/60 bg-card hover:bg-muted/40'
-                    : 'border-border/40 bg-card/50 opacity-75 hover:opacity-100'
+                    ? 'border-emerald-500/40 bg-card hover:bg-muted/40 cursor-pointer'
+                    : isAccessible
+                    ? 'border-border/60 bg-card hover:bg-muted/40 cursor-pointer'
+                    : 'border-border/30 bg-muted/20 opacity-40 cursor-not-allowed'
                 }`}
               >
                 <div className="flex items-center justify-between w-full mb-1">
@@ -378,12 +456,15 @@ Completed Milestones:
                   </span>
                   {isDone ? (
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  ) : isLocked ? (
+                    <Lock className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
                   ) : (
-                    <Clock className="w-3.5 h-3.5 text-muted-foreground/60 shrink-0" />
+                    <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
                   )}
                 </div>
-                <div className="text-xs font-semibold text-foreground truncate w-full">
-                  {step.title.split('&')[0]}
+                <div className="text-xs font-semibold text-foreground truncate w-full flex items-center justify-between">
+                  <span>{step.title.split('&')[0]}</span>
+                  {isLocked && <span className="text-[9px] text-muted-foreground font-normal ml-1">Locked</span>}
                 </div>
               </button>
             );
@@ -439,13 +520,25 @@ Completed Milestones:
                   </label>
                 </div>
 
-                <div className="flex justify-end pt-2">
+                <div className="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-3 pt-3 border-t border-border/40">
+                  {!isStep1Satisfied ? (
+                    <div className="text-xs text-amber-500 flex items-center gap-1.5 font-medium">
+                      <AlertCircle className="w-3.5 h-3.5" />
+                      <span>Please confirm your contact details to proceed.</span>
+                    </div>
+                  ) : (
+                    <div className="text-xs text-emerald-500 flex items-center gap-1.5 font-medium">
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>Contact details confirmed.</span>
+                    </div>
+                  )}
+
                   <Button
-                    onClick={() => handleCompleteStep('step_welcome', { phone: confirmPhone })}
-                    disabled={!confirmProfileChecked}
-                    className="gap-2 bg-primary text-primary-foreground font-semibold"
+                    onClick={handleStep1Submit}
+                    disabled={!isStep1Satisfied}
+                    className="gap-2 bg-primary text-primary-foreground font-semibold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
                   >
-                    <span>Confirm Profile & Proceed</span>
+                    <span>{isStep1Done ? 'Save & Next Step' : 'Confirm Profile & Proceed'}</span>
                     <ArrowRight className="w-4 h-4" />
                   </Button>
                 </div>
@@ -507,15 +600,38 @@ Completed Milestones:
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-2">
+                <div className="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-3 pt-3 border-t border-border/40">
                   <Button
-                    onClick={() => handleCompleteStep('step_nda', { signature: ndaSignName, signed_at: new Date().toISOString() })}
-                    disabled={!ndaAgreed || ndaSignName.trim().length === 0}
-                    className="gap-2 bg-primary text-primary-foreground font-semibold"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setActiveStepId('step_welcome')}
+                    className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
                   >
-                    <span>Sign Agreement & Proceed</span>
-                    <ArrowRight className="w-4 h-4" />
+                    &larr; Previous Step
                   </Button>
+
+                  <div className="flex items-center gap-3">
+                    {!isStep2Satisfied ? (
+                      <div className="text-xs text-amber-500 flex items-center gap-1.5 font-medium">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>Digital signature & agreement required.</span>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-emerald-500 flex items-center gap-1.5 font-medium">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Agreement signed.</span>
+                      </div>
+                    )}
+
+                    <Button
+                      onClick={handleStep2Submit}
+                      disabled={!isStep2Satisfied}
+                      className="gap-2 bg-primary text-primary-foreground font-semibold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      <span>{isStep2Done ? 'Update & Next Step' : 'Sign Agreement & Proceed'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </>
@@ -616,15 +732,38 @@ Completed Milestones:
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-2">
+                <div className="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-3 pt-3 border-t border-border/40">
                   <Button
-                    onClick={() => handleCompleteStep('step_assessment', { q1: q1Answer, q2: q2Answer, q3: q3Answer, score: 100 })}
-                    disabled={!q1Answer || !q2Answer || !q3Answer}
-                    className="gap-2 bg-primary text-primary-foreground font-semibold"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setActiveStepId('step_nda')}
+                    className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
                   >
-                    <span>Submit Assessment & Proceed</span>
-                    <ArrowRight className="w-4 h-4" />
+                    &larr; Previous Step
                   </Button>
+
+                  <div className="flex items-center gap-3">
+                    {!isStep3Satisfied ? (
+                      <div className="text-xs text-amber-500 flex items-center gap-1.5 font-medium">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>Please answer all 3 questions to proceed.</span>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-emerald-500 flex items-center gap-1.5 font-medium">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>All questions answered.</span>
+                      </div>
+                    )}
+
+                    <Button
+                      onClick={handleStep3Submit}
+                      disabled={!isStep3Satisfied}
+                      className="gap-2 bg-primary text-primary-foreground font-semibold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      <span>{isStep3Done ? 'Update & Next Step' : 'Submit Assessment & Proceed'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </>
@@ -682,15 +821,38 @@ Completed Milestones:
                   </div>
                 </div>
 
-                <div className="flex justify-end pt-2">
+                <div className="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-3 pt-3 border-t border-border/40">
                   <Button
-                    onClick={() => handleCompleteStep('step_submission', { video_url: videoUrl, portfolio_url: portfolioUrl, notes: submissionNotes })}
-                    disabled={videoUrl.trim().length === 0}
-                    className="gap-2 bg-primary text-primary-foreground font-semibold"
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setActiveStepId('step_assessment')}
+                    className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
                   >
-                    <span>Save Submission & Proceed</span>
-                    <ArrowRight className="w-4 h-4" />
+                    &larr; Previous Step
                   </Button>
+
+                  <div className="flex items-center gap-3">
+                    {!isStep4Satisfied ? (
+                      <div className="text-xs text-amber-500 flex items-center gap-1.5 font-medium">
+                        <AlertCircle className="w-3.5 h-3.5" />
+                        <span>Introductory video link required.</span>
+                      </div>
+                    ) : (
+                      <div className="text-xs text-emerald-500 flex items-center gap-1.5 font-medium">
+                        <CheckCircle2 className="w-3.5 h-3.5" />
+                        <span>Submission ready.</span>
+                      </div>
+                    )}
+
+                    <Button
+                      onClick={handleStep4Submit}
+                      disabled={!isStep4Satisfied}
+                      className="gap-2 bg-primary text-primary-foreground font-semibold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                    >
+                      <span>{isStep4Done ? 'Update & Next Step' : 'Save Submission & Proceed'}</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </>
@@ -727,26 +889,42 @@ Completed Milestones:
                   {session.steps.map((stg) => (
                     <div key={stg.id} className="p-3 rounded-xl bg-muted/30 border border-border/40 flex items-center justify-between text-xs">
                       <span className="font-medium text-foreground">{stg.title}</span>
-                      <Badge variant="secondary" className="text-[10px] bg-emerald-500/10 text-emerald-500 font-bold">
-                        Verified
+                      <Badge
+                        variant="secondary"
+                        className={`text-[10px] font-bold ${
+                          stg.is_completed ? 'bg-emerald-500/10 text-emerald-500' : 'bg-amber-500/10 text-amber-500'
+                        }`}
+                      >
+                        {stg.is_completed ? 'Verified' : 'Pending'}
                       </Badge>
                     </div>
                   ))}
                 </div>
 
                 <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-border/40">
-                  <Button variant="outline" onClick={handleDownloadReceipt} className="gap-2">
-                    <Download className="w-4 h-4" />
-                    Download Verification Receipt
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setActiveStepId('step_submission')}
+                    className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                  >
+                    &larr; Previous Step
                   </Button>
 
-                  <Button
-                    onClick={() => handleCompleteStep('step_complete')}
-                    className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    Finalize & Submit Packet
-                  </Button>
+                  <div className="flex items-center gap-3">
+                    <Button variant="outline" onClick={handleDownloadReceipt} className="gap-2 cursor-pointer">
+                      <Download className="w-4 h-4" />
+                      Download Verification Receipt
+                    </Button>
+
+                    <Button
+                      onClick={() => handleCompleteStep('step_complete')}
+                      className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold cursor-pointer"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      Finalize & Submit Packet
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </>
