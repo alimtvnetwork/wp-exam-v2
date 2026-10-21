@@ -420,4 +420,63 @@ class ApplicantController
             ],
         ];
     }
+
+    /**
+     * GET /api/v1/applicants/settings
+     */
+    public function getSettings(array $params = [], array $body = []): array
+    {
+        $gatingMode = 'admin_approval';
+
+        try {
+            $db = SqliteDatabase::getInstance();
+            $db->init();
+            $gatingMode = $db->getSetting('assessment_gating_mode', 'admin_approval');
+        } catch (Throwable) {
+            // Default fallback
+        }
+
+        return [
+            'status' => 'success',
+            'is_success' => true,
+            'data' => [
+                'assessment_gating_mode' => $gatingMode,
+            ],
+        ];
+    }
+
+    /**
+     * POST /api/v1/applicants/settings
+     */
+    public function updateSettings(array $params = [], array $body = []): array
+    {
+        $rawMode = trim((string) ($body['assessment_gating_mode'] ?? ''));
+
+        $isValid = in_array($rawMode, ['admin_approval', 'instant_self_service'], true);
+
+        if (!$isValid) {
+            return [
+                'status' => 'error',
+                'is_success' => false,
+                'message' => 'Invalid assessment_gating_mode. Must be "admin_approval" or "instant_self_service"',
+            ];
+        }
+
+        try {
+            $db = SqliteDatabase::getInstance();
+            $db->init();
+            $db->setSetting('assessment_gating_mode', $rawMode);
+        } catch (Throwable) {
+            // Non-blocking
+        }
+
+        return [
+            'status' => 'success',
+            'is_success' => true,
+            'data' => [
+                'assessment_gating_mode' => $rawMode,
+                'message' => 'Pipeline assessment gating configuration updated successfully',
+            ],
+        ];
+    }
 }

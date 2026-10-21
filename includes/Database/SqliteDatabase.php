@@ -377,6 +377,12 @@ class SqliteDatabase {
             expires_at TEXT DEFAULT (datetime('now', '+7 days')),
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
+
+        CREATE TABLE IF NOT EXISTS system_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at TEXT DEFAULT (datetime('now'))
+        );
         ";
 
         $this->pdo->exec($schema);
@@ -435,6 +441,55 @@ class SqliteDatabase {
             $this->pdo->exec("ALTER TABLE projects ADD COLUMN parent_project_id TEXT DEFAULT ''");
         } catch (Throwable) {
             // Column may already exist
+        }
+
+        try {
+            $settingCount = (int) $this->pdo->query("SELECT COUNT(*) FROM system_settings WHERE key = 'assessment_gating_mode'")->fetchColumn();
+            $hasNoGatingSetting = ($settingCount === 0);
+
+            if ($hasNoGatingSetting) {
+                $this->pdo->exec("INSERT OR IGNORE INTO system_settings (key, value) VALUES ('assessment_gating_mode', 'admin_approval')");
+            }
+        } catch (Throwable) {
+            // Already initialized or migration pending
+        }
+    }
+
+    public function getSetting(string $key, string $default = ''): string {
+        if ($this->pdo === null) {
+            $this->init();
+        }
+
+        if ($this->pdo === null) {
+            return $default;
+        }
+
+        try {
+            $stmt = $this->pdo->prepare('SELECT value FROM system_settings WHERE key = ? LIMIT 1');
+            $stmt->execute([$key]);
+            $val = $stmt->fetchColumn();
+
+            return ($val !== false && $val !== null) ? (string) $val : $default;
+        } catch (Throwable) {
+            return $default;
+        }
+    }
+
+    public function setSetting(string $key, string $value): bool {
+        if ($this->pdo === null) {
+            $this->init();
+        }
+
+        if ($this->pdo === null) {
+            return false;
+        }
+
+        try {
+            $stmt = $this->pdo->prepare('INSERT OR REPLACE INTO system_settings (key, value, updated_at) VALUES (?, ?, datetime(\'now\'))');
+
+            return $stmt->execute([$key, $value]);
+        } catch (Throwable) {
+            return false;
         }
     }
 

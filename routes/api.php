@@ -65,6 +65,10 @@ Route::post('/api/v1/forms/{slug}/submit', [FormController::class, 'submit']);
 // Applicant Recruitment Pipeline & Kanban
 Route::get('/api/v1/applicants', [ApplicantController::class, 'index']);
 Route::get('/api/v1/applicants/stages', [ApplicantController::class, 'stages']);
+Route::get('/api/v1/applicants/settings', [ApplicantController::class, 'getSettings']);
+Route::post('/api/v1/applicants/settings', [ApplicantController::class, 'updateSettings']);
+Route::get('/api/v1/pipeline/settings', [ApplicantController::class, 'getSettings']);
+Route::post('/api/v1/pipeline/settings', [ApplicantController::class, 'updateSettings']);
 Route::post('/api/v1/applicants', [ApplicantController::class, 'store']);
 Route::post('/api/v1/applicants/stage-transition', [ApplicantController::class, 'transitionStage']);
 Route::post('/api/v1/applicants/feedback', [ApplicantController::class, 'updateFeedback']);

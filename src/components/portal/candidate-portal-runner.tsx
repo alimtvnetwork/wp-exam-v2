@@ -17,6 +17,8 @@ import {
   Download,
   AlertCircle,
   Lock,
+  Unlock,
+  RefreshCw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -55,10 +57,14 @@ interface PortalSession {
   total_step_count: number;
   completion_percentage: number;
   is_fully_verified: boolean;
+  assessment_gating_mode?: 'admin_approval' | 'instant_self_service';
+  is_assessment_approved?: boolean;
 }
 
 const DEFAULT_SESSION: PortalSession = {
   token: 'demo-token',
+  assessment_gating_mode: 'admin_approval',
+  is_assessment_approved: false,
   candidate: {
     id: 1,
     candidate_name: 'Alex Morgan',
@@ -176,6 +182,8 @@ export const CandidatePortalRunner: React.FC = () => {
             total_step_count: sessionData.total_step_count ?? sessionData.total_steps_count ?? 5,
             completion_percentage: sessionData.completion_percentage ?? sessionData.progress_percentage ?? 0,
             is_fully_verified: Boolean(sessionData.is_fully_verified),
+            assessment_gating_mode: sessionData.assessment_gating_mode || 'admin_approval',
+            is_assessment_approved: Boolean(sessionData.is_assessment_approved),
           };
 
           setSession(normalizedSession);
@@ -297,16 +305,13 @@ Completed Milestones:
   const firstUncompletedIndex = session.steps.findIndex((s) => !s.is_completed);
   const activeUncompletedIndex = (firstUncompletedIndex === -1) ? session.steps.length : firstUncompletedIndex;
 
-  const isStepAccessible = (stepNumber: number, isDone: boolean): boolean => {
-    if (isDone) {
-      return true;
-    }
-
-    const stepIndex = stepNumber - 1;
-    const isAvailable = (stepIndex <= activeUncompletedIndex);
-
-    return isAvailable;
-  };
+  const gatingMode = session.assessment_gating_mode || 'admin_approval';
+  const stageKey = session.candidate?.current_stage_key || '';
+  const isApprovedByAdmin = Boolean(
+    session.is_assessment_approved ||
+    ['assessment', 'exam', 'interview', 'offered', 'hired'].includes(stageKey)
+  );
+  const isAssessmentGated = (gatingMode === 'admin_approval' && !isApprovedByAdmin);
 
   // Step 1 satisfaction
   const isStep1Done = Boolean(session.steps.find((s) => s.id === 'step_welcome')?.is_completed);
@@ -315,6 +320,28 @@ Completed Milestones:
   // Step 2 satisfaction
   const isStep2Done = Boolean(session.steps.find((s) => s.id === 'step_nda')?.is_completed);
   const isStep2Satisfied = (ndaAgreed && ndaSignName.trim().length >= 2) || isStep2Done;
+
+  const isStepAccessible = (stepNumber: number, isDone: boolean): boolean => {
+    if (isDone) {
+      return true;
+    }
+
+    const stepIndex = stepNumber - 1;
+    const isAvailable = (stepIndex <= activeUncompletedIndex);
+
+    // If candidate has completed Step 1 and Step 2, they can always view Step 3
+    // (even if gated by admin, so they can see the pending status and check approval)
+    if (stepNumber === 3) {
+      return isStep1Done && isStep2Done;
+    }
+
+    // Steps 4 and 5 require Step 3 to be completed (which requires approval)
+    if (stepNumber > 3 && isAssessmentGated) {
+      return false;
+    }
+
+    return isAvailable;
+  };
 
   // Step 3 satisfaction
   const isStep3Done = Boolean(session.steps.find((s) => s.id === 'step_assessment')?.is_completed);
@@ -340,6 +367,10 @@ Completed Milestones:
     }
 
     handleCompleteStep('step_nda', { signature: ndaSignName, signed_at: new Date().toISOString() });
+
+    if (isAssessmentGated) {
+      toast.info('Profile verification submitted. Awaiting administrative review before assessment unlocks.');
+    }
   };
 
   const handleStep3Submit = () => {
@@ -456,6 +487,8 @@ Completed Milestones:
                   </span>
                   {isDone ? (
                     <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                  ) : (step.id === 'step_assessment' && isAssessmentGated) ? (
+                    <Clock className="w-3.5 h-3.5 text-amber-500 shrink-0" />
                   ) : isLocked ? (
                     <Lock className="w-3.5 h-3.5 text-muted-foreground/50 shrink-0" />
                   ) : (
@@ -464,7 +497,11 @@ Completed Milestones:
                 </div>
                 <div className="text-xs font-semibold text-foreground truncate w-full flex items-center justify-between">
                   <span>{step.title.split('&')[0]}</span>
-                  {isLocked && <span className="text-[9px] text-muted-foreground font-normal ml-1">Locked</span>}
+                  {isLocked ? (
+                    <span className="text-[9px] text-muted-foreground font-normal ml-1">Locked</span>
+                  ) : (step.id === 'step_assessment' && isAssessmentGated) ? (
+                    <span className="text-[9px] text-amber-500 font-medium ml-1">Under Review</span>
+                  ) : null}
                 </div>
               </button>
             );
@@ -639,134 +676,217 @@ Completed Milestones:
 
           {/* Step 3: Technical Skills Assessment */}
           {activeStepId === 'step_assessment' && (
-            <>
-              <CardHeader className="p-6 pb-4">
-                <div className="flex items-center gap-2">
-                  <Badge variant="outline" className="border-primary/40 text-primary">
-                    Step 3 of 5
-                  </Badge>
-                  <CardTitle className="text-xl">Technical Knowledge & Skills Verification</CardTitle>
-                </div>
-                <p className="text-sm text-muted-foreground">
-                  Answer the baseline engineering questions below to verify core competency.
-                </p>
-              </CardHeader>
-              <CardContent className="p-6 pt-0 space-y-6">
-                <div className="space-y-4">
-                  {/* Question 1 */}
-                  <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-2">
-                    <label className="text-xs font-bold text-foreground">
-                      Q1: How should positive booleans be evaluated in strict coding guidelines?
-                    </label>
-                    <div className="space-y-1.5 pt-1">
-                      {[
-                        'Explicit check: if (isReady == true)',
-                        'Implicit check: if (isReady)',
-                        'Triple equals check: if (isReady === true)',
-                      ].map((opt) => (
-                        <label key={opt} className="flex items-center gap-2 text-xs text-foreground cursor-pointer p-2 rounded-lg hover:bg-muted/50">
-                          <input
-                            type="radio"
-                            name="q1"
-                            value={opt}
-                            checked={q1Answer === opt}
-                            onChange={(e) => setQ1Answer(e.target.value)}
-                            className="cursor-pointer"
-                          />
-                          <span>{opt}</span>
-                        </label>
-                      ))}
-                    </div>
+            isAssessmentGated ? (
+              <>
+                <CardHeader className="p-6 pb-4">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="border-amber-500/40 text-amber-600 dark:text-amber-400 font-mono">
+                      Step 3 of 5 &bull; Pending Recruiter Review
+                    </Badge>
+                    <CardTitle className="text-xl">Profile Verification Submitted & Awaiting Approval</CardTitle>
                   </div>
-
-                  {/* Question 2 */}
-                  <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-2">
-                    <label className="text-xs font-bold text-foreground">
-                      Q2: Which architectural pattern is utilized for SQLite sharding in WP Exam?
-                    </label>
-                    <div className="space-y-1.5 pt-1">
-                      {[
-                        'Monolithic central MySQL database',
-                        'SQLite Split-DB architecture (Main + Project shards)',
-                        'External cloud-only Redis cache',
-                      ].map((opt) => (
-                        <label key={opt} className="flex items-center gap-2 text-xs text-foreground cursor-pointer p-2 rounded-lg hover:bg-muted/50">
-                          <input
-                            type="radio"
-                            name="q2"
-                            value={opt}
-                            checked={q2Answer === opt}
-                            onChange={(e) => setQ2Answer(e.target.value)}
-                            className="cursor-pointer"
-                          />
-                          <span>{opt}</span>
-                        </label>
-                      ))}
+                  <p className="text-sm text-muted-foreground">
+                    Your profile verification and signed NDA have been received. Recruiter approval is required before technical assignments unlock.
+                  </p>
+                </CardHeader>
+                <CardContent className="p-6 pt-0 space-y-6">
+                  <div className="p-8 rounded-2xl bg-amber-500/5 border border-amber-500/20 text-center space-y-4">
+                    <div className="w-14 h-14 mx-auto rounded-2xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 shadow-xs">
+                      <Clock className="w-7 h-7 animate-pulse" />
                     </div>
-                  </div>
 
-                  {/* Question 3 */}
-                  <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-2">
-                    <label className="text-xs font-bold text-foreground">
-                      Q3: In Riseup theme design tokens, what is the role of Gold (#E8C547)?
-                    </label>
-                    <div className="space-y-1.5 pt-1">
-                      {[
-                        'Dominant background surface fill',
-                        'Strictly an active indicator mark, never dominant surface or text',
-                        'All general body paragraph typography',
-                      ].map((opt) => (
-                        <label key={opt} className="flex items-center gap-2 text-xs text-foreground cursor-pointer p-2 rounded-lg hover:bg-muted/50">
-                          <input
-                            type="radio"
-                            name="q3"
-                            value={opt}
-                            checked={q3Answer === opt}
-                            onChange={(e) => setQ3Answer(e.target.value)}
-                            className="cursor-pointer"
-                          />
-                          <span>{opt}</span>
-                        </label>
-                      ))}
+                    <div className="max-w-md mx-auto space-y-1.5">
+                      <h3 className="text-base font-bold text-foreground">
+                        Profile Under Review by Recruiting Team
+                      </h3>
+                      <p className="text-xs text-muted-foreground leading-relaxed">
+                        Under our <strong className="text-foreground">Admin Approval Gate</strong> policy, candidate profiles are reviewed by the recruiting team in the Applicant Pipeline before technical assignments and timed evaluations are unlocked.
+                      </p>
                     </div>
-                  </div>
-                </div>
 
-                <div className="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-3 pt-3 border-t border-border/40">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setActiveStepId('step_nda')}
-                    className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
-                  >
-                    &larr; Previous Step
-                  </Button>
-
-                  <div className="flex items-center gap-3">
-                    {!isStep3Satisfied ? (
-                      <div className="text-xs text-amber-500 flex items-center gap-1.5 font-medium">
-                        <AlertCircle className="w-3.5 h-3.5" />
-                        <span>Please answer all 3 questions to proceed.</span>
+                    <div className="p-3.5 rounded-xl bg-card border border-border/50 max-w-sm mx-auto text-left text-xs space-y-2 shadow-2xs">
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span>Candidate:</span>
+                        <span className="font-semibold text-foreground">{candidateName}</span>
                       </div>
-                    ) : (
-                      <div className="text-xs text-emerald-500 flex items-center gap-1.5 font-medium">
-                        <CheckCircle2 className="w-3.5 h-3.5" />
-                        <span>All questions answered.</span>
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span>Pipeline Stage:</span>
+                        <Badge variant="secondary" className="text-[10px] uppercase font-mono tracking-wider">
+                          {stageKey || 'Screening'}
+                        </Badge>
                       </div>
-                    )}
+                      <div className="flex items-center justify-between text-muted-foreground">
+                        <span>Assignment Access:</span>
+                        <span className="font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
+                          <Lock className="w-3 h-3" />
+                          Locked (Awaiting Recruiter Approval)
+                        </span>
+                      </div>
+                    </div>
 
+                    <div className="pt-2 flex flex-wrap items-center justify-center gap-3">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setActiveStepId('step_nda')}
+                        className="text-xs cursor-pointer"
+                      >
+                        &larr; View Signed NDA
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          fetchSession();
+                          toast.info('Checking for administrative approval in pipeline...');
+                        }}
+                        className="gap-2 bg-primary text-primary-foreground font-semibold shadow-xs cursor-pointer"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5" />
+                        <span>Check Approval Status</span>
+                      </Button>
+                    </div>
+                  </div>
+                </CardContent>
+              </>
+            ) : (
+              <>
+                <CardHeader className="p-6 pb-4">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="border-primary/40 text-primary">
+                      Step 3 of 5
+                    </Badge>
+                    <CardTitle className="text-xl">Technical Knowledge & Skills Verification</CardTitle>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Answer the baseline engineering questions below to verify core competency.
+                  </p>
+                </CardHeader>
+                <CardContent className="p-6 pt-0 space-y-6">
+                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center gap-2.5 text-xs text-emerald-600 dark:text-emerald-400">
+                    <CheckCircle2 className="w-4 h-4 shrink-0" />
+                    <span>
+                      {gatingMode === 'admin_approval'
+                        ? 'Profile approved by recruitment team. Technical assessment module unlocked.'
+                        : 'Instant Self-Service: Identity verified. Technical assessment module unlocked.'}
+                    </span>
+                  </div>
+
+                  <div className="space-y-4">
+                    {/* Question 1 */}
+                    <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-2">
+                      <label className="text-xs font-bold text-foreground">
+                        Q1: How should positive booleans be evaluated in strict coding guidelines?
+                      </label>
+                      <div className="space-y-1.5 pt-1">
+                        {[
+                          'Explicit check: if (isReady == true)',
+                          'Implicit check: if (isReady)',
+                          'Triple equals check: if (isReady === true)',
+                        ].map((opt) => (
+                          <label key={opt} className="flex items-center gap-2 text-xs text-foreground cursor-pointer p-2 rounded-lg hover:bg-muted/50">
+                            <input
+                              type="radio"
+                              name="q1"
+                              value={opt}
+                              checked={q1Answer === opt}
+                              onChange={(e) => setQ1Answer(e.target.value)}
+                              className="cursor-pointer"
+                            />
+                            <span>{opt}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Question 2 */}
+                    <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-2">
+                      <label className="text-xs font-bold text-foreground">
+                        Q2: Which architectural pattern is utilized for SQLite sharding in WP Exam?
+                      </label>
+                      <div className="space-y-1.5 pt-1">
+                        {[
+                          'Monolithic central MySQL database',
+                          'SQLite Split-DB architecture (Main + Project shards)',
+                          'External cloud-only Redis cache',
+                        ].map((opt) => (
+                          <label key={opt} className="flex items-center gap-2 text-xs text-foreground cursor-pointer p-2 rounded-lg hover:bg-muted/50">
+                            <input
+                              type="radio"
+                              name="q2"
+                              value={opt}
+                              checked={q2Answer === opt}
+                              onChange={(e) => setQ2Answer(e.target.value)}
+                              className="cursor-pointer"
+                            />
+                            <span>{opt}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Question 3 */}
+                    <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-2">
+                      <label className="text-xs font-bold text-foreground">
+                        Q3: In Riseup theme design tokens, what is the role of Gold (#E8C547)?
+                      </label>
+                      <div className="space-y-1.5 pt-1">
+                        {[
+                          'Dominant background surface fill',
+                          'Strictly an active indicator mark, never dominant surface or text',
+                          'All general body paragraph typography',
+                        ].map((opt) => (
+                          <label key={opt} className="flex items-center gap-2 text-xs text-foreground cursor-pointer p-2 rounded-lg hover:bg-muted/50">
+                            <input
+                              type="radio"
+                              name="q3"
+                              value={opt}
+                              checked={q3Answer === opt}
+                              onChange={(e) => setQ3Answer(e.target.value)}
+                              className="cursor-pointer"
+                            />
+                            <span>{opt}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-3 pt-3 border-t border-border/40">
                     <Button
-                      onClick={handleStep3Submit}
-                      disabled={!isStep3Satisfied}
-                      className="gap-2 bg-primary text-primary-foreground font-semibold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setActiveStepId('step_nda')}
+                      className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
                     >
-                      <span>{isStep3Done ? 'Update & Next Step' : 'Submit Assessment & Proceed'}</span>
-                      <ArrowRight className="w-4 h-4" />
+                      &larr; Previous Step
                     </Button>
+
+                    <div className="flex items-center gap-3">
+                      {!isStep3Satisfied ? (
+                        <div className="text-xs text-amber-500 flex items-center gap-1.5 font-medium">
+                          <AlertCircle className="w-3.5 h-3.5" />
+                          <span>Please answer all 3 questions to proceed.</span>
+                        </div>
+                      ) : (
+                        <div className="text-xs text-emerald-500 flex items-center gap-1.5 font-medium">
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>All questions answered.</span>
+                        </div>
+                      )}
+
+                      <Button
+                        onClick={handleStep3Submit}
+                        disabled={!isStep3Satisfied}
+                        className="gap-2 bg-primary text-primary-foreground font-semibold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                      >
+                        <span>{isStep3Done ? 'Update & Next Step' : 'Submit Assessment & Proceed'}</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              </CardContent>
-            </>
+                </CardContent>
+              </>
+            )
           )}
 
           {/* Step 4: Video & Portfolio Submission */}

@@ -89,19 +89,23 @@ class PortalController
                 $hasUser = !empty($userRows);
 
                 if ($hasUser) {
+                    $uEmail = $userRows[0]['email'];
+                    $appRows = $db->query('SELECT * FROM applicants WHERE candidate_email = ? LIMIT 1', [$uEmail]);
+                    $stage = !empty($appRows) ? ($appRows[0]['current_stage_key'] ?? 'screening') : 'screening';
+
                     $applicant = [
                         'id' => (int) $userRows[0]['id'],
                         'candidate_name' => $userRows[0]['name'],
                         'candidate_email' => $userRows[0]['email'],
                         'phone' => $userRows[0]['phone'] ?? '',
-                        'current_stage_key' => 'assessment',
+                        'current_stage_key' => $stage,
                     ];
                 }
 
                 $hasNoApplicant = ($applicant === null);
 
                 if ($hasNoApplicant) {
-                    $appRows = $db->query('SELECT * FROM applicants ORDER BY id DESC LIMIT 1');
+                    $appRows = $db->query('SELECT * FROM applicants WHERE candidate_email = ? OR id = ? LIMIT 1', [$token, (int) $token]);
                     $hasAppRow = !empty($appRows);
 
                     if ($hasAppRow) {
@@ -110,7 +114,24 @@ class PortalController
                             'candidate_name' => $appRows[0]['candidate_name'],
                             'candidate_email' => $appRows[0]['candidate_email'],
                             'phone' => $appRows[0]['phone'] ?? '',
-                            'current_stage_key' => $appRows[0]['current_stage_key'] ?? 'assessment',
+                            'current_stage_key' => $appRows[0]['current_stage_key'] ?? 'screening',
+                        ];
+                    }
+                }
+
+                $stillNoApplicant = ($applicant === null);
+
+                if ($stillNoApplicant) {
+                    $latestRows = $db->query('SELECT * FROM applicants ORDER BY id DESC LIMIT 1');
+                    $hasLatest = !empty($latestRows);
+
+                    if ($hasLatest) {
+                        $applicant = [
+                            'id' => (int) $latestRows[0]['id'],
+                            'candidate_name' => $latestRows[0]['candidate_name'],
+                            'candidate_email' => $latestRows[0]['candidate_email'],
+                            'phone' => $latestRows[0]['phone'] ?? '',
+                            'current_stage_key' => $latestRows[0]['current_stage_key'] ?? 'screening',
                         ];
                     }
                 }
@@ -141,7 +162,18 @@ class PortalController
         $candidateName = $applicant['candidate_name'] ?? ucwords(str_replace(['-', '_', '.'], ' ', $token));
         $candidateEmail = $applicant['candidate_email'] ?? (strtolower($token) . '@example.com');
         $phone = $applicant['phone'] ?? '+1 (555) 019-2834';
-        $stageKey = $applicant['current_stage_key'] ?? 'assessment';
+        $stageKey = $applicant['current_stage_key'] ?? 'screening';
+
+        $gatingMode = 'admin_approval';
+
+        try {
+            $db = SqliteDatabase::getInstance();
+            $gatingMode = $db->getSetting('assessment_gating_mode', 'admin_approval');
+        } catch (Throwable) {
+            // Fallback
+        }
+
+        $isAssessmentApproved = ($gatingMode === 'instant_self_service') || in_array($stageKey, ['assessment', 'exam', 'interview', 'offered', 'hired'], true);
 
         return [
             'status' => 'success',
@@ -159,6 +191,8 @@ class PortalController
                     'current_stage' => $stageKey,
                     'applied_at' => '2026-10-18',
                 ],
+                'assessment_gating_mode' => $gatingMode,
+                'is_assessment_approved' => $isAssessmentApproved,
                 'progress_percentage' => $progressPct,
                 'completion_percentage' => $progressPct,
                 'completed_steps_count' => $completedCount,

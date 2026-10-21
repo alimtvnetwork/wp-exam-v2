@@ -62,6 +62,19 @@ class ApplicantPipelineRestController extends WP_REST_Controller {
             ],
         ]);
 
+        register_rest_route($this->namespace, '/applicants/settings', [
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [$this, 'getSettings'],
+                'permission_callback' => '__return_true',
+            ],
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [$this, 'updateSettings'],
+                'permission_callback' => [$this, 'checkAdminPermission'],
+            ],
+        ]);
+
         register_rest_route($this->namespace, '/applicants/(?P<id>\d+)', [
             [
                 'methods'             => WP_REST_Server::DELETABLE,
@@ -272,6 +285,34 @@ class ApplicantPipelineRestController extends WP_REST_Controller {
         return new WP_REST_Response(EnvelopeBuilder::createSuccessEnvelope([
             'deleted_id' => $id,
             'message'    => 'Applicant and transition history deleted successfully',
+        ]), 200);
+    }
+
+    public function getSettings(WP_REST_Request $request): WP_REST_Response {
+        $db = SqliteDatabase::getInstance();
+        $gatingMode = $db->getSetting('assessment_gating_mode', 'admin_approval');
+
+        return new WP_REST_Response(EnvelopeBuilder::createSuccessEnvelope([
+            'assessment_gating_mode' => $gatingMode,
+        ]), 200);
+    }
+
+    public function updateSettings(WP_REST_Request $request): WP_REST_Response {
+        $body = $request->get_json_params() ?: [];
+        $rawMode = trim((string) ($body['assessment_gating_mode'] ?? ''));
+
+        $isValid = in_array($rawMode, ['admin_approval', 'instant_self_service'], true);
+
+        if (!$isValid) {
+            return new WP_REST_Response(EnvelopeBuilder::createErrorEnvelope('Invalid assessment_gating_mode'), 400);
+        }
+
+        $db = SqliteDatabase::getInstance();
+        $db->setSetting('assessment_gating_mode', $rawMode);
+
+        return new WP_REST_Response(EnvelopeBuilder::createSuccessEnvelope([
+            'assessment_gating_mode' => $rawMode,
+            'message'                => 'Pipeline assessment gating configuration updated successfully',
         ]), 200);
     }
 }

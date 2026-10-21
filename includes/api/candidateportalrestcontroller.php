@@ -129,10 +129,16 @@ class CandidatePortalRestController extends WP_REST_Controller {
         $percentage = ($totalSteps > 0) ? (int) round(($completedCount / $totalSteps) * 100) : 0;
         $isAllCompleted = ($completedCount === $totalSteps);
 
+        $gatingMode = $db->getSetting('assessment_gating_mode', 'admin_approval');
+        $stageKey = $candidateData['current_stage_key'] ?? '';
+        $isAssessmentApproved = ($gatingMode === 'instant_self_service') || in_array($stageKey, ['assessment', 'exam', 'interview', 'offered', 'hired'], true);
+
         return new WP_REST_Response(EnvelopeBuilder::createSuccessEnvelope([
-            'token'                 => $token,
-            'candidate'             => $candidateData,
-            'steps'                 => $steps,
+            'token'                  => $token,
+            'candidate'              => $candidateData,
+            'assessment_gating_mode' => $gatingMode,
+            'is_assessment_approved' => $isAssessmentApproved,
+            'steps'                  => $steps,
             'completed_step_count'  => $completedCount,
             'total_step_count'      => $totalSteps,
             'completion_percentage' => $percentage,

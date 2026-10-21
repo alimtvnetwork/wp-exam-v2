@@ -16,7 +16,11 @@ import {
   Phone,
   Briefcase,
   AlertCircle,
-  ChevronRight
+  ChevronRight,
+  Lock,
+  Unlock,
+  SlidersHorizontal,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -137,6 +141,8 @@ export const ApplicantPipelineKanban: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFilterStage, setSelectedFilterStage] = useState<string>('all');
   const [isLoading, setIsLoading] = useState(false);
+  const [gatingMode, setGatingMode] = useState<'admin_approval' | 'instant_self_service'>('admin_approval');
+  const [isSavingGating, setIsSavingGating] = useState(false);
 
   // New Candidate Dialog
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
@@ -186,10 +192,49 @@ export const ApplicantPipelineKanban: React.FC = () => {
           }
         }
       }
+
+      const settingsRes = await unifiedFetch('/api/v1/applicants/settings', '/wp-json/wp-exam/v1/applicants/settings');
+      const hasSettingsSuccess = settingsRes.ok;
+
+      if (hasSettingsSuccess) {
+        const json = await settingsRes.json();
+        const settingsData = json?.data ?? json;
+
+        if (settingsData?.assessment_gating_mode) {
+          setGatingMode(settingsData.assessment_gating_mode);
+        }
+      }
     } catch {
       // Graceful fallback to initial mock state in dev/standalone mode
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleToggleGatingMode = async (mode: 'admin_approval' | 'instant_self_service') => {
+    setGatingMode(mode);
+    setIsSavingGating(true);
+
+    try {
+      const res = await unifiedFetch('/api/v1/applicants/settings', '/wp-json/wp-exam/v1/applicants/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ assessment_gating_mode: mode }),
+      });
+
+      const isSuccess = res.ok;
+
+      if (isSuccess) {
+        toast.success(
+          mode === 'admin_approval'
+            ? 'Assessment gating set to Admin Approval Gate (Step 3 locked until manual approval)'
+            : 'Assessment gating set to Instant Self-Service (Step 3 unlocks immediately upon profile verification)'
+        );
+      }
+    } catch {
+      toast.error('Failed to update assessment gating configuration');
+    } finally {
+      setIsSavingGating(false);
     }
   };
 
@@ -453,6 +498,86 @@ export const ApplicantPipelineKanban: React.FC = () => {
         </div>
       </div>
 
+      {/* Assessment Gating Configuration Toolbar */}
+      <div className="rounded-2xl bg-card border border-border/60 shadow-xs p-4 sm:p-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-primary/10 text-primary">
+                <SlidersHorizontal className="w-4 h-4" />
+              </span>
+              <h2 className="text-sm font-bold text-foreground font-heading">
+                Assessment Gating Configuration
+              </h2>
+              {gatingMode === 'admin_approval' ? (
+                <Badge className="bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30 text-[11px] font-medium">
+                  Admin Approval Gate Active (Recommended)
+                </Badge>
+              ) : (
+                <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[11px] font-medium">
+                  Instant Self-Service Active
+                </Badge>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Choose how candidates unlock their technical assignments and quizzes after verifying their profile and signing the NDA.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full lg:w-auto">
+            {/* Mode 1: Admin Approval Gate */}
+            <button
+              type="button"
+              onClick={() => handleToggleGatingMode('admin_approval')}
+              disabled={isSavingGating}
+              className={`p-3.5 rounded-xl border text-left transition-all duration-150 cursor-pointer ${
+                gatingMode === 'admin_approval'
+                  ? 'border-primary/80 bg-primary/10 ring-1 ring-primary/40 shadow-xs'
+                  : 'border-border/60 bg-muted/20 hover:bg-muted/40 opacity-75 hover:opacity-100'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground">
+                  <Lock className="w-3.5 h-3.5 text-amber-500" />
+                  <span>Admin Approval Gate</span>
+                </div>
+                {gatingMode === 'admin_approval' && (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-primary shrink-0" />
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Step 3 (Assessment) stays physically locked until an admin manually clicks "Approve" in this Kanban dashboard.
+              </p>
+            </button>
+
+            {/* Mode 2: Instant Self-Service */}
+            <button
+              type="button"
+              onClick={() => handleToggleGatingMode('instant_self_service')}
+              disabled={isSavingGating}
+              className={`p-3.5 rounded-xl border text-left transition-all duration-150 cursor-pointer ${
+                gatingMode === 'instant_self_service'
+                  ? 'border-emerald-500/80 bg-emerald-500/10 ring-1 ring-emerald-500/40 shadow-xs'
+                  : 'border-border/60 bg-muted/20 hover:bg-muted/40 opacity-75 hover:opacity-100'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-1.5">
+                <div className="flex items-center gap-1.5 font-semibold text-xs text-foreground">
+                  <Unlock className="w-3.5 h-3.5 text-emerald-500" />
+                  <span>Instant Self-Service</span>
+                </div>
+                {gatingMode === 'instant_self_service' && (
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                )}
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">
+                Step 3 unlocks immediately as soon as candidate confirms their profile and signs the NDA without waiting.
+              </p>
+            </button>
+          </div>
+        </div>
+      </div>
+
       {/* Kanban Board Columns */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 items-start">
         {stages.map((stage, stageIndex) => {
@@ -600,6 +725,42 @@ export const ApplicantPipelineKanban: React.FC = () => {
                             "{candidate.notes}"
                           </p>
                         )}
+
+                        {/* Assessment Gating Approval Action */}
+                        {(() => {
+                          const isPreAssessment = (candidate.current_stage_key === 'applied' || candidate.current_stage_key === 'screening');
+                          const isAssessmentUnlocked = ['exam', 'assessment', 'interview', 'offered', 'hired'].includes(candidate.current_stage_key);
+                          const assessmentStage = stages.find((s) => s.stage_key === 'assessment' || s.stage_key === 'exam') || stages[2];
+                          const assessmentStageKey = assessmentStage?.stage_key || 'exam';
+
+                          return (
+                            <div className="space-y-1.5 pt-1">
+                              {gatingMode === 'admin_approval' && isPreAssessment && (
+                                <Button
+                                  variant="default"
+                                  size="sm"
+                                  onClick={() => handleStageTransition(candidate.id, assessmentStageKey, 'Approved profile for technical assessment by admin')}
+                                  className="w-full h-7 text-[11px] gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-all duration-150 shadow-xs cursor-pointer"
+                                >
+                                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                  <span>Approve & Unlock Assessment</span>
+                                </Button>
+                              )}
+
+                              {isAssessmentUnlocked && (
+                                <div className="flex items-center justify-between text-[10px] text-emerald-600 dark:text-emerald-400 font-medium px-1">
+                                  <span className="flex items-center gap-1">
+                                    <CheckCircle2 className="w-3 h-3 shrink-0" />
+                                    Assessment Unlocked
+                                  </span>
+                                  <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[9px] h-4 px-1 font-mono">
+                                    Approved
+                                  </Badge>
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })()}
 
                         {nextStage && (
                           <Button
