@@ -6,6 +6,8 @@ use App\Routing\Route;
 use App\Http\Controllers\Forms\FormController;
 use App\Http\Controllers\Applicants\ApplicantController;
 use App\Http\Controllers\Portal\PortalController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Admin\AdminUserController;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,45 +30,16 @@ Route::get('/api/health', function() {
     ];
 });
 
-// Authentication & Admin Status
-Route::get('/api/v1/auth/admin-status', function() {
-    return [
-        'status' => 'success',
-        'is_success' => true,
-        'is_admin' => true,
-        'user' => [
-            'name' => 'Administrator',
-            'email' => 'admin@example.com',
-            'role' => 'admin',
-        ],
-    ];
-});
+// Authentication & User Management
+Route::get('/api/v1/auth/admin-status', [AuthController::class, 'adminStatus']);
+Route::post('/api/v1/auth/login', [AuthController::class, 'login']);
+Route::post('/api/v1/auth/register', [AuthController::class, 'register']);
+Route::post('/api/v1/auth/logout', [AuthController::class, 'logout']);
 
-Route::post('/api/v1/auth/login', function(array $params, array $body) {
-    $email = trim((string) ($body['email'] ?? ($body['username'] ?? 'admin@example.com')));
-
-    return [
-        'status' => 'success',
-        'is_success' => true,
-        'is_admin' => true,
-        'token' => 'wpexam_session_' . bin2hex(random_bytes(16)),
-        'user' => [
-            'name' => 'Administrator',
-            'email' => $email ?: 'admin@example.com',
-            'role' => 'admin',
-        ],
-        'message' => 'Administrator authenticated successfully',
-    ];
-});
-
-Route::post('/api/v1/auth/logout', function() {
-    return [
-        'status' => 'success',
-        'is_success' => true,
-        'is_admin' => false,
-        'message' => 'Logged out successfully',
-    ];
-});
+// Admin Management (Default Superadmin manages other admins)
+Route::get('/api/v1/admin/users', [AdminUserController::class, 'index']);
+Route::post('/api/v1/admin/users', [AdminUserController::class, 'store']);
+Route::delete('/api/v1/admin/users/{id}', [AdminUserController::class, 'destroy']);
 
 // Form Schema & Rendering
 Route::get('/api/v1/forms/{slug}', [FormController::class, 'show']);

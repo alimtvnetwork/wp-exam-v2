@@ -158,8 +158,8 @@ interface AdminLoginModalProps {
 
 export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClose, onSuccess }) => {
   const { isAdmin, isVerified, login, loginAsDemoAdmin } = useAdminAuth();
-  const [email, setEmail] = useState('admin@example.com');
-  const [password, setPassword] = useState('admin');
+  const [email, setEmail] = useState('admin');
+  const [password, setPassword] = useState('Admin@1234');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
@@ -235,6 +235,11 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
               required
               className="h-9 text-xs"
             />
+          </div>
+
+          <div className="p-2.5 rounded-xl bg-primary/5 border border-primary/20 text-xs flex items-center justify-between text-muted-foreground">
+            <span>Default Superadmin:</span>
+            <span className="font-mono font-semibold text-foreground">admin / Admin@1234</span>
           </div>
 
           <div className="flex flex-col gap-2 pt-2">

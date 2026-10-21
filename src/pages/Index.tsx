@@ -13,6 +13,7 @@ import { AIInstructionStudio } from '@/components/admin/ai-instruction-studio';
 import { BackupManager } from '@/components/admin/backup-manager';
 import { AnalyticsDashboard } from '@/components/admin/analytics-dashboard';
 import { ApplicantPipelineKanban } from '@/components/admin/applicant-pipeline-kanban';
+import { AdminUsersManager } from '@/components/admin/admin-users-manager';
 import { ThemeBuilder } from '@/components/theme-builder';
 import { GuidedTourManager, GuidedTourReplayButton } from '@/components/onboarding/guided-tour';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
@@ -52,8 +53,8 @@ export const Index: React.FC = () => {
   const [isLeaving, setIsLeaving] = useState(false);
   const [selectedFocusProject, setSelectedFocusProject] = useState<FocusQuizConfig | undefined>(undefined);
   const { isAdmin, isVerified, verify, login, loginAsDemoAdmin, logout } = useAdminAuth();
-  const [loginEmail, setLoginEmail] = useState('admin@example.com');
-  const [loginPassword, setLoginPassword] = useState('admin');
+  const [loginEmail, setLoginEmail] = useState('admin');
+  const [loginPassword, setLoginPassword] = useState('Admin@1234');
   const [isSubmittingLogin, setIsSubmittingLogin] = useState(false);
   const { theme } = useTheme();
   const store = useQuizStore();
@@ -205,6 +206,11 @@ export const Index: React.FC = () => {
                   required
                   className="h-10 text-sm"
                 />
+              </div>
+
+              <div className="p-2.5 rounded-xl bg-primary/5 border border-primary/20 text-xs flex items-center justify-between text-muted-foreground">
+                <span>Default Admin:</span>
+                <span className="font-mono font-semibold text-foreground">admin / Admin@1234</span>
               </div>
 
               <div className="flex flex-col gap-2.5 pt-2">
@@ -406,6 +412,12 @@ export const Index: React.FC = () => {
               {previousTab === 'pipeline' && (
                 <div className="w-full">
                   <ApplicantPipelineKanban />
+                </div>
+              )}
+
+              {previousTab === 'users' && (
+                <div className="w-full">
+                  <AdminUsersManager />
                 </div>
               )}
 

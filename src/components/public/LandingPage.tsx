@@ -9,10 +9,13 @@ import {
   Play,
   Database,
   Lock,
+  UserCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AdminLoginModal, useAdminAuth } from '@/components/auth/AdminLoginModal';
+import { CandidateAuthModal } from '@/components/auth/candidate-auth-modal';
+import { useAuth } from '@/lib/auth-context';
 import { QuizSimulator } from '@/components/simulation/quiz-simulator';
 import { ThemeSwitcher } from '@/lib/theme-context';
 import onboardingQuizLogo from '@/assets/onboarding-quiz-logo.svg';
@@ -65,14 +68,26 @@ const metricCards = [
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAdminAuth();
+  const { isCandidate, user } = useAuth();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
+  const [isCandidateModalOpen, setIsCandidateModalOpen] = useState(false);
 
   const handleAdminClick = () => {
     if (isAuthenticated) {
       navigate('/admin');
-    } else {
-      setIsLoginModalOpen(true);
+      return;
     }
+
+    setIsLoginModalOpen(true);
+  };
+
+  const handleCandidateClick = () => {
+    if (isCandidate) {
+      navigate('/portal');
+      return;
+    }
+
+    setIsCandidateModalOpen(true);
   };
 
   return (
@@ -101,7 +116,7 @@ export const LandingPage: React.FC = () => {
             <button type="button" onClick={() => navigate('/admin?tab=builder')} className="hover:text-foreground transition-colors cursor-pointer">
               Form Builder
             </button>
-            <button type="button" onClick={() => navigate('/apply')} className="hover:text-foreground transition-colors cursor-pointer">
+            <button type="button" onClick={handleCandidateClick} className="hover:text-foreground transition-colors cursor-pointer">
               Candidate Portal
             </button>
             <button type="button" onClick={() => navigate('/runner')} className="hover:text-foreground transition-colors cursor-pointer">
@@ -111,6 +126,17 @@ export const LandingPage: React.FC = () => {
 
           <div className="flex items-center gap-2.5">
             <ThemeSwitcher />
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleCandidateClick}
+              className="text-xs h-9 px-3 gap-1.5 font-semibold rounded-xl cursor-pointer border-border hover:bg-muted"
+            >
+              <UserCheck className="w-3.5 h-3.5 text-primary" />
+              <span>{isCandidate ? (user?.name || 'My Portal') : 'Candidate Sign In'}</span>
+            </Button>
+
             <Button
               size="sm"
               onClick={handleAdminClick}
@@ -146,10 +172,20 @@ export const LandingPage: React.FC = () => {
             <Button
               size="lg"
               onClick={() => navigate('/apply')}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm h-11 px-6 gap-2 shadow-lg shadow-primary/20"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm h-11 px-6 gap-2 shadow-lg shadow-primary/20 cursor-pointer"
             >
               <Play className="w-4 h-4 fill-current" />
               <span>Start Assessment</span>
+            </Button>
+
+            <Button
+              size="lg"
+              variant="outline"
+              onClick={handleCandidateClick}
+              className="font-bold text-sm h-11 px-6 gap-2 border-primary/30 hover:bg-primary/10 cursor-pointer"
+            >
+              <UserCheck className="w-4 h-4 text-primary" />
+              <span>{isCandidate ? 'Open Candidate Portal' : 'Candidate Sign In / Register'}</span>
             </Button>
           </div>
 
@@ -233,7 +269,7 @@ export const LandingPage: React.FC = () => {
             <Button
               size="lg"
               onClick={handleAdminClick}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm h-11 px-6 gap-2 shadow-lg shadow-primary/20"
+              className="bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm h-11 px-6 gap-2 shadow-lg shadow-primary/20 cursor-pointer"
             >
               <Lock className="w-4 h-4" />
               <span>Open Admin Dashboard &rarr;</span>
@@ -257,24 +293,31 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="flex items-center gap-4 text-xs">
-            <button type="button" onClick={() => navigate('/apply')} className="hover:text-foreground">
+            <button type="button" onClick={handleCandidateClick} className="hover:text-foreground cursor-pointer">
               Candidate Portal
             </button>
-            <button type="button" onClick={() => navigate('/admin?tab=builder')} className="hover:text-foreground">
+            <button type="button" onClick={() => navigate('/admin?tab=builder')} className="hover:text-foreground cursor-pointer">
               Form Builder
             </button>
-            <button type="button" onClick={handleAdminClick} className="hover:text-primary">
+            <button type="button" onClick={handleAdminClick} className="hover:text-primary cursor-pointer">
               Admin Login
             </button>
           </div>
         </div>
       </footer>
 
-      {/* Login Modal */}
+      {/* Admin Login Modal */}
       <AdminLoginModal
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
         onSuccess={() => navigate('/admin')}
+      />
+
+      {/* Candidate Auth Modal */}
+      <CandidateAuthModal
+        isOpen={isCandidateModalOpen}
+        onClose={() => setIsCandidateModalOpen(false)}
+        onSuccess={() => navigate('/portal')}
       />
     </div>
   );

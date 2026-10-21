@@ -20,6 +20,7 @@ import {
   ExternalLink,
   ChevronDown,
   UserCheck,
+  ShieldCheck,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import onboardingQuizLogo from '@/assets/onboarding-quiz-logo.svg';
@@ -31,6 +32,7 @@ export type AdminTab =
   | 'focus-runner'
   | 'runner'
   | 'pipeline'
+  | 'users'
   | 'invites'
   | 'history'
   | 'analytics'
@@ -151,6 +153,14 @@ const NAV_SECTIONS: NavSection[] = [
   {
     title: 'System & Engine',
     items: [
+      {
+        id: 'users',
+        label: 'Admin Team & Roles',
+        icon: ShieldCheck,
+        badge: 'Auth',
+        badgeVariant: 'amber',
+        description: 'Superadmin accounts & permissions',
+      },
       {
         id: 'backups',
         label: 'Backup Manager',

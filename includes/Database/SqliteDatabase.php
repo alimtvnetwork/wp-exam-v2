@@ -354,6 +354,19 @@ class SqliteDatabase {
             created_at TEXT DEFAULT (datetime('now')),
             expires_at TEXT DEFAULT (datetime('now', '+30 days'))
         );
+
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            username TEXT UNIQUE,
+            password_hash TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'candidate',
+            phone TEXT DEFAULT '',
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT DEFAULT (datetime('now')),
+            updated_at TEXT DEFAULT (datetime('now'))
+        );
         ";
 
         $this->pdo->exec($schema);
@@ -381,6 +394,19 @@ class SqliteDatabase {
             }
         } catch (Throwable) {
             // Table may already be populated or in migration
+        }
+
+        try {
+            $userCount = (int) $this->pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'")->fetchColumn();
+            $hasNoAdmin = ($userCount === 0);
+
+            if ($hasNoAdmin) {
+                $adminPwHash = password_hash('Admin@1234', PASSWORD_BCRYPT);
+                $insertUserStmt = $this->pdo->prepare('INSERT INTO users (id, name, email, username, password_hash, role) VALUES (?, ?, ?, ?, ?, ?)');
+                $insertUserStmt->execute([1, 'System Administrator', 'admin@example.com', 'admin', $adminPwHash, 'admin']);
+            }
+        } catch (Throwable) {
+            // Already seeded or migration in progress
         }
 
         try {
