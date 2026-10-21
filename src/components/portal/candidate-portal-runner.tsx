@@ -38,8 +38,11 @@ interface CandidateInfo {
   id: number;
   candidate_name: string;
   candidate_email: string;
+  name?: string;
+  email?: string;
   phone?: string;
   current_stage_key: string;
+  current_stage?: string;
   notes?: string;
 }
 
@@ -150,7 +153,32 @@ export const CandidatePortalRunner: React.FC = () => {
         const sessionData = json?.data ?? json;
 
         if (sessionData?.steps) {
-          setSession(sessionData);
+          const rawCandidate = sessionData.candidate || {};
+          const candidateName = rawCandidate.candidate_name || rawCandidate.name || 'Candidate';
+          const candidateEmail = rawCandidate.candidate_email || rawCandidate.email || 'candidate@example.com';
+          const currentStage = rawCandidate.current_stage_key || rawCandidate.current_stage || 'assessment';
+          const phone = rawCandidate.phone || '';
+
+          const normalizedCandidate: CandidateInfo = {
+            id: rawCandidate.id || 1,
+            candidate_name: candidateName,
+            candidate_email: candidateEmail,
+            phone: phone,
+            current_stage_key: currentStage,
+            notes: rawCandidate.notes || '',
+          };
+
+          const normalizedSession: PortalSession = {
+            token: sessionData.token || activeToken,
+            candidate: normalizedCandidate,
+            steps: sessionData.steps,
+            completed_step_count: sessionData.completed_step_count ?? sessionData.completed_steps_count ?? 0,
+            total_step_count: sessionData.total_step_count ?? sessionData.total_steps_count ?? 5,
+            completion_percentage: sessionData.completion_percentage ?? sessionData.progress_percentage ?? 0,
+            is_fully_verified: Boolean(sessionData.is_fully_verified),
+          };
+
+          setSession(normalizedSession);
 
           // Find first uncompleted step
           const firstUncompleted = sessionData.steps.find((s: PortalStep) => !s.is_completed);
@@ -230,12 +258,16 @@ export const CandidatePortalRunner: React.FC = () => {
   };
 
   const handleDownloadReceipt = () => {
+    const candidateName = session?.candidate?.candidate_name || (session?.candidate as any)?.name || 'Candidate';
+    const candidateEmail = session?.candidate?.candidate_email || (session?.candidate as any)?.email || 'candidate@example.com';
+    const currentStage = session?.candidate?.current_stage_key || (session?.candidate as any)?.current_stage || 'assessment';
+
     const receiptContent = `================================================
 ONBOARDING QUIZ - CANDIDATE VERIFICATION RECEIPT
 ================================================
-Candidate: ${session.candidate.candidate_name}
-Email: ${session.candidate.candidate_email}
-Stage: ${session.candidate.current_stage_key.toUpperCase()}
+Candidate: ${candidateName}
+Email: ${candidateEmail}
+Stage: ${currentStage.toUpperCase()}
 Token: ${session.token}
 Status: VERIFIED & SUBMITTED
 Timestamp: ${new Date().toISOString()}
@@ -252,11 +284,15 @@ Completed Milestones:
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     link.href = url;
-    link.download = `verification-receipt-${session.candidate.candidate_name.toLowerCase().replace(/\s+/g, '-')}.txt`;
+    link.download = `verification-receipt-${candidateName.toLowerCase().replace(/\s+/g, '-')}.txt`;
     link.click();
     URL.revokeObjectURL(url);
     toast.success('Downloaded candidate verification receipt');
   };
+
+  const candidateName = session?.candidate?.candidate_name || (session?.candidate as any)?.name || 'Candidate';
+  const candidateEmail = session?.candidate?.candidate_email || (session?.candidate as any)?.email || 'candidate@example.com';
+  const candidateInitial = (candidateName.trim().charAt(0) || 'C').toUpperCase();
 
   return (
     <div className="min-h-screen bg-background text-foreground py-8 px-4 sm:px-6 lg:px-8">
@@ -282,15 +318,15 @@ Completed Milestones:
 
               <div className="flex items-center gap-3 bg-muted/40 p-3 rounded-xl border border-border/40">
                 <div className="w-10 h-10 rounded-full bg-primary/20 text-primary flex items-center justify-center font-bold text-sm">
-                  {session.candidate.candidate_name.charAt(0)}
+                  {candidateInitial}
                 </div>
                 <div>
                   <div className="text-sm font-semibold text-foreground">
-                    {session.candidate.candidate_name}
+                    {candidateName}
                   </div>
                   <div className="text-xs text-muted-foreground flex items-center gap-1.5">
                     <Mail className="w-3 h-3" />
-                    {session.candidate.candidate_email}
+                    {candidateEmail}
                   </div>
                 </div>
               </div>
@@ -374,11 +410,11 @@ Completed Milestones:
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-foreground">Full Name</label>
-                    <Input value={session.candidate.candidate_name} disabled className="bg-muted/40" />
+                    <Input value={candidateName} disabled className="bg-muted/40" />
                   </div>
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-foreground">Email Address</label>
-                    <Input value={session.candidate.candidate_email} disabled className="bg-muted/40" />
+                    <Input value={candidateEmail} disabled className="bg-muted/40" />
                   </div>
                   <div className="space-y-1.5 sm:col-span-2">
                     <label className="text-xs font-semibold text-foreground">Phone Number</label>

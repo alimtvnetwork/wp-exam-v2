@@ -68,16 +68,51 @@ class PortalController
         }
 
         $completedStepIds = [];
+        $applicant = null;
 
         try {
             $db = SqliteDatabase::getInstance();
             $hasInit = $db->init();
 
             if ($hasInit) {
-                $compRows = $db->query('SELECT step_id FROM portal_step_completions WHERE candidate_token = ?', [$token]);
+                $compRows = $db->query('SELECT step_id FROM portal_step_completions WHERE token = ?', [$token]);
 
                 foreach ($compRows as $row) {
                     $completedStepIds[] = (string) $row['step_id'];
+                }
+
+                $userRows = $db->query(
+                    'SELECT u.id, u.name, u.email, u.phone FROM users u WHERE u.email = ? OR u.username = ? LIMIT 1',
+                    [$token, $token]
+                );
+
+                $hasUser = !empty($userRows);
+
+                if ($hasUser) {
+                    $applicant = [
+                        'id' => (int) $userRows[0]['id'],
+                        'candidate_name' => $userRows[0]['name'],
+                        'candidate_email' => $userRows[0]['email'],
+                        'phone' => $userRows[0]['phone'] ?? '',
+                        'current_stage_key' => 'assessment',
+                    ];
+                }
+
+                $hasNoApplicant = ($applicant === null);
+
+                if ($hasNoApplicant) {
+                    $appRows = $db->query('SELECT * FROM applicants ORDER BY id DESC LIMIT 1');
+                    $hasAppRow = !empty($appRows);
+
+                    if ($hasAppRow) {
+                        $applicant = [
+                            'id' => (int) $appRows[0]['id'],
+                            'candidate_name' => $appRows[0]['candidate_name'],
+                            'candidate_email' => $appRows[0]['candidate_email'],
+                            'phone' => $appRows[0]['phone'] ?? '',
+                            'current_stage_key' => $appRows[0]['current_stage_key'] ?? 'assessment',
+                        ];
+                    }
                 }
             }
         } catch (Throwable $e) {
@@ -103,7 +138,10 @@ class PortalController
         $totalSteps = count(self::PORTAL_STEPS);
         $progressPct = ($totalSteps > 0) ? (int) round(($completedCount / $totalSteps) * 100) : 0;
 
-        $candidateName = ucwords(str_replace(['-', '_', '.'], ' ', $token));
+        $candidateName = $applicant['candidate_name'] ?? ucwords(str_replace(['-', '_', '.'], ' ', $token));
+        $candidateEmail = $applicant['candidate_email'] ?? (strtolower($token) . '@example.com');
+        $phone = $applicant['phone'] ?? '+1 (555) 019-2834';
+        $stageKey = $applicant['current_stage_key'] ?? 'assessment';
 
         return [
             'status' => 'success',
@@ -111,15 +149,24 @@ class PortalController
             'data' => [
                 'token' => $token,
                 'candidate' => [
+                    'id' => (int) ($applicant['id'] ?? 1),
+                    'candidate_name' => $candidateName,
+                    'candidate_email' => $candidateEmail,
                     'name' => $candidateName,
-                    'email' => strtolower($token) . '@example.com',
-                    'current_stage' => 'assessment',
+                    'email' => $candidateEmail,
+                    'phone' => $phone,
+                    'current_stage_key' => $stageKey,
+                    'current_stage' => $stageKey,
                     'applied_at' => '2026-10-18',
                 ],
                 'progress_percentage' => $progressPct,
+                'completion_percentage' => $progressPct,
                 'completed_steps_count' => $completedCount,
+                'completed_step_count' => $completedCount,
                 'total_steps_count' => $totalSteps,
+                'total_step_count' => $totalSteps,
                 'steps' => $steps,
+                'is_fully_verified' => ($completedCount === $totalSteps),
             ],
         ];
     }
@@ -157,8 +204,9 @@ class PortalController
             $db = SqliteDatabase::getInstance();
             $db->init();
 
-            $sql = 'INSERT INTO portal_step_completions (candidate_token, step_id, completed_by, notes) VALUES (?, ?, ?, ?)';
-            $db->execute($sql, [$token, $stepId, $token, $notes]);
+            $sql = 'INSERT OR REPLACE INTO portal_step_completions (token, step_id, step_data_json) VALUES (?, ?, ?)';
+            $stepDataJson = json_encode(['notes' => $notes]);
+            $db->execute($sql, [$token, $stepId, $stepDataJson]);
         } catch (Throwable $e) {
             // Local fallback
         }
