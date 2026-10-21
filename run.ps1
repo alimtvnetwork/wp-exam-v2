@@ -16,6 +16,7 @@
 param (
     [int]$Port = 5174,
     [int]$BackendPort = 8080,
+    [switch]$OpenBrowser,
     [switch]$NoBrowser,
     [switch]$InstallOnly
 )
@@ -119,12 +120,12 @@ try {
     Write-Host "  [WARN] Could not spawn backend process: $($_.Exception.Message)" -ForegroundColor DarkYellow
 }
 
-# 4. Launch React Frontend & Open Browser
+# 4. Launch React Frontend
 Write-Host "`n[4/4] Launching React frontend on port $Port..." -ForegroundColor Yellow
 $TargetUrl = "http://localhost:$Port"
 
-if (-not $NoBrowser) {
-    Write-Host "  Configuring browser auto-launch for $TargetUrl..." -ForegroundColor Cyan
+if ($OpenBrowser) {
+    Write-Host "  Launching browser for $TargetUrl..." -ForegroundColor Cyan
     Start-Job -ScriptBlock {
         param($url)
         Start-Sleep -Milliseconds 1500
