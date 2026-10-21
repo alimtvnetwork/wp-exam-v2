@@ -106,7 +106,8 @@ Write-Host "`n[3/4] Launching Laravel REST API backend on port $BackendPort..." 
 $phpProcess = $null
 
 try {
-    $phpProcess = Start-Process -FilePath "php" -ArgumentList "-S 127.0.0.1:$BackendPort router.php" -PassThru -WindowStyle Hidden
+    $phpExec = if (Test-Path $toolsPhpExe) { $toolsPhpExe } else { "php" }
+    $phpProcess = Start-Process -FilePath $phpExec -ArgumentList "-S 127.0.0.1:$BackendPort router.php" -PassThru -WindowStyle Hidden
     Start-Sleep -Milliseconds 800
 
     if ($phpProcess.HasExited) {
