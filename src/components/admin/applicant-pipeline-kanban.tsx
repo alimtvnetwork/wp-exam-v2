@@ -408,7 +408,7 @@ export const ApplicantPipelineKanban: React.FC = () => {
   });
 
   return (
-    <div className="space-y-6 p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8 w-full max-w-[1920px] mx-auto">
       {/* Hairline Chrome Accent Card */}
       <div className="relative overflow-hidden rounded-2xl bg-card border border-border/60 shadow-md">
         <div className="h-0.5 w-full bg-gradient-to-r from-primary via-primary/70 to-accent" />
@@ -579,209 +579,222 @@ export const ApplicantPipelineKanban: React.FC = () => {
         </div>
       </div>
 
-      {/* Kanban Board Columns */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-7 gap-4 items-start">
-        {stages.map((stage, stageIndex) => {
-          const stageCandidates = filteredApplicants.filter(
-            (app) => app.current_stage_key === stage.stage_key
-          );
-          const nextStage = stages[stageIndex + 1];
+      {/* Kanban Board Columns with smooth horizontal scrolling */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between text-xs text-muted-foreground px-1 pb-0.5">
+          <span className="font-semibold text-foreground/85">Recruitment Stages ({stages.length})</span>
+          <span className="flex items-center gap-1.5 text-[11px] text-muted-foreground bg-muted/40 px-2.5 py-1 rounded-md">
+            Scroll horizontally to navigate all stages
+            <ArrowRight className="w-3 h-3" />
+          </span>
+        </div>
 
-          return (
-            <div
-              key={stage.stage_key}
-              className="flex flex-col rounded-xl bg-card/60 border border-border/60 overflow-hidden shadow-xs"
-            >
-              {/* Column Header */}
-              <div className="p-3 border-b border-border/40 bg-muted/30">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className="w-2.5 h-2.5 rounded-full ring-2 ring-background"
-                      style={{ backgroundColor: stage.color_code }}
-                    />
-                    <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
-                      {stage.stage_name}
-                    </h3>
+        <div className="w-full overflow-x-auto pb-6 pt-1 scrollbar-thin">
+          <div className="flex gap-4 items-start min-w-max pb-2">
+            {stages.map((stage, stageIndex) => {
+              const stageCandidates = filteredApplicants.filter(
+                (app) => app.current_stage_key === stage.stage_key
+              );
+              const nextStage = stages[stageIndex + 1];
+
+              return (
+                <div
+                  key={stage.stage_key}
+                  className="w-[320px] shrink-0 flex flex-col rounded-xl bg-card/75 border border-border/70 overflow-hidden shadow-xs hover:border-border transition-colors"
+                >
+                  {/* Column Header */}
+                  <div className="p-3.5 border-b border-border/40 bg-muted/30">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span
+                          className="w-2.5 h-2.5 rounded-full ring-2 ring-background shrink-0"
+                          style={{ backgroundColor: stage.color_code }}
+                        />
+                        <h3 className="text-xs font-bold uppercase tracking-wider text-foreground">
+                          {stage.stage_name}
+                        </h3>
+                      </div>
+                      <Badge variant="secondary" className="text-[11px] h-5 px-2 font-mono font-semibold">
+                        {stageCandidates.length}
+                      </Badge>
+                    </div>
                   </div>
-                  <Badge variant="secondary" className="text-[10px] h-5 px-1.5 font-mono">
-                    {stageCandidates.length}
-                  </Badge>
-                </div>
-              </div>
 
-              {/* Candidates Column List */}
-              <div className="p-2 space-y-2.5 min-h-[380px] max-h-[650px] overflow-y-auto">
-                {stageCandidates.length === 0 ? (
-                  <div className="h-40 flex flex-col items-center justify-center text-center p-4 border border-dashed border-border/50 rounded-lg bg-muted/10 text-muted-foreground text-xs space-y-1">
-                    <Briefcase className="w-5 h-5 opacity-40" />
-                    <span>No candidates</span>
-                  </div>
-                ) : (
-                  stageCandidates.map((candidate) => (
-                    <Card
-                      key={candidate.id}
-                      className="group relative bg-card hover:bg-muted/30 border-border/70 hover:border-primary/50 transition-all duration-200 shadow-2xs hover:shadow-xs rounded-xl"
-                    >
-                      <CardHeader className="p-3 pb-2 space-y-1">
-                        <div className="flex items-start justify-between gap-1">
-                          <div className="min-w-0">
-                            <h4 className="text-sm font-semibold text-foreground truncate">
-                              {candidate.candidate_name}
-                            </h4>
-                            <p className="text-[11px] text-muted-foreground truncate flex items-center gap-1">
-                              <Mail className="w-3 h-3 shrink-0" />
-                              {candidate.candidate_email}
-                            </p>
-                          </div>
-
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
-                              >
-                                <MoreVertical className="w-3.5 h-3.5" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="w-48">
-                              <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
-                                Transition To:
+                  {/* Candidates Column List */}
+                  <div className="p-3 space-y-3 min-h-[460px] max-h-[calc(100vh-280px)] overflow-y-auto">
+                    {stageCandidates.length === 0 ? (
+                      <div className="h-44 flex flex-col items-center justify-center text-center p-4 border border-dashed border-border/50 rounded-xl bg-muted/10 text-muted-foreground text-xs space-y-1.5">
+                        <Briefcase className="w-5 h-5 opacity-40" />
+                        <span className="font-medium">No candidates in this stage</span>
+                      </div>
+                    ) : (
+                      stageCandidates.map((candidate) => (
+                        <Card
+                          key={candidate.id}
+                          className="group relative bg-card hover:bg-muted/30 border-border/80 hover:border-primary/50 transition-all duration-200 shadow-2xs hover:shadow-xs rounded-xl overflow-hidden"
+                        >
+                          <CardHeader className="p-4 pb-2.5 space-y-1.5">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="min-w-0 flex-1">
+                                <h4 className="text-sm font-bold text-foreground truncate">
+                                  {candidate.candidate_name}
+                                </h4>
+                                <p className="text-xs text-muted-foreground truncate flex items-center gap-1.5 mt-0.5" title={candidate.candidate_email}>
+                                  <Mail className="w-3.5 h-3.5 shrink-0 text-muted-foreground/70" />
+                                  <span className="truncate">{candidate.candidate_email}</span>
+                                </p>
                               </div>
-                              {stages
-                                .filter((s) => s.stage_key !== stage.stage_key)
-                                .map((s) => (
+
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                                  >
+                                    <MoreVertical className="w-3.5 h-3.5" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end" className="w-48">
+                                  <div className="px-2 py-1.5 text-[10px] font-bold text-muted-foreground uppercase tracking-wider">
+                                    Transition To:
+                                  </div>
+                                  {stages
+                                    .filter((s) => s.stage_key !== stage.stage_key)
+                                    .map((s) => (
+                                      <DropdownMenuItem
+                                        key={s.stage_key}
+                                        onClick={() => handleStageTransition(candidate.id, s.stage_key)}
+                                        className="text-xs gap-2"
+                                      >
+                                        <span
+                                          className="w-2 h-2 rounded-full"
+                                          style={{ backgroundColor: s.color_code }}
+                                        />
+                                        {s.stage_name}
+                                      </DropdownMenuItem>
+                                    ))}
+                                  <DropdownMenuSeparator />
                                   <DropdownMenuItem
-                                    key={s.stage_key}
-                                    onClick={() => handleStageTransition(candidate.id, s.stage_key)}
+                                    onClick={() => {
+                                      setActiveFeedbackApplicant(candidate);
+                                      setFeedbackNotes(candidate.notes || '');
+                                      setFeedbackRating(candidate.rating || 5);
+                                    }}
                                     className="text-xs gap-2"
                                   >
-                                    <span
-                                      className="w-2 h-2 rounded-full"
-                                      style={{ backgroundColor: s.color_code }}
-                                    />
-                                    {s.stage_name}
+                                    <MessageSquare className="w-3.5 h-3.5" />
+                                    Add Evaluation Note
                                   </DropdownMenuItem>
-                                ))}
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  setActiveFeedbackApplicant(candidate);
-                                  setFeedbackNotes(candidate.notes || '');
-                                  setFeedbackRating(candidate.rating || 5);
-                                }}
-                                className="text-xs gap-2"
-                              >
-                                <MessageSquare className="w-3.5 h-3.5" />
-                                Add Evaluation Note
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => {
-                                  const portalToken = candidate.candidate_email.split('@')[0] || 'demo';
-                                  window.open(`/portal/${portalToken}`, '_blank');
-                                }}
-                                className="text-xs gap-2"
-                              >
-                                <ExternalLink className="w-3.5 h-3.5" />
-                                View Candidate Portal
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => handleDeleteApplicant(candidate.id)}
-                                className="text-xs gap-2 text-destructive focus:text-destructive"
-                              >
-                                <Trash2 className="w-3.5 h-3.5" />
-                                Delete Candidate
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
-                      </CardHeader>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      const portalToken = candidate.candidate_email.split('@')[0] || 'demo';
+                                      window.open(`/portal/${portalToken}`, '_blank');
+                                    }}
+                                    className="text-xs gap-2"
+                                  >
+                                    <ExternalLink className="w-3.5 h-3.5" />
+                                    View Candidate Portal
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => handleDeleteApplicant(candidate.id)}
+                                    className="text-xs gap-2 text-destructive focus:text-destructive"
+                                  >
+                                    <Trash2 className="w-3.5 h-3.5" />
+                                    Delete Candidate
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </CardHeader>
 
-                      <CardContent className="p-3 pt-0 space-y-2">
-                        {candidate.phone && (
-                          <div className="text-[11px] text-muted-foreground flex items-center gap-1 truncate">
-                            <Phone className="w-3 h-3 shrink-0" />
-                            {candidate.phone}
-                          </div>
-                        )}
+                          <CardContent className="p-4 pt-1 space-y-3">
+                            {candidate.phone && (
+                              <div className="text-xs text-muted-foreground flex items-center gap-1.5 truncate">
+                                <Phone className="w-3.5 h-3.5 shrink-0 text-muted-foreground/70" />
+                                <span>{candidate.phone}</span>
+                              </div>
+                            )}
 
-                        <div className="flex items-center justify-between text-xs pt-1 border-t border-border/40">
-                          <div className="flex items-center gap-1">
-                            <Star className="w-3 h-3 fill-amber-400 text-amber-400" />
-                            <span className="text-[11px] font-bold text-foreground">
-                              {candidate.rating || 5}/5
-                            </span>
-                          </div>
+                            <div className="flex items-center justify-between text-xs py-1 border-t border-border/50">
+                              <div className="flex items-center gap-1.5">
+                                <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400 shrink-0" />
+                                <span className="text-xs font-bold text-foreground">
+                                  {candidate.rating || 5}/5
+                                </span>
+                                <span className="text-[10px] text-muted-foreground font-medium">Rating</span>
+                              </div>
 
-                          {candidate.score !== undefined && (
-                            <Badge variant="outline" className="text-[10px] h-4 px-1 border-primary/40 text-primary">
-                              {candidate.score}% score
-                            </Badge>
-                          )}
-                        </div>
-
-                        {candidate.notes && (
-                          <p className="text-[11px] text-muted-foreground line-clamp-2 bg-muted/40 p-1.5 rounded-md italic">
-                            "{candidate.notes}"
-                          </p>
-                        )}
-
-                        {/* Assessment Gating Approval Action */}
-                        {(() => {
-                          const isPreAssessment = (candidate.current_stage_key === 'applied' || candidate.current_stage_key === 'screening');
-                          const isAssessmentUnlocked = ['exam', 'assessment', 'interview', 'offered', 'hired'].includes(candidate.current_stage_key);
-                          const assessmentStage = stages.find((s) => s.stage_key === 'assessment' || s.stage_key === 'exam') || stages[2];
-                          const assessmentStageKey = assessmentStage?.stage_key || 'exam';
-
-                          return (
-                            <div className="space-y-1.5 pt-1">
-                              {gatingMode === 'admin_approval' && isPreAssessment && (
-                                <Button
-                                  variant="default"
-                                  size="sm"
-                                  onClick={() => handleStageTransition(candidate.id, assessmentStageKey, 'Approved profile for technical assessment by admin')}
-                                  className="w-full h-7 text-[11px] gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-all duration-150 shadow-xs cursor-pointer"
-                                >
-                                  <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
-                                  <span>Approve & Unlock Assessment</span>
-                                </Button>
-                              )}
-
-                              {isAssessmentUnlocked && (
-                                <div className="flex items-center justify-between text-[10px] text-emerald-600 dark:text-emerald-400 font-medium px-1">
-                                  <span className="flex items-center gap-1">
-                                    <CheckCircle2 className="w-3 h-3 shrink-0" />
-                                    Assessment Unlocked
-                                  </span>
-                                  <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[9px] h-4 px-1 font-mono">
-                                    Approved
-                                  </Badge>
-                                </div>
+                              {candidate.score !== undefined && (
+                                <Badge variant="outline" className="text-[11px] h-5 px-2 border-primary/30 bg-primary/5 text-primary font-mono font-medium">
+                                  {candidate.score}% score
+                                </Badge>
                               )}
                             </div>
-                          );
-                        })()}
 
-                        {nextStage && (
-                          <Button
-                            variant="secondary"
-                            size="sm"
-                            onClick={() => handleStageTransition(candidate.id, nextStage.stage_key)}
-                            className="w-full h-7 text-[11px] gap-1.5 mt-1 bg-muted hover:bg-primary hover:text-primary-foreground transition-all duration-150"
-                          >
-                            <span>Advance to {nextStage.stage_name}</span>
-                            <ArrowRight className="w-3 h-3" />
-                          </Button>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))
-                )}
-              </div>
-            </div>
-          );
-        })}
+                            {candidate.notes && (
+                              <p className="text-xs text-muted-foreground line-clamp-3 bg-muted/40 p-2.5 rounded-lg italic border border-border/40 leading-relaxed">
+                                "{candidate.notes}"
+                              </p>
+                            )}
+
+                            {/* Assessment Gating Approval Action */}
+                            {(() => {
+                              const isPreAssessment = (candidate.current_stage_key === 'applied' || candidate.current_stage_key === 'screening');
+                              const isAssessmentUnlocked = ['exam', 'assessment', 'interview', 'offered', 'hired'].includes(candidate.current_stage_key);
+                              const assessmentStage = stages.find((s) => s.stage_key === 'assessment' || s.stage_key === 'exam') || stages[2];
+                              const assessmentStageKey = assessmentStage?.stage_key || 'exam';
+
+                              return (
+                                <div className="space-y-2 pt-0.5">
+                                  {gatingMode === 'admin_approval' && isPreAssessment && (
+                                    <Button
+                                      variant="default"
+                                      size="sm"
+                                      onClick={() => handleStageTransition(candidate.id, assessmentStageKey, 'Approved profile for technical assessment by admin')}
+                                      className="w-full h-8 text-xs gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold transition-all duration-150 shadow-xs cursor-pointer whitespace-nowrap"
+                                    >
+                                      <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                      <span>Approve & Unlock Assessment</span>
+                                    </Button>
+                                  )}
+
+                                  {isAssessmentUnlocked && (
+                                    <div className="flex items-center justify-between text-xs text-emerald-600 dark:text-emerald-400 font-medium px-2 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
+                                      <span className="flex items-center gap-1.5">
+                                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                                        Assessment Unlocked
+                                      </span>
+                                      <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] h-4 px-1.5 font-mono">
+                                        Approved
+                                      </Badge>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
+
+                            {nextStage && (
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => handleStageTransition(candidate.id, nextStage.stage_key)}
+                                className="w-full h-8 text-xs gap-1.5 bg-muted/80 hover:bg-primary hover:text-primary-foreground font-medium transition-all duration-150"
+                              >
+                                <span>Advance to {nextStage.stage_name}</span>
+                                <ArrowRight className="w-3.5 h-3.5 shrink-0" />
+                              </Button>
+                            )}
+                          </CardContent>
+                        </Card>
+                      ))
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
       </div>
 
       {/* New Candidate Dialog */}
