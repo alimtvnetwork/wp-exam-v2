@@ -367,6 +367,16 @@ class SqliteDatabase {
             created_at TEXT DEFAULT (datetime('now')),
             updated_at TEXT DEFAULT (datetime('now'))
         );
+
+        CREATE TABLE IF NOT EXISTS user_tokens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            token TEXT NOT NULL UNIQUE,
+            role TEXT NOT NULL DEFAULT 'candidate',
+            created_at TEXT DEFAULT (datetime('now')),
+            expires_at TEXT DEFAULT (datetime('now', '+7 days')),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
         ";
 
         $this->pdo->exec($schema);

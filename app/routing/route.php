@@ -145,9 +145,15 @@ class Route
             }
 
             $instance = new $class();
-            $result = $instance->$method($routeParams, $body);
+            $result = $instance->$method($routeParams, $body, $headers);
 
             $statusCode = 200;
+            $isUnauthorized = (isset($result['status']) && $result['status'] === 'unauthorized');
+
+            if ($isUnauthorized) {
+                $statusCode = 401;
+            }
+
             $isErrorStatus = (isset($result['status']) && $result['status'] === 'error');
 
             if ($isErrorStatus) {
@@ -157,7 +163,9 @@ class Route
             $isFailure = (isset($result['is_success']) && $result['is_success'] === false);
 
             if ($isFailure) {
-                $statusCode = 400;
+                if (!$isUnauthorized && !$isErrorStatus) {
+                    $statusCode = 400;
+                }
             }
 
             return [

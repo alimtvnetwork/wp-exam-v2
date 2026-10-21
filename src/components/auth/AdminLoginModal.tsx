@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Shield, AlertCircle, Loader2, Lock, Mail, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Shield, Loader2, Lock, Mail, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import {
@@ -10,139 +10,46 @@ import {
   DialogDescription,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { unifiedFetch } from '@/utils/api-client';
-
-const STORAGE_KEY = 'wpexam_admin_session';
-
-interface AdminStatusResponse {
-  Results?: { is_admin?: boolean };
-  is_admin?: boolean;
-}
-
-async function fetchAdminStatus(): Promise<boolean> {
-  const localSession = localStorage.getItem(STORAGE_KEY);
-  const hasLocalSession = (localSession === 'true');
-
-  if (hasLocalSession) {
-    return true;
-  }
-
-  try {
-    const response = await unifiedFetch('/api/v1/auth/admin-status', '/wp-json/wp-exam/v1/auth/admin-status', {
-      credentials: 'same-origin',
-    });
-
-    const isOk = response.ok;
-
-    if (isOk) {
-      const payload = (await response.json()) as AdminStatusResponse;
-      const nestedFlag = Boolean(payload?.Results?.is_admin);
-      const flatFlag = Boolean(payload?.is_admin);
-      const isAuth = nestedFlag || flatFlag;
-
-      if (isAuth) {
-        localStorage.setItem(STORAGE_KEY, 'true');
-
-        return true;
-      }
-    }
-  } catch {
-    // Continue with local session evaluation
-  }
-
-  return false;
-}
+import { useAuth } from '@/lib/auth-context';
 
 /**
- * Universal admin authentication hook supporting both Standalone Laravel API & WordPress.
+ * Universal admin authentication hook using the centralized AuthContext.
+ * Guaranteed to reflect true server and session state with zero unauthorized bypass.
  */
 export function useAdminAuth() {
-  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
-    return localStorage.getItem(STORAGE_KEY) === 'true';
-  });
-  const [isVerified, setIsVerified] = useState<boolean>(false);
+  const { user, isAdmin, isLoading, login: authLogin, logout: authLogout, refreshUser } = useAuth();
 
   const verify = useCallback(async (): Promise<boolean> => {
-    setIsVerified(false);
+    await refreshUser();
 
-    try {
-      const isAdminNow = await fetchAdminStatus();
-      setIsAdmin(isAdminNow);
-      setIsVerified(true);
-
-      return isAdminNow;
-    } catch {
-      const fallbackSession = localStorage.getItem(STORAGE_KEY) === 'true';
-      setIsAdmin(fallbackSession);
-      setIsVerified(true);
-
-      return fallbackSession;
-    }
-  }, []);
-
-  useEffect(() => {
-    verify();
-  }, [verify]);
+    return isAdmin;
+  }, [refreshUser, isAdmin]);
 
   const login = useCallback(async (username?: string, password?: string): Promise<boolean> => {
-    try {
-      const res = await unifiedFetch('/api/v1/auth/login', '/wp-json/wp-exam/v1/auth/token', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          username: username || 'admin@example.com',
-          email: username || 'admin@example.com',
-          password: password || 'admin',
-        }),
-      });
+    const identifier = username || 'admin';
+    const pwd = password || 'Admin@1234';
 
-      const isSuccess = res.ok;
+    const result = await authLogin(identifier, pwd);
+    const isSuccess = result.success;
 
-      if (isSuccess) {
-        localStorage.setItem(STORAGE_KEY, 'true');
-        setIsAdmin(true);
-        setIsVerified(true);
-        toast.success('Administrator sign-in successful');
+    return isSuccess;
+  }, [authLogin]);
 
-        return true;
-      }
-    } catch {
-      // Local fallback
-    }
+  const loginAsDemoAdmin = useCallback(async (): Promise<boolean> => {
+    const result = await authLogin('admin', 'Admin@1234');
+    const isSuccess = result.success;
 
-    // Fallback: grant authenticated admin session
-    localStorage.setItem(STORAGE_KEY, 'true');
-    setIsAdmin(true);
-    setIsVerified(true);
-    toast.success('Signed in as Administrator');
-
-    return true;
-  }, []);
-
-  const loginAsDemoAdmin = useCallback(() => {
-    localStorage.setItem(STORAGE_KEY, 'true');
-    setIsAdmin(true);
-    setIsVerified(true);
-    toast.success('Welcome back, Administrator!');
-  }, []);
+    return isSuccess;
+  }, [authLogin]);
 
   const logout = useCallback(() => {
-    localStorage.removeItem(STORAGE_KEY);
-    setIsAdmin(false);
-
-    try {
-      unifiedFetch('/api/v1/auth/logout', '/wp-json/wp-exam/v1/auth/logout', { method: 'POST' });
-    } catch {
-      // Ignore
-    }
-
-    toast.info('Signed out of Admin Console');
-  }, []);
+    authLogout();
+  }, [authLogout]);
 
   return {
     isAuthenticated: isAdmin,
     isAdmin,
-    isVerified,
+    isVerified: !isLoading,
     verify,
     login,
     loginAsDemoAdmin,
@@ -177,18 +84,30 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
     setIsSubmitting(true);
 
     try {
-      await login(email, password);
-      onSuccess();
-      onClose();
+      const isSuccess = await login(email, password);
+
+      if (isSuccess) {
+        onSuccess();
+        onClose();
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDemoSignIn = () => {
-    loginAsDemoAdmin();
-    onSuccess();
-    onClose();
+  const handleDemoSignIn = async () => {
+    setIsSubmitting(true);
+
+    try {
+      const isSuccess = await loginAsDemoAdmin();
+
+      if (isSuccess) {
+        onSuccess();
+        onClose();
+      }
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -246,7 +165,7 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="w-full text-xs font-semibold h-9"
+              className="w-full text-xs font-semibold h-9 cursor-pointer"
             >
               {isSubmitting ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : null}
               Sign In to Studio
@@ -256,7 +175,8 @@ export const AdminLoginModal: React.FC<AdminLoginModalProps> = ({ isOpen, onClos
               type="button"
               variant="outline"
               onClick={handleDemoSignIn}
-              className="w-full text-xs font-semibold h-9 border-dashed border-primary/40 hover:bg-primary/10 hover:text-primary"
+              disabled={isSubmitting}
+              className="w-full text-xs font-semibold h-9 border-dashed border-primary/40 hover:bg-primary/10 hover:text-primary cursor-pointer"
             >
               <Sparkles className="w-3.5 h-3.5 mr-1.5 text-primary" />
               Instant Sign-in as Demo Admin

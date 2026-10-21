@@ -154,8 +154,14 @@ export const Index: React.FC = () => {
       }
     };
 
-    const handleDemoLogin = () => {
-      loginAsDemoAdmin();
+    const handleDemoLogin = async () => {
+      setIsSubmittingLogin(true);
+
+      try {
+        await loginAsDemoAdmin();
+      } finally {
+        setIsSubmittingLogin(false);
+      }
     };
 
     return (

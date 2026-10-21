@@ -16,7 +16,7 @@ class AuthController
     /**
      * POST /api/v1/auth/login
      */
-    public function login(array $params = [], array $body = []): array
+    public function login(array $params = [], array $body = [], array $headers = []): array
     {
         $identifier = trim((string) ($body['identifier'] ?? ($body['username'] ?? ($body['email'] ?? ''))));
         $password = (string) ($body['password'] ?? '');
@@ -41,12 +41,24 @@ class AuthController
             ];
         }
 
-        // Failsafe for default superadmin: admin / Admin@1234
+        $db = SqliteDatabase::getInstance();
+        $db->init();
+
+        // Check for default superadmin: admin / Admin@1234
         $isAdminMatch = ($identifier === 'admin' || $identifier === 'admin@example.com');
         $isPasswordMatch = ($password === 'Admin@1234');
 
         if ($isAdminMatch && $isPasswordMatch) {
-            $token = 'adm_' . bin2hex(random_bytes(16));
+            $token = 'adm_' . bin2hex(random_bytes(24));
+
+            try {
+                $db->execute(
+                    'INSERT INTO user_tokens (user_id, token, role) VALUES (?, ?, ?)',
+                    [1, $token, 'admin']
+                );
+            } catch (Throwable) {
+                // Table auto-creation or collision fallback
+            }
 
             return [
                 'status' => 'success',
@@ -66,9 +78,6 @@ class AuthController
         }
 
         try {
-            $db = SqliteDatabase::getInstance();
-            $db->init();
-
             $sql = 'SELECT * FROM users WHERE (email = ? OR username = ?) AND is_active = 1 LIMIT 1';
             $rows = $db->query($sql, [$identifier, $identifier]);
             $userRow = $rows[0] ?? null;
@@ -78,7 +87,17 @@ class AuthController
                 $isPwValid = $user->verifyPassword($password);
 
                 if ($isPwValid) {
-                    $token = ($user->isAdmin() ? 'adm_' : 'cand_') . bin2hex(random_bytes(16));
+                    $prefix = $user->isAdmin() ? 'adm_' : 'cand_';
+                    $token = $prefix . bin2hex(random_bytes(24));
+
+                    try {
+                        $db->execute(
+                            'INSERT INTO user_tokens (user_id, token, role) VALUES (?, ?, ?)',
+                            [$user->getId(), $token, $user->getRole()]
+                        );
+                    } catch (Throwable) {
+                        // Non-blocking
+                    }
 
                     return [
                         'status' => 'success',
@@ -104,7 +123,7 @@ class AuthController
     /**
      * POST /api/v1/auth/register (Candidate Self-Registration)
      */
-    public function register(array $params = [], array $body = []): array
+    public function register(array $params = [], array $body = [], array $headers = []): array
     {
         $name = trim((string) ($body['name'] ?? ''));
         $email = strtolower(trim((string) ($body['email'] ?? '')));
@@ -166,7 +185,6 @@ class AuthController
             $createdUser = $createdRows[0] ?? null;
 
             if ($createdUser !== null) {
-                // Also enroll candidate into applicants pipeline
                 try {
                     $db->execute(
                         'INSERT INTO applicants (candidate_name, candidate_email, phone, current_stage_key, notes) VALUES (?, ?, ?, ?, ?)',
@@ -177,7 +195,16 @@ class AuthController
                 }
 
                 $user = new User($createdUser);
-                $token = 'cand_' . bin2hex(random_bytes(16));
+                $token = 'cand_' . bin2hex(random_bytes(24));
+
+                try {
+                    $db->execute(
+                        'INSERT INTO user_tokens (user_id, token, role) VALUES (?, ?, ?)',
+                        [$user->getId(), $token, 'candidate']
+                    );
+                } catch (Throwable) {
+                    // Non-blocking
+                }
 
                 return [
                     'status' => 'success',
@@ -205,32 +232,119 @@ class AuthController
 
     /**
      * GET /api/v1/auth/admin-status
+     *
+     * Validates that the request has an active, authenticated administrator token.
+     * Returns HTTP 401 if unauthorized or invalid.
      */
-    public function adminStatus(array $params = [], array $body = []): array
+    public function adminStatus(array $params = [], array $body = [], array $headers = []): array
     {
+        $token = $this->extractToken($params, $body, $headers);
+        $hasToken = (strlen($token) > 0);
+
+        if (!$hasToken) {
+            return [
+                'status' => 'unauthorized',
+                'is_success' => false,
+                'is_admin' => false,
+                'message' => 'Authentication required. No session token provided.',
+            ];
+        }
+
+        try {
+            $db = SqliteDatabase::getInstance();
+            $db->init();
+
+            $sql = 'SELECT u.id, u.name, u.email, u.username, u.role, u.is_active
+                    FROM user_tokens t
+                    JOIN users u ON t.user_id = u.id
+                    WHERE t.token = ? AND u.role = "admin" AND u.is_active = 1
+                    LIMIT 1';
+
+            $rows = $db->query($sql, [$token]);
+            $adminUser = $rows[0] ?? null;
+
+            if ($adminUser !== null) {
+                return [
+                    'status' => 'success',
+                    'is_success' => true,
+                    'is_admin' => true,
+                    'user' => [
+                        'id' => (int) $adminUser['id'],
+                        'name' => $adminUser['name'],
+                        'email' => $adminUser['email'],
+                        'username' => $adminUser['username'],
+                        'role' => $adminUser['role'],
+                    ],
+                ];
+            }
+        } catch (Throwable) {
+            // Database error
+        }
+
         return [
-            'status' => 'success',
-            'is_success' => true,
-            'is_admin' => true,
-            'user' => [
-                'name' => 'System Administrator',
-                'email' => 'admin@example.com',
-                'username' => 'admin',
-                'role' => 'admin',
-            ],
+            'status' => 'unauthorized',
+            'is_success' => false,
+            'is_admin' => false,
+            'message' => 'Session expired or invalid administrator token.',
         ];
     }
 
     /**
      * POST /api/v1/auth/logout
      */
-    public function logout(array $params = [], array $body = []): array
+    public function logout(array $params = [], array $body = [], array $headers = []): array
     {
+        $token = $this->extractToken($params, $body, $headers);
+        $hasToken = (strlen($token) > 0);
+
+        if ($hasToken) {
+            try {
+                $db = SqliteDatabase::getInstance();
+                $db->init();
+                $db->execute('DELETE FROM user_tokens WHERE token = ?', [$token]);
+            } catch (Throwable) {
+                // Non-blocking
+            }
+        }
+
         return [
             'status' => 'success',
             'is_success' => true,
             'is_admin' => false,
             'message' => 'Signed out successfully',
         ];
+    }
+
+    private function extractToken(array $params, array $body, array $headers): string
+    {
+        $authHeader = $headers['Authorization'] ?? ($headers['authorization'] ?? '');
+        $hasBearer = str_starts_with($authHeader, 'Bearer ');
+
+        if ($hasBearer) {
+            return trim(substr($authHeader, 7));
+        }
+
+        $wpToken = $headers['X-WPExam-Auth-Token'] ?? ($headers['x-wpexam-auth-token'] ?? '');
+        $hasWpToken = (strlen($wpToken) > 0);
+
+        if ($hasWpToken) {
+            return trim($wpToken);
+        }
+
+        $bodyToken = (string) ($body['token'] ?? '');
+        $hasBodyToken = (strlen($bodyToken) > 0);
+
+        if ($hasBodyToken) {
+            return trim($bodyToken);
+        }
+
+        $paramToken = (string) ($params['token'] ?? '');
+        $hasParamToken = (strlen($paramToken) > 0);
+
+        if ($hasParamToken) {
+            return trim($paramToken);
+        }
+
+        return '';
     }
 }

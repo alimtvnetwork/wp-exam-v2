@@ -74,7 +74,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         if (serverUser) {
           setUser(serverUser);
           localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(serverUser));
+          localStorage.setItem('wpexam_admin_session', serverUser.role === 'admin' ? 'true' : 'false');
         }
+      }
+
+      const isUnauthorized = (res.status === 401);
+
+      if (isUnauthorized) {
+        setUser(null);
+        localStorage.removeItem(STORAGE_TOKEN_KEY);
+        localStorage.removeItem(STORAGE_USER_KEY);
+        localStorage.removeItem('wpexam_admin_session');
       }
     } catch {
       // Retain local state
