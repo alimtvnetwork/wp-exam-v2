@@ -42,6 +42,7 @@ test-results/
 
 # Temp cache and build artifacts
 tmp/
+.tools/
 .ai-memory/temp/
 .ai-memory/cicd/
 *.tsbuildinfo
