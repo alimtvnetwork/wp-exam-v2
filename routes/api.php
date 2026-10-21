@@ -8,6 +8,7 @@ use App\Http\Controllers\Applicants\ApplicantController;
 use App\Http\Controllers\Portal\PortalController;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Curriculum\ProjectHierarchyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -76,6 +77,20 @@ Route::post('/api/v1/applicants/feedback', [ApplicantController::class, 'updateF
 // Candidate Self-Service Portal & Verification
 Route::get('/api/v1/portal/{token}', [PortalController::class, 'show']);
 Route::post('/api/v1/portal/{token}/complete-step', [PortalController::class, 'completeStep']);
+
+// Hierarchical Curriculum, Projects, and Categories Engine
+Route::get('/api/v1/categories', [ProjectHierarchyController::class, 'getCategories']);
+Route::post('/api/v1/categories', [ProjectHierarchyController::class, 'saveCategory']);
+Route::get('/api/v1/projects', [ProjectHierarchyController::class, 'getProjects']);
+Route::post('/api/v1/projects', [ProjectHierarchyController::class, 'saveProject']);
+Route::get('/api/v1/projects/{id}', [ProjectHierarchyController::class, 'getProject']);
+
+// Candidate Checklist & Invites
+Route::get('/api/v1/checklist/{token}', [ProjectHierarchyController::class, 'getChecklist']);
+
+// Question Bug Reporting & Triage Feedback
+Route::get('/api/v1/reports', [ProjectHierarchyController::class, 'getReports']);
+Route::post('/api/v1/reports', [ProjectHierarchyController::class, 'submitReport']);
 
 // AGM Mailbox Auto-Config & Real-Time Verification
 // Both endpoints are admin-only: they handle mailbox credentials, so an

@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { CheckCircle2, Clock3, Play, Inbox } from 'lucide-react';
+import { unifiedFetch } from '@/utils/api-client';
 
 interface ChecklistItem {
   id: number;
@@ -58,7 +59,10 @@ export const CandidateChecklist: React.FC = () => {
 
     let isCancelled = false;
 
-    fetch(`/wp-json/wp-exam/v1/checklist/${encodeURIComponent(token)}`)
+    unifiedFetch(
+      `/api/v1/checklist/${encodeURIComponent(token)}`,
+      `/wp-json/wp-exam/v1/checklist/${encodeURIComponent(token)}`
+    )
       .then((response) => {
         if (response.status === 404) {
           throw new Error('not-found');
@@ -70,12 +74,13 @@ export const CandidateChecklist: React.FC = () => {
 
         return response.json();
       })
-      .then((envelope: { Results?: EnvelopeResults }) => {
+      .then((envelope: { Results?: EnvelopeResults; data?: EnvelopeResults }) => {
         if (isCancelled) {
           return;
         }
 
-        setItems(envelope?.Results?.items ?? []);
+        const checklistItems = envelope?.Results?.items ?? envelope?.data?.items ?? [];
+        setItems(checklistItems);
         setIsLoading(false);
       })
       .catch(() => {
