@@ -70,7 +70,7 @@ class SqliteDatabase {
             $this->pdo = new PDO('sqlite:' . $this->dbPath);
             $this->pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $this->pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-            $this->pdo->exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;');
+            $this->pdo->exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000; PRAGMA synchronous = NORMAL;');
 
             $this->runMigrations();
             $this->isInitialized = true;
@@ -123,7 +123,7 @@ class SqliteDatabase {
             $pdo = new PDO('sqlite:' . $projectDbPath);
             $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
             $pdo->setAttribute(PDO::ATTR_DEFAULT_FETCH_MODE, PDO::FETCH_ASSOC);
-            $pdo->exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL;');
+            $pdo->exec('PRAGMA foreign_keys = ON; PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000; PRAGMA synchronous = NORMAL;');
 
             $schema = "
             CREATE TABLE IF NOT EXISTS project_meta (

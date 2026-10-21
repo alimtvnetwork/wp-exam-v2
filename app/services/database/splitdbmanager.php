@@ -67,7 +67,7 @@ class SplitDbManager
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]);
 
-        $pdo->exec('PRAGMA journal_mode = WAL;');
+        $pdo->exec('PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000; PRAGMA synchronous = NORMAL;');
         $pdo->exec('PRAGMA foreign_keys = ON;');
 
         $this->connections[$key] = $pdo;
