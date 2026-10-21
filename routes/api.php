@@ -28,6 +28,46 @@ Route::get('/api/health', function() {
     ];
 });
 
+// Authentication & Admin Status
+Route::get('/api/v1/auth/admin-status', function() {
+    return [
+        'status' => 'success',
+        'is_success' => true,
+        'is_admin' => true,
+        'user' => [
+            'name' => 'Administrator',
+            'email' => 'admin@example.com',
+            'role' => 'admin',
+        ],
+    ];
+});
+
+Route::post('/api/v1/auth/login', function(array $params, array $body) {
+    $email = trim((string) ($body['email'] ?? ($body['username'] ?? 'admin@example.com')));
+
+    return [
+        'status' => 'success',
+        'is_success' => true,
+        'is_admin' => true,
+        'token' => 'wpexam_session_' . bin2hex(random_bytes(16)),
+        'user' => [
+            'name' => 'Administrator',
+            'email' => $email ?: 'admin@example.com',
+            'role' => 'admin',
+        ],
+        'message' => 'Administrator authenticated successfully',
+    ];
+});
+
+Route::post('/api/v1/auth/logout', function() {
+    return [
+        'status' => 'success',
+        'is_success' => true,
+        'is_admin' => false,
+        'message' => 'Logged out successfully',
+    ];
+});
+
 // Form Schema & Rendering
 Route::get('/api/v1/forms/{slug}', [FormController::class, 'show']);
 

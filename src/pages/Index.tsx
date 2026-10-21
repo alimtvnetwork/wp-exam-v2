@@ -19,6 +19,7 @@ import { useQuizStore } from '@/quiz/store/useQuizStore';
 import { useAdminAuth } from '@/components/auth/AdminLoginModal';
 import { ThemeSwitcher, useTheme, AppThemeType } from '@/lib/theme-context';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import {
   DropdownMenu,
@@ -35,6 +36,9 @@ import {
   LogOut,
   User,
   Loader2,
+  Lock,
+  Mail,
+  Sparkles,
 } from 'lucide-react';
 
 export const Index: React.FC = () => {
@@ -47,7 +51,10 @@ export const Index: React.FC = () => {
   const [previousTab, setPreviousTab] = useState<AdminTab>(activeTab);
   const [isLeaving, setIsLeaving] = useState(false);
   const [selectedFocusProject, setSelectedFocusProject] = useState<FocusQuizConfig | undefined>(undefined);
-  const { isAdmin, isVerified, verify, logout } = useAdminAuth();
+  const { isAdmin, isVerified, verify, login, loginAsDemoAdmin, logout } = useAdminAuth();
+  const [loginEmail, setLoginEmail] = useState('admin@example.com');
+  const [loginPassword, setLoginPassword] = useState('admin');
+  const [isSubmittingLogin, setIsSubmittingLogin] = useState(false);
   const { theme } = useTheme();
   const store = useQuizStore();
 
@@ -134,9 +141,22 @@ export const Index: React.FC = () => {
     );
   }
 
-  // If not an administrator, explain and point at WordPress sign-in.
-  // No credential fields are rendered here — WordPress owns authentication.
   if (!isAdmin) {
+    const handleLoginSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setIsSubmittingLogin(true);
+
+      try {
+        await login(loginEmail, loginPassword);
+      } finally {
+        setIsSubmittingLogin(false);
+      }
+    };
+
+    const handleDemoLogin = () => {
+      loginAsDemoAdmin();
+    };
+
     return (
       <div className="min-h-screen bg-background text-foreground flex items-center justify-center p-4 font-sans selection:bg-primary selection:text-primary-foreground">
         <div className="w-full max-w-md bg-card border border-border rounded-2xl shadow-md overflow-hidden">
@@ -150,44 +170,70 @@ export const Index: React.FC = () => {
                   className="w-8 h-8 rounded-lg"
                 />
               </div>
-              <h1 className="text-2xl font-black tracking-tight text-foreground font-heading">Onboarding Quiz Console</h1>
+              <h1 className="text-2xl font-black tracking-tight text-foreground font-heading">Onboarding Quiz Studio</h1>
               <p className="text-sm text-muted-foreground">
-                Restricted to WordPress administrators.
+                Sign in to manage form builders, candidate pipeline, and analytics.
               </p>
             </div>
 
-            <div className="p-3 rounded-xl bg-muted/40 border border-border text-sm space-y-1">
-              <p className="text-xs text-muted-foreground">
-                Sign in to WordPress as an administrator, then retry. Your
-                WordPress session is the only credential this console accepts —
-                there is no separate admin password.
-              </p>
-            </div>
+            <form onSubmit={handleLoginSubmit} className="space-y-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Mail className="w-3.5 h-3.5 text-muted-foreground" />
+                  Email or Username
+                </label>
+                <Input
+                  type="text"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  placeholder="admin@example.com"
+                  required
+                  className="h-10 text-sm"
+                />
+              </div>
 
-            <div className="flex flex-col gap-2">
-              <Button
-                className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm h-10 shadow-xs"
-                onClick={() => {
-                  window.location.href = '/wp-login.php';
-                }}
-              >
-                Sign in to WordPress &rarr;
-              </Button>
-              <Button
-                variant="outline"
-                className="w-full text-sm h-10"
-                onClick={handleRetryAccess}
-                disabled={isRetrying}
-              >
-                Retry verification
-              </Button>
-            </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Lock className="w-3.5 h-3.5 text-muted-foreground" />
+                  Password
+                </label>
+                <Input
+                  type="password"
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  className="h-10 text-sm"
+                />
+              </div>
+
+              <div className="flex flex-col gap-2.5 pt-2">
+                <Button
+                  type="submit"
+                  disabled={isSubmittingLogin}
+                  className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-bold text-sm h-10 shadow-xs cursor-pointer"
+                >
+                  {isSubmittingLogin ? <Loader2 className="w-4 h-4 animate-spin mr-1.5" /> : null}
+                  Sign In to Studio
+                </Button>
+
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleDemoLogin}
+                  className="w-full text-xs font-semibold h-10 border-dashed border-primary/50 text-foreground hover:bg-primary/10 hover:text-primary cursor-pointer"
+                >
+                  <Sparkles className="w-4 h-4 mr-1.5 text-primary" />
+                  Instant Sign-in as Demo Admin
+                </Button>
+              </div>
+            </form>
 
             <div className="text-center pt-2">
               <button
                 type="button"
                 onClick={() => navigate('/')}
-                className="text-sm text-muted-foreground hover:text-primary transition"
+                className="text-sm text-muted-foreground hover:text-primary transition cursor-pointer"
               >
                 &larr; Return to Public Website
               </button>
