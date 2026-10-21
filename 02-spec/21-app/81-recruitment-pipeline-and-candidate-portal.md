@@ -106,6 +106,20 @@ Public token-scoped endpoints that authenticate via capability URL.
   - Body: `{ step_id: string, step_data?: object }`.
   - Action: Records step completion. When `step_complete` is submitted, advances applicant to evaluation stage in the hiring pipeline.
 
+### 3.3 Standalone Laravel REST Endpoints (`routes/api.php`)
+
+When running under the standalone Laravel backend (`php artisan serve` or standard Laravel):
+
+- **`GET /api/v1/applicants`**: Handled by `App\Http\Controllers\Applicants\ApplicantController@index`.
+- **`GET /api/v1/applicants/stages`**: Handled by `App\Http\Controllers\Applicants\ApplicantController@stages`.
+- **`POST /api/v1/applicants`**: Handled by `App\Http\Controllers\Applicants\ApplicantController@store`.
+- **`POST /api/v1/applicants/stage-transition`**: Handled by `App\Http\Controllers\Applicants\ApplicantController@transitionStage`.
+- **`POST /api/v1/applicants/feedback`**: Handled by `App\Http\Controllers\Applicants\ApplicantController@updateFeedback`.
+- **`GET /api/v1/portal/{token}`**: Handled by `App\Http\Controllers\Portal\PortalController@show`.
+- **`POST /api/v1/portal/{token}/complete-step`**: Handled by `App\Http\Controllers\Portal\PortalController@completeStep`.
+- **`POST /api/v1/apply/draft`**: Handled by `App\Http\Controllers\Forms\FormController@saveDraft`.
+- **`GET /api/v1/apply/resume/{token}`**: Handled by `App\Http\Controllers\Forms\FormController@resumeDraft`.
+
 ---
 
 ## 4. UI Architecture & Navigation

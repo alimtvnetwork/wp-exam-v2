@@ -22,6 +22,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { unifiedFetch } from '@/utils/api-client';
 
 interface PortalStep {
   id: string;
@@ -140,7 +141,8 @@ export const CandidatePortalRunner: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const res = await fetch(`/wp-json/wp-exam/v1/portal/${encodeURIComponent(activeToken)}`);
+      const tokenEnc = encodeURIComponent(activeToken);
+      const res = await unifiedFetch(`/api/v1/portal/${tokenEnc}`, `/wp-json/wp-exam/v1/portal/${tokenEnc}`);
       const hasResponse = res.ok;
 
       if (hasResponse) {
@@ -198,14 +200,19 @@ export const CandidatePortalRunner: React.FC = () => {
     }
 
     try {
-      const res = await fetch(`/wp-json/wp-exam/v1/portal/${encodeURIComponent(activeToken)}/complete-step`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          step_id: stepId,
-          step_data: stepData,
-        }),
-      });
+      const tokenEnc = encodeURIComponent(activeToken);
+      const res = await unifiedFetch(
+        `/api/v1/portal/${tokenEnc}/complete-step`,
+        `/wp-json/wp-exam/v1/portal/${tokenEnc}/complete-step`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            step_id: stepId,
+            step_data: stepData,
+          }),
+        }
+      );
 
       const hasSuccess = res.ok;
 

@@ -41,6 +41,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
+import { unifiedFetch } from '@/utils/api-client';
 
 export interface JobPositionOption {
   id: string;
@@ -262,8 +263,9 @@ export const WizardRunner: React.FC = () => {
     }
 
     let isCancelled = false;
+    const encToken = encodeURIComponent(String(resumeToken));
 
-    fetch(`/wp-json/wp-exam/v1/apply/resume/${encodeURIComponent(String(resumeToken))}`)
+    unifiedFetch(`/api/v1/apply/resume/${encToken}`, `/wp-json/wp-exam/v1/apply/resume/${encToken}`)
       .then((res) => {
         if (!res.ok) {
           throw new Error('not-found');
@@ -365,7 +367,7 @@ export const WizardRunner: React.FC = () => {
     };
 
     try {
-      const res = await fetch('/wp-json/wp-exam/v1/apply/draft', {
+      const res = await unifiedFetch('/api/v1/apply/draft', '/wp-json/wp-exam/v1/apply/draft', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

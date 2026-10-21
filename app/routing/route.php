@@ -147,8 +147,21 @@ class Route
             $instance = new $class();
             $result = $instance->$method($routeParams, $body);
 
+            $statusCode = 200;
+            $isErrorStatus = (isset($result['status']) && $result['status'] === 'error');
+
+            if ($isErrorStatus) {
+                $statusCode = 400;
+            }
+
+            $isFailure = (isset($result['is_success']) && $result['is_success'] === false);
+
+            if ($isFailure) {
+                $statusCode = 400;
+            }
+
             return [
-                'status' => 200,
+                'status' => $statusCode,
                 'body' => (array) $result,
             ];
         }

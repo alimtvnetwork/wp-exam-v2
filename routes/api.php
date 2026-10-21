@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 use App\Routing\Route;
 use App\Http\Controllers\Forms\FormController;
+use App\Http\Controllers\Applicants\ApplicantController;
+use App\Http\Controllers\Portal\PortalController;
 
 /*
 |--------------------------------------------------------------------------
@@ -41,9 +43,22 @@ Route::get('/api/v1/forms/countries/cache', [FormController::class, 'countriesCa
 // Draft Save & Resume Mode
 Route::post('/api/v1/forms/{slug}/draft', [FormController::class, 'saveDraft']);
 Route::get('/api/v1/forms/draft/{token}', [FormController::class, 'resumeDraft']);
+Route::post('/api/v1/apply/draft', [FormController::class, 'saveDraft']);
+Route::get('/api/v1/apply/resume/{token}', [FormController::class, 'resumeDraft']);
 
 // Form Submission with Server-Side Conditional Engine
 Route::post('/api/v1/forms/{slug}/submit', [FormController::class, 'submit']);
+
+// Applicant Recruitment Pipeline & Kanban
+Route::get('/api/v1/applicants', [ApplicantController::class, 'index']);
+Route::get('/api/v1/applicants/stages', [ApplicantController::class, 'stages']);
+Route::post('/api/v1/applicants', [ApplicantController::class, 'store']);
+Route::post('/api/v1/applicants/stage-transition', [ApplicantController::class, 'transitionStage']);
+Route::post('/api/v1/applicants/feedback', [ApplicantController::class, 'updateFeedback']);
+
+// Candidate Self-Service Portal & Verification
+Route::get('/api/v1/portal/{token}', [PortalController::class, 'show']);
+Route::post('/api/v1/portal/{token}/complete-step', [PortalController::class, 'completeStep']);
 
 // AGM Mailbox Auto-Config & Real-Time Verification
 // Both endpoints are admin-only: they handle mailbox credentials, so an
@@ -99,4 +114,3 @@ Route::post('/api/v1/email/verify-connection', function(array $params, array $bo
         'message' => $result['message'],
     ];
 });
-

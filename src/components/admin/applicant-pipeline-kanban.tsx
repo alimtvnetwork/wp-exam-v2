@@ -38,6 +38,7 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
+import { unifiedFetch } from '@/utils/api-client';
 
 export interface ApplicantStage {
   id: number;
@@ -154,7 +155,7 @@ export const ApplicantPipelineKanban: React.FC = () => {
     setIsLoading(true);
 
     try {
-      const stagesRes = await fetch('/wp-json/wp-exam/v1/applicants/stages');
+      const stagesRes = await unifiedFetch('/api/v1/applicants/stages', '/wp-json/wp-exam/v1/applicants/stages');
       const hasStagesSuccess = stagesRes.ok;
 
       if (hasStagesSuccess) {
@@ -170,7 +171,7 @@ export const ApplicantPipelineKanban: React.FC = () => {
         }
       }
 
-      const applicantsRes = await fetch('/wp-json/wp-exam/v1/applicants');
+      const applicantsRes = await unifiedFetch('/api/v1/applicants', '/wp-json/wp-exam/v1/applicants');
       const hasApplicantsSuccess = applicantsRes.ok;
 
       if (hasApplicantsSuccess) {
@@ -215,7 +216,7 @@ export const ApplicantPipelineKanban: React.FC = () => {
     toast.success(`Moved ${targetApplicant?.candidate_name} to ${targetStageName}`);
 
     try {
-      const response = await fetch('/wp-json/wp-exam/v1/applicants/stage-transition', {
+      const response = await unifiedFetch('/api/v1/applicants/stage-transition', '/wp-json/wp-exam/v1/applicants/stage-transition', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -280,7 +281,7 @@ export const ApplicantPipelineKanban: React.FC = () => {
     setNewNotes('');
 
     try {
-      await fetch('/wp-json/wp-exam/v1/applicants', {
+      await unifiedFetch('/api/v1/applicants', '/wp-json/wp-exam/v1/applicants', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -333,7 +334,7 @@ export const ApplicantPipelineKanban: React.FC = () => {
     toast.success('Candidate feedback and rating updated');
 
     try {
-      await fetch('/wp-json/wp-exam/v1/applicants/feedback', {
+      await unifiedFetch('/api/v1/applicants/feedback', '/wp-json/wp-exam/v1/applicants/feedback', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

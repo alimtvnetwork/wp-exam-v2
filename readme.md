@@ -31,7 +31,9 @@ Project Workspace: [Lovable Project](https://lovable.dev/projects/68b1fc57-2c73-
 ## Tech Stack
 
 - **Frontend**: React 18, TypeScript, Vite, Tailwind CSS, shadcn/ui, Lucide Icons, TanStack Query.
-- **Backend**: PHP 8.2+, PSR-4 Autoloading, WordPress REST Controller API, SQLite3 PDO layer.
+- **Backend (Dual Architecture)**:
+  - **Standalone Laravel API**: Eloquent-style Models (`app/models/`), Controllers (`app/http/controllers/`), REST Routes (`routes/api.php`), CLI Console (`artisan`), and standard Migrations (`database/migrations/`).
+  - **WordPress Plugin**: WordPress REST API controllers (`includes/api/`), Hooks, and activation scripts (`wp-exam.php`).
 - **Database**: SQLite Split-DB architecture (Main `wp-exam.sqlite` + Project sharded databases).
 - **Versioning**: Single source of truth managed via `version.json`.
 
@@ -84,15 +86,20 @@ All endpoints are registered under namespace `wp-exam/v1`:
 
 ### Local Development Setup
 
+#### 1. Start React Frontend
 ```bash
-# Install dependencies
-npm install
-
-# Start Vite development server
-npm run dev
+bun install
+bun run dev
+# or: npm install && npm run dev
 ```
 
-Open `http://localhost:8080` (or `http://localhost:5173`) in your browser.
+#### 2. Start Standalone Laravel Backend (Optional)
+```bash
+php artisan serve
+# or: npm run serve:backend
+```
+
+The React frontend automatically connects to the Laravel API server via Vite proxy (`/api -> http://127.0.0.1:8080`), falls back to `/wp-json/wp-exam/v1/...` when running inside WordPress, or operates in self-contained offline mode.
 
 ### Key Application Routes
 
