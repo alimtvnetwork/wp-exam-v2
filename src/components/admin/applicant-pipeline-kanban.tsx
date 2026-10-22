@@ -22,6 +22,14 @@ import {
   SlidersHorizontal,
   ShieldCheck,
   ExternalLink,
+  Award,
+  Copy,
+  Link2,
+  ListChecks,
+  BookOpen,
+  Sparkles,
+  PlusCircle,
+  Calendar,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -53,6 +61,19 @@ export interface ApplicantStage {
   color_code: string;
 }
 
+export interface AssignedTask {
+  id: string;
+  title: string;
+  type: 'assessment' | 'checklist' | 'quiz' | 'curriculum';
+  slug?: string;
+  due_date?: string;
+  notes?: string;
+  status: 'not_started' | 'in_progress' | 'completed';
+  assigned_at?: string;
+  completed_at?: string;
+  score?: number;
+}
+
 export interface Applicant {
   id: number;
   candidate_name: string;
@@ -64,9 +85,192 @@ export interface Applicant {
   score?: number;
   rating?: number;
   notes?: string;
+  assigned_tasks?: AssignedTask[];
   created_at?: string;
   updated_at?: string;
 }
+
+export interface AvailableTaskOption {
+  id: string;
+  title: string;
+  type: 'assessment' | 'checklist' | 'quiz' | 'curriculum';
+  category: string;
+  slug: string;
+  recommendedDueDate: string;
+  defaultNotes: string;
+}
+
+export const AVAILABLE_SYSTEM_TASKS: AvailableTaskOption[] = [
+  // 1. Entrance & Technical Evaluations
+  {
+    id: 'eval_tech_core',
+    title: 'Technical Assessment & Skills Verification',
+    type: 'assessment',
+    category: 'Technical Entrance Exams',
+    slug: 'technical-assessment',
+    recommendedDueDate: '5 days',
+    defaultNotes: 'Complete all 5 verification steps including technical evaluation.',
+  },
+  {
+    id: 'eval_wp_fullstack',
+    title: 'WordPress & React Fullstack Developer Assessment',
+    type: 'assessment',
+    category: 'Technical Entrance Exams',
+    slug: 'wp-fullstack-exam',
+    recommendedDueDate: '3 days',
+    defaultNotes: 'Technical evaluation covering WordPress hooks, REST APIs, and React components.',
+  },
+  // 2. Onboarding & Compliance Checklists
+  {
+    id: 'chk_employee_onboarding',
+    title: 'Employee Onboarding & Security Checklist',
+    type: 'checklist',
+    category: 'Onboarding & Compliance Checklists',
+    slug: 'onboarding-checklist',
+    recommendedDueDate: '1 day',
+    defaultNotes: 'Hardware security keys, 2FA setup, and workstation compliance.',
+  },
+  {
+    id: 'chk_workstation_setup',
+    title: 'Workstation Compliance & SSH Key Verification',
+    type: 'checklist',
+    category: 'Onboarding & Compliance Checklists',
+    slug: 'workstation-checklist',
+    recommendedDueDate: '2 days',
+    defaultNotes: 'Endpoint BitLocker encryption, primary YubiKey enrollment, and Git SSH commit signing.',
+  },
+  {
+    id: 'chk_dev_prereqs',
+    title: 'Developer Environment & GitHub 2FA Setup',
+    type: 'checklist',
+    category: 'Onboarding & Compliance Checklists',
+    slug: 'dev-prereqs-checklist',
+    recommendedDueDate: '1 day',
+    defaultNotes: 'Configure GitHub hardware 2FA key and enroll password manager.',
+  },
+  // 3. Focus Quizzes
+  {
+    id: 'quiz_coding_guidelines',
+    title: 'Coding Guidelines & Anti-Patterns Quiz',
+    type: 'quiz',
+    category: 'Focus Studio Quizzes',
+    slug: 'coding-standards-quiz',
+    recommendedDueDate: '3 days',
+    defaultNotes: 'Compliance test on positive booleans, AppError wrappers, and LF endings.',
+  },
+  {
+    id: 'quiz_playwright_qa',
+    title: 'Playwright Test Automation & Triage Quiz',
+    type: 'quiz',
+    category: 'Focus Studio Quizzes',
+    slug: 'qa-triage-quiz',
+    recommendedDueDate: '4 days',
+    defaultNotes: 'End-to-end testing principles and zero-storage CI/CD mandate.',
+  },
+  {
+    id: 'quiz_sec_mastery',
+    title: 'Security Mastery Quiz',
+    type: 'quiz',
+    category: 'Focus Studio Quizzes',
+    slug: 'sec-mastery-quiz',
+    recommendedDueDate: '3 days',
+    defaultNotes: '16+ character password policies and endpoint security verification.',
+  },
+  // 4. Curriculum Tracks
+  {
+    id: 'track_sec_hygiene',
+    title: 'Employee Security & Password Hygiene Track',
+    type: 'curriculum',
+    category: 'Curriculum & Learning Tracks',
+    slug: 'sec-101-track',
+    recommendedDueDate: '1 week',
+    defaultNotes: 'Review security standard documentation, setup checklist, and mastery quiz.',
+  },
+  {
+    id: 'track_coding_standards',
+    title: 'Coding Guidelines & Anti-Patterns Track',
+    type: 'curriculum',
+    category: 'Curriculum & Learning Tracks',
+    slug: 'coding-standards-track',
+    recommendedDueDate: '5 days',
+    defaultNotes: 'Banned anti-patterns, discrete branching immutability, and Go AppError rules.',
+  },
+  {
+    id: 'track_product_standards',
+    title: 'Product & QA Standards Curriculum',
+    type: 'curriculum',
+    category: 'Curriculum & Learning Tracks',
+    slug: 'product-qa-track',
+    recommendedDueDate: '1 week',
+    defaultNotes: 'Quality assurance workflows, Playwright E2E suites, and bug triage.',
+  },
+];
+
+const TASK_CATEGORIES: string[] = [
+  'Technical Entrance Exams',
+  'Onboarding & Compliance Checklists',
+  'Focus Studio Quizzes',
+  'Curriculum & Learning Tracks',
+];
+
+const DEADLINE_OPTIONS: { value: string; label: string }[] = [
+  { value: '1 day', label: '1 Day' },
+  { value: '2 days', label: '2 Days' },
+  { value: '3 days', label: '3 Days' },
+  { value: '4 days', label: '4 Days' },
+  { value: '5 days', label: '5 Days' },
+  { value: '6 days', label: '6 Days' },
+  { value: '1 week', label: '1 Week' },
+  { value: '2 weeks', label: '2 Weeks' },
+  { value: '3 weeks', label: '3 Weeks' },
+  { value: '1 month', label: '1 Month' },
+];
+
+const normalizeDeadline = (val: string): string => {
+  const lower = (val || '').toLowerCase().trim();
+
+  if (lower.includes('1 month')) {
+    return '1 month';
+  }
+
+  if (lower.includes('3 week')) {
+    return '3 weeks';
+  }
+
+  if (lower.includes('2 week')) {
+    return '2 weeks';
+  }
+
+  if (lower.includes('1 week') || lower.includes('7 day')) {
+    return '1 week';
+  }
+
+  if (lower.includes('6 day')) {
+    return '6 days';
+  }
+
+  if (lower.includes('5 day')) {
+    return '5 days';
+  }
+
+  if (lower.includes('4 day')) {
+    return '4 days';
+  }
+
+  if (lower.includes('3 day')) {
+    return '3 days';
+  }
+
+  if (lower.includes('2 day')) {
+    return '2 days';
+  }
+
+  if (lower.includes('1 day') || lower.includes('day 1')) {
+    return '1 day';
+  }
+
+  return '5 days';
+};
 
 const DEFAULT_STAGES: ApplicantStage[] = [
   { id: 1, stage_key: 'applied', stage_name: 'Applied', display_order: 0, color_code: '#64748b' },
@@ -153,10 +357,23 @@ export const ApplicantPipelineKanban: React.FC = () => {
   const [newStage, setNewStage] = useState('applied');
   const [newNotes, setNewNotes] = useState('');
 
+  // Assessment Results Dialog
+  const [viewAssessmentCandidate, setViewAssessmentCandidate] = useState<Applicant | null>(null);
+
   // Note/Feedback Dialog
   const [activeFeedbackApplicant, setActiveFeedbackApplicant] = useState<Applicant | null>(null);
   const [feedbackNotes, setFeedbackNotes] = useState('');
   const [feedbackRating, setFeedbackRating] = useState<number>(5);
+
+  // Task Assignment Modal State
+  const [activeAssignCandidate, setActiveAssignCandidate] = useState<Applicant | null>(null);
+  const [selectedTaskId, setSelectedTaskId] = useState<string>('eval_tech_core');
+  const [assignTaskType, setAssignTaskType] = useState<'assessment' | 'checklist' | 'quiz' | 'curriculum'>('assessment');
+  const [assignTaskTitle, setAssignTaskTitle] = useState<string>('Technical Assessment & Verification');
+  const [assignTaskSlug, setAssignTaskSlug] = useState<string>('technical-assessment');
+  const [assignTaskDueDate, setAssignTaskDueDate] = useState<string>('5 days');
+  const [assignTaskNotes, setAssignTaskNotes] = useState<string>('');
+  const [isSubmittingAssign, setIsSubmittingAssign] = useState<boolean>(false);
 
   const fetchApplicantsAndStages = async () => {
     setIsLoading(true);
@@ -267,6 +484,7 @@ export const ApplicantPipelineKanban: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           applicant_id: applicantId,
+          candidate_email: targetApplicant?.candidate_email,
           to_stage_key: toStageKey,
           notes: note || `Stage transitioned from ${previousStageKey} to ${toStageKey}`,
         }),
@@ -280,6 +498,17 @@ export const ApplicantPipelineKanban: React.FC = () => {
           prev.map((app) => (app.id === applicantId ? { ...app, current_stage_key: previousStageKey || 'applied' } : app))
         );
         toast.error('Failed to sync stage transition with server');
+      } else {
+        const json = await response.json();
+        const serverApp = json?.data?.applicant;
+        const hasServerId = Boolean(serverApp?.id);
+
+        if (hasServerId) {
+          const sId = Number(serverApp.id);
+          setApplicants((prev) =>
+            prev.map((app) => (app.candidate_email === targetApplicant?.candidate_email ? { ...app, ...serverApp, id: sId } : app))
+          );
+        }
       }
     } catch {
       // Standalone mode retains optimistic state
@@ -327,7 +556,7 @@ export const ApplicantPipelineKanban: React.FC = () => {
     setNewNotes('');
 
     try {
-      await unifiedFetch('/api/v1/applicants', '/wp-json/wp-exam/v1/applicants', {
+      const res = await unifiedFetch('/api/v1/applicants', '/wp-json/wp-exam/v1/applicants', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -338,6 +567,23 @@ export const ApplicantPipelineKanban: React.FC = () => {
           notes: candidatePayload.notes,
         }),
       });
+
+      const isSuccess = res.ok;
+
+      if (isSuccess) {
+        const json = await res.json();
+        const serverApplicant = json?.data?.applicant ?? json?.data;
+        const hasServerId = Boolean(serverApplicant?.id);
+
+        if (hasServerId) {
+          const sId = Number(serverApplicant.id);
+          setApplicants((prev) =>
+            prev.map((app) =>
+              app.id === newId ? { ...app, ...serverApplicant, id: sId } : app
+            )
+          );
+        }
+      }
     } catch {
       // Standalone mode retains state
     }
@@ -385,6 +631,7 @@ export const ApplicantPipelineKanban: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           applicant_id: applicantId,
+          candidate_email: activeFeedbackApplicant?.candidate_email,
           rating: feedbackRating,
           notes: feedbackNotes,
         }),
@@ -392,6 +639,154 @@ export const ApplicantPipelineKanban: React.FC = () => {
     } catch {
       // Standalone mode
     }
+  };
+
+  const handleSelectAvailableTask = (taskId: string) => {
+    setSelectedTaskId(taskId);
+
+    const isCustom = taskId === 'custom_task';
+
+    if (isCustom) {
+      setAssignTaskTitle('');
+      setAssignTaskSlug('custom-assignment');
+      return;
+    }
+
+    const matched = AVAILABLE_SYSTEM_TASKS.find((t) => t.id === taskId);
+    const hasMatched = Boolean(matched);
+
+    if (hasMatched) {
+      const task = matched!;
+      setAssignTaskType(task.type);
+      setAssignTaskTitle(task.title);
+      setAssignTaskSlug(task.slug);
+      setAssignTaskDueDate(normalizeDeadline(task.recommendedDueDate));
+      setAssignTaskNotes(task.defaultNotes);
+    }
+  };
+
+  const handleOpenAssignTask = (candidate: Applicant) => {
+    setActiveAssignCandidate(candidate);
+    const defaultTask = AVAILABLE_SYSTEM_TASKS[0];
+    setSelectedTaskId(defaultTask.id);
+    setAssignTaskType(defaultTask.type);
+    setAssignTaskTitle(defaultTask.title);
+    setAssignTaskSlug(defaultTask.slug);
+    setAssignTaskDueDate(normalizeDeadline(defaultTask.recommendedDueDate));
+    setAssignTaskNotes(defaultTask.defaultNotes);
+  };
+
+  const handleSaveAssignTask = async () => {
+    const hasCandidate = Boolean(activeAssignCandidate);
+
+    if (!hasCandidate) {
+      return;
+    }
+
+    const cleanTitle = assignTaskTitle.trim();
+    const hasTitle = Boolean(cleanTitle);
+
+    if (!hasTitle) {
+      toast.error('Task title is required');
+      return;
+    }
+
+    setIsSubmittingAssign(true);
+
+    const targetCandidate = activeAssignCandidate!;
+    const fallbackSlug = assignTaskType === 'checklist' ? 'onboarding-checklist' : 'technical-assessment';
+    const finalSlug = assignTaskSlug.trim() || fallbackSlug;
+
+    const newTask: AssignedTask = {
+      id: 'task_' + Date.now(),
+      title: cleanTitle,
+      type: assignTaskType,
+      slug: finalSlug,
+      due_date: assignTaskDueDate,
+      notes: assignTaskNotes.trim(),
+      status: 'not_started',
+      assigned_at: new Date().toISOString(),
+    };
+
+    setApplicants((prev) =>
+      prev.map((app) => {
+        const isTarget = app.id === targetCandidate.id;
+
+        if (isTarget) {
+          const currentTasks = app.assigned_tasks || [];
+          return {
+            ...app,
+            assigned_tasks: [...currentTasks, newTask],
+          };
+        }
+
+        return app;
+      })
+    );
+
+    if (typeof window !== 'undefined') {
+      const email = targetCandidate.candidate_email;
+      const key = `wp_exam_assigned_tasks_${email}`;
+      const existingStr = localStorage.getItem(key);
+      let existingList: AssignedTask[] = [];
+
+      if (existingStr) {
+        try {
+          const parsed = JSON.parse(existingStr);
+          const isArr = Array.isArray(parsed);
+
+          if (isArr) {
+            existingList = parsed;
+          }
+        } catch {
+          // Fallback to empty
+        }
+      }
+
+      localStorage.setItem(key, JSON.stringify([...existingList, newTask]));
+    }
+
+    toast.success(`Assigned "${cleanTitle}" to ${targetCandidate.candidate_name}`);
+
+    try {
+      await unifiedFetch('/api/v1/applicants/assign-task', '/wp-json/wp-exam/v1/applicants/assign-task', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicant_id: targetCandidate.id,
+          candidate_email: targetCandidate.candidate_email,
+          task: newTask,
+        }),
+      });
+    } catch {
+      // Local state is preserved
+    } finally {
+      setIsSubmittingAssign(false);
+      setActiveAssignCandidate(null);
+    }
+  };
+
+  const handleRemoveAssignTask = async (candidateId: number, taskId: string) => {
+    const candidate = applicants.find((a) => a.id === candidateId);
+    const hasCandidate = Boolean(candidate);
+
+    if (!hasCandidate) {
+      return;
+    }
+
+    const updatedTasks = (candidate?.assigned_tasks || []).filter((t) => t.id !== taskId);
+
+    setApplicants((prev) =>
+      prev.map((app) => (app.id === candidateId ? { ...app, assigned_tasks: updatedTasks } : app))
+    );
+
+    if (typeof window !== 'undefined') {
+      const email = candidate?.candidate_email || '';
+      const key = `wp_exam_assigned_tasks_${email}`;
+      localStorage.setItem(key, JSON.stringify(updatedTasks));
+    }
+
+    toast.success('Assigned task removed');
   };
 
   const filteredApplicants = applicants.filter((candidate) => {
@@ -676,6 +1071,13 @@ export const ApplicantPipelineKanban: React.FC = () => {
                                     ))}
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
+                                    onClick={() => handleOpenAssignTask(candidate)}
+                                    className="text-xs gap-2 font-medium text-emerald-600 dark:text-emerald-400 cursor-pointer"
+                                  >
+                                    <PlusCircle className="w-3.5 h-3.5" />
+                                    Assign Assessment / Task
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
                                     onClick={() => {
                                       setActiveFeedbackApplicant(candidate);
                                       setFeedbackNotes(candidate.notes || '');
@@ -685,6 +1087,25 @@ export const ApplicantPipelineKanban: React.FC = () => {
                                   >
                                     <MessageSquare className="w-3.5 h-3.5" />
                                     Add Evaluation Note
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => setViewAssessmentCandidate(candidate)}
+                                    className="text-xs gap-2 font-medium text-primary cursor-pointer"
+                                  >
+                                    <Award className="w-3.5 h-3.5" />
+                                    View Exam & Submissions
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => {
+                                      const portalToken = candidate.candidate_email.split('@')[0] || String(candidate.id);
+                                      const fullUrl = `${window.location.origin}/portal/${portalToken}`;
+                                      navigator.clipboard.writeText(fullUrl);
+                                      toast.success(`Copied portal link: ${fullUrl}`);
+                                    }}
+                                    className="text-xs gap-2 cursor-pointer font-medium"
+                                  >
+                                    <Copy className="w-3.5 h-3.5" />
+                                    Copy Portal Link
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onClick={() => {
@@ -726,7 +1147,15 @@ export const ApplicantPipelineKanban: React.FC = () => {
                               </div>
 
                               {candidate.score !== undefined && (
-                                <Badge variant="outline" className="text-[11px] h-5 px-2 border-primary/30 bg-primary/5 text-primary font-mono font-medium">
+                                <Badge
+                                  variant="outline"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setViewAssessmentCandidate(candidate);
+                                  }}
+                                  title="Click to view exam score details"
+                                  className="text-[11px] h-5 px-2 border-primary/30 bg-primary/5 hover:bg-primary/15 text-primary font-mono font-medium cursor-pointer transition-colors"
+                                >
                                   {candidate.score}% score
                                 </Badge>
                               )}
@@ -773,6 +1202,65 @@ export const ApplicantPipelineKanban: React.FC = () => {
                                 </div>
                               );
                             })()}
+
+                            {/* Assigned Tasks Summary & Quick Assign Action on Candidate Card */}
+                            <div className="space-y-1.5 pt-1 border-t border-border/40">
+                              <div className="flex items-center justify-between text-[11px]">
+                                <span className="font-semibold text-muted-foreground flex items-center gap-1">
+                                  <ListChecks className="w-3 h-3 text-primary" />
+                                  Assigned Tasks ({candidate.assigned_tasks?.length || 0})
+                                </span>
+                                <button
+                                  type="button"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    handleOpenAssignTask(candidate);
+                                  }}
+                                  className="text-primary hover:underline text-[10px] font-semibold flex items-center gap-0.5"
+                                >
+                                  <Plus className="w-2.5 h-2.5" /> Assign
+                                </button>
+                              </div>
+
+                              {candidate.assigned_tasks && candidate.assigned_tasks.length > 0 ? (
+                                <div className="space-y-1">
+                                  {candidate.assigned_tasks.slice(0, 2).map((t) => {
+                                    const isCompleted = t.status === 'completed';
+                                    const isInProgress = t.status === 'in_progress';
+
+                                    return (
+                                      <div
+                                        key={t.id}
+                                        className="flex items-center justify-between px-2 py-1 rounded bg-muted/40 border border-border/50 text-[11px]"
+                                      >
+                                        <span className="truncate max-w-[130px] font-medium text-foreground">{t.title}</span>
+                                        <Badge
+                                          variant="outline"
+                                          className={`text-[9px] h-4 px-1 ${
+                                            isCompleted
+                                              ? 'border-emerald-500/40 text-emerald-500 bg-emerald-500/10'
+                                              : isInProgress
+                                              ? 'border-amber-500/40 text-amber-500 bg-amber-500/10'
+                                              : 'border-muted text-muted-foreground'
+                                          }`}
+                                        >
+                                          {isCompleted ? 'Done' : isInProgress ? 'In Progress' : 'Pending'}
+                                        </Badge>
+                                      </div>
+                                    );
+                                  })}
+                                  {candidate.assigned_tasks.length > 2 && (
+                                    <span className="text-[10px] text-muted-foreground italic block pl-1">
+                                      +{candidate.assigned_tasks.length - 2} more tasks
+                                    </span>
+                                  )}
+                                </div>
+                              ) : (
+                                <div className="text-[10px] text-muted-foreground italic py-0.5">
+                                  No tasks assigned yet
+                                </div>
+                              )}
+                            </div>
 
                             {nextStage && (
                               <Button
@@ -826,6 +1314,21 @@ export const ApplicantPipelineKanban: React.FC = () => {
                 onChange={(e) => setNewEmail(e.target.value)}
               />
             </div>
+
+            {newEmail.trim().length > 0 && (
+              <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 space-y-1 text-xs">
+                <span className="font-semibold text-foreground flex items-center gap-1.5 text-[11px] text-primary">
+                  <Link2 className="w-3.5 h-3.5" />
+                  Generated Candidate Portal URL:
+                </span>
+                <code className="font-mono text-[11px] text-muted-foreground break-all select-all">
+                  {window.location.origin}/portal/{newEmail.trim().split('@')[0]}
+                </code>
+                <p className="text-[10px] text-muted-foreground pt-0.5">
+                  Share this link with the candidate to let them access their portal directly without needing a password.
+                </p>
+              </div>
+            )}
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-foreground">Phone Number</label>
@@ -933,6 +1436,283 @@ export const ApplicantPipelineKanban: React.FC = () => {
             </Button>
             <Button onClick={handleSaveFeedback}>
               Save Evaluation
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assessment & Exam Results Modal */}
+      <Dialog
+        open={Boolean(viewAssessmentCandidate)}
+        onOpenChange={(open) => {
+          const isClosed = !open;
+          if (isClosed) {
+            setViewAssessmentCandidate(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <Award className="w-5 h-5 text-primary" />
+              <span>Assessment & Exam Results</span>
+            </DialogTitle>
+            <DialogDescription>
+              Review exam performance and scoring details for {viewAssessmentCandidate?.candidate_name}.
+            </DialogDescription>
+          </DialogHeader>
+
+          {viewAssessmentCandidate && (
+            <div className="space-y-4 py-2">
+              {/* Score Highlight Box */}
+              <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between">
+                <div className="space-y-0.5">
+                  <span className="text-xs text-muted-foreground font-medium">Exam Performance Score</span>
+                  <div className="text-2xl font-bold font-mono text-primary">
+                    {viewAssessmentCandidate.score ?? 0}%
+                  </div>
+                </div>
+                <Badge
+                  className={`font-semibold ${
+                    (viewAssessmentCandidate.score ?? 0) >= 70
+                      ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                      : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                  }`}
+                >
+                  {(viewAssessmentCandidate.score ?? 0) >= 70 ? 'Passed' : 'Under Review'}
+                </Badge>
+              </div>
+
+              {/* Candidate Info Grid */}
+              <div className="space-y-2 text-xs">
+                <div className="flex justify-between py-1.5 border-b border-border/40">
+                  <span className="text-muted-foreground">Candidate Name:</span>
+                  <span className="font-semibold text-foreground">{viewAssessmentCandidate.candidate_name}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-border/40">
+                  <span className="text-muted-foreground">Email Address:</span>
+                  <span className="font-mono text-foreground">{viewAssessmentCandidate.candidate_email}</span>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-border/40">
+                  <span className="text-muted-foreground">Pipeline Stage:</span>
+                  <Badge variant="outline" className="capitalize text-[10px]">
+                    {viewAssessmentCandidate.current_stage_key}
+                  </Badge>
+                </div>
+                <div className="flex justify-between py-1.5 border-b border-border/40">
+                  <span className="text-muted-foreground">Evaluator Rating:</span>
+                  <span className="font-semibold text-foreground">
+                    {viewAssessmentCandidate.rating ?? 0} / 5 Stars
+                  </span>
+                </div>
+                {viewAssessmentCandidate.notes && (
+                  <div className="space-y-1 pt-1">
+                    <span className="text-muted-foreground">Evaluation Notes:</span>
+                    <p className="p-2.5 rounded-lg bg-muted/40 border border-border/30 text-foreground italic">
+                      "{viewAssessmentCandidate.notes}"
+                    </p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          <DialogFooter className="flex sm:justify-between items-center gap-2 flex-wrap">
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const hasCandidate = Boolean(viewAssessmentCandidate);
+                  if (hasCandidate) {
+                    const portalToken = viewAssessmentCandidate?.candidate_email.split('@')[0] || String(viewAssessmentCandidate?.id || 'demo');
+                    const fullUrl = `${window.location.origin}/portal/${portalToken}`;
+                    navigator.clipboard.writeText(fullUrl);
+                    toast.success(`Copied portal link: ${fullUrl}`);
+                  }
+                }}
+                className="gap-1.5 text-xs cursor-pointer"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                <span>Copy Portal Link</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const hasCandidate = Boolean(viewAssessmentCandidate);
+                  if (hasCandidate) {
+                    const portalToken = viewAssessmentCandidate?.candidate_email.split('@')[0] || 'demo';
+                    window.open(`/portal/${portalToken}`, '_blank');
+                  }
+                }}
+                className="gap-1.5 text-xs cursor-pointer"
+              >
+                <ExternalLink className="w-3.5 h-3.5" />
+                <span>Open Candidate Portal</span>
+              </Button>
+            </div>
+            <Button size="sm" onClick={() => setViewAssessmentCandidate(null)} className="cursor-pointer text-xs">
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Assessment & Onboarding Task Dialog */}
+      <Dialog
+        open={Boolean(activeAssignCandidate)}
+        onOpenChange={(open) => {
+          const isClosed = !open;
+          if (isClosed) {
+            setActiveAssignCandidate(null);
+          }
+        }}
+      >
+        <DialogContent className="sm:max-w-lg rounded-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-base">
+              <PlusCircle className="w-5 h-5 text-emerald-500" />
+              <span>Assign Assessment or Task</span>
+            </DialogTitle>
+            <DialogDescription>
+              Assign technical exams, onboarding checklists, or curriculum tracks to {activeAssignCandidate?.candidate_name}.
+            </DialogDescription>
+          </DialogHeader>
+
+          {activeAssignCandidate && (
+            <div className="space-y-4 py-2">
+              {/* Candidate Info Pill */}
+              <div className="p-3 rounded-xl bg-muted/40 border border-border/60 flex items-center justify-between text-xs">
+                <div>
+                  <div className="font-semibold text-foreground">{activeAssignCandidate.candidate_name}</div>
+                  <div className="text-muted-foreground">{activeAssignCandidate.candidate_email}</div>
+                </div>
+                <Badge variant="outline" className="capitalize text-[10px]">
+                  Stage: {activeAssignCandidate.current_stage_key}
+                </Badge>
+              </div>
+
+              {/* Task Dropdown Selection */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground flex items-center justify-between">
+                  <span>Available Tasks & Modules</span>
+                  <span className="text-[11px] text-muted-foreground font-normal">Choose from pre-configured catalog</span>
+                </label>
+                <select
+                  value={selectedTaskId}
+                  onChange={(e) => handleSelectAvailableTask(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs shadow-xs focus:outline-hidden focus:ring-1 focus:ring-ring text-foreground"
+                >
+                  {TASK_CATEGORIES.map((category) => (
+                    <optgroup key={category} label={category}>
+                      {AVAILABLE_SYSTEM_TASKS.filter((task) => task.category === category).map((task) => (
+                        <option key={task.id} value={task.id}>
+                          {task.title}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ))}
+                  <optgroup label="Custom Option">
+                    <option value="custom_task">Custom / One-off Assignment...</option>
+                  </optgroup>
+                </select>
+              </div>
+
+              {/* Task Title */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground flex items-center justify-between">
+                  <span>Task Title</span>
+                  <span className="text-[11px] text-muted-foreground font-normal">Editable</span>
+                </label>
+                <Input
+                  value={assignTaskTitle}
+                  onChange={(e) => setAssignTaskTitle(e.target.value)}
+                  placeholder="e.g. Technical Assessment & Skills Verification"
+                  className="text-xs h-9"
+                />
+              </div>
+
+              {/* Due Date & Deadline */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Target Completion Deadline</label>
+                <select
+                  value={assignTaskDueDate}
+                  onChange={(e) => setAssignTaskDueDate(e.target.value)}
+                  className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs shadow-xs focus:outline-hidden focus:ring-1 focus:ring-ring text-foreground"
+                >
+                  {DEADLINE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Instructions / Notes */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Instructions / Note for Candidate (Optional)</label>
+                <textarea
+                  rows={2}
+                  value={assignTaskNotes}
+                  onChange={(e) => setAssignTaskNotes(e.target.value)}
+                  placeholder="Any guidance or instructions that should accompany this assignment..."
+                  className="w-full rounded-md border border-input bg-background p-2.5 text-xs shadow-xs focus:outline-hidden focus:ring-1 focus:ring-ring"
+                />
+              </div>
+
+              {/* Already Assigned Tasks List */}
+              {activeAssignCandidate.assigned_tasks && activeAssignCandidate.assigned_tasks.length > 0 && (
+                <div className="space-y-1.5 pt-1">
+                  <label className="text-xs font-semibold text-foreground block">
+                    Currently Assigned Tasks ({activeAssignCandidate.assigned_tasks.length})
+                  </label>
+                  <div className="space-y-1 max-h-36 overflow-y-auto">
+                    {activeAssignCandidate.assigned_tasks.map((task) => (
+                      <div
+                        key={task.id}
+                        className="flex items-center justify-between p-2 rounded-lg bg-muted/30 border border-border/50 text-xs"
+                      >
+                        <div>
+                          <div className="font-medium text-foreground">{task.title}</div>
+                          <div className="text-[10px] text-muted-foreground">
+                            Due: {task.due_date || 'No deadline'} • Status: {task.status}
+                          </div>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveAssignTask(activeAssignCandidate.id, task.id)}
+                          className="h-6 w-6 p-0 text-rose-500 hover:text-rose-600 hover:bg-rose-500/10"
+                          title="Remove assignment"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          <DialogFooter className="flex sm:justify-between items-center gap-2 pt-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setActiveAssignCandidate(null)}
+              className="text-xs"
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={handleSaveAssignTask}
+              disabled={isSubmittingAssign}
+              className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm gap-1.5"
+            >
+              <CheckCircle2 className="w-3.5 h-3.5" />
+              <span>Assign to Candidate</span>
             </Button>
           </DialogFooter>
         </DialogContent>

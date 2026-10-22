@@ -18,15 +18,37 @@ import {
   ArrowDown,
   Sparkles,
   FileJson,
+  Pencil,
+  Trash2,
+  Check,
+  X,
+  ExternalLink,
+  HelpCircle,
+  RefreshCw,
+  ListChecks,
+  BookOpen,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { useTheme } from '@/lib/theme-context';
 
+export interface ChecklistItem {
+  id: string;
+  label: string;
+  is_required: boolean;
+}
+
+export interface QuizQuestionItem {
+  id: string;
+  title: string;
+  options: string[];
+  correctAnswer: string;
+  [key: string]: unknown;
+}
 
 export interface ProjectSection {
   id: string;
@@ -34,8 +56,8 @@ export interface ProjectSection {
   content_type: 'reading' | 'checklist' | 'quiz';
   reading_content?: string;
   video_url?: string;
-  checklist?: Array<{ id: string; label: string; is_required: boolean }>;
-  questions?: Array<Record<string, unknown>>;
+  checklist?: ChecklistItem[];
+  questions?: QuizQuestionItem[];
 }
 
 export interface ProjectItem {
@@ -57,6 +79,15 @@ export interface CategoryItem {
   description: string;
   projects: ProjectItem[];
 }
+
+const AVAILABLE_ROLES = [
+  { id: 'all', label: 'All Users' },
+  { id: 'candidate', label: 'Candidates' },
+  { id: 'employee', label: 'Employees' },
+  { id: 'subscriber', label: 'Subscribers' },
+  { id: 'developer', label: 'Developers' },
+  { id: 'contributor', label: 'Contributors' },
+];
 
 const INITIAL_CATEGORIES: CategoryItem[] = [
   {
@@ -86,6 +117,7 @@ const INITIAL_CATEGORIES: CategoryItem[] = [
             checklist: [
               { id: 'c1', label: 'Enrolled password manager with master key', is_required: true },
               { id: 'c2', label: 'Configured GitHub 2FA with hardware key', is_required: true },
+              { id: 'c3', label: 'Installed workstation endpoint antivirus agent', is_required: true },
             ],
           },
           {
@@ -94,6 +126,7 @@ const INITIAL_CATEGORIES: CategoryItem[] = [
             content_type: 'quiz',
             questions: [
               { id: 'q1', title: 'Minimum password length required?', options: ['8', '12', '16+'], correctAnswer: '16+' },
+              { id: 'q2', title: 'Which 2FA method is strictly required for production code access?', options: ['SMS', 'Hardware Security Key (FIDO2)', 'Email code'], correctAnswer: 'Hardware Security Key (FIDO2)' },
             ],
           },
         ],
@@ -170,7 +203,9 @@ const INITIAL_CATEGORIES: CategoryItem[] = [
             id: 'sec_qa_quiz',
             title: '1. Test Verification Quiz',
             content_type: 'quiz',
-            questions: [],
+            questions: [
+              { id: 'q_e2e_1', title: 'Are routine build artifacts allowed to be uploaded to CI actions storage?', options: ['Yes', 'No (Zero-Storage Mandate)'], correctAnswer: 'No (Zero-Storage Mandate)' },
+            ],
           },
         ],
       },
@@ -178,27 +213,84 @@ const INITIAL_CATEGORIES: CategoryItem[] = [
   },
 ];
 
+const STORAGE_KEY = 'wp_exam_curriculum_categories';
+
 interface ProjectHierarchyManagerProps {
   onLaunchFocusRunner?: (project: ProjectItem) => void;
+  onNavigateTab?: (tab: string) => void;
 }
 
 export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = ({
   onLaunchFocusRunner,
+  onNavigateTab,
 }) => {
   const { theme, config } = useTheme();
-  const [categories, setCategories] = useState<CategoryItem[]>(INITIAL_CATEGORIES);
-  const [selectedCategory, setSelectedCategory] = useState<CategoryItem>(INITIAL_CATEGORIES[0]);
-  const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(INITIAL_CATEGORIES[0]?.projects[0] || null);
+
+  const [categories, setCategories] = useState<CategoryItem[]>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          const isArray = Array.isArray(parsed);
+          if (isArray) {
+            const hasItems = parsed.length > 0;
+            if (hasItems) {
+              return parsed;
+            }
+          }
+        } catch {
+          // ignore corrupted local storage
+        }
+      }
+    }
+
+    return INITIAL_CATEGORIES;
+  });
+
+  const [selectedCategory, setSelectedCategory] = useState<CategoryItem>(() => categories[0] || INITIAL_CATEGORIES[0]);
+  const [selectedProject, setSelectedProject] = useState<ProjectItem | null>(() => categories[0]?.projects[0] || null);
 
   const [newCatTitle, setNewCatTitle] = useState<string>('');
   const [showAddCat, setShowAddCat] = useState<boolean>(false);
 
+  // Category rename dialog
+  const [editingCategory, setEditingCategory] = useState<CategoryItem | null>(null);
+  const [editCatTitle, setEditCatTitle] = useState<string>('');
+  const [editCatDescription, setEditCatDescription] = useState<string>('');
+
+  // Sub-project creation
   const [newSubProjectTitle, setNewSubProjectTitle] = useState<string>('');
   const [showAddSubProject, setShowAddSubProject] = useState<boolean>(false);
 
+  // Project Edit Modal
+  const [isEditProjectOpen, setIsEditProjectOpen] = useState<boolean>(false);
+  const [editProjectTitle, setEditProjectTitle] = useState<string>('');
+  const [editProjectDesc, setEditProjectDesc] = useState<string>('');
+  const [editProjectRoles, setEditProjectRoles] = useState<string[]>([]);
+
+  // Section Edit/Add Modal
+  const [isSectionModalOpen, setIsSectionModalOpen] = useState<boolean>(false);
+  const [isCreatingSection, setIsCreatingSection] = useState<boolean>(false);
+  const [sectionFormId, setSectionFormId] = useState<string>('');
+  const [sectionFormTitle, setSectionFormTitle] = useState<string>('');
+  const [sectionFormType, setSectionFormType] = useState<'reading' | 'checklist' | 'quiz'>('reading');
+  const [sectionFormReadingContent, setSectionFormReadingContent] = useState<string>('');
+  const [sectionFormVideoUrl, setSectionFormVideoUrl] = useState<string>('');
+  const [sectionFormChecklist, setSectionFormChecklist] = useState<ChecklistItem[]>([]);
+  const [sectionFormQuestions, setSectionFormQuestions] = useState<QuizQuestionItem[]>([]);
+
+  // Revisions & JSON modals
   const [showHistoryModal, setShowHistoryModal] = useState<boolean>(false);
   const [showImportModal, setShowImportModal] = useState<boolean>(false);
   const [importJsonText, setImportJsonText] = useState<string>('');
+
+  const persistCategories = (updatedCategories: CategoryItem[]) => {
+    setCategories(updatedCategories);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedCategories));
+    }
+  };
 
   const updateProjectInCategories = (updatedProject: ProjectItem) => {
     const updatedCategories = categories.map((cat) => {
@@ -214,22 +306,27 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
         return {
           ...cat,
           projects: cat.projects.map((p) => {
-            if (p.sub_projects && p.sub_projects.some((sp) => sp.id === updatedProject.id)) {
-              return {
-                ...p,
-                sub_projects: p.sub_projects.map((sp) =>
-                  sp.id === updatedProject.id ? updatedProject : sp
-                ),
-              };
+            if (p.sub_projects) {
+              const hasSub = p.sub_projects.some((sp) => sp.id === updatedProject.id);
+              if (hasSub) {
+                return {
+                  ...p,
+                  sub_projects: p.sub_projects.map((sp) =>
+                    sp.id === updatedProject.id ? updatedProject : sp
+                  ),
+                };
+              }
             }
+
             return p;
           }),
         };
       }
+
       return cat;
     });
 
-    setCategories(updatedCategories);
+    persistCategories(updatedCategories);
     setSelectedProject(updatedProject);
   };
 
@@ -245,7 +342,8 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
         projects: [],
       };
 
-      setCategories([...categories, newCat]);
+      const updated = [...categories, newCat];
+      persistCategories(updated);
       setSelectedCategory(newCat);
       setSelectedProject(null);
       setNewCatTitle('');
@@ -256,20 +354,77 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
     }
   };
 
+  const handleOpenEditCategory = (cat: CategoryItem, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingCategory(cat);
+    setEditCatTitle(cat.title);
+    setEditCatDescription(cat.description);
+  };
+
+  const handleSaveEditCategory = () => {
+    if (!editingCategory) {
+      return;
+    }
+
+    const cleanTitle = editCatTitle.trim();
+    const hasTitle = Boolean(cleanTitle);
+    if (!hasTitle) {
+      toast.error('Category title cannot be empty.');
+      return;
+    }
+
+    const updated = categories.map((c) => {
+      if (c.id === editingCategory.id) {
+        return {
+          ...c,
+          title: cleanTitle,
+          description: editCatDescription.trim(),
+        };
+      }
+
+      return c;
+    });
+
+    persistCategories(updated);
+    const updatedSelected = updated.find((c) => c.id === selectedCategory.id) || updated[0];
+    setSelectedCategory(updatedSelected);
+    setEditingCategory(null);
+    toast.success('Category updated successfully');
+  };
+
+  const handleDeleteCategory = (catId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const hasOnlyOne = categories.length <= 1;
+    if (hasOnlyOne) {
+      toast.error('Cannot delete the only remaining category.');
+      return;
+    }
+
+    const isConfirmed = window.confirm('Are you sure you want to delete this category and all its projects?');
+    if (isConfirmed) {
+      const updated = categories.filter((c) => c.id !== catId);
+      persistCategories(updated);
+      setSelectedCategory(updated[0]);
+      setSelectedProject(updated[0]?.projects[0] || null);
+      toast.success('Category deleted');
+    }
+  };
+
   const handleAddProject = () => {
+    const newProjId = 'proj_' + Date.now();
     const newProj: ProjectItem = {
-      id: 'proj_' + Date.now(),
-      title: 'New Project / Subject',
-      description: 'Project description and goals.',
+      id: newProjId,
+      title: 'New Onboarding Project',
+      description: 'Define learning objectives, requirements, and compliance milestones.',
       category_id: selectedCategory.id,
       pipeline_order: ['sec_intro'],
       permissions: ['all'],
       sections: [
         {
           id: 'sec_intro',
-          title: '1. Introduction & Objectives',
+          title: '1. Introduction & Overview',
           content_type: 'reading',
-          reading_content: 'Welcome to this module. Read instructions thoroughly before attempting quizzes.',
+          reading_content: 'Welcome to this curriculum track. Complete all sections before taking the final assessment.',
         },
       ],
       sub_projects: [],
@@ -286,10 +441,96 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
       return cat;
     });
 
-    setCategories(updated);
-    setSelectedCategory(updated.find((c) => c.id === selectedCategory.id) || selectedCategory);
+    persistCategories(updated);
+    const updatedCat = updated.find((c) => c.id === selectedCategory.id) || selectedCategory;
+    setSelectedCategory(updatedCat);
     setSelectedProject(newProj);
     toast.success('Project added to ' + selectedCategory.title);
+  };
+
+  const handleOpenEditProject = () => {
+    if (!selectedProject) {
+      return;
+    }
+
+    setEditProjectTitle(selectedProject.title);
+    setEditProjectDesc(selectedProject.description);
+    setEditProjectRoles([...selectedProject.permissions]);
+    setIsEditProjectOpen(true);
+  };
+
+  const handleToggleProjectRole = (roleId: string) => {
+    const hasRole = editProjectRoles.includes(roleId);
+    if (hasRole) {
+      const isOnlyOne = editProjectRoles.length === 1;
+      if (isOnlyOne) {
+        toast.error('At least one role must be allowed.');
+        return;
+      }
+      setEditProjectRoles(editProjectRoles.filter((r) => r !== roleId));
+    } else {
+      setEditProjectRoles([...editProjectRoles, roleId]);
+    }
+  };
+
+  const handleSaveProjectDetails = () => {
+    if (!selectedProject) {
+      return;
+    }
+
+    const cleanTitle = editProjectTitle.trim();
+    const hasTitle = Boolean(cleanTitle);
+    if (!hasTitle) {
+      toast.error('Project title cannot be empty.');
+      return;
+    }
+
+    const updatedProject: ProjectItem = {
+      ...selectedProject,
+      title: cleanTitle,
+      description: editProjectDesc.trim(),
+      permissions: editProjectRoles.length > 0 ? editProjectRoles : ['all'],
+      history: [
+        ...(selectedProject.history || []),
+        {
+          id: String(Date.now()),
+          revision_id: 'rev_' + Date.now().toString(36),
+          summary: 'Updated project title and permissions',
+          created_at: new Date().toISOString(),
+        },
+      ],
+    };
+
+    updateProjectInCategories(updatedProject);
+    setIsEditProjectOpen(false);
+    toast.success('Project settings saved successfully');
+  };
+
+  const handleDeleteCurrentProject = () => {
+    if (!selectedProject) {
+      return;
+    }
+
+    const isConfirmed = window.confirm(`Are you sure you want to delete project "${selectedProject.title}"?`);
+    if (isConfirmed) {
+      const updated = categories.map((cat) => {
+        if (cat.id === selectedProject.category_id) {
+          return {
+            ...cat,
+            projects: cat.projects.filter((p) => p.id !== selectedProject.id),
+          };
+        }
+
+        return cat;
+      });
+
+      persistCategories(updated);
+      const currentCat = updated.find((c) => c.id === selectedProject.category_id) || updated[0];
+      setSelectedCategory(currentCat);
+      setSelectedProject(currentCat?.projects[0] || null);
+      setIsEditProjectOpen(false);
+      toast.success('Project removed');
+    }
   };
 
   const handleAddSubProject = () => {
@@ -336,10 +577,263 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
     }
   };
 
+  // Section Management Dialog Handlers
+  const handleOpenAddSection = () => {
+    if (!selectedProject) {
+      return;
+    }
+
+    const count = selectedProject.sections?.length || 0;
+    setSectionFormId('sec_' + Date.now());
+    setSectionFormTitle(`${count + 1}. New Learning Task`);
+    setSectionFormType('reading');
+    setSectionFormReadingContent('');
+    setSectionFormVideoUrl('');
+    setSectionFormChecklist([
+      { id: 'chk_1', label: 'Acknowledge guidelines and start task', is_required: true },
+    ]);
+    setSectionFormQuestions([
+      { id: 'q_1', title: 'Sample verification question?', options: ['Yes', 'No'], correctAnswer: 'Yes' },
+    ]);
+    setIsCreatingSection(true);
+    setIsSectionModalOpen(true);
+  };
+
+  const handleOpenEditSection = (sec: ProjectSection) => {
+    setSectionFormId(sec.id);
+    setSectionFormTitle(sec.title);
+    setSectionFormType(sec.content_type);
+    setSectionFormReadingContent(sec.reading_content || '');
+    setSectionFormVideoUrl(sec.video_url || '');
+    setSectionFormChecklist(
+      sec.checklist ? sec.checklist.map((c) => ({ ...c })) : [
+        { id: 'chk_1', label: 'Item 1', is_required: true },
+      ]
+    );
+    setSectionFormQuestions(
+      sec.questions ? sec.questions.map((q) => ({
+        id: q.id || 'q_' + Math.random().toString(36).substr(2, 5),
+        title: q.title || '',
+        options: Array.isArray(q.options) ? [...q.options] : ['Option A', 'Option B'],
+        correctAnswer: (q.correctAnswer as string) || '',
+      })) : []
+    );
+    setIsCreatingSection(false);
+    setIsSectionModalOpen(true);
+  };
+
+  const handleSaveSection = () => {
+    if (!selectedProject) {
+      return;
+    }
+
+    const cleanTitle = sectionFormTitle.trim();
+    const hasTitle = Boolean(cleanTitle);
+    if (!hasTitle) {
+      toast.error('Section title is required.');
+      return;
+    }
+
+    const updatedSec: ProjectSection = {
+      id: sectionFormId,
+      title: cleanTitle,
+      content_type: sectionFormType,
+      reading_content: sectionFormReadingContent,
+      video_url: sectionFormVideoUrl,
+      checklist: sectionFormType === 'checklist' ? sectionFormChecklist : undefined,
+      questions: sectionFormType === 'quiz' ? sectionFormQuestions : undefined,
+    };
+
+    let newSections: ProjectSection[];
+    let newPipelineOrder: string[];
+
+    if (isCreatingSection) {
+      newSections = [...(selectedProject.sections || []), updatedSec];
+      newPipelineOrder = [...selectedProject.pipeline_order, updatedSec.id];
+    } else {
+      newSections = selectedProject.sections.map((s) => (s.id === updatedSec.id ? updatedSec : s));
+      const hasInOrder = selectedProject.pipeline_order.includes(updatedSec.id);
+      if (hasInOrder) {
+        newPipelineOrder = selectedProject.pipeline_order;
+      } else {
+        newPipelineOrder = [...selectedProject.pipeline_order, updatedSec.id];
+      }
+    }
+
+    const updatedProject: ProjectItem = {
+      ...selectedProject,
+      sections: newSections,
+      pipeline_order: newPipelineOrder,
+      history: [
+        ...(selectedProject.history || []),
+        {
+          id: String(Date.now()),
+          revision_id: 'rev_' + Date.now().toString(36),
+          summary: isCreatingSection ? `Added section: ${cleanTitle}` : `Configured section: ${cleanTitle}`,
+          created_at: new Date().toISOString(),
+        },
+      ],
+    };
+
+    updateProjectInCategories(updatedProject);
+    setIsSectionModalOpen(false);
+    toast.success(isCreatingSection ? 'Section added successfully!' : 'Section configured successfully!');
+  };
+
+  const handleDeleteSection = (secId: string, secTitle: string) => {
+    if (!selectedProject) {
+      return;
+    }
+
+    const isConfirmed = window.confirm(`Delete section "${secTitle}"?`);
+    if (isConfirmed) {
+      const newSections = selectedProject.sections.filter((s) => s.id !== secId);
+      const newPipeline = selectedProject.pipeline_order.filter((id) => id !== secId);
+
+      const updatedProject: ProjectItem = {
+        ...selectedProject,
+        sections: newSections,
+        pipeline_order: newPipeline,
+      };
+
+      updateProjectInCategories(updatedProject);
+      toast.success('Section deleted');
+    }
+  };
+
+  const handleMoveSectionPosition = (index: number, direction: 'up' | 'down') => {
+    if (!selectedProject) {
+      return;
+    }
+
+    const sections = [...selectedProject.sections];
+    const isUp = direction === 'up';
+
+    if (isUp) {
+      const canMoveUp = index > 0;
+      if (canMoveUp) {
+        const temp = sections[index - 1];
+        sections[index - 1] = sections[index];
+        sections[index] = temp;
+      }
+    } else {
+      const canMoveDown = index < sections.length - 1;
+      if (canMoveDown) {
+        const temp = sections[index + 1];
+        sections[index + 1] = sections[index];
+        sections[index] = temp;
+      }
+    }
+
+    const newPipelineOrder = sections.map((s) => s.id);
+    const updatedProject = {
+      ...selectedProject,
+      sections,
+      pipeline_order: newPipelineOrder,
+    };
+
+    updateProjectInCategories(updatedProject);
+    toast.success('Section order updated');
+  };
+
+  // Checklist helper callbacks inside section editor
+  const handleAddChecklistItem = () => {
+    const newItem: ChecklistItem = {
+      id: 'chk_' + Date.now().toString(36),
+      label: 'New checklist requirement',
+      is_required: true,
+    };
+    setSectionFormChecklist([...sectionFormChecklist, newItem]);
+  };
+
+  const handleUpdateChecklistLabel = (id: string, label: string) => {
+    setSectionFormChecklist(
+      sectionFormChecklist.map((c) => (c.id === id ? { ...c, label } : c))
+    );
+  };
+
+  const handleToggleChecklistRequired = (id: string) => {
+    setSectionFormChecklist(
+      sectionFormChecklist.map((c) => (c.id === id ? { ...c, is_required: !c.is_required } : c))
+    );
+  };
+
+  const handleDeleteChecklistItem = (id: string) => {
+    setSectionFormChecklist(sectionFormChecklist.filter((c) => c.id !== id));
+  };
+
+  // Quiz helper callbacks inside section editor
+  const handleAddQuizQuestion = () => {
+    const newQ: QuizQuestionItem = {
+      id: 'q_' + Date.now().toString(36),
+      title: 'New Quiz Question',
+      options: ['Option A', 'Option B'],
+      correctAnswer: 'Option A',
+    };
+    setSectionFormQuestions([...sectionFormQuestions, newQ]);
+  };
+
+  const handleUpdateQuizQuestionTitle = (id: string, title: string) => {
+    setSectionFormQuestions(
+      sectionFormQuestions.map((q) => (q.id === id ? { ...q, title } : q))
+    );
+  };
+
+  const handleAddQuizOption = (qId: string) => {
+    setSectionFormQuestions(
+      sectionFormQuestions.map((q) => {
+        if (q.id === qId) {
+          const optIndex = (q.options?.length || 0) + 1;
+          return { ...q, options: [...(q.options || []), `Option ${optIndex}`] };
+        }
+        return q;
+      })
+    );
+  };
+
+  const handleUpdateQuizOption = (qId: string, optIdx: number, val: string) => {
+    setSectionFormQuestions(
+      sectionFormQuestions.map((q) => {
+        if (q.id === qId) {
+          const opts = [...q.options];
+          opts[optIdx] = val;
+          return { ...q, options: opts };
+        }
+        return q;
+      })
+    );
+  };
+
+  const handleSetCorrectAnswer = (qId: string, answer: string) => {
+    setSectionFormQuestions(
+      sectionFormQuestions.map((q) => (q.id === qId ? { ...q, correctAnswer: answer } : q))
+    );
+  };
+
+  const handleDeleteQuizQuestion = (qId: string) => {
+    setSectionFormQuestions(sectionFormQuestions.filter((q) => q.id !== qId));
+  };
+
+  const handleResetToDefaults = () => {
+    const isConfirmed = window.confirm('Reset all categories and curriculum projects back to factory defaults? Any custom edits will be replaced.');
+    if (isConfirmed) {
+      if (typeof window !== 'undefined') {
+        localStorage.removeItem(STORAGE_KEY);
+      }
+      setCategories(INITIAL_CATEGORIES);
+      setSelectedCategory(INITIAL_CATEGORIES[0]);
+      setSelectedProject(INITIAL_CATEGORIES[0].projects[0] || null);
+      toast.success('Curriculum reset to factory defaults');
+    }
+  };
 
   const handleExportProjectJson = () => {
-    const jsonStr = JSON.stringify(selectedProject, null, 2);
+    if (!selectedProject) {
+      toast.error('No project selected to export.');
+      return;
+    }
 
+    const jsonStr = JSON.stringify(selectedProject, null, 2);
     navigator.clipboard.writeText(jsonStr);
 
     const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -393,12 +887,12 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
             return cat;
           });
 
-          setCategories(updated);
+          persistCategories(updated);
           setSelectedCategory(updated.find((c) => c.id === selectedCategory.id) || selectedCategory);
           setSelectedProject(importedProject);
           setImportJsonText('');
           setShowImportModal(false);
-          toast.success(`Project "${importedProject.title}" imported successfully into ${selectedCategory.title}!`);
+          toast.success(`Project "${importedProject.title}" imported successfully!`);
         } else {
           toast.error('Invalid project JSON: Missing required "title" property.');
         }
@@ -416,7 +910,10 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
   };
 
   const handleMovePipelineOrder = (index: number, direction: 'up' | 'down') => {
-    if (!selectedProject) return;
+    if (!selectedProject) {
+      return;
+    }
+
     const newOrder = [...selectedProject.pipeline_order];
     const isUp = direction === 'up';
 
@@ -441,22 +938,32 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
     toast.success('Pipeline execution sequence updated');
   };
 
-
   return (
     <div className="space-y-6">
       {/* Header Bar */}
       <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold tracking-tight text-foreground flex items-center gap-2">
-            <FolderTree className="w-6 h-6 text-indigo-400" />
-            Project & Category Hierarchy
+            <FolderTree className="w-6 h-6 text-emerald-500" />
+            Curriculum Projects & Tracks
           </h2>
           <p className="text-sm text-muted-foreground">
-            Organize learning modules recursively into Categories, Projects, Sub-Projects, and Sections with split SQLite databases.
+            Configure onboarding curriculums, reading documentation, setup checklists, and practical quizzes for hired candidates and employees.
           </p>
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={handleResetToDefaults}
+            className="text-xs text-muted-foreground hover:text-foreground"
+            title="Reset curriculum to factory defaults"
+          >
+            <RefreshCw className="w-3.5 h-3.5 mr-1" />
+            Reset Defaults
+          </Button>
+
           <Button
             size="sm"
             variant="outline"
@@ -490,7 +997,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
           <Button
             size="sm"
             onClick={handleAddProject}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs"
+            className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm"
           >
             <Plus className="w-3.5 h-3.5 mr-1" />
             Add Project
@@ -498,16 +1005,55 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
         </div>
       </div>
 
+      {/* Helpful Context & Tool Switcher Card */}
+      <div className="p-4 rounded-2xl bg-card border border-border border-l-4 border-l-emerald-500 shadow-xs flex flex-col md:flex-row items-start md:items-center justify-between gap-4 text-xs">
+        <div className="space-y-1 max-w-3xl">
+          <div className="font-bold text-foreground text-sm flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-emerald-500" />
+            Understanding Curriculum vs. Exam Builders
+          </div>
+          <p className="text-foreground/80 leading-relaxed">
+            This tab organizes <span className="font-semibold text-foreground">structured post-hire training paths</span> (Reading → Checklists → Quizzes).
+            To build custom timed recruitment exams, use the <strong className="text-foreground font-semibold">Form & Quiz Builder</strong>. To review candidates, use the <strong className="text-foreground font-semibold">Candidate Pipeline</strong>.
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 flex-wrap shrink-0">
+          {onNavigateTab && (
+            <>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onNavigateTab('builder')}
+                className="text-xs bg-background hover:bg-muted text-foreground font-semibold border border-border shadow-xs hover:border-amber-500/60 transition"
+              >
+                <FileText className="w-3.5 h-3.5 mr-1 text-amber-500" />
+                Form & Quiz Builder
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => onNavigateTab('pipeline')}
+                className="text-xs bg-background hover:bg-muted text-foreground font-semibold border border-border shadow-xs hover:border-emerald-500/60 transition"
+              >
+                <ExternalLink className="w-3.5 h-3.5 mr-1 text-emerald-500" />
+                Candidate Pipeline
+              </Button>
+            </>
+          )}
+        </div>
+      </div>
+
       {/* Add Category Drawer/Form */}
       {showAddCat && (
         <div className="p-4 bg-muted/60 border border-indigo-500/40 rounded-xl flex items-center gap-3 animate-in fade-in">
           <Input
-            placeholder="Category title (e.g. Sales Enablement, Core Engineering)..."
+            placeholder="Category title (e.g. Sales Enablement, Core Engineering, Operations)..."
             value={newCatTitle}
             onChange={(e) => setNewCatTitle(e.target.value)}
             className="bg-background text-sm"
           />
-          <Button size="sm" onClick={handleCreateCategory} className="bg-indigo-600 text-white whitespace-nowrap">
+          <Button size="sm" onClick={handleCreateCategory} className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold whitespace-nowrap">
             Save Category
           </Button>
           <Button size="sm" variant="ghost" onClick={() => setShowAddCat(false)}>
@@ -522,7 +1068,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
         <div className="md:col-span-5 space-y-4">
           <div className="bg-card border rounded-2xl p-4 shadow-sm">
             <h3 className="text-xs font-bold text-muted-foreground uppercase tracking-wider mb-3">
-              Curriculum Tree
+              Curriculum Tracks & Categories
             </h3>
 
             <div className="space-y-3">
@@ -531,13 +1077,8 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
 
                 return (
                   <div key={cat.id} className="space-y-1">
-                    <button
-                      onClick={() => {
-                        setSelectedCategory(cat);
-                        const firstProj = cat.projects.length > 0 ? cat.projects[0] : null;
-                        setSelectedProject(firstProj);
-                      }}
-                      className={`w-full text-left p-2.5 rounded-xl text-sm font-semibold flex items-center justify-between transition ${
+                    <div
+                      className={`group w-full p-2.5 rounded-xl text-sm font-semibold flex items-center justify-between transition cursor-pointer ${
                         isCatSelected
                           ? 'border shadow-sm'
                           : 'text-foreground hover:bg-muted/60'
@@ -547,15 +1088,37 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                         backgroundColor: `${config.primaryColor}15`,
                         color: config.primaryColor,
                       } : undefined}
+                      onClick={() => {
+                        setSelectedCategory(cat);
+                        const firstProj = cat.projects.length > 0 ? cat.projects[0] : null;
+                        setSelectedProject(firstProj);
+                      }}
                     >
-                      <div className="flex items-center gap-2">
-                        <FolderTree className="w-4 h-4" style={{ color: config.primaryColor }} />
-                        <span>{cat.title}</span>
+                      <div className="flex items-center gap-2 truncate">
+                        <FolderTree className="w-4 h-4 shrink-0" style={{ color: config.primaryColor }} />
+                        <span className="truncate">{cat.title}</span>
                       </div>
-                      <Badge variant="secondary" className="text-xs">
-                        {cat.projects.length} {cat.projects.length === 1 ? 'project' : 'projects'}
-                      </Badge>
-                    </button>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        <Badge variant="secondary" className="text-xs">
+                          {cat.projects.length} {cat.projects.length === 1 ? 'project' : 'projects'}
+                        </Badge>
+                        <button
+                          onClick={(e) => handleOpenEditCategory(cat, e)}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:text-primary transition"
+                          title="Rename Category"
+                        >
+                          <Pencil className="w-3 h-3" />
+                        </button>
+                        <button
+                          onClick={(e) => handleDeleteCategory(cat.id, e)}
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:text-rose-400 transition"
+                          title="Delete Category"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    </div>
 
                     {/* Sub-projects list */}
                     {isCatSelected && (
@@ -628,7 +1191,6 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                     )}
                   </div>
                 );
-
               })}
             </div>
           </div>
@@ -639,8 +1201,8 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
           {selectedProject ? (
             <div className="bg-card border rounded-2xl p-6 shadow-sm space-y-6">
               <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-2 flex-wrap">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <Badge className={`${config.badgeClass} font-mono text-xs`}>
                       Split DB: {selectedProject.id}.sqlite
                     </Badge>
@@ -651,11 +1213,30 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                     )}
                   </div>
 
-                  <h3 className="text-xl font-bold text-foreground">{selectedProject.title}</h3>
-                  <p className="text-xs text-muted-foreground mt-1">{selectedProject.description}</p>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xl font-bold text-foreground">{selectedProject.title}</h3>
+                    <button
+                      onClick={handleOpenEditProject}
+                      className="p-1.5 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground transition"
+                      title="Edit Project Settings"
+                    >
+                      <Pencil className="w-4 h-4 text-indigo-400" />
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1 max-w-xl">{selectedProject.description}</p>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleOpenEditProject}
+                    className="text-xs"
+                  >
+                    <Pencil className="w-3.5 h-3.5 mr-1 text-indigo-400" />
+                    Edit Project
+                  </Button>
+
                   <Button
                     size="sm"
                     variant="outline"
@@ -673,7 +1254,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                     className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold"
                   >
                     <Play className="w-3.5 h-3.5 mr-1 fill-current" />
-                    Test in Focus Runner
+                    Preview in Runner
                   </Button>
                 </div>
               </div>
@@ -683,38 +1264,51 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                 <div>
                   <div className="flex items-center justify-between mb-2">
                     <span className="text-muted-foreground font-medium">Execution Pipeline:</span>
-                    <span className="text-xs text-muted-foreground">Order: Step A → Step C → Step D</span>
+                    <span className="text-xs text-muted-foreground">Order: Step A → Step B → Step C</span>
                   </div>
                   <div className="space-y-1.5">
-                    {selectedProject.pipeline_order.map((stepId, idx) => (
-                      <div
-                        key={stepId}
-                        className="flex items-center justify-between px-2.5 py-1 rounded bg-background border font-mono text-xs"
-                      >
-                        <span>{idx + 1}. {stepId}</span>
-                        <div className="flex items-center gap-1">
-                          <button
-                            onClick={() => handleMovePipelineOrder(idx, 'up')}
-                            className="p-1 hover:text-indigo-400 text-muted-foreground"
-                            title="Move Up"
-                          >
-                            <ArrowUp className="w-3 h-3" />
-                          </button>
-                          <button
-                            onClick={() => handleMovePipelineOrder(idx, 'down')}
-                            className="p-1 hover:text-indigo-400 text-muted-foreground"
-                            title="Move Down"
-                          >
-                            <ArrowDown className="w-3 h-3" />
-                          </button>
+                    {selectedProject.pipeline_order.map((stepId, idx) => {
+                      const matchedSec = selectedProject.sections?.find((s) => s.id === stepId);
+                      const displayTitle = matchedSec ? matchedSec.title : stepId;
+
+                      return (
+                        <div
+                          key={stepId}
+                          className="flex items-center justify-between px-2.5 py-1 rounded bg-background border font-mono text-xs"
+                        >
+                          <span className="truncate max-w-[200px]">{idx + 1}. {displayTitle}</span>
+                          <div className="flex items-center gap-1">
+                            <button
+                              onClick={() => handleMovePipelineOrder(idx, 'up')}
+                              className="p-1 hover:text-indigo-400 text-muted-foreground"
+                              title="Move Up"
+                            >
+                              <ArrowUp className="w-3 h-3" />
+                            </button>
+                            <button
+                              onClick={() => handleMovePipelineOrder(idx, 'down')}
+                              className="p-1 hover:text-indigo-400 text-muted-foreground"
+                              title="Move Down"
+                            >
+                              <ArrowDown className="w-3 h-3" />
+                            </button>
+                          </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
 
                 <div>
-                  <span className="text-muted-foreground font-medium block mb-2">Allowed Roles:</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-muted-foreground font-medium">Allowed Roles:</span>
+                    <button
+                      onClick={handleOpenEditProject}
+                      className="text-xs text-indigo-400 hover:underline"
+                    >
+                      Change Roles
+                    </button>
+                  </div>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     {selectedProject.permissions.map((perm) => (
                       <Badge key={perm} variant="outline" className="text-xs">
@@ -726,7 +1320,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                 </div>
               </div>
 
-              {/* Sub-Projects Section */}
+              {/* Linked Sub-Projects Section */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
@@ -751,7 +1345,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                       onChange={(e) => setNewSubProjectTitle(e.target.value)}
                       className="bg-background text-xs"
                     />
-                    <Button size="sm" onClick={handleAddSubProject} className="bg-indigo-600 text-white text-xs">
+                    <Button size="sm" onClick={handleAddSubProject} className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs">
                       Save
                     </Button>
                   </div>
@@ -783,63 +1377,127 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
                 </div>
               </div>
 
-              {/* Sections list */}
+              {/* Sections list & Full Interactive Configuration */}
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
-                    <Layers className="w-4 h-4 text-indigo-400" />
-                    Project Sections & Learning Tasks ({selectedProject.sections.length})
-                  </h4>
+                  <div>
+                    <h4 className="text-sm font-bold text-foreground flex items-center gap-2">
+                      <Layers className="w-4 h-4 text-indigo-400" />
+                      Project Sections & Learning Tasks ({selectedProject.sections.length})
+                    </h4>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      Click any section to edit its reading text, video, checklist items, or quiz questions.
+                    </p>
+                  </div>
+
                   <Button
                     size="sm"
-                    variant="ghost"
-                    className="text-xs text-indigo-400 hover:text-indigo-300"
-                    onClick={() => {
-                      const newSec: ProjectSection = {
-                        id: 'sec_' + Date.now(),
-                        title: `${(selectedProject.sections?.length || 0) + 1}. Practical Task & Quiz`,
-                        content_type: 'quiz',
-                        questions: [],
-                      };
-                      const updatedProject: ProjectItem = {
-                        ...selectedProject,
-                        sections: [...(selectedProject.sections || []), newSec],
-                      };
-                      updateProjectInCategories(updatedProject);
-                      toast.success('Section added to project');
-                    }}
+                    className="text-xs bg-emerald-600 hover:bg-emerald-500 text-white font-semibold shadow-sm"
+                    onClick={handleOpenAddSection}
                   >
-                    <Plus className="w-3 h-3 mr-1" /> Add Section
+                    <Plus className="w-3.5 h-3.5 mr-1" /> Add Section
                   </Button>
-
                 </div>
 
                 <div className="space-y-2">
-                  {selectedProject.sections.map((sec, idx) => (
-                    <div
-                      key={sec.id}
-                      className="p-3.5 rounded-xl bg-muted/20 border flex items-center justify-between"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="w-7 h-7 rounded-lg bg-indigo-950/40 border border-indigo-500/30 flex items-center justify-center text-xs font-bold text-indigo-400">
-                          {idx + 1}
-                        </div>
-                        <div>
-                          <div className="font-semibold text-sm text-foreground">{sec.title}</div>
-                          <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5">
-                            <span className="capitalize">{sec.content_type}</span>
-                            {sec.video_url && <span className="flex items-center gap-0.5"><Video className="w-3 h-3 text-rose-400" /> Video</span>}
-                            {sec.reading_content && <span className="flex items-center gap-0.5"><FileText className="w-3 h-3 text-sky-400" /> Documentation</span>}
-                            {sec.checklist && <span>{sec.checklist.length} checklist items</span>}
+                  {selectedProject.sections.length === 0 ? (
+                    <div className="p-6 text-center rounded-xl border border-dashed text-xs text-muted-foreground">
+                      No learning sections yet. Click "+ Add Section" above to add documentation, checklists, or quizzes.
+                    </div>
+                  ) : (
+                    selectedProject.sections.map((sec, idx) => {
+                      const isReading = sec.content_type === 'reading';
+                      const isChecklist = sec.content_type === 'checklist';
+                      const isQuiz = sec.content_type === 'quiz';
+
+                      return (
+                        <div
+                          key={sec.id}
+                          className="group p-3.5 rounded-xl bg-muted/30 border border-border/70 hover:border-emerald-500/50 hover:bg-muted/50 transition flex items-center justify-between"
+                        >
+                          <div
+                            className="flex items-center gap-3 cursor-pointer flex-1"
+                            onClick={() => handleOpenEditSection(sec)}
+                          >
+                            <div className="w-7 h-7 rounded-lg bg-emerald-950/30 border border-emerald-500/30 flex items-center justify-center text-xs font-bold text-emerald-400 shrink-0">
+                              {idx + 1}
+                            </div>
+                            <div>
+                              <div className="font-semibold text-sm text-foreground flex items-center gap-2">
+                                <span>{sec.title}</span>
+                                <Badge variant="outline" className="text-[10px] uppercase font-mono tracking-wider">
+                                  {sec.content_type}
+                                </Badge>
+                              </div>
+                              <div className="text-xs text-muted-foreground flex items-center gap-2 mt-0.5 flex-wrap">
+                                {isReading && (
+                                  <>
+                                    <span className="flex items-center gap-0.5 text-sky-400">
+                                      <FileText className="w-3 h-3" />
+                                      {sec.reading_content ? `${sec.reading_content.slice(0, 45)}...` : 'Reading documentation'}
+                                    </span>
+                                    {sec.video_url && (
+                                      <span className="flex items-center gap-0.5 text-rose-400">
+                                        <Video className="w-3 h-3" /> Video Linked
+                                      </span>
+                                    )}
+                                  </>
+                                )}
+                                {isChecklist && (
+                                  <span className="flex items-center gap-0.5 text-emerald-400">
+                                    <ListChecks className="w-3 h-3" />
+                                    {sec.checklist?.length || 0} verification checklist items
+                                  </span>
+                                )}
+                                {isQuiz && (
+                                  <span className="flex items-center gap-0.5 text-amber-400">
+                                    <Sparkles className="w-3 h-3" />
+                                    {sec.questions?.length || 0} quiz questions
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1.5 shrink-0">
+                            <button
+                              onClick={() => handleMoveSectionPosition(idx, 'up')}
+                              disabled={idx === 0}
+                              className="p-1.5 rounded hover:bg-background text-muted-foreground disabled:opacity-30 transition"
+                              title="Move section up"
+                            >
+                              <ArrowUp className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleMoveSectionPosition(idx, 'down')}
+                              disabled={idx === selectedProject.sections.length - 1}
+                              className="p-1.5 rounded hover:bg-background text-muted-foreground disabled:opacity-30 transition"
+                              title="Move section down"
+                            >
+                              <ArrowDown className="w-3.5 h-3.5" />
+                            </button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={() => handleOpenEditSection(sec)}
+                              className="text-xs h-8 px-2.5"
+                            >
+                              <Pencil className="w-3 h-3 mr-1 text-indigo-400" />
+                              Configure
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              onClick={() => handleDeleteSection(sec.id, sec.title)}
+                              className="text-xs h-8 px-2 text-rose-400 hover:text-rose-300 hover:bg-rose-950/20"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
                           </div>
                         </div>
-                      </div>
-
-                      <Badge variant="outline" className="text-xs">
-                        {sec.content_type}
-                      </Badge>
-                    </div>
-                  ))}
+                      );
+                    })
+                  )}
                 </div>
               </div>
             </div>
@@ -855,6 +1513,394 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
         </div>
       </div>
 
+      {/* Edit Project Modal */}
+      <Dialog open={isEditProjectOpen} onOpenChange={setIsEditProjectOpen}>
+        <DialogContent className="max-w-lg rounded-3xl border shadow-2xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <Pencil className="w-5 h-5 text-indigo-400" />
+              Configure Project Settings
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Update the project title, learning objectives, and allowed user roles.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-foreground">Project Title</label>
+              <Input
+                value={editProjectTitle}
+                onChange={(e) => setEditProjectTitle(e.target.value)}
+                placeholder="e.g. Developer Onboarding & IT Security"
+                className="text-sm"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-foreground">Project Description</label>
+              <Textarea
+                value={editProjectDesc}
+                onChange={(e) => setEditProjectDesc(e.target.value)}
+                placeholder="Detailed objectives and expectations for the candidate or employee..."
+                rows={3}
+                className="text-xs"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-foreground block">Allowed Access Roles</label>
+              <div className="flex flex-wrap gap-2">
+                {AVAILABLE_ROLES.map((role) => {
+                  const isSelected = editProjectRoles.includes(role.id);
+                  return (
+                    <button
+                      key={role.id}
+                      type="button"
+                      onClick={() => handleToggleProjectRole(role.id)}
+                      className={`px-3 py-1.5 rounded-lg text-xs font-medium border flex items-center gap-1.5 transition ${
+                        isSelected
+                          ? 'bg-emerald-600 text-white border-emerald-600'
+                          : 'bg-muted/40 text-muted-foreground border-border hover:bg-muted/80'
+                      }`}
+                    >
+                      {isSelected ? <Check className="w-3 h-3" /> : <Shield className="w-3 h-3 opacity-40" />}
+                      {role.label}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <DialogFooter className="pt-4 flex items-center justify-between border-t gap-2">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDeleteCurrentProject}
+                className="text-rose-400 hover:text-rose-300 hover:bg-rose-950/20 text-xs mr-auto"
+              >
+                <Trash2 className="w-3.5 h-3.5 mr-1" />
+                Delete Project
+              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={() => setIsEditProjectOpen(false)}>
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleSaveProjectDetails} className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs">
+                  Save Changes
+                </Button>
+              </div>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Category Modal */}
+      <Dialog open={Boolean(editingCategory)} onOpenChange={(open) => { if (!open) setEditingCategory(null); }}>
+        <DialogContent className="max-w-md rounded-3xl border shadow-2xl p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <Pencil className="w-5 h-5 text-indigo-400" />
+              Edit Category
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Rename curriculum track or update category description.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 pt-2">
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-foreground">Category Name</label>
+              <Input
+                value={editCatTitle}
+                onChange={(e) => setEditCatTitle(e.target.value)}
+                placeholder="Category title..."
+                className="text-sm"
+              />
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-foreground">Category Description</label>
+              <Textarea
+                value={editCatDescription}
+                onChange={(e) => setEditCatDescription(e.target.value)}
+                placeholder="Optional description..."
+                rows={2}
+                className="text-xs"
+              />
+            </div>
+
+            <DialogFooter className="pt-2">
+              <Button variant="ghost" size="sm" onClick={() => setEditingCategory(null)}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleSaveEditCategory} className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs">
+                Save Category
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Comprehensive Section Editor Modal */}
+      <Dialog open={isSectionModalOpen} onOpenChange={setIsSectionModalOpen}>
+        <DialogContent className="max-w-2xl rounded-3xl border shadow-2xl p-6 max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-bold flex items-center gap-2">
+              <Layers className="w-5 h-5 text-indigo-400" />
+              {isCreatingSection ? 'Add Learning Section' : 'Configure Learning Section'}
+            </DialogTitle>
+            <DialogDescription className="text-xs">
+              Configure content for this section: Reading documentation, verification checklists, or mastery quizzes.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-5 pt-2">
+            {/* Title & Type */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Section Title</label>
+                <Input
+                  value={sectionFormTitle}
+                  onChange={(e) => setSectionFormTitle(e.target.value)}
+                  placeholder="e.g. 1. Security Protocols & Reading Materials"
+                  className="text-sm"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground">Section Type</label>
+                <div className="grid grid-cols-3 gap-1 bg-muted p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => setSectionFormType('reading')}
+                    className={`py-1.5 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1 ${
+                      sectionFormType === 'reading'
+                        ? 'bg-background shadow text-foreground font-bold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <BookOpen className="w-3 h-3" /> Reading
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSectionFormType('checklist')}
+                    className={`py-1.5 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1 ${
+                      sectionFormType === 'checklist'
+                        ? 'bg-background shadow text-foreground font-bold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <ListChecks className="w-3 h-3" /> Checklist
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSectionFormType('quiz')}
+                    className={`py-1.5 rounded-lg text-xs font-medium transition flex items-center justify-center gap-1 ${
+                      sectionFormType === 'quiz'
+                        ? 'bg-background shadow text-foreground font-bold'
+                        : 'text-muted-foreground hover:text-foreground'
+                    }`}
+                  >
+                    <Sparkles className="w-3 h-3" /> Quiz
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            {/* Type-Specific Content */}
+            {sectionFormType === 'reading' && (
+              <div className="space-y-4 p-4 rounded-2xl bg-muted/30 border">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                    <Video className="w-3.5 h-3.5 text-rose-400" />
+                    Video URL (Optional)
+                  </label>
+                  <Input
+                    value={sectionFormVideoUrl}
+                    onChange={(e) => setSectionFormVideoUrl(e.target.value)}
+                    placeholder="https://www.youtube.com/watch?v=... or Vimeo link"
+                    className="text-xs"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                    <FileText className="w-3.5 h-3.5 text-sky-400" />
+                    Reading Documentation / Instructions
+                  </label>
+                  <Textarea
+                    value={sectionFormReadingContent}
+                    onChange={(e) => setSectionFormReadingContent(e.target.value)}
+                    placeholder="Provide detailed standard operating procedures, documentation, links, or instructions..."
+                    rows={6}
+                    className="text-xs leading-relaxed"
+                  />
+                </div>
+              </div>
+            )}
+
+            {sectionFormType === 'checklist' && (
+              <div className="space-y-4 p-4 rounded-2xl bg-muted/30 border">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                    <ListChecks className="w-3.5 h-3.5 text-emerald-400" />
+                    Checklist Verification Items
+                  </label>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleAddChecklistItem}
+                    className="text-xs h-7"
+                  >
+                    <Plus className="w-3 h-3 mr-1" /> Add Item
+                  </Button>
+                </div>
+
+                <div className="space-y-2">
+                  {sectionFormChecklist.map((item, idx) => (
+                    <div key={item.id} className="flex items-center gap-2 p-2 rounded-xl bg-background border">
+                      <span className="text-xs font-bold text-muted-foreground w-5 text-center">{idx + 1}.</span>
+                      <Input
+                        value={item.label}
+                        onChange={(e) => handleUpdateChecklistLabel(item.id, e.target.value)}
+                        placeholder="Requirement description..."
+                        className="text-xs h-8 flex-1"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => handleToggleChecklistRequired(item.id)}
+                        className={`px-2 py-1 rounded text-[11px] font-semibold border transition ${
+                          item.is_required
+                            ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                            : 'bg-muted/40 text-muted-foreground border-border'
+                        }`}
+                        title="Toggle required status"
+                      >
+                        {item.is_required ? 'Required' : 'Optional'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleDeleteChecklistItem(item.id)}
+                        className="p-1 hover:text-rose-400 text-muted-foreground transition"
+                        title="Delete item"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {sectionFormType === 'quiz' && (
+              <div className="space-y-4 p-4 rounded-2xl bg-muted/30 border">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                    Quiz Questions ({sectionFormQuestions.length})
+                  </label>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={handleAddQuizQuestion}
+                    className="text-xs h-7"
+                  >
+                    <Plus className="w-3 h-3 mr-1" /> Add Question
+                  </Button>
+                </div>
+
+                <div className="space-y-4">
+                  {sectionFormQuestions.length === 0 ? (
+                    <div className="text-xs text-muted-foreground italic py-2 text-center">
+                      No questions yet. Click "+ Add Question" to add a multiple-choice question.
+                    </div>
+                  ) : (
+                    sectionFormQuestions.map((q, qIdx) => (
+                      <div key={q.id} className="p-3.5 rounded-xl bg-background border space-y-3">
+                        <div className="flex items-center justify-between gap-2">
+                          <span className="text-xs font-bold text-foreground">Question {qIdx + 1}</span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteQuizQuestion(q.id)}
+                            className="p-1 hover:text-rose-400 text-muted-foreground transition"
+                            title="Delete question"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+
+                        <Input
+                          value={q.title}
+                          onChange={(e) => handleUpdateQuizQuestionTitle(q.id, e.target.value)}
+                          placeholder="e.g. Minimum password length required?"
+                          className="text-xs"
+                        />
+
+                        {/* Options */}
+                        <div className="space-y-2 pt-1">
+                          <div className="flex items-center justify-between text-[11px] text-muted-foreground">
+                            <span>Answer Options (Click checkmark to set correct answer)</span>
+                            <button
+                              type="button"
+                              onClick={() => handleAddQuizOption(q.id)}
+                              className="text-indigo-400 hover:underline flex items-center gap-0.5"
+                            >
+                              <Plus className="w-2.5 h-2.5" /> Add Option
+                            </button>
+                          </div>
+
+                          <div className="space-y-1.5">
+                            {q.options?.map((opt, optIdx) => {
+                              const isCorrect = q.correctAnswer === opt;
+                              return (
+                                <div key={optIdx} className="flex items-center gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => handleSetCorrectAnswer(q.id, opt)}
+                                    className={`p-1.5 rounded-lg border transition ${
+                                      isCorrect
+                                        ? 'bg-emerald-500 text-white border-emerald-500'
+                                        : 'bg-muted/40 border-border text-muted-foreground hover:text-foreground'
+                                    }`}
+                                    title={isCorrect ? 'Correct answer' : 'Click to mark as correct answer'}
+                                  >
+                                    <Check className="w-3 h-3" />
+                                  </button>
+                                  <Input
+                                    value={opt}
+                                    onChange={(e) => handleUpdateQuizOption(q.id, optIdx, e.target.value)}
+                                    placeholder={`Option ${optIdx + 1}`}
+                                    className="text-xs h-7 flex-1"
+                                  />
+                                  {isCorrect && (
+                                    <Badge variant="outline" className="text-[10px] text-emerald-400 border-emerald-500/40">
+                                      Correct
+                                    </Badge>
+                                  )}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+              </div>
+            )}
+
+            <DialogFooter className="pt-2">
+              <Button variant="ghost" size="sm" onClick={() => setIsSectionModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button size="sm" onClick={handleSaveSection} className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs">
+                {isCreatingSection ? 'Add Section' : 'Save Section'}
+              </Button>
+            </DialogFooter>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       {/* JSON Import Modal */}
       <Dialog open={showImportModal} onOpenChange={setShowImportModal}>
@@ -882,7 +1928,7 @@ export const ProjectHierarchyManager: React.FC<ProjectHierarchyManagerProps> = (
               <Button variant="ghost" size="sm" onClick={() => setShowImportModal(false)}>
                 Cancel
               </Button>
-              <Button size="sm" onClick={handleImportProjectJson} className="bg-indigo-600 text-white text-xs">
+              <Button size="sm" onClick={handleImportProjectJson} className="bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs">
                 Import Project
               </Button>
             </div>

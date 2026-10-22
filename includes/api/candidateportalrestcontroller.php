@@ -133,12 +133,53 @@ class CandidatePortalRestController extends WP_REST_Controller {
         $stageKey = $candidateData['current_stage_key'] ?? '';
         $isAssessmentApproved = ($gatingMode === 'instant_self_service') || in_array($stageKey, ['assessment', 'exam', 'interview', 'offered', 'hired'], true);
 
+        $rawTasksJson = (string) ($candidateData['assigned_tasks_json'] ?? '[]');
+        $decodedTasks = json_decode($rawTasksJson, true);
+        $assignedTasks = is_array($decodedTasks) ? $decodedTasks : [];
+
+        $hasAssignedTasks = !empty($assignedTasks);
+
+        if (!$hasAssignedTasks) {
+            $assignedTasks = [
+                [
+                    'id'           => 'task_pre_hire_eval',
+                    'title'        => 'Technical Assessment & Skills Verification',
+                    'type'         => 'assessment',
+                    'slug'         => 'technical-assessment',
+                    'due_date'     => 'Within 5 days',
+                    'notes'        => 'Complete all 5 verification steps including technical evaluation.',
+                    'status'       => $isAllCompleted ? 'completed' : ($completedCount > 0 ? 'in_progress' : 'not_started'),
+                    'assigned_at'  => $candidateData['created_at'] ?? date('Y-m-d H:i:s'),
+                    'completed_at' => $isAllCompleted ? ($candidateData['updated_at'] ?? date('Y-m-d H:i:s')) : null,
+                    'score'        => isset($candidateData['score']) ? (float) $candidateData['score'] : null,
+                ],
+            ];
+
+            $isHired = ($stageKey === 'hired');
+
+            if ($isHired) {
+                $assignedTasks[] = [
+                    'id'           => 'task_onboarding_chk',
+                    'title'        => 'Employee Onboarding & Security Checklist',
+                    'type'         => 'checklist',
+                    'slug'         => 'onboarding-checklist',
+                    'due_date'     => 'Before Day 1',
+                    'notes'        => 'Hardware setup, IT security, and compliance verification.',
+                    'status'       => 'not_started',
+                    'assigned_at'  => date('Y-m-d H:i:s'),
+                    'completed_at' => null,
+                    'score'        => null,
+                ];
+            }
+        }
+
         return new WP_REST_Response(EnvelopeBuilder::createSuccessEnvelope([
             'token'                  => $token,
             'candidate'              => $candidateData,
             'assessment_gating_mode' => $gatingMode,
             'is_assessment_approved' => $isAssessmentApproved,
             'steps'                  => $steps,
+            'assigned_tasks'         => $assignedTasks,
             'completed_step_count'  => $completedCount,
             'total_step_count'      => $totalSteps,
             'completion_percentage' => $percentage,
@@ -172,6 +213,20 @@ class CandidatePortalRestController extends WP_REST_Controller {
                 ON CONFLICT(token, step_id) DO UPDATE SET step_data_json = excluded.step_data_json, completed_at = excluded.completed_at';
 
         $db->execute($sql, [$token, $stepId, $jsonData]);
+
+        $isAssessmentStep = ($stepId === 'step_assessment');
+
+        if ($isAssessmentStep) {
+            $hasScore = isset($stepData['score']);
+
+            if ($hasScore) {
+                $scoreVal = (float) $stepData['score'];
+                $db->execute(
+                    'UPDATE applicants SET score = ?, updated_at = datetime("now") WHERE candidate_email = ? OR candidate_email LIKE ? OR id = ?',
+                    [$scoreVal, $token, $token . '@%', (int) $token]
+                );
+            }
+        }
 
         // If completing final step, advance recruitment stage if matching applicant exists
         $isFinalStep = ($stepId === 'step_complete');
@@ -219,11 +274,24 @@ class CandidatePortalRestController extends WP_REST_Controller {
                 'phone'             => '',
                 'current_stage_key' => 'applied',
                 'notes'             => 'Invited candidate session',
+                'score'             => null,
             ];
         }
 
-        // Second check applicants by id or default demo
-        $applicantRows = $db->query('SELECT * FROM applicants ORDER BY id ASC LIMIT 1');
+        // Second check applicants by email, email prefix, or numeric ID
+        $appRows = $db->query(
+            'SELECT * FROM applicants WHERE candidate_email = ? OR candidate_email LIKE ? OR id = ? LIMIT 1',
+            [$token, $token . '@%', (int) $token]
+        );
+        $directApplicant = $appRows[0] ?? null;
+        $hasDirect = ($directApplicant !== null);
+
+        if ($hasDirect) {
+            return $directApplicant;
+        }
+
+        // Third check latest applicant or default demo
+        $applicantRows = $db->query('SELECT * FROM applicants ORDER BY id DESC LIMIT 1');
         $fallbackApplicant = $applicantRows[0] ?? null;
         $hasFallback = ($fallbackApplicant !== null);
 
@@ -238,6 +306,7 @@ class CandidatePortalRestController extends WP_REST_Controller {
             'phone'             => '+1 (555) 345-6789',
             'current_stage_key' => 'applied',
             'notes'             => 'Candidate Self-Service Verification Session',
+            'score'             => 100,
         ];
     }
 }

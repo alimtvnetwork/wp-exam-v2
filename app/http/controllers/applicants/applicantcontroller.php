@@ -143,6 +143,19 @@ class ApplicantController
                 $hasRows = !empty($rows);
 
                 if ($hasRows) {
+                    foreach ($rows as &$row) {
+                        $tasksJson = (string) ($row['assigned_tasks_json'] ?? '[]');
+                        $decoded = json_decode($tasksJson, true);
+                        $hasDecoded = is_array($decoded);
+
+                        if ($hasDecoded) {
+                            $row['assigned_tasks'] = $decoded;
+                        } else {
+                            $row['assigned_tasks'] = [];
+                        }
+                    }
+                    unset($row);
+
                     return [
                         'status' => 'success',
                         'is_success' => true,
@@ -279,17 +292,21 @@ class ApplicantController
     public function transitionStage(array $params = [], array $body = []): array
     {
         $applicantId = (int) ($body['applicant_id'] ?? 0);
+        $candidateEmail = trim((string) ($body['candidate_email'] ?? ''));
         $toStageKey = trim((string) ($body['to_stage_key'] ?? ''));
         $notes = trim((string) ($body['notes'] ?? ''));
 
-        $isInvalidApplicantId = ($applicantId <= 0);
+        $hasNoId = ($applicantId <= 0);
+        $hasNoEmail = (strlen($candidateEmail) === 0);
 
-        if ($isInvalidApplicantId) {
-            return [
-                'status' => 'error',
-                'is_success' => false,
-                'message' => 'Valid applicant_id is required',
-            ];
+        if ($hasNoId) {
+            if ($hasNoEmail) {
+                return [
+                    'status' => 'error',
+                    'is_success' => false,
+                    'message' => 'Valid applicant_id or candidate_email is required',
+                ];
+            }
         }
 
         $isInvalidStageKey = (strlen($toStageKey) === 0);
@@ -306,10 +323,54 @@ class ApplicantController
             $db = SqliteDatabase::getInstance();
             $db->init();
 
-            $applicantRows = $db->query('SELECT * FROM applicants WHERE id = ?', [$applicantId]);
-            $applicant = $applicantRows[0] ?? null;
+            $applicant = null;
 
-            if ($applicant !== null) {
+            // Try resolving by numeric database ID if not a high timestamp ID
+            $isRegularId = ($applicantId > 0);
+            $isNotTimestamp = ($applicantId < 1000000000);
+
+            if ($isRegularId) {
+                if ($isNotTimestamp) {
+                    $applicantRows = $db->query('SELECT * FROM applicants WHERE id = ?', [$applicantId]);
+                    $applicant = $applicantRows[0] ?? null;
+                }
+            }
+
+            // Fallback: match by candidate email
+            $isApplicantMissing = ($applicant === null);
+
+            if ($isApplicantMissing) {
+                $hasCandidateEmail = (strlen($candidateEmail) > 0);
+
+                if ($hasCandidateEmail) {
+                    $emailRows = $db->query(
+                        'SELECT * FROM applicants WHERE candidate_email = ? ORDER BY id DESC LIMIT 1',
+                        [$candidateEmail]
+                    );
+                    $hasEmailMatch = !empty($emailRows);
+
+                    if ($hasEmailMatch) {
+                        $applicant = $emailRows[0];
+                        $applicantId = (int) $applicant['id'];
+                    }
+                }
+            }
+
+            // Second fallback: if still missing, try by ID regardless of timestamp
+            $isStillMissing = ($applicant === null);
+
+            if ($isStillMissing) {
+                $hasAnyId = ($applicantId > 0);
+
+                if ($hasAnyId) {
+                    $fallbackRows = $db->query('SELECT * FROM applicants WHERE id = ?', [$applicantId]);
+                    $applicant = $fallbackRows[0] ?? null;
+                }
+            }
+
+            $hasFoundApplicant = ($applicant !== null);
+
+            if ($hasFoundApplicant) {
                 $fromStageKey = (string) $applicant['current_stage_key'];
                 $updateSql = "UPDATE applicants SET current_stage_key = ?, updated_at = datetime('now') WHERE id = ?";
                 $db->execute($updateSql, [$toStageKey, $applicantId]);
@@ -361,27 +422,60 @@ class ApplicantController
     public function updateFeedback(array $params = [], array $body = []): array
     {
         $applicantId = (int) ($body['applicant_id'] ?? 0);
+        $candidateEmail = trim((string) ($body['candidate_email'] ?? ''));
         $rating = isset($body['rating']) ? (int) $body['rating'] : null;
         $notes = isset($body['notes']) ? trim((string) $body['notes']) : null;
 
-        $isInvalidId = ($applicantId <= 0);
+        $hasNoId = ($applicantId <= 0);
+        $hasNoEmail = (strlen($candidateEmail) === 0);
 
-        if ($isInvalidId) {
-            return [
-                'status' => 'error',
-                'is_success' => false,
-                'message' => 'Valid applicant_id is required',
-            ];
+        if ($hasNoId) {
+            if ($hasNoEmail) {
+                return [
+                    'status' => 'error',
+                    'is_success' => false,
+                    'message' => 'Valid applicant_id or candidate_email is required',
+                ];
+            }
         }
 
         try {
             $db = SqliteDatabase::getInstance();
             $db->init();
 
-            $applicantRows = $db->query('SELECT * FROM applicants WHERE id = ?', [$applicantId]);
-            $applicant = $applicantRows[0] ?? null;
+            $applicant = null;
+            $isRegularId = ($applicantId > 0);
+            $isNotTimestamp = ($applicantId < 1000000000);
 
-            if ($applicant !== null) {
+            if ($isRegularId) {
+                if ($isNotTimestamp) {
+                    $applicantRows = $db->query('SELECT * FROM applicants WHERE id = ?', [$applicantId]);
+                    $applicant = $applicantRows[0] ?? null;
+                }
+            }
+
+            $isApplicantMissing = ($applicant === null);
+
+            if ($isApplicantMissing) {
+                $hasEmail = (strlen($candidateEmail) > 0);
+
+                if ($hasEmail) {
+                    $emailRows = $db->query(
+                        'SELECT * FROM applicants WHERE candidate_email = ? ORDER BY id DESC LIMIT 1',
+                        [$candidateEmail]
+                    );
+                    $hasEmailRow = !empty($emailRows);
+
+                    if ($hasEmailRow) {
+                        $applicant = $emailRows[0];
+                        $applicantId = (int) $applicant['id'];
+                    }
+                }
+            }
+
+            $hasFoundApplicant = ($applicant !== null);
+
+            if ($hasFoundApplicant) {
                 $hasRating = ($rating !== null);
 
                 if ($hasRating) {
@@ -400,8 +494,8 @@ class ApplicantController
                     'status' => 'success',
                     'is_success' => true,
                     'data' => [
-                        'applicant' => $updatedRows[0] ?? null,
-                        'message' => 'Applicant feedback updated successfully',
+                        'applicant' => $updatedRows[0] ?? $applicant,
+                        'message' => 'Feedback saved successfully',
                     ],
                 ];
             }
@@ -476,6 +570,148 @@ class ApplicantController
             'data' => [
                 'assessment_gating_mode' => $rawMode,
                 'message' => 'Pipeline assessment gating configuration updated successfully',
+            ],
+        ];
+    }
+
+    public function assignTask(array $params = [], array $body = []): array {
+        $applicantId = (int) ($body['applicant_id'] ?? 0);
+        $candidateEmail = trim((string) ($body['candidate_email'] ?? ''));
+        $task = $body['task'] ?? [];
+
+        $hasNoId = ($applicantId <= 0);
+
+        if ($hasNoId) {
+            $hasNoEmail = (strlen($candidateEmail) === 0);
+
+            if ($hasNoEmail) {
+                return [
+                    'status' => 'error',
+                    'is_success' => false,
+                    'message' => 'Valid applicant_id or candidate_email is required',
+                ];
+            }
+        }
+
+        $isTaskEmpty = empty($task);
+
+        if ($isTaskEmpty) {
+            return [
+                'status' => 'error',
+                'is_success' => false,
+                'message' => 'Task details are required',
+            ];
+        }
+
+        $isNotArray = !is_array($task);
+
+        if ($isNotArray) {
+            return [
+                'status' => 'error',
+                'is_success' => false,
+                'message' => 'Task payload must be an object',
+            ];
+        }
+
+        $db = SqliteDatabase::getInstance();
+        $db->init();
+        $applicant = null;
+
+        $isRegularId = ($applicantId > 0);
+
+        if ($isRegularId) {
+            $isNotTimestamp = ($applicantId < 1000000000);
+
+            if ($isNotTimestamp) {
+                $applicantRows = $db->query('SELECT * FROM applicants WHERE id = ?', [$applicantId]);
+                $applicant = $applicantRows[0] ?? null;
+            }
+        }
+
+        $isApplicantMissing = ($applicant === null);
+
+        if ($isApplicantMissing) {
+            $hasCandidateEmail = (strlen($candidateEmail) > 0);
+
+            if ($hasCandidateEmail) {
+                $emailRows = $db->query(
+                    'SELECT * FROM applicants WHERE candidate_email = ? ORDER BY id DESC LIMIT 1',
+                    [$candidateEmail]
+                );
+                $hasEmailRow = !empty($emailRows);
+
+                if ($hasEmailRow) {
+                    $applicant = $emailRows[0];
+                    $applicantId = (int) $applicant['id'];
+                }
+            }
+        }
+
+        $isStillMissing = ($applicant === null);
+
+        if ($isStillMissing) {
+            return [
+                'status' => 'error',
+                'is_success' => false,
+                'message' => 'Applicant not found',
+            ];
+        }
+
+        $rawJson = (string) ($applicant['assigned_tasks_json'] ?? '[]');
+        $decodedTasks = json_decode($rawJson, true);
+        $currentTasks = is_array($decodedTasks) ? $decodedTasks : [];
+
+        $taskId = !empty($task['id']) ? (string) $task['id'] : ('task_' . time() . '_' . substr(md5(uniqid()), 0, 4));
+        $normalizedTask = [
+            'id'           => $taskId,
+            'title'        => !empty($task['title']) ? (string) $task['title'] : 'Assigned Assessment',
+            'type'         => !empty($task['type']) ? (string) $task['type'] : 'assessment',
+            'slug'         => !empty($task['slug']) ? (string) $task['slug'] : '',
+            'due_date'     => !empty($task['due_date']) ? (string) $task['due_date'] : '',
+            'notes'        => !empty($task['notes']) ? (string) $task['notes'] : '',
+            'status'       => !empty($task['status']) ? (string) $task['status'] : 'not_started',
+            'assigned_at'  => !empty($task['assigned_at']) ? (string) $task['assigned_at'] : date('Y-m-d H:i:s'),
+            'completed_at' => !empty($task['completed_at']) ? (string) $task['completed_at'] : null,
+            'score'        => isset($task['score']) ? (float) $task['score'] : null,
+        ];
+
+        $updatedTasks = [];
+        $found = false;
+
+        foreach ($currentTasks as $t) {
+            $isSameId = (isset($t['id']) && $t['id'] === $taskId);
+
+            if ($isSameId) {
+                $updatedTasks[] = array_merge($t, $normalizedTask);
+                $found = true;
+            } else {
+                $updatedTasks[] = $t;
+            }
+        }
+
+        if (!$found) {
+            $updatedTasks[] = $normalizedTask;
+        }
+
+        $newJson = json_encode($updatedTasks);
+        $db->execute("UPDATE applicants SET assigned_tasks_json = ?, updated_at = datetime('now') WHERE id = ?", [$newJson, $applicantId]);
+
+        $updatedRows = $db->query('SELECT * FROM applicants WHERE id = ?', [$applicantId]);
+        $updatedApplicant = $updatedRows[0] ?? null;
+
+        $hasUpdatedApp = ($updatedApplicant !== null);
+
+        if ($hasUpdatedApp) {
+            $updatedApplicant['assigned_tasks'] = $updatedTasks;
+        }
+
+        return [
+            'status' => 'success',
+            'is_success' => true,
+            'data' => [
+                'applicant'      => $updatedApplicant,
+                'assigned_tasks' => $updatedTasks,
+                'message'        => 'Task assigned successfully to candidate',
             ],
         ];
     }

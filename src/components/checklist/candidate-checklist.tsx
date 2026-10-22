@@ -158,14 +158,27 @@ export const CandidateChecklist: React.FC = () => {
         </div>
 
         {totalCount === 0 && (
-          <div className="rounded-2xl border border-border bg-card p-8 text-center space-y-2">
+          <div className="rounded-2xl border border-border bg-card p-8 text-center space-y-3">
             <Inbox className="w-8 h-8 text-muted-foreground mx-auto" />
 
-            <p className="text-sm font-semibold text-foreground">Nothing assigned yet</p>
+            <p className="text-sm font-semibold text-foreground">Nothing assigned yet on this invite link</p>
 
             <p className="text-sm text-muted-foreground">
-              When your administrator assigns a quiz, exam, or project, it will show up here.
+              If your administrator assigned an onboarding task or technical assessment, access your personalized assignments hub in the candidate portal.
             </p>
+
+            {token && (
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => {
+                  window.location.href = `/portal/${token}`;
+                }}
+                className="mt-2 text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white cursor-pointer"
+              >
+                Go to Candidate Portal & Assignments
+              </Button>
+            )}
           </div>
         )}
 

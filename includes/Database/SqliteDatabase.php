@@ -319,6 +319,7 @@ class SqliteDatabase {
             score REAL DEFAULT 0,
             rating INTEGER DEFAULT 0,
             notes TEXT DEFAULT '',
+            assigned_tasks_json TEXT DEFAULT '[]',
             created_at TEXT DEFAULT (datetime('now')),
             updated_at TEXT DEFAULT (datetime('now'))
         );
@@ -439,6 +440,12 @@ class SqliteDatabase {
 
         try {
             $this->pdo->exec("ALTER TABLE projects ADD COLUMN parent_project_id TEXT DEFAULT ''");
+        } catch (Throwable) {
+            // Column may already exist
+        }
+
+        try {
+            $this->pdo->exec("ALTER TABLE applicants ADD COLUMN assigned_tasks_json TEXT DEFAULT '[]'");
         } catch (Throwable) {
             // Column may already exist
         }

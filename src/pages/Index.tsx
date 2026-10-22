@@ -369,7 +369,10 @@ export const Index: React.FC = () => {
 
               {previousTab === 'projects' && (
                 <div className="max-w-6xl mx-auto">
-                  <ProjectHierarchyManager onLaunchFocusRunner={handleLaunchFocusProject} />
+                  <ProjectHierarchyManager
+                    onLaunchFocusRunner={handleLaunchFocusProject}
+                    onNavigateTab={(tab) => handleSelectTab(tab as AdminTab)}
+                  />
                 </div>
               )}
 

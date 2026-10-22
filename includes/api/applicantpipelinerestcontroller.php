@@ -75,6 +75,14 @@ class ApplicantPipelineRestController extends WP_REST_Controller {
             ],
         ]);
 
+        register_rest_route($this->namespace, '/applicants/assign-task', [
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [$this, 'assignTask'],
+                'permission_callback' => [$this, 'checkAdminPermission'],
+            ],
+        ]);
+
         register_rest_route($this->namespace, '/applicants/(?P<id>\d+)', [
             [
                 'methods'             => WP_REST_Server::DELETABLE,
@@ -123,6 +131,19 @@ class ApplicantPipelineRestController extends WP_REST_Controller {
 
         $sql .= ' ORDER BY updated_at DESC, id DESC';
         $applicants = $db->query($sql, $params);
+
+        foreach ($applicants as &$row) {
+            $tasksJson = (string) ($row['assigned_tasks_json'] ?? '[]');
+            $decoded = json_decode($tasksJson, true);
+            $hasDecoded = is_array($decoded);
+
+            if ($hasDecoded) {
+                $row['assigned_tasks'] = $decoded;
+            } else {
+                $row['assigned_tasks'] = [];
+            }
+        }
+        unset($row);
 
         return new WP_REST_Response(EnvelopeBuilder::createSuccessEnvelope($applicants), 200);
     }
@@ -179,13 +200,17 @@ class ApplicantPipelineRestController extends WP_REST_Controller {
     public function transitionStage(WP_REST_Request $request): WP_REST_Response {
         $body = $request->get_json_params() ?: [];
         $applicantId = (int) ($body['applicant_id'] ?? 0);
+        $candidateEmail = trim((string) ($body['candidate_email'] ?? ''));
         $toStageKey = trim((string) ($body['to_stage_key'] ?? ''));
         $notes = trim((string) ($body['notes'] ?? ''));
 
-        $isInvalidApplicantId = ($applicantId <= 0);
+        $hasNoId = ($applicantId <= 0);
+        $hasNoEmail = (strlen($candidateEmail) === 0);
 
-        if ($isInvalidApplicantId) {
-            return new WP_REST_Response(EnvelopeBuilder::createErrorEnvelope('Valid applicant_id is required'), 400);
+        if ($hasNoId) {
+            if ($hasNoEmail) {
+                return new WP_REST_Response(EnvelopeBuilder::createErrorEnvelope('Valid applicant_id or candidate_email is required'), 400);
+            }
         }
 
         $isInvalidStageKey = (strlen($toStageKey) === 0);
@@ -195,8 +220,47 @@ class ApplicantPipelineRestController extends WP_REST_Controller {
         }
 
         $db = SqliteDatabase::getInstance();
-        $applicantRows = $db->query('SELECT * FROM applicants WHERE id = ?', [$applicantId]);
-        $applicant = $applicantRows[0] ?? null;
+        $applicant = null;
+
+        $isRegularId = ($applicantId > 0);
+        $isNotTimestamp = ($applicantId < 1000000000);
+
+        if ($isRegularId) {
+            if ($isNotTimestamp) {
+                $applicantRows = $db->query('SELECT * FROM applicants WHERE id = ?', [$applicantId]);
+                $applicant = $applicantRows[0] ?? null;
+            }
+        }
+
+        $isApplicantMissing = ($applicant === null);
+
+        if ($isApplicantMissing) {
+            $hasCandidateEmail = (strlen($candidateEmail) > 0);
+
+            if ($hasCandidateEmail) {
+                $emailRows = $db->query(
+                    'SELECT * FROM applicants WHERE candidate_email = ? ORDER BY id DESC LIMIT 1',
+                    [$candidateEmail]
+                );
+                $hasEmailRow = !empty($emailRows);
+
+                if ($hasEmailRow) {
+                    $applicant = $emailRows[0];
+                    $applicantId = (int) $applicant['id'];
+                }
+            }
+        }
+
+        $isStillMissing = ($applicant === null);
+
+        if ($isStillMissing) {
+            $hasAnyId = ($applicantId > 0);
+
+            if ($hasAnyId) {
+                $fallbackRows = $db->query('SELECT * FROM applicants WHERE id = ?', [$applicantId]);
+                $applicant = $fallbackRows[0] ?? null;
+            }
+        }
 
         $isMissing = ($applicant === null);
 
@@ -313,6 +377,128 @@ class ApplicantPipelineRestController extends WP_REST_Controller {
         return new WP_REST_Response(EnvelopeBuilder::createSuccessEnvelope([
             'assessment_gating_mode' => $rawMode,
             'message'                => 'Pipeline assessment gating configuration updated successfully',
+        ]), 200);
+    }
+
+    public function assignTask(WP_REST_Request $request): WP_REST_Response {
+        $body = $request->get_json_params() ?: [];
+        $applicantId = (int) ($body['applicant_id'] ?? 0);
+        $candidateEmail = trim((string) ($body['candidate_email'] ?? ''));
+        $task = $body['task'] ?? [];
+
+        $hasNoId = ($applicantId <= 0);
+
+        if ($hasNoId) {
+            $hasNoEmail = (strlen($candidateEmail) === 0);
+
+            if ($hasNoEmail) {
+                return new WP_REST_Response(EnvelopeBuilder::createErrorEnvelope('Valid applicant_id or candidate_email is required'), 400);
+            }
+        }
+
+        $isTaskEmpty = empty($task);
+
+        if ($isTaskEmpty) {
+            return new WP_REST_Response(EnvelopeBuilder::createErrorEnvelope('Task details are required'), 400);
+        }
+
+        $isNotArray = !is_array($task);
+
+        if ($isNotArray) {
+            return new WP_REST_Response(EnvelopeBuilder::createErrorEnvelope('Task payload must be an object'), 400);
+        }
+
+        $db = SqliteDatabase::getInstance();
+        $applicant = null;
+
+        $isRegularId = ($applicantId > 0);
+
+        if ($isRegularId) {
+            $isNotTimestamp = ($applicantId < 1000000000);
+
+            if ($isNotTimestamp) {
+                $applicantRows = $db->query('SELECT * FROM applicants WHERE id = ?', [$applicantId]);
+                $applicant = $applicantRows[0] ?? null;
+            }
+        }
+
+        $isApplicantMissing = ($applicant === null);
+
+        if ($isApplicantMissing) {
+            $hasCandidateEmail = (strlen($candidateEmail) > 0);
+
+            if ($hasCandidateEmail) {
+                $emailRows = $db->query(
+                    'SELECT * FROM applicants WHERE candidate_email = ? ORDER BY id DESC LIMIT 1',
+                    [$candidateEmail]
+                );
+                $hasEmailRow = !empty($emailRows);
+
+                if ($hasEmailRow) {
+                    $applicant = $emailRows[0];
+                    $applicantId = (int) $applicant['id'];
+                }
+            }
+        }
+
+        $isStillMissing = ($applicant === null);
+
+        if ($isStillMissing) {
+            return new WP_REST_Response(EnvelopeBuilder::createErrorEnvelope('Applicant not found'), 404);
+        }
+
+        $rawJson = (string) ($applicant['assigned_tasks_json'] ?? '[]');
+        $decodedTasks = json_decode($rawJson, true);
+        $currentTasks = is_array($decodedTasks) ? $decodedTasks : [];
+
+        $taskId = !empty($task['id']) ? (string) $task['id'] : ('task_' . time() . '_' . substr(md5(uniqid()), 0, 4));
+        $normalizedTask = [
+            'id'           => $taskId,
+            'title'        => !empty($task['title']) ? (string) $task['title'] : 'Assigned Assessment',
+            'type'         => !empty($task['type']) ? (string) $task['type'] : 'assessment',
+            'slug'         => !empty($task['slug']) ? (string) $task['slug'] : '',
+            'due_date'     => !empty($task['due_date']) ? (string) $task['due_date'] : '',
+            'notes'        => !empty($task['notes']) ? (string) $task['notes'] : '',
+            'status'       => !empty($task['status']) ? (string) $task['status'] : 'not_started',
+            'assigned_at'  => !empty($task['assigned_at']) ? (string) $task['assigned_at'] : date('Y-m-d H:i:s'),
+            'completed_at' => !empty($task['completed_at']) ? (string) $task['completed_at'] : null,
+            'score'        => isset($task['score']) ? (float) $task['score'] : null,
+        ];
+
+        $updatedTasks = [];
+        $found = false;
+
+        foreach ($currentTasks as $t) {
+            $isSameId = (isset($t['id']) && $t['id'] === $taskId);
+
+            if ($isSameId) {
+                $updatedTasks[] = array_merge($t, $normalizedTask);
+                $found = true;
+            } else {
+                $updatedTasks[] = $t;
+            }
+        }
+
+        if (!$found) {
+            $updatedTasks[] = $normalizedTask;
+        }
+
+        $newJson = json_encode($updatedTasks);
+        $db->execute("UPDATE applicants SET assigned_tasks_json = ?, updated_at = datetime('now') WHERE id = ?", [$newJson, $applicantId]);
+
+        $updatedRows = $db->query('SELECT * FROM applicants WHERE id = ?', [$applicantId]);
+        $updatedApplicant = $updatedRows[0] ?? null;
+
+        $hasUpdatedApp = ($updatedApplicant !== null);
+
+        if ($hasUpdatedApp) {
+            $updatedApplicant['assigned_tasks'] = $updatedTasks;
+        }
+
+        return new WP_REST_Response(EnvelopeBuilder::createSuccessEnvelope([
+            'applicant'      => $updatedApplicant,
+            'assigned_tasks' => $updatedTasks,
+            'message'        => 'Task assigned successfully to candidate',
         ]), 200);
     }
 }

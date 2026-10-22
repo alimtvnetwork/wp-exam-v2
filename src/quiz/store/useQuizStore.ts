@@ -11,6 +11,7 @@ import {
   QuestionLayoutMode,
 } from '@/lib/types/form';
 import { executeQuery } from '@/lib/query-wrapper';
+import { saveCustomQuiz } from './quiz-registry';
 
 export interface BatchApplyConfigOptions {
   points?: number;
@@ -72,7 +73,8 @@ interface QuizState {
   removeQuestion: (id: string) => void;
   setQuestions: (questions: FormField[]) => void;
 
-  resetForm: () => void;
+  resetForm: (title?: string, newSlug?: string, type?: FormType) => void;
+  loadForm: (form: Partial<QuizState> | Partial<FormModel>) => void;
   saveForm: () => Promise<unknown>;
   saveQuiz: () => Promise<unknown>;
 }
@@ -268,12 +270,13 @@ export const useQuizStore = create<QuizState>()(
   removeQuestion: (id) => get().removeField(id),
   setQuestions: (qs) => get().setFields(qs),
 
-  resetForm: () =>
+  resetForm: (title, newSlug, type) =>
     set({
       id: undefined,
-      title: 'New Form',
+      title: title || 'New Form',
+      slug: newSlug || (title ? generateSlug(title) : 'new-form'),
       description: '',
-      formType: 'employee_signup',
+      formType: type || 'employee_signup',
       formAccess: 'public',
       isSequential: false,
       isPublished: true,
@@ -283,9 +286,48 @@ export const useQuizStore = create<QuizState>()(
       trashFields: [],
     }),
 
+  loadForm: (form) => {
+    const nextTitle = form.title || 'Untitled Assessment Form';
+    const nextSlug = (form as { slug?: string }).slug || generateSlug(nextTitle);
+
+    set({
+      id: form.id,
+      title: nextTitle,
+      slug: nextSlug,
+      description: form.description || '',
+      formType: form.formType || 'quiz',
+      formAccess: form.formAccess || 'public',
+      isSequential: Boolean(form.isSequential),
+      isPublished: form.isPublished ?? true,
+      settings: form.settings ? { ...initialSettings, ...form.settings } : initialSettings,
+      fields: form.fields || [],
+      questions: form.fields || [],
+      trashFields: [],
+    });
+  },
+
   saveForm: async () => {
     set({ isSaving: true });
     const state = get();
+
+    try {
+      saveCustomQuiz(
+        {
+          id: state.id,
+          title: state.title,
+          description: state.description,
+          formType: state.formType,
+          formAccess: state.formAccess,
+          isSequential: state.isSequential,
+          isPublished: state.isPublished,
+          settings: state.settings,
+          fields: state.fields,
+        },
+        state.slug
+      );
+    } catch (regErr) {
+      console.warn('Could not register custom quiz:', regErr);
+    }
     const wpSettings = (window as unknown as { wpExamSettings?: { root: string; nonce: string } }).wpExamSettings || {
       root: '/wp-json/',
       nonce: '',

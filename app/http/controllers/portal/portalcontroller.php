@@ -68,6 +68,7 @@ class PortalController
         }
 
         $completedStepIds = [];
+        $stepDataMap = [];
         $applicant = null;
 
         try {
@@ -75,10 +76,15 @@ class PortalController
             $hasInit = $db->init();
 
             if ($hasInit) {
-                $compRows = $db->query('SELECT step_id FROM portal_step_completions WHERE token = ?', [$token]);
+                $compRows = $db->query('SELECT step_id, step_data_json, completed_at FROM portal_step_completions WHERE token = ?', [$token]);
 
                 foreach ($compRows as $row) {
-                    $completedStepIds[] = (string) $row['step_id'];
+                    $sId = (string) $row['step_id'];
+                    $completedStepIds[] = $sId;
+                    $stepDataMap[$sId] = [
+                        'completed_at' => $row['completed_at'] ?? null,
+                        'data' => json_decode((string) ($row['step_data_json'] ?? '{}'), true) ?: [],
+                    ];
                 }
 
                 $userRows = $db->query(
@@ -92,6 +98,16 @@ class PortalController
                     $uEmail = $userRows[0]['email'];
                     $appRows = $db->query('SELECT * FROM applicants WHERE candidate_email = ? LIMIT 1', [$uEmail]);
                     $stage = !empty($appRows) ? ($appRows[0]['current_stage_key'] ?? 'screening') : 'screening';
+                    $userScore = null;
+                    $hasAppRows = !empty($appRows);
+
+                    if ($hasAppRows) {
+                        $hasScoreCol = isset($appRows[0]['score']);
+
+                        if ($hasScoreCol) {
+                            $userScore = (int) $appRows[0]['score'];
+                        }
+                    }
 
                     $applicant = [
                         'id' => (int) $userRows[0]['id'],
@@ -99,22 +115,34 @@ class PortalController
                         'candidate_email' => $userRows[0]['email'],
                         'phone' => $userRows[0]['phone'] ?? '',
                         'current_stage_key' => $stage,
+                        'score' => $userScore,
                     ];
                 }
 
                 $hasNoApplicant = ($applicant === null);
 
                 if ($hasNoApplicant) {
-                    $appRows = $db->query('SELECT * FROM applicants WHERE candidate_email = ? OR id = ? LIMIT 1', [$token, (int) $token]);
+                    $appRows = $db->query(
+                        'SELECT * FROM applicants WHERE candidate_email = ? OR candidate_email LIKE ? OR id = ? LIMIT 1',
+                        [$token, $token . '@%', (int) $token]
+                    );
                     $hasAppRow = !empty($appRows);
 
                     if ($hasAppRow) {
+                        $directScore = null;
+                        $hasScoreCol = isset($appRows[0]['score']);
+
+                        if ($hasScoreCol) {
+                            $directScore = (int) $appRows[0]['score'];
+                        }
+
                         $applicant = [
                             'id' => (int) $appRows[0]['id'],
                             'candidate_name' => $appRows[0]['candidate_name'],
                             'candidate_email' => $appRows[0]['candidate_email'],
                             'phone' => $appRows[0]['phone'] ?? '',
                             'current_stage_key' => $appRows[0]['current_stage_key'] ?? 'screening',
+                            'score' => $directScore,
                         ];
                     }
                 }
@@ -126,12 +154,20 @@ class PortalController
                     $hasLatest = !empty($latestRows);
 
                     if ($hasLatest) {
+                        $latestScore = null;
+                        $hasScoreCol = isset($latestRows[0]['score']);
+
+                        if ($hasScoreCol) {
+                            $latestScore = (int) $latestRows[0]['score'];
+                        }
+
                         $applicant = [
                             'id' => (int) $latestRows[0]['id'],
                             'candidate_name' => $latestRows[0]['candidate_name'],
                             'candidate_email' => $latestRows[0]['candidate_email'],
                             'phone' => $latestRows[0]['phone'] ?? '',
                             'current_stage_key' => $latestRows[0]['current_stage_key'] ?? 'screening',
+                            'score' => $latestScore,
                         ];
                     }
                 }
@@ -153,6 +189,8 @@ class PortalController
 
             $steps[] = array_merge($stepDef, [
                 'is_completed' => $isCompleted,
+                'completed_at' => $stepDataMap[$stepId]['completed_at'] ?? null,
+                'data' => $stepDataMap[$stepId]['data'] ?? [],
             ]);
         }
 
@@ -175,6 +213,47 @@ class PortalController
 
         $isAssessmentApproved = ($gatingMode === 'instant_self_service') || in_array($stageKey, ['assessment', 'exam', 'interview', 'offered', 'hired'], true);
 
+        $rawTasksJson = (string) ($applicant['assigned_tasks_json'] ?? '[]');
+        $decodedTasks = json_decode($rawTasksJson, true);
+        $assignedTasks = is_array($decodedTasks) ? $decodedTasks : [];
+
+        $hasAssignedTasks = !empty($assignedTasks);
+
+        if (!$hasAssignedTasks) {
+            $isAllCompleted = ($completedCount === $totalSteps);
+            $assignedTasks = [
+                [
+                    'id'           => 'task_pre_hire_eval',
+                    'title'        => 'Technical Assessment & Skills Verification',
+                    'type'         => 'assessment',
+                    'slug'         => 'technical-assessment',
+                    'due_date'     => 'Within 5 days',
+                    'notes'        => 'Complete all 5 verification steps including technical evaluation.',
+                    'status'       => $isAllCompleted ? 'completed' : ($completedCount > 0 ? 'in_progress' : 'not_started'),
+                    'assigned_at'  => date('Y-m-d H:i:s'),
+                    'completed_at' => $isAllCompleted ? date('Y-m-d H:i:s') : null,
+                    'score'        => $applicant['score'] ?? null,
+                ],
+            ];
+
+            $isHired = ($stageKey === 'hired');
+
+            if ($isHired) {
+                $assignedTasks[] = [
+                    'id'           => 'task_onboarding_chk',
+                    'title'        => 'Employee Onboarding & Security Checklist',
+                    'type'         => 'checklist',
+                    'slug'         => 'onboarding-checklist',
+                    'due_date'     => 'Before Day 1',
+                    'notes'        => 'Hardware setup, IT security, and compliance verification.',
+                    'status'       => 'not_started',
+                    'assigned_at'  => date('Y-m-d H:i:s'),
+                    'completed_at' => null,
+                    'score'        => null,
+                ];
+            }
+        }
+
         return [
             'status' => 'success',
             'is_success' => true,
@@ -193,6 +272,7 @@ class PortalController
                 ],
                 'assessment_gating_mode' => $gatingMode,
                 'is_assessment_approved' => $isAssessmentApproved,
+                'assigned_tasks' => $assignedTasks,
                 'progress_percentage' => $progressPct,
                 'completion_percentage' => $progressPct,
                 'completed_steps_count' => $completedCount,
@@ -234,13 +314,40 @@ class PortalController
             ];
         }
 
+        $stepData = $body['step_data'] ?? [];
+        $hasNoStepData = empty($stepData);
+
+        if ($hasNoStepData) {
+            $hasNotes = (strlen($notes) > 0);
+
+            if ($hasNotes) {
+                $stepData = ['notes' => $notes];
+            }
+        }
+
         try {
             $db = SqliteDatabase::getInstance();
             $db->init();
 
-            $sql = 'INSERT OR REPLACE INTO portal_step_completions (token, step_id, step_data_json) VALUES (?, ?, ?)';
-            $stepDataJson = json_encode(['notes' => $notes]);
+            $sql = 'INSERT INTO portal_step_completions (token, step_id, step_data_json, completed_at)
+                    VALUES (?, ?, ?, datetime("now"))
+                    ON CONFLICT(token, step_id) DO UPDATE SET step_data_json = excluded.step_data_json, completed_at = excluded.completed_at';
+            $stepDataJson = json_encode($stepData);
             $db->execute($sql, [$token, $stepId, $stepDataJson]);
+
+            $isAssessmentStep = ($stepId === 'step_assessment');
+
+            if ($isAssessmentStep) {
+                $hasScore = isset($stepData['score']);
+
+                if ($hasScore) {
+                    $scoreVal = (float) $stepData['score'];
+                    $db->execute(
+                        'UPDATE applicants SET score = ?, updated_at = datetime("now") WHERE candidate_email = ? OR candidate_email LIKE ? OR id = ?',
+                        [$scoreVal, $token, $token . '@%', (int) $token]
+                    );
+                }
+            }
         } catch (Throwable $e) {
             // Local fallback
         }

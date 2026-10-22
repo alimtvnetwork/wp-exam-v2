@@ -48,4 +48,8 @@ echo "current_stage_key: " . $res6['body']['data']['candidate']['current_stage_k
 
 echo PHP_EOL . "=== VERIFICATION TEST 7: RESTORE ADMIN_APPROVAL AS DEFAULT ===" . PHP_EOL;
 Route::dispatch('POST', '/api/v1/applicants/settings', ['assessment_gating_mode' => 'admin_approval']);
-echo "Restored to admin_approval successfully." . PHP_EOL;
+Route::dispatch('POST', '/api/v1/applicants/stage-transition', [
+    'applicant_id' => $applicantId,
+    'to_stage_key' => 'exam',
+]);
+echo "Restored to admin_approval and applicant to exam successfully." . PHP_EOL;
