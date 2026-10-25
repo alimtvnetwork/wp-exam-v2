@@ -14,8 +14,6 @@ import {
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { AdminLoginModal, useAdminAuth } from '@/components/auth/AdminLoginModal';
-import { CandidateAuthModal } from '@/components/auth/candidate-auth-modal';
-import { useAuth } from '@/lib/auth-context';
 import { QuizSimulator } from '@/components/simulation/quiz-simulator';
 import { ThemeSwitcher } from '@/lib/theme-context';
 import onboardingQuizLogo from '@/assets/onboarding-quiz-logo.svg';
@@ -68,9 +66,7 @@ const metricCards = [
 export const LandingPage: React.FC = () => {
   const navigate = useNavigate();
   const { isAuthenticated } = useAdminAuth();
-  const { isCandidate, user } = useAuth();
   const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
-  const [isCandidateModalOpen, setIsCandidateModalOpen] = useState(false);
 
   const handleAdminClick = () => {
     if (isAuthenticated) {
@@ -82,12 +78,7 @@ export const LandingPage: React.FC = () => {
   };
 
   const handleCandidateClick = () => {
-    if (isCandidate) {
-      navigate('/portal');
-      return;
-    }
-
-    setIsCandidateModalOpen(true);
+    navigate('/portal');
   };
 
   return (
@@ -134,7 +125,7 @@ export const LandingPage: React.FC = () => {
               className="text-xs h-9 px-3 gap-1.5 font-semibold rounded-xl cursor-pointer border-border hover:bg-muted"
             >
               <UserCheck className="w-3.5 h-3.5 text-primary" />
-              <span>{isCandidate ? (user?.name || 'My Portal') : 'Candidate Sign In'}</span>
+              <span>Candidate Portal</span>
             </Button>
 
             <Button
@@ -185,7 +176,7 @@ export const LandingPage: React.FC = () => {
               className="font-bold text-sm h-11 px-6 gap-2 border-primary/30 hover:bg-primary/10 cursor-pointer"
             >
               <UserCheck className="w-4 h-4 text-primary" />
-              <span>{isCandidate ? 'Open Candidate Portal' : 'Candidate Sign In / Register'}</span>
+              <span>Candidate Portal</span>
             </Button>
           </div>
 
@@ -311,13 +302,6 @@ export const LandingPage: React.FC = () => {
         isOpen={isLoginModalOpen}
         onClose={() => setIsLoginModalOpen(false)}
         onSuccess={() => navigate('/admin')}
-      />
-
-      {/* Candidate Auth Modal */}
-      <CandidateAuthModal
-        isOpen={isCandidateModalOpen}
-        onClose={() => setIsCandidateModalOpen(false)}
-        onSuccess={() => navigate('/portal')}
       />
     </div>
   );

@@ -19,7 +19,6 @@ interface AuthContextType {
   isCandidate: boolean;
   isLoading: boolean;
   login: (identifier: string, password: string) => Promise<{ success: boolean; message: string }>;
-  registerCandidate: (name: string, email: string, password: string, phone?: string) => Promise<{ success: boolean; message: string }>;
   logout: () => void;
   refreshUser: () => Promise<void>;
 }
@@ -157,61 +156,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const registerCandidate = async (
-    name: string,
-    email: string,
-    password: string,
-    phone?: string
-  ): Promise<{ success: boolean; message: string }> => {
-    try {
-      const res = await unifiedFetch('/api/v1/auth/register', '/wp-json/wp-exam/v1/auth/register', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name, email, password, phone }),
-      });
-
-      const json = await res.json();
-      const isOk = res.ok && (json.is_success ?? (json.status === 'success'));
-
-      if (isOk) {
-        const authUser: AuthUser = json.user;
-        const token: string = json.token || 'cand_' + Math.random().toString(36).substring(2);
-
-        setUser(authUser);
-        localStorage.setItem(STORAGE_TOKEN_KEY, token);
-        localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(authUser));
-        localStorage.setItem('wpexam_admin_session', 'false');
-
-        toast.success(`Account created! Welcome, ${authUser.name}.`);
-
-        return { success: true, message: json.message || 'Registration successful' };
-      }
-
-      const errMsg = json.message || 'Registration failed';
-      toast.error(errMsg);
-
-      return { success: false, message: errMsg };
-    } catch (e: any) {
-      // Optimistic local fallback registration
-      const newCandidate: AuthUser = {
-        id: Math.floor(Math.random() * 1000) + 10,
-        name,
-        email,
-        role: 'candidate',
-        phone,
-      };
-
-      setUser(newCandidate);
-      localStorage.setItem(STORAGE_TOKEN_KEY, 'cand_local_session');
-      localStorage.setItem(STORAGE_USER_KEY, JSON.stringify(newCandidate));
-      localStorage.setItem('wpexam_admin_session', 'false');
-
-      toast.success(`Welcome, ${name}!`);
-
-      return { success: true, message: 'Candidate account created' };
-    }
-  };
-
   const logout = () => {
     setUser(null);
     localStorage.removeItem(STORAGE_TOKEN_KEY);
@@ -236,7 +180,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         isCandidate,
         isLoading,
         login,
-        registerCandidate,
         logout,
         refreshUser,
       }}
