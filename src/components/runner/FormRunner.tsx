@@ -134,7 +134,7 @@ const PRESET_PROJECTS: Record<string, FormModel> = {
     settings: {
       timeLimitSeconds: 1800,
       passingScore: 70,
-      successMessage: 'Congratulations! Your score qualifies for Phase 2 interview review.',
+      successMessage: 'Congratulations! Your score qualifies for technical interview review.',
     },
     fields: [
       {

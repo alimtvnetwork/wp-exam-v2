@@ -46,7 +46,7 @@ export const BUILTIN_PRESET_QUIZZES: QuizRegistryItem[] = [
       settings: {
         timeLimitSeconds: 1800,
         passingScore: 70,
-        successMessage: 'Congratulations! Your score qualifies for Phase 2 interview review.',
+        successMessage: 'Congratulations! Your score qualifies for technical interview review.',
         defaultQuestionLayout: 'presentation_split',
       },
       fields: [

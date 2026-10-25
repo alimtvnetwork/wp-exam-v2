@@ -1,8 +1,8 @@
 /**
- * Role Definitions, Screening Questions (Phase 1), and Assessment Quizzes (Phase 2).
+ * Job Role Definitions and Technical Assessment MCQs.
  *
- * Provides centralized, role-specific assignments across the Candidate Wizard (/apply)
- * and Candidate Self-Service Portal (/portal/:token).
+ * Provides centralized job roles and role-specific technical evaluation MCQs
+ * across the Candidate Portal (/portal/:token) and Admin Pipeline.
  */
 
 export interface ScreeningQuestionOption {

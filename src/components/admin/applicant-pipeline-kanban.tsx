@@ -367,9 +367,10 @@ export const ApplicantPipelineKanban: React.FC = () => {
   const [newStage, setNewStage] = useState('applied');
   const [newNotes, setNewNotes] = useState('');
 
-  // Role Management State
+  // Role & Technical Assessment Management State
   const [rolesList, setRolesList] = useState<JobRole[]>(() => getJobRoles());
   const [isRolesModalOpen, setIsRolesModalOpen] = useState(false);
+  const [rolesModalTab, setRolesModalTab] = useState<'roles' | 'mcqs'>('roles');
   const [isAddingNewRole, setIsAddingNewRole] = useState(false);
 
   // New Role Form State
@@ -377,12 +378,15 @@ export const ApplicantPipelineKanban: React.FC = () => {
   const [newRoleDept, setNewRoleDept] = useState('Engineering');
   const [newRoleType, setNewRoleType] = useState('Full-Time');
   const [newRoleDesc, setNewRoleDesc] = useState('');
-  const [newPhase1Question, setNewPhase1Question] = useState('');
-  const [newPhase1Hint, setNewPhase1Hint] = useState('');
-  const [newPhase1Options, setNewPhase1Options] = useState<string>('Option A\nOption B\nOption C\nOption D');
-  const [newPhase2Q1, setNewPhase2Q1] = useState('');
-  const [newPhase2Q1Opts, setNewPhase2Q1Opts] = useState('Choice 1\nChoice 2\nChoice 3\nChoice 4');
-  const [newPhase2Q1Ans, setNewPhase2Q1Ans] = useState('');
+
+  // Assessment MCQ Editor State
+  const [selectedRoleForMcq, setSelectedRoleForMcq] = useState<string>('frontend-developer');
+  const [isEditingMcq, setIsEditingMcq] = useState<boolean>(false);
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [mcqQuestionText, setMcqQuestionText] = useState<string>('');
+  const [mcqOptions, setMcqOptions] = useState<string[]>(['', '', '', '']);
+  const [mcqCorrectAnswerIndex, setMcqCorrectAnswerIndex] = useState<number>(0);
+  const [mcqExplanation, setMcqExplanation] = useState<string>('');
 
   useEffect(() => {
     const handleRolesUpdate = () => {
@@ -644,6 +648,153 @@ export const ApplicantPipelineKanban: React.FC = () => {
     }
   };
 
+  const resetMcqForm = () => {
+    setEditingQuestionId(null);
+    setMcqQuestionText('');
+    setMcqOptions(['', '', '', '']);
+    setMcqCorrectAnswerIndex(0);
+    setMcqExplanation('');
+    setIsEditingMcq(false);
+  };
+
+  const handleStartAddMcq = () => {
+    resetMcqForm();
+    setIsEditingMcq(true);
+  };
+
+  const handleStartEditMcq = (question: AssessmentQuizQuestion) => {
+    setEditingQuestionId(question.id);
+    setMcqQuestionText(question.question);
+    const optionsToSet = question.options.length >= 2 ? [...question.options] : ['Option A', 'Option B'];
+    setMcqOptions(optionsToSet);
+    const correctIdx = optionsToSet.findIndex((opt) => opt === question.correctAnswer);
+    setMcqCorrectAnswerIndex(correctIdx >= 0 ? correctIdx : 0);
+    setMcqExplanation(question.explanation || '');
+    setIsEditingMcq(true);
+  };
+
+  const handleAddOption = () => {
+    setMcqOptions((prev) => [...prev, '']);
+  };
+
+  const handleRemoveOption = (index: number) => {
+    const hasMinOptions = (mcqOptions.length <= 2);
+
+    if (hasMinOptions) {
+      toast.error('An MCQ must have at least 2 options');
+      return;
+    }
+
+    setMcqOptions((prev) => prev.filter((_, idx) => idx !== index));
+    const shouldAdjustCorrect = (mcqCorrectAnswerIndex >= index && mcqCorrectAnswerIndex > 0);
+
+    if (shouldAdjustCorrect) {
+      setMcqCorrectAnswerIndex((prev) => prev - 1);
+    }
+  };
+
+  const handleOptionChange = (index: number, val: string) => {
+    setMcqOptions((prev) => {
+      const copy = [...prev];
+      copy[index] = val;
+      return copy;
+    });
+  };
+
+  const handleSaveMcq = () => {
+    const cleanQuestion = mcqQuestionText.trim();
+    const hasQuestion = (cleanQuestion.length > 0);
+
+    if (!hasQuestion) {
+      toast.error('Question prompt is required');
+      return;
+    }
+
+    const cleanOptions = mcqOptions.map((o) => o.trim()).filter(Boolean);
+    const hasEnoughOptions = (cleanOptions.length >= 2);
+
+    if (!hasEnoughOptions) {
+      toast.error('Please provide at least 2 non-empty options');
+      return;
+    }
+
+    const targetRole = rolesList.find((r) => r.id === selectedRoleForMcq);
+    const hasTargetRole = Boolean(targetRole);
+
+    if (!hasTargetRole) {
+      toast.error('Selected job role not found');
+      return;
+    }
+
+    const role = targetRole!;
+    const correctVal = cleanOptions[mcqCorrectAnswerIndex] || cleanOptions[0];
+    const existingQuestions = [...role.secondPhaseQuestions];
+
+    const isExisting = Boolean(editingQuestionId);
+
+    if (isExisting) {
+      const idx = existingQuestions.findIndex((q) => q.id === editingQuestionId);
+      const isFound = (idx >= 0);
+
+      if (isFound) {
+        existingQuestions[idx] = {
+          ...existingQuestions[idx],
+          question: cleanQuestion,
+          options: cleanOptions,
+          correctAnswer: correctVal,
+          explanation: mcqExplanation.trim() || `Technical competency evaluation for ${role.title}.`,
+        };
+      }
+    } else {
+      existingQuestions.push({
+        id: `${role.id}_q_${Date.now()}`,
+        question: cleanQuestion,
+        options: cleanOptions,
+        correctAnswer: correctVal,
+        explanation: mcqExplanation.trim() || `Technical competency evaluation for ${role.title}.`,
+      });
+    }
+
+    const updatedRole: JobRole = {
+      ...role,
+      secondPhaseQuestions: existingQuestions,
+      isCustom: true,
+    };
+
+    saveJobRole(updatedRole);
+    setRolesList(getJobRoles());
+    toast.success(isExisting ? 'Assessment question updated!' : 'New assessment question added!');
+    resetMcqForm();
+  };
+
+  const handleDeleteMcq = (questionId: string) => {
+    const targetRole = rolesList.find((r) => r.id === selectedRoleForMcq);
+    const hasTargetRole = Boolean(targetRole);
+
+    if (!hasTargetRole) {
+      return;
+    }
+
+    const role = targetRole!;
+    const remaining = role.secondPhaseQuestions.filter((q) => q.id !== questionId);
+    const hasQuestionsLeft = (remaining.length > 0);
+
+    if (!hasQuestionsLeft) {
+      toast.error('An assessment must contain at least 1 question');
+      return;
+    }
+
+    const updatedRole: JobRole = {
+      ...role,
+      secondPhaseQuestions: remaining,
+      isCustom: true,
+    };
+
+    saveJobRole(updatedRole);
+    setRolesList(getJobRoles());
+    toast.success('Question deleted');
+  };
+
   const handleSaveNewRole = () => {
     const cleanTitle = newRoleTitle.trim();
     const hasCleanTitle = (cleanTitle.length > 0);
@@ -654,45 +805,26 @@ export const ApplicantPipelineKanban: React.FC = () => {
     }
 
     const roleSlug = cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-    const cleanPhase1Q = newPhase1Question.trim();
-    const hasPhase1Q = (cleanPhase1Q.length > 0);
+    const isConflict = rolesList.some((r) => r.id === roleSlug);
 
-    if (!hasPhase1Q) {
-      toast.error('Phase 1 Screening Question is required');
+    if (isConflict) {
+      toast.error('A role with this title or identifier already exists');
       return;
     }
 
-    const p1OptionLines = newPhase1Options.split('\n').map((l) => l.trim()).filter(Boolean);
-    const hasP1Options = (p1OptionLines.length >= 2);
-
-    if (!hasP1Options) {
-      toast.error('Please provide at least 2 options for the Phase 1 question');
-      return;
-    }
-
-    const p2Questions = [];
-    const hasP2Q1 = (newPhase2Q1.trim().length > 0);
-
-    if (hasP2Q1) {
-      const q1Opts = newPhase2Q1Opts.split('\n').map((l) => l.trim()).filter(Boolean);
-      p2Questions.push({
+    const defaultAssessmentQuestions: AssessmentQuizQuestion[] = [
+      {
         id: `${roleSlug}_q1`,
-        question: newPhase2Q1.trim(),
-        options: (q1Opts.length > 0) ? q1Opts : ['Option A', 'Option B'],
-        correctAnswer: newPhase2Q1Ans.trim() || q1Opts[0] || 'Option A',
-        explanation: `Core ${cleanTitle} competency evaluation.`,
-      });
-    }
-
-    if (p2Questions.length === 0) {
-      p2Questions.push({
-        id: `${roleSlug}_q1`,
-        question: `What is the primary technical competency required for ${cleanTitle}?`,
-        options: ['Demonstrated domain mastery & clean code practices', 'Unverified assumptions', 'Skipping automated test verification'],
-        correctAnswer: 'Demonstrated domain mastery & clean code practices',
-        explanation: 'Domain mastery ensures high code quality and architecture alignment.',
-      });
-    }
+        question: `What is the core technical competency required for ${cleanTitle}?`,
+        options: [
+          'Demonstrated domain proficiency and clean code practices',
+          'Unverified implementation shortcuts',
+          'Bypassing automated test verification',
+        ],
+        correctAnswer: 'Demonstrated domain proficiency and clean code practices',
+        explanation: `Foundational domain competency evaluation for ${cleanTitle}.`,
+      },
+    ];
 
     const createdRole: JobRole = {
       id: roleSlug,
@@ -702,29 +834,28 @@ export const ApplicantPipelineKanban: React.FC = () => {
       description: newRoleDesc.trim() || `Technical evaluation track for ${cleanTitle}.`,
       isCustom: true,
       firstPhaseQuestion: {
-        question: cleanPhase1Q,
-        hint: newPhase1Hint.trim() || 'Review core domain fundamentals.',
-        briefingNotes: [`Technical screening for ${cleanTitle}.`, `Domain fundamentals and standard workflows.`],
-        options: p1OptionLines.map((opt, idx) => ({
-          val: `opt_${idx + 1}`,
-          label: opt,
-        })),
+        question: `Technical screening for ${cleanTitle}`,
+        hint: 'Review core domain fundamentals.',
+        briefingNotes: [`Role competency verification for ${cleanTitle}.`],
+        options: [
+          { val: 'opt_1', label: 'Domain Proficiency' },
+          { val: 'opt_2', label: 'General Knowledge' },
+        ],
         correctAnswer: 'opt_1',
       },
-      secondPhaseQuestions: p2Questions,
+      secondPhaseQuestions: defaultAssessmentQuestions,
     };
 
     saveJobRole(createdRole);
     setRolesList(getJobRoles());
-    toast.success(`Job Role "${cleanTitle}" successfully created and saved!`);
+    toast.success(`Job Role "${cleanTitle}" successfully created!`);
     setIsAddingNewRole(false);
-
     setNewRoleTitle('');
     setNewRoleDesc('');
-    setNewPhase1Question('');
-    setNewPhase1Hint('');
-    setNewPhase2Q1('');
-    setNewPhase2Q1Ans('');
+
+    // Switch to MCQ Editor tab for this role so user can add/edit questions immediately
+    setSelectedRoleForMcq(roleSlug);
+    setRolesModalTab('mcqs');
   };
 
   const handleDeleteRole = (roleId: string, roleTitle: string) => {
@@ -973,7 +1104,7 @@ export const ApplicantPipelineKanban: React.FC = () => {
               className="gap-2 border-primary/30 text-primary hover:bg-primary/10 cursor-pointer"
             >
               <Briefcase className="w-4 h-4" />
-              <span>Roles & Quizzes ({rolesList.length})</span>
+              <span>Job Roles & Assessments</span>
             </Button>
             <Button
               size="sm"
@@ -1539,204 +1670,464 @@ export const ApplicantPipelineKanban: React.FC = () => {
         </DialogContent>
       </Dialog>
 
-      {/* Roles & Quizzes Management Modal */}
+      {/* Job Roles & Technical Assessments Management Modal */}
       <Dialog open={isRolesModalOpen} onOpenChange={setIsRolesModalOpen}>
-        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-3xl max-h-[88vh] overflow-y-auto">
           <DialogHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Briefcase className="w-5 h-5 text-primary" />
-                <DialogTitle>Job Roles & Role-Specific Quizzes</DialogTitle>
+                <DialogTitle>Job Roles & Technical Assessments</DialogTitle>
               </div>
+            </div>
+            <DialogDescription>
+              Manage open positions, role descriptions, and their role-specific technical evaluation MCQs.
+            </DialogDescription>
+          </DialogHeader>
+
+          {/* Navigation Tab Bar */}
+          <div className="flex items-center justify-between border-b border-border/60 pb-3 pt-1">
+            <div className="flex items-center gap-2">
+              <Button
+                variant={rolesModalTab === 'roles' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setRolesModalTab('roles')}
+                className="h-8 text-xs gap-1.5 cursor-pointer"
+              >
+                <Briefcase className="w-3.5 h-3.5" />
+                <span>Job Openings ({rolesList.length})</span>
+              </Button>
+              <Button
+                variant={rolesModalTab === 'mcqs' ? 'default' : 'outline'}
+                size="sm"
+                onClick={() => setRolesModalTab('mcqs')}
+                className="h-8 text-xs gap-1.5 cursor-pointer"
+              >
+                <Award className="w-3.5 h-3.5" />
+                <span>Assessment MCQ Editor</span>
+              </Button>
+            </div>
+
+            {rolesModalTab === 'roles' && (
               <Button
                 size="sm"
-                variant={isAddingNewRole ? 'outline' : 'default'}
+                variant={isAddingNewRole ? 'secondary' : 'default'}
                 onClick={() => setIsAddingNewRole(!isAddingNewRole)}
                 className="h-8 text-xs gap-1.5 cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>{isAddingNewRole ? 'View Roles' : 'Add New Role'}</span>
+                <span>{isAddingNewRole ? 'View All Roles' : 'Add New Role'}</span>
               </Button>
-            </div>
-            <DialogDescription>
-              Each role configures Phase 1 screening questions for /apply and Phase 2 in-depth assessment for /portal/:token.
-            </DialogDescription>
-          </DialogHeader>
+            )}
+          </div>
 
-          {isAddingNewRole ? (
-            <div className="space-y-4 py-2 text-xs">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="font-semibold text-foreground">Role Title *</label>
-                  <Input
-                    placeholder="e.g. AI Prompt Systems Engineer"
-                    value={newRoleTitle}
-                    onChange={(e) => setNewRoleTitle(e.target.value)}
-                  />
+          {/* Tab 1: Job Roles View */}
+          {rolesModalTab === 'roles' && (
+            isAddingNewRole ? (
+              /* Add New Job Role Form */
+              <div className="space-y-4 py-2 text-xs">
+                <div className="p-3 rounded-xl bg-muted/40 border border-border/60 space-y-1">
+                  <span className="font-semibold text-foreground text-xs block">New Job Opening Details</span>
+                  <p className="text-[11px] text-muted-foreground">
+                    Define the position details. Once created, you can customize its technical assessment in the MCQ Editor.
+                  </p>
                 </div>
-                <div className="space-y-1.5">
-                  <label className="font-semibold text-foreground">Department *</label>
-                  <Input
-                    placeholder="e.g. AI Engineering"
-                    value={newRoleDept}
-                    onChange={(e) => setNewRoleDept(e.target.value)}
-                  />
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="font-semibold text-foreground">Role Title *</label>
+                    <Input
+                      placeholder="e.g. Senior Backend Systems Engineer"
+                      value={newRoleTitle}
+                      onChange={(e) => setNewRoleTitle(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="font-semibold text-foreground">Department *</label>
+                    <Input
+                      placeholder="e.g. Platform Engineering"
+                      value={newRoleDept}
+                      onChange={(e) => setNewRoleDept(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1.5">
+                    <label className="font-semibold text-foreground">Employment Type</label>
+                    <select
+                      value={newRoleType}
+                      onChange={(e) => setNewRoleType(e.target.value)}
+                      className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs shadow-xs text-foreground"
+                    >
+                      <option value="Full-Time">Full-Time</option>
+                      <option value="Part-Time">Part-Time</option>
+                      <option value="Internship">Internship</option>
+                      <option value="Contract">Contract</option>
+                    </select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <label className="font-semibold text-foreground">Role Description</label>
+                    <Input
+                      placeholder="Summary of responsibilities and technical expectations..."
+                      value={newRoleDesc}
+                      onChange={(e) => setNewRoleDesc(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-2 flex justify-end gap-2 border-t border-border/40">
+                  <Button variant="outline" size="sm" onClick={() => setIsAddingNewRole(false)}>
+                    Cancel
+                  </Button>
+                  <Button size="sm" onClick={handleSaveNewRole} className="bg-primary text-primary-foreground font-semibold">
+                    Create Role & Setup Assessment
+                  </Button>
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1.5">
-                  <label className="font-semibold text-foreground">Employment Type</label>
-                  <select
-                    value={newRoleType}
-                    onChange={(e) => setNewRoleType(e.target.value)}
-                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs shadow-xs"
-                  >
-                    <option value="Full-Time">Full-Time</option>
-                    <option value="Part-Time">Part-Time</option>
-                    <option value="Internship">Internship</option>
-                    <option value="Contract">Contract</option>
-                  </select>
-                </div>
-                <div className="space-y-1.5">
-                  <label className="font-semibold text-foreground">Description</label>
-                  <Input
-                    placeholder="Brief description of the role responsibilities..."
-                    value={newRoleDesc}
-                    onChange={(e) => setNewRoleDesc(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              {/* Phase 1 Screening Question */}
-              <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/20 space-y-2.5">
-                <span className="font-bold text-foreground block text-sm text-primary flex items-center gap-1.5">
-                  <HelpCircle className="w-4 h-4" />
-                  Phase 1 Screening Question (Displayed in /apply)
-                </span>
-                <div className="space-y-1">
-                  <label className="font-semibold text-foreground">Question Text *</label>
-                  <Input
-                    placeholder="e.g. Which prompt strategy prevents hallucination in multi-turn dialogues?"
-                    value={newPhase1Question}
-                    onChange={(e) => setNewPhase1Question(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="font-semibold text-foreground">Hint for Candidates</label>
-                  <Input
-                    placeholder="e.g. Think of structured XML grounding and system boundary markers."
-                    value={newPhase1Hint}
-                    onChange={(e) => setNewPhase1Hint(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="font-semibold text-foreground">Options (1 per line, line 1 will be correct answer) *</label>
-                  <textarea
-                    rows={4}
-                    value={newPhase1Options}
-                    onChange={(e) => setNewPhase1Options(e.target.value)}
-                    className="w-full rounded-md border border-input bg-background p-2.5 text-xs font-mono"
-                  />
-                </div>
-              </div>
-
-              {/* Phase 2 Assessment Question */}
-              <div className="p-3.5 rounded-xl bg-muted/30 border border-border space-y-2.5">
-                <span className="font-bold text-foreground block text-sm flex items-center gap-1.5">
-                  <Award className="w-4 h-4 text-emerald-500" />
-                  Phase 2 In-Depth Assessment (Displayed in /portal/:token)
-                </span>
-                <div className="space-y-1">
-                  <label className="font-semibold text-foreground">In-Depth Assessment Question</label>
-                  <Input
-                    placeholder="e.g. What is the role of temperature in deterministic tool generation?"
-                    value={newPhase2Q1}
-                    onChange={(e) => setNewPhase2Q1(e.target.value)}
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="font-semibold text-foreground">Choices (1 per line)</label>
-                  <textarea
-                    rows={3}
-                    value={newPhase2Q1Opts}
-                    onChange={(e) => setNewPhase2Q1Opts(e.target.value)}
-                    className="w-full rounded-md border border-input bg-background p-2 text-xs font-mono"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label className="font-semibold text-foreground">Exact Correct Answer String</label>
-                  <Input
-                    placeholder="Copy/paste the exact correct option text"
-                    value={newPhase2Q1Ans}
-                    onChange={(e) => setNewPhase2Q1Ans(e.target.value)}
-                  />
-                </div>
-              </div>
-
-              <div className="pt-2 flex justify-end gap-2">
-                <Button variant="outline" size="sm" onClick={() => setIsAddingNewRole(false)}>
-                  Cancel
-                </Button>
-                <Button size="sm" onClick={handleSaveNewRole} className="bg-primary text-primary-foreground font-semibold">
-                  Save Role & Assignments
-                </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-3 py-2">
-              {rolesList.map((role) => (
-                <div key={role.id} className="p-4 rounded-xl border border-border bg-card space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-bold text-sm text-foreground">{role.title}</span>
-                        <Badge variant="outline" className="text-[10px] font-mono border-primary/30 text-primary">
-                          {role.department}
-                        </Badge>
-                        <Badge variant="secondary" className="text-[10px]">
-                          {role.type}
-                        </Badge>
-                        {role.isCustom && (
-                          <Badge variant="default" className="text-[10px] bg-emerald-600 text-white">
-                            Custom Role
+            ) : (
+              /* Roles List View */
+              <div className="space-y-3 py-2">
+                {rolesList.map((role) => (
+                  <div key={role.id} className="p-4 rounded-xl border border-border bg-card space-y-3 shadow-2xs">
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="font-bold text-sm text-foreground">{role.title}</span>
+                          <Badge variant="outline" className="text-[10px] font-mono border-primary/30 text-primary">
+                            {role.department}
                           </Badge>
-                        )}
+                          <Badge variant="secondary" className="text-[10px]">
+                            {role.type}
+                          </Badge>
+                          {role.isCustom && (
+                            <Badge variant="default" className="text-[10px] bg-emerald-600 text-white">
+                              Custom Role
+                            </Badge>
+                          )}
+                        </div>
+                        <p className="text-xs text-muted-foreground">{role.description}</p>
                       </div>
-                      <p className="text-xs text-muted-foreground mt-1">{role.description}</p>
+
+                      {role.isCustom && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteRole(role.id, role.title)}
+                          className="text-xs text-destructive hover:bg-destructive/10 h-7 px-2 cursor-pointer"
+                          title="Delete Custom Role"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </Button>
+                      )}
                     </div>
 
-                    {role.isCustom && (
+                    <div className="pt-2.5 border-t border-border/50 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2 text-xs">
+                      <div className="flex items-center gap-2">
+                        <Award className="w-4 h-4 text-emerald-500 shrink-0" />
+                        <span className="font-medium text-foreground">
+                          Technical Assessment:
+                        </span>
+                        <Badge variant="outline" className="font-mono text-[11px] bg-muted/40">
+                          {role.secondPhaseQuestions.length} MCQ{role.secondPhaseQuestions.length === 1 ? '' : 's'} configured
+                        </Badge>
+                      </div>
+
                       <Button
-                        variant="ghost"
                         size="sm"
-                        onClick={() => handleDeleteRole(role.id, role.title)}
-                        className="text-xs text-destructive hover:bg-destructive/10 h-7 px-2 cursor-pointer"
-                        title="Delete Role"
+                        variant="outline"
+                        onClick={() => {
+                          setSelectedRoleForMcq(role.id);
+                          setRolesModalTab('mcqs');
+                          resetMcqForm();
+                        }}
+                        className="h-7 text-xs gap-1.5 cursor-pointer border-primary/40 text-primary hover:bg-primary/10"
                       >
-                        <Trash2 className="w-3.5 h-3.5" />
+                        <Award className="w-3 h-3" />
+                        <span>Manage MCQs</span>
+                        <ChevronRight className="w-3 h-3" />
                       </Button>
-                    )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )
+          )}
+
+          {/* Tab 2: Technical Assessment MCQ Editor */}
+          {rolesModalTab === 'mcqs' && (
+            <div className="space-y-4 py-2 text-xs">
+              {/* Role Selector Header */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-3.5 bg-muted/30 rounded-xl border border-border/60">
+                <div className="space-y-0.5">
+                  <span className="text-xs font-semibold text-foreground block">
+                    Active Job Role Assessment:
+                  </span>
+                  <p className="text-[11px] text-muted-foreground">
+                    Select a role to author or edit its technical assessment questions.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <select
+                    value={selectedRoleForMcq}
+                    onChange={(e) => {
+                      setSelectedRoleForMcq(e.target.value);
+                      resetMcqForm();
+                    }}
+                    className="rounded-md border border-input bg-background px-3 py-1.5 text-xs text-foreground shadow-xs font-medium"
+                  >
+                    {rolesList.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.title} ({r.secondPhaseQuestions.length} MCQs)
+                      </option>
+                    ))}
+                  </select>
+
+                  {!isEditingMcq && (
+                    <Button
+                      size="sm"
+                      onClick={handleStartAddMcq}
+                      className="h-8 text-xs gap-1.5 bg-primary text-primary-foreground font-semibold cursor-pointer shrink-0"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add MCQ</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+
+              {/* Dedicated MCQ Question Editor (Form) */}
+              {isEditingMcq && (
+                <div className="p-4 rounded-xl bg-card border-2 border-primary/30 space-y-4 shadow-sm">
+                  <div className="flex items-center justify-between border-b border-border/50 pb-2.5">
+                    <div className="flex items-center gap-2">
+                      <span className="p-1 rounded-md bg-primary/10 text-primary">
+                        <HelpCircle className="w-4 h-4" />
+                      </span>
+                      <span className="font-bold text-sm text-foreground">
+                        {editingQuestionId ? 'Edit Assessment Question' : 'Author New MCQ Question'}
+                      </span>
+                    </div>
+                    <Badge variant="outline" className="text-[10px] font-mono">
+                      {editingQuestionId ? 'Editing' : 'New Question'}
+                    </Badge>
                   </div>
 
-                  <div className="pt-2 border-t border-border/50 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                    <div className="p-2.5 rounded-lg bg-primary/5 border border-primary/15 space-y-1">
-                      <span className="font-bold text-primary block text-[11px]">Phase 1 Screening Question:</span>
-                      <p className="text-foreground line-clamp-2">{role.firstPhaseQuestion.question}</p>
-                      <span className="text-[10px] text-muted-foreground block">
-                        {role.firstPhaseQuestion.options.length} options configured
+                  {/* Question Prompt */}
+                  <div className="space-y-1.5">
+                    <label className="font-semibold text-foreground block">
+                      Question Prompt / Statement *
+                    </label>
+                    <Input
+                      placeholder="e.g. Which WordPress action hook is the canonical location for registering custom REST routes?"
+                      value={mcqQuestionText}
+                      onChange={(e) => setMcqQuestionText(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Options List with Radio Button for Correct Answer */}
+                  <div className="space-y-2.5">
+                    <div className="flex items-center justify-between">
+                      <label className="font-semibold text-foreground block">
+                        Answer Choices & Correct Selection *
+                      </label>
+                      <span className="text-[11px] text-muted-foreground">
+                        Select the radio button next to the correct answer
                       </span>
                     </div>
 
-                    <div className="p-2.5 rounded-lg bg-muted/40 border border-border/60 space-y-1">
-                      <span className="font-bold text-foreground block text-[11px]">Phase 2 Exam Questions:</span>
-                      <p className="text-muted-foreground">
-                        {role.secondPhaseQuestions.length} in-depth assessment question(s) configured.
-                      </p>
+                    <div className="space-y-2">
+                      {mcqOptions.map((option, idx) => {
+                        const isCorrect = (mcqCorrectAnswerIndex === idx);
+
+                        return (
+                          <div
+                            key={idx}
+                            className={`flex items-center gap-2 p-2 rounded-lg border transition-all ${
+                              isCorrect
+                                ? 'border-emerald-500/70 bg-emerald-500/5 ring-1 ring-emerald-500/30'
+                                : 'border-border/60 bg-muted/20'
+                            }`}
+                          >
+                            <label className="flex items-center gap-1.5 cursor-pointer shrink-0 px-1">
+                              <input
+                                type="radio"
+                                name="mcqCorrectAnswerGroup"
+                                checked={isCorrect}
+                                onChange={() => setMcqCorrectAnswerIndex(idx)}
+                                className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
+                              />
+                              <span className={`text-[11px] font-semibold ${isCorrect ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
+                                {isCorrect ? 'Correct' : `Option ${idx + 1}`}
+                              </span>
+                            </label>
+
+                            <Input
+                              value={option}
+                              onChange={(e) => handleOptionChange(idx, e.target.value)}
+                              placeholder={`Option text ${idx + 1}...`}
+                              className="h-8 text-xs flex-1"
+                            />
+
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleRemoveOption(idx)}
+                              disabled={mcqOptions.length <= 2}
+                              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive cursor-pointer disabled:opacity-30"
+                              title="Delete Option"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        );
+                      })}
                     </div>
+
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={handleAddOption}
+                      className="h-7 text-xs gap-1.5 cursor-pointer mt-1"
+                    >
+                      <Plus className="w-3 h-3" />
+                      <span>Add Option</span>
+                    </Button>
+                  </div>
+
+                  {/* Explanation / Rationale */}
+                  <div className="space-y-1.5">
+                    <label className="font-semibold text-foreground block">
+                      Explanation / Learning Feedback (Optional)
+                    </label>
+                    <Input
+                      placeholder="e.g. rest_api_init ensures endpoint routes are registered during the REST request lifecycle."
+                      value={mcqExplanation}
+                      onChange={(e) => setMcqExplanation(e.target.value)}
+                    />
+                  </div>
+
+                  {/* Save / Cancel Bar */}
+                  <div className="pt-2 flex items-center justify-end gap-2 border-t border-border/50">
+                    <Button variant="outline" size="sm" onClick={resetMcqForm}>
+                      Cancel
+                    </Button>
+                    <Button
+                      size="sm"
+                      onClick={handleSaveMcq}
+                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-1.5 cursor-pointer"
+                    >
+                      <CheckCircle2 className="w-3.5 h-3.5" />
+                      <span>{editingQuestionId ? 'Update Question' : 'Save Question'}</span>
+                    </Button>
                   </div>
                 </div>
-              ))}
+              )}
+
+              {/* Questions List for Selected Role */}
+              {(() => {
+                const currentRole = rolesList.find((r) => r.id === selectedRoleForMcq);
+                const questions = currentRole?.secondPhaseQuestions || [];
+                const hasQuestions = (questions.length > 0);
+
+                if (!hasQuestions) {
+                  return (
+                    <div className="p-8 text-center rounded-xl border border-dashed border-border/70 text-muted-foreground space-y-2">
+                      <HelpCircle className="w-8 h-8 mx-auto text-muted-foreground/50" />
+                      <p>No assessment questions configured for this role yet.</p>
+                      <Button size="sm" onClick={handleStartAddMcq} className="text-xs">
+                        Add First Question
+                      </Button>
+                    </div>
+                  );
+                }
+
+                return (
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
+                      <span>Configured Questions ({questions.length})</span>
+                      <span>Candidates receive all questions during the 10-minute proctored exam</span>
+                    </div>
+
+                    {questions.map((q, qIdx) => (
+                      <div
+                        key={q.id || qIdx}
+                        className="p-4 rounded-xl border border-border/70 bg-card space-y-3 shadow-2xs"
+                      >
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="space-y-1 flex-1">
+                            <div className="flex items-center gap-2">
+                              <Badge variant="outline" className="font-mono text-[10px]">
+                                Q{qIdx + 1}
+                              </Badge>
+                              <span className="font-semibold text-foreground text-xs leading-snug">
+                                {q.question}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-1 shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleStartEditMcq(q)}
+                              className="h-7 text-xs px-2 text-primary hover:bg-primary/10 cursor-pointer"
+                              title="Edit Question"
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => handleDeleteMcq(q.id)}
+                              disabled={questions.length <= 1}
+                              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive cursor-pointer disabled:opacity-30"
+                              title="Delete Question"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
+                        </div>
+
+                        {/* Options View */}
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 pt-1">
+                          {q.options.map((opt, optIdx) => {
+                            const isCorrect = (opt === q.correctAnswer);
+
+                            return (
+                              <div
+                                key={optIdx}
+                                className={`p-2 rounded-lg text-[11px] flex items-center justify-between gap-2 border ${
+                                  isCorrect
+                                    ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-800 dark:text-emerald-300 font-medium'
+                                    : 'bg-muted/20 border-border/40 text-muted-foreground'
+                                }`}
+                              >
+                                <span className="truncate">{opt}</span>
+                                {isCorrect && (
+                                  <Badge className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[9px] py-0 px-1.5 font-semibold">
+                                    Correct
+                                  </Badge>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        {/* Explanation */}
+                        {q.explanation && (
+                          <p className="text-[11px] text-muted-foreground bg-muted/30 p-2 rounded-lg border border-border/30 italic">
+                            💡 {q.explanation}
+                          </p>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                );
+              })()}
             </div>
           )}
         </DialogContent>

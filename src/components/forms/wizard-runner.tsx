@@ -137,7 +137,7 @@ export const WizardRunner: React.FC = () => {
     return fullList[0] || AVAILABLE_JOB_POSITIONS[0];
   });
 
-  // Current active role definition containing Phase 1 screening questions
+  // Current active role definition
   const currentRole = useMemo<JobRole>(() => {
     return getJobRoleById(selectedJob.id);
   }, [selectedJob.id, rolesList]);
