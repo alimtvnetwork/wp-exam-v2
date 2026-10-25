@@ -221,9 +221,12 @@ class CandidatePortalRestController extends WP_REST_Controller {
 
             if ($hasScore) {
                 $scoreVal = (float) $stepData['score'];
+                $tabSwitchCount = (int) ($stepData['tab_switch_count'] ?? 0);
+                $integrityStatus = sanitize_text_field((string) ($stepData['integrity_status'] ?? 'clean'));
+
                 $db->execute(
-                    'UPDATE applicants SET score = ?, updated_at = datetime("now") WHERE candidate_email = ? OR candidate_email LIKE ? OR id = ?',
-                    [$scoreVal, $token, $token . '@%', (int) $token]
+                    'UPDATE applicants SET score = ?, tab_switch_count = ?, integrity_status = ?, updated_at = datetime("now") WHERE candidate_email = ? OR candidate_email LIKE ? OR id = ?',
+                    [$scoreVal, $tabSwitchCount, $integrityStatus, $token, $token . '@%', (int) $token]
                 );
             }
         }

@@ -153,6 +153,7 @@ class ApplicantPipelineRestController extends WP_REST_Controller {
         $name = trim((string) ($body['candidate_name'] ?? ''));
         $email = trim((string) ($body['candidate_email'] ?? ''));
         $phone = trim((string) ($body['phone'] ?? ''));
+        $jobRole = trim((string) ($body['job_role'] ?? ''));
         $stageKey = trim((string) ($body['stage_key'] ?? 'applied'));
         $formId = (int) ($body['form_id'] ?? 0);
         $notes = trim((string) ($body['notes'] ?? ''));
@@ -176,8 +177,8 @@ class ApplicantPipelineRestController extends WP_REST_Controller {
         }
 
         $db = SqliteDatabase::getInstance();
-        $sql = 'INSERT INTO applicants (candidate_name, candidate_email, phone, current_stage_key, form_id, notes) VALUES (?, ?, ?, ?, ?, ?)';
-        $db->execute($sql, [$name, $email, $phone, $stageKey, $formId, $notes]);
+        $sql = 'INSERT INTO applicants (candidate_name, candidate_email, phone, job_role, current_stage_key, form_id, notes) VALUES (?, ?, ?, ?, ?, ?, ?)';
+        $db->execute($sql, [$name, $email, $phone, $jobRole, $stageKey, $formId, $notes]);
 
         $newApplicantRows = $db->query('SELECT * FROM applicants WHERE candidate_email = ? ORDER BY id DESC LIMIT 1', [$email]);
         $newApplicant = $newApplicantRows[0] ?? null;

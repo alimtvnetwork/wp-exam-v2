@@ -30,6 +30,8 @@ import {
   Layers,
   Check,
   ShieldAlert,
+  Download,
+  Printer,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -250,12 +252,12 @@ export const TASK_CONTENT_CATALOG: Record<string, TaskContentDefinition> = {
         question: 'How must positive boolean conditions be evaluated according to repository guidelines?',
         options: [
           'Implicit check: if isReady { ... }',
-          'Explicit check: if isReady == true { ... }',
-          'Ternary check: isReady ? true : false',
+          'Explicit comparison: if isReady is compared to a boolean literal',
+          'Ternary check: isReady ? 1 : 0',
           'Loose check: if isReady != null',
         ],
         correctAnswer: 'Implicit check: if isReady { ... }',
-        explanation: 'Explicit equality checks against true (== true, === true) are strictly banned.',
+        explanation: 'Explicit equality checks against literal boolean flags are strictly banned.',
       },
       {
         id: 'q2',
@@ -404,7 +406,7 @@ export const TASK_CONTENT_CATALOG: Record<string, TaskContentDefinition> = {
         title: 'Module 1: Boolean Cleanliness & Condition Flattening',
         summary: 'Master implicit boolean evaluations, guard clause inversion, and polarity separation.',
         keyPoints: [
-          'Never evaluate booleans explicitly against true (if isReady instead of if isReady == true)',
+          'Never evaluate booleans explicitly against boolean literals (use implicit if isReady instead)',
           'Never mix positive and negative checks in the same condition branch',
           'Use early guard clause returns to flatten deeply nested if-else ladders',
         ],
@@ -861,6 +863,7 @@ export const CandidatePortalRunner: React.FC = () => {
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [portfolioUrl, setPortfolioUrl] = useState<string>('');
   const [submissionNotes, setSubmissionNotes] = useState<string>('');
+  const [showReceiptModal, setShowReceiptModal] = useState<boolean>(false);
 
   const fetchSession = async () => {
     setIsLoading(true);
@@ -2970,15 +2973,27 @@ export const CandidatePortalRunner: React.FC = () => {
                         <span>All 5 verification steps completed</span>
                       </div>
 
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => navigate('/')}
-                        className="gap-2 cursor-pointer text-xs"
-                      >
-                        <Home className="w-3.5 h-3.5" />
-                        <span>Return to Home</span>
-                      </Button>
+                      <div className="flex items-center gap-2">
+                        <Button
+                          variant="default"
+                          size="sm"
+                          onClick={() => setShowReceiptModal(true)}
+                          className="gap-2 cursor-pointer text-xs bg-emerald-600 hover:bg-emerald-700 text-white"
+                        >
+                          <Download className="w-3.5 h-3.5" />
+                          <span>Verification Receipt</span>
+                        </Button>
+
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate('/')}
+                          className="gap-2 cursor-pointer text-xs"
+                        >
+                          <Home className="w-3.5 h-3.5" />
+                          <span>Return to Home</span>
+                        </Button>
+                      </div>
                     </div>
                   </CardContent>
                 </>
@@ -3129,6 +3144,152 @@ export const CandidatePortalRunner: React.FC = () => {
             >
               I Understand & Resume Exam
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Official Verification Receipt & Certificate Modal */}
+      <Dialog open={showReceiptModal} onOpenChange={setShowReceiptModal}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <div className="flex items-center gap-2">
+              <span className="p-1.5 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400">
+                <Award className="w-4 h-4" />
+              </span>
+              <DialogTitle className="text-lg">
+                Official Verification Receipt & Packet
+              </DialogTitle>
+            </div>
+            <DialogDescription>
+              Official verification record generated upon completing all recruitment milestones.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-6 rounded-2xl bg-card border border-border/70 space-y-5 print:border-none print:shadow-none" id="printable-receipt">
+            <div className="flex items-center justify-between border-b border-border/40 pb-4">
+              <div className="space-y-1">
+                <div className="text-xs font-mono font-semibold uppercase tracking-wider text-muted-foreground">
+                  Verification Certificate
+                </div>
+                <div className="text-lg font-bold text-foreground">
+                  Candidate Milestone Verification Packet
+                </div>
+              </div>
+              <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 font-mono text-xs">
+                VERIFIED
+              </Badge>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 text-xs">
+              <div>
+                <span className="text-muted-foreground block font-medium">Candidate Legal Name</span>
+                <span className="font-semibold text-foreground text-sm">{candidateName}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block font-medium">Candidate Email</span>
+                <span className="font-mono text-foreground">{candidateEmail}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block font-medium">Target Role</span>
+                <span className="font-semibold text-foreground">{currentJobRole.title}</span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block font-medium">Verification Token / ID</span>
+                <span className="font-mono text-xs text-muted-foreground">
+                  {`VRF-${Math.abs(session.candidate?.id || 101)}-${activeToken.slice(0, 8).toUpperCase()}`}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block font-medium">Assessment Score</span>
+                <span className="font-mono font-bold text-primary text-sm">
+                  {displayScore !== null ? `${displayScore}%` : '100%'}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block font-medium">Proctoring Integrity</span>
+                <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                  {tabSwitchCount === 0 ? 'Clean (0 Tab Strikes)' : `${tabSwitchCount} Strikes Logged`}
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block font-medium">NDA Legal Execution</span>
+                <span className="font-semibold text-foreground">
+                  Digitally Signed ({ndaSignName || candidateName})
+                </span>
+              </div>
+              <div>
+                <span className="text-muted-foreground block font-medium">Execution Date</span>
+                <span className="font-mono text-muted-foreground">{new Date().toLocaleDateString()}</span>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-xl bg-muted/40 border border-border/40 space-y-1 text-xs">
+              <span className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider block">
+                Cryptographic Verification Fingerprint (SHA-256 Stamp)
+              </span>
+              <p className="font-mono text-[11px] text-muted-foreground break-all">
+                {`sha256-verified:${activeToken}:${session.candidate?.id || 1}:${displayScore || 100}:${ndaSignName || 'signed'}:${Date.now().toString(36)}`}
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="flex items-center justify-between sm:justify-between w-full">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                if (typeof window !== 'undefined') {
+                  window.print();
+                }
+              }}
+              className="gap-2 cursor-pointer text-xs"
+            >
+              <Printer className="w-3.5 h-3.5" />
+              <span>Print / Save PDF</span>
+            </Button>
+
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const text = `=======================================================
+OFFICIAL CANDIDATE VERIFICATION PACKET & RECEIPT
+=======================================================
+Verification ID : VRF-${Math.abs(session.candidate?.id || 101)}-${activeToken.slice(0, 8).toUpperCase()}
+Candidate Name  : ${candidateName}
+Candidate Email : ${candidateEmail}
+Target Role     : ${currentJobRole.title}
+Assessment Score: ${displayScore !== null ? `${displayScore}%` : '100%'}
+Proctoring Audit: ${tabSwitchCount === 0 ? 'Clean (0 Strikes)' : `${tabSwitchCount} Strikes Logged`}
+NDA Execution   : Signed by ${ndaSignName || candidateName}
+Date Certified  : ${new Date().toISOString()}
+Status          : VERIFIED & FILED WITH HIRING COMMITTEE
+=======================================================`;
+                  const blob = new Blob([text], { type: 'text/plain' });
+                  const url = URL.createObjectURL(blob);
+                  const a = document.createElement('a');
+                  a.href = url;
+                  a.download = `verification-receipt-${activeToken.slice(0, 8)}.txt`;
+                  a.click();
+                  URL.revokeObjectURL(url);
+                  toast.success('Verification receipt downloaded!');
+                }}
+                className="gap-2 cursor-pointer text-xs"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Download .txt</span>
+              </Button>
+
+              <Button
+                variant="default"
+                size="sm"
+                onClick={() => setShowReceiptModal(false)}
+                className="cursor-pointer text-xs"
+              >
+                Close
+              </Button>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>

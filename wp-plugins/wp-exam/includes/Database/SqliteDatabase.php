@@ -313,12 +313,16 @@ class SqliteDatabase {
             candidate_name TEXT NOT NULL,
             candidate_email TEXT NOT NULL,
             phone TEXT DEFAULT '',
+            job_role TEXT DEFAULT '',
             current_stage_key TEXT NOT NULL DEFAULT 'applied',
             form_id INTEGER DEFAULT 0,
             submission_id INTEGER DEFAULT 0,
             score REAL DEFAULT 0,
             rating INTEGER DEFAULT 0,
             notes TEXT DEFAULT '',
+            assigned_tasks_json TEXT DEFAULT '[]',
+            tab_switch_count INTEGER DEFAULT 0,
+            integrity_status TEXT DEFAULT 'clean',
             created_at TEXT DEFAULT (datetime('now')),
             updated_at TEXT DEFAULT (datetime('now'))
         );
@@ -439,6 +443,30 @@ class SqliteDatabase {
 
         try {
             $this->pdo->exec("ALTER TABLE projects ADD COLUMN parent_project_id TEXT DEFAULT ''");
+        } catch (Throwable) {
+            // Column may already exist
+        }
+
+        try {
+            $this->pdo->exec("ALTER TABLE applicants ADD COLUMN assigned_tasks_json TEXT DEFAULT '[]'");
+        } catch (Throwable) {
+            // Column may already exist
+        }
+
+        try {
+            $this->pdo->exec("ALTER TABLE applicants ADD COLUMN job_role TEXT DEFAULT ''");
+        } catch (Throwable) {
+            // Column may already exist
+        }
+
+        try {
+            $this->pdo->exec("ALTER TABLE applicants ADD COLUMN tab_switch_count INTEGER DEFAULT 0");
+        } catch (Throwable) {
+            // Column may already exist
+        }
+
+        try {
+            $this->pdo->exec("ALTER TABLE applicants ADD COLUMN integrity_status TEXT DEFAULT 'clean'");
         } catch (Throwable) {
             // Column may already exist
         }

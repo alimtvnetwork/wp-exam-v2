@@ -208,9 +208,9 @@ export const SEEDED_JOB_ROLES: JobRole[] = [
         question: 'How should positive boolean conditions be evaluated according to strict clean-code guidelines?',
         options: [
           'Implicit check: if isReady { ... }',
-          'Explicit equality check: if isReady == true { ... }',
+          'Explicit comparison: if isReady is compared directly to a boolean literal',
           'Double negation check: if !!isReady { ... }',
-          'Ternary boolean coercion: if isReady ? true : false { ... }',
+          'Ternary boolean coercion: if isReady ? 1 : 0 { ... }',
         ],
         correctAnswer: 'Implicit check: if isReady { ... }',
         explanation: 'Implicit evaluation is clean, concise, and avoids redundant boolean comparisons.',
