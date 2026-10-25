@@ -12,15 +12,14 @@ import {
   Phone,
   Mail,
   Briefcase,
-  Play,
   Search,
   ArrowLeft,
   Sparkles,
   Bug,
   ChevronDown,
   ChevronUp,
-  Video,
-  FileText,
+  Clock,
+  ShieldAlert,
   Copy
 } from 'lucide-react';
 import { useTheme, AppThemeType } from '@/lib/theme-context';
@@ -42,6 +41,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { toast } from 'sonner';
 import { unifiedFetch } from '@/utils/api-client';
+import { getJobRoles, getJobRoleById, JobRole } from '@/lib/role-assignments';
 
 export interface JobPositionOption {
   id: string;
@@ -86,18 +86,61 @@ export const WizardRunner: React.FC = () => {
   const [currentStep, setCurrentStep] = useState<number>(1);
   const { theme, setTheme } = useTheme();
 
+  // Load roles from role-assignments with storage sync listener
+  const [rolesList, setRolesList] = useState<JobRole[]>(() => getJobRoles());
+
+  useEffect(() => {
+    const handleRolesUpdate = () => {
+      setRolesList(getJobRoles());
+    };
+
+    window.addEventListener('wp_exam_roles_updated', handleRolesUpdate);
+
+    return () => {
+      window.removeEventListener('wp_exam_roles_updated', handleRolesUpdate);
+    };
+  }, []);
+
+  const allAvailableJobs = useMemo<JobPositionOption[]>(() => {
+    const mapped: JobPositionOption[] = rolesList.map((r) => ({
+      id: r.id,
+      title: r.title,
+      department: r.department,
+      type: r.type,
+    }));
+
+    const roleIds = new Set(rolesList.map((r) => r.id));
+    const extra = AVAILABLE_JOB_POSITIONS.filter((j) => !roleIds.has(j.id));
+
+    return [...mapped, ...extra];
+  }, [rolesList]);
+
   // Job Position Selection State
   const [selectedJob, setSelectedJob] = useState<JobPositionOption>(() => {
     const jobParam = searchParams.get('job') || searchParams.get('role');
+    const initialList = getJobRoles().map((r) => ({
+      id: r.id,
+      title: r.title,
+      department: r.department,
+      type: r.type,
+    }));
+    const fullList = [...initialList, ...AVAILABLE_JOB_POSITIONS.filter((j) => !initialList.some((r) => r.id === j.id))];
+
     if (jobParam) {
-      const match = AVAILABLE_JOB_POSITIONS.find(
+      const match = fullList.find(
         (j) => j.id.toLowerCase() === jobParam.toLowerCase() ||
                j.title.toLowerCase().includes(jobParam.toLowerCase())
       );
       if (match) return match;
     }
-    return AVAILABLE_JOB_POSITIONS[0];
+
+    return fullList[0] || AVAILABLE_JOB_POSITIONS[0];
   });
+
+  // Current active role definition containing Phase 1 screening questions
+  const currentRole = useMemo<JobRole>(() => {
+    return getJobRoleById(selectedJob.id);
+  }, [selectedJob.id, rolesList]);
 
   const [jobSearchQuery, setJobSearchQuery] = useState('');
   const [isJobPopoverOpen, setIsJobPopoverOpen] = useState(false);
@@ -110,12 +153,7 @@ export const WizardRunner: React.FC = () => {
   const [noticePeriod, setNoticePeriod] = useState<string>('1 Month');
   const [yearsOfExperience, setYearsOfExperience] = useState<string>('2');
   const [portfolioUrl, setPortfolioUrl] = useState<string>('');
-  const [selectedMcq, setSelectedMcq] = useState<string>('split-sqlite');
   const [hasConfirmedFaq, setHasConfirmedFaq] = useState<boolean>(false);
-
-  // Expandable Description / FAQ States
-  const [isBriefingNotesExpanded, setIsBriefingNotesExpanded] = useState(false);
-  const [isQuestionHintExpanded, setIsQuestionHintExpanded] = useState(false);
 
   // Debug Mode State
   const [isDebugMode, setIsDebugMode] = useState<boolean>(false);
@@ -128,12 +166,12 @@ export const WizardRunner: React.FC = () => {
 
   // Filtered job list for searchable combobox
   const filteredJobs = useMemo(() => {
-    if (!jobSearchQuery.trim()) return AVAILABLE_JOB_POSITIONS;
+    if (!jobSearchQuery.trim()) return allAvailableJobs;
     const q = jobSearchQuery.toLowerCase();
-    return AVAILABLE_JOB_POSITIONS.filter(
+    return allAvailableJobs.filter(
       (j) => j.title.toLowerCase().includes(q) || j.department.toLowerCase().includes(q) || j.type.toLowerCase().includes(q)
     );
-  }, [jobSearchQuery]);
+  }, [jobSearchQuery, allAvailableJobs]);
 
   const handleSelectJob = (job: JobPositionOption) => {
     setSelectedJob(job);
@@ -186,11 +224,8 @@ export const WizardRunner: React.FC = () => {
     }
 
     if (currentStep === 3) {
-      if (!selectedMcq) {
-        errors.selectedMcq = 'Please select a technical assessment answer.';
-      }
       if (!hasConfirmedFaq) {
-        errors.hasConfirmedFaq = 'You must confirm terms to advance to review.';
+        errors.hasConfirmedFaq = 'You must confirm terms to submit your application.';
       }
     }
 
@@ -200,7 +235,7 @@ export const WizardRunner: React.FC = () => {
 
   const handleNext = () => {
     if (validateCurrentStep()) {
-      if (currentStep < 4) {
+      if (currentStep < 3) {
         setCurrentStep(currentStep + 1);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }
@@ -234,20 +269,13 @@ export const WizardRunner: React.FC = () => {
       setPortfolioUrl('https://github.com/alexandra-chen-dev');
       setFormErrors({});
       setCurrentStep(3);
-      toast.success('Step 2 auto-filled! Proceeding to Step 3...');
+      toast.success('Step 2 auto-filled! Proceeding to Step 3 Review & Submit...');
       return;
     }
 
     if (currentStep === 3) {
-      setSelectedMcq('split-sqlite');
       setHasConfirmedFaq(true);
       setFormErrors({});
-      setCurrentStep(4);
-      toast.success('Step 3 auto-filled! Proceeding to Step 4 Review...');
-      return;
-    }
-
-    if (currentStep === 4) {
       setIsSubmitted(true);
       toast.success('Application submitted via Fast Test mode!');
     }
@@ -310,10 +338,6 @@ export const WizardRunner: React.FC = () => {
             setPortfolioUrl(payload.portfolioUrl);
           }
 
-          if (payload.selectedMcq) {
-            setSelectedMcq(payload.selectedMcq);
-          }
-
           if (payload.hasConfirmedFaq !== undefined) {
             setHasConfirmedFaq(payload.hasConfirmedFaq);
           }
@@ -361,7 +385,6 @@ export const WizardRunner: React.FC = () => {
       noticePeriod,
       yearsOfExperience,
       portfolioUrl,
-      selectedMcq,
       hasConfirmedFaq,
       jobId: selectedJob.id,
     };
@@ -397,6 +420,36 @@ export const WizardRunner: React.FC = () => {
     if (validateCurrentStep()) {
       setIsSubmitted(true);
       toast.success('Application successfully submitted!');
+
+      // Persist candidate into applicant pipeline
+      const applicantPayload = {
+        candidate_name: fullName.trim(),
+        candidate_email: email.trim(),
+        phone: phone.trim(),
+        stage_key: 'applied',
+        job_role: selectedJob.id,
+        notes: `Applied for ${selectedJob.title} (${selectedJob.department}) via Public Application Wizard.`,
+      };
+
+      unifiedFetch('/api/v1/applicants', '/wp-json/wp-exam/v1/applicants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(applicantPayload),
+      }).catch(() => {
+        try {
+          const raw = localStorage.getItem('wp_exam_mock_applicants');
+          const existing = raw ? JSON.parse(raw) : [];
+          existing.unshift({
+            id: Date.now(),
+            ...applicantPayload,
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString(),
+          });
+          localStorage.setItem('wp_exam_mock_applicants', JSON.stringify(existing));
+        } catch {
+          // ignore
+        }
+      });
     }
   };
 
@@ -481,20 +534,20 @@ export const WizardRunner: React.FC = () => {
               <Bug className="w-4 h-4 text-amber-600 dark:text-amber-400" />
               Developer Debug Mode & Step Simulator
             </span>
-            <span className="font-mono text-muted-foreground">Step {currentStep} of 4</span>
+            <span className="font-mono text-muted-foreground">Step {currentStep} of 3</span>
           </div>
 
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="font-semibold text-muted-foreground mr-1">Jump Step:</span>
-            {[1, 2, 3, 4, 5, 6, 7, 8, 9].map((s) => (
+            {[1, 2, 3].map((s) => (
               <Button
                 key={s}
                 type="button"
                 size="sm"
-                variant={currentStep === Math.min(s, 4) ? 'default' : 'outline'}
-                onClick={() => setCurrentStep(Math.min(s, 4))}
-                className="h-7 px-2 text-xs font-mono font-bold"
-                title={s > 4 ? `Simulate Step #${s}` : `Jump to Step #${s}`}
+                variant={currentStep === s ? 'default' : 'outline'}
+                onClick={() => setCurrentStep(s)}
+                className="h-7 px-2.5 text-xs font-mono font-bold"
+                title={`Jump to Step #${s}`}
               >
                 #{s}
               </Button>
@@ -510,7 +563,7 @@ export const WizardRunner: React.FC = () => {
             </Button>
           </div>
           <div className="text-xs text-muted-foreground font-mono pt-1 border-t border-amber-500/20">
-            Payload: {[fullName, email, phone, yearsOfExperience, portfolioUrl, selectedMcq].filter(Boolean).length} answers recorded
+            Payload: {[fullName, email, phone, yearsOfExperience, portfolioUrl].filter(Boolean).length} fields filled
           </div>
         </div>
       )}
@@ -518,7 +571,7 @@ export const WizardRunner: React.FC = () => {
       {/* Progress Bar & Steps Indicator */}
       <div className="mb-8">
         <div className="flex justify-between items-center mb-2.5">
-          {['1. Personal Info', '2. Experience', '3. Knowledge & FAQ', '4. Review & Submit'].map((title, idx) => {
+          {['1. Target & Contact', '2. Experience & Links', '3. Review & Submit'].map((title, idx) => {
             const stepNum = idx + 1;
             const isCompleted = stepNum < currentStep;
             const isCurrent = stepNum === currentStep;
@@ -546,7 +599,7 @@ export const WizardRunner: React.FC = () => {
         <div className="w-full bg-muted h-2.5 rounded-full overflow-hidden border border-border/40">
           <div
             className="bg-primary h-full transition-all duration-300"
-            style={{ width: `${((currentStep - 1) / 3) * 100}%` }}
+            style={{ width: `${((currentStep - 1) / 2) * 100}%` }}
           />
         </div>
       </div>
@@ -863,145 +916,12 @@ export const WizardRunner: React.FC = () => {
             </div>
           )}
 
-          {/* STEP 3: Technical Screening & Questions */}
+          {/* STEP 3: Review & Final Submission */}
           {currentStep === 3 && (
             <div className="space-y-5 animate-in fade-in-50 duration-200">
               <h3 className="text-lg font-bold border-b border-border pb-2.5 flex items-center gap-2 text-foreground font-heading">
-                <HelpCircle className="w-5 h-5 text-primary" />
-                <span>Step 3: Technical Screening & Questions</span>
-              </h3>
-
-              {/* Elementor-Style Rich Video Briefing Block */}
-              <div className="p-5 rounded-2xl bg-muted/30 border border-border space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-sm font-bold text-foreground font-heading">
-                    <Video className="w-4 h-4 text-primary" />
-                    <span>Technical Briefing Video</span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setIsBriefingNotesExpanded(!isBriefingNotesExpanded)}
-                    className="text-xs text-primary font-semibold hover:underline flex items-center gap-1 cursor-pointer"
-                  >
-                    <span>{isBriefingNotesExpanded ? 'Hide Briefing Notes' : 'View Briefing Notes'}</span>
-                    {isBriefingNotesExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
-                  </button>
-                </div>
-
-                <div className="aspect-video w-full rounded-xl bg-card border border-border/80 flex flex-col items-center justify-center p-6 text-center shadow-xs">
-                  <div className="w-12 h-12 rounded-full bg-primary/10 text-primary flex items-center justify-center mb-3 shadow-inner">
-                    <Play className="w-6 h-6 fill-current ml-0.5" />
-                  </div>
-                  <span className="text-sm font-bold text-foreground font-heading">
-                    Architecture & System Design Briefing
-                  </span>
-                  <p className="text-xs text-muted-foreground mt-1 max-w-sm">
-                    Interactive engineering briefing regarding split-DB SQLite architecture and multi-tenant sharding.
-                  </p>
-                </div>
-
-                {isBriefingNotesExpanded && (
-                  <div className="p-3.5 rounded-xl bg-card border border-border text-xs text-muted-foreground space-y-1.5 animate-in fade-in duration-150">
-                    <span className="font-bold text-foreground block">Key Concepts Covered:</span>
-                    <p>• Root metadata coordination with isolated project tenant stores (`project_&lt;id&gt;.db`).</p>
-                    <p>• Write-Ahead Logging (WAL) concurrency and zero-lock contention across candidate exam runs.</p>
-                  </div>
-                )}
-              </div>
-
-              {/* Technical Multiple Choice Question */}
-              <div className="space-y-2.5">
-                <div className="flex items-center justify-between">
-                  <label className="block text-sm font-semibold text-foreground">
-                    Which database design pattern isolates tenant workloads while keeping schema queries lean? <span className="text-red-500 font-bold ml-1">*</span>
-                  </label>
-                  <button
-                    type="button"
-                    onClick={() => setIsQuestionHintExpanded(!isQuestionHintExpanded)}
-                    className="text-xs text-primary font-semibold hover:underline flex items-center gap-0.5 cursor-pointer shrink-0 ml-2"
-                  >
-                    <span>Hint</span>
-                    {isQuestionHintExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
-                  </button>
-                </div>
-
-                {isQuestionHintExpanded && (
-                  <div className="p-3 rounded-lg bg-primary/10 border border-primary/20 text-xs text-primary animate-in fade-in duration-150">
-                    💡 <strong>Hint:</strong> Think about local single-file SQLite databases where each project has its own dedicated database file.
-                  </div>
-                )}
-
-                <div className="space-y-2.5">
-                  {[
-                    { val: 'split-sqlite', label: 'Split SQLite (root.db + project_<id>.db in WAL mode)' },
-                    { val: 'monolithic-csv', label: 'Monolithic Unindexed CSV Flat File' },
-                    { val: 'shared-table', label: 'Single giant table without index partition' }
-                  ].map((opt, optIdx) => (
-                    <label
-                      key={opt.val}
-                      className={`flex items-center gap-3.5 p-3.5 sm:p-4 rounded-xl border text-sm font-medium cursor-pointer transition-colors ${
-                        selectedMcq === opt.val
-                          ? 'border-primary bg-primary/10 text-primary font-bold shadow-xs'
-                          : 'border-border bg-card text-foreground hover:bg-accent/40'
-                      }`}
-                    >
-                      <span className={`w-7 h-7 rounded-lg border flex items-center justify-center font-mono text-xs font-bold shrink-0 ${
-                        selectedMcq === opt.val
-                          ? 'bg-primary text-primary-foreground border-primary'
-                          : 'bg-muted/60 border-border text-muted-foreground'
-                      }`}>
-                        {String.fromCharCode(65 + optIdx)}
-                      </span>
-                      <input
-                        type="radio"
-                        name="db_pattern"
-                        value={opt.val}
-                        checked={selectedMcq === opt.val}
-                        onChange={() => {
-                          setSelectedMcq(opt.val);
-                          if (formErrors.selectedMcq) setFormErrors((prev) => ({ ...prev, selectedMcq: '' }));
-                        }}
-                        className="text-primary h-4 w-4"
-                      />
-                      <span className="flex-1">{opt.label}</span>
-                    </label>
-                  ))}
-                </div>
-                {formErrors.selectedMcq && (
-                  <p className="text-xs text-destructive mt-1">{formErrors.selectedMcq}</p>
-                )}
-              </div>
-
-              {/* Agreement Checkbox */}
-              <div className="p-4 rounded-xl bg-muted/30 border border-border">
-                <label className="flex items-start gap-3 cursor-pointer text-xs sm:text-sm">
-                  <input
-                    type="checkbox"
-                    checked={hasConfirmedFaq}
-                    onChange={(e) => {
-                      setHasConfirmedFaq(e.target.checked);
-                      if (formErrors.hasConfirmedFaq) setFormErrors((prev) => ({ ...prev, hasConfirmedFaq: '' }));
-                    }}
-                    className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary"
-                    required
-                  />
-                  <span className="text-foreground leading-relaxed">
-                    I confirm that all information provided is accurate and agree to the candidate scoring terms and conditions. <span className="text-red-500 font-bold ml-1">*</span>
-                  </span>
-                </label>
-                {formErrors.hasConfirmedFaq && (
-                  <p className="text-xs text-destructive mt-1 pl-7">{formErrors.hasConfirmedFaq}</p>
-                )}
-              </div>
-            </div>
-          )}
-
-          {/* STEP 4: Review & Final Submission */}
-          {currentStep === 4 && (
-            <div className="space-y-5 animate-in fade-in-50 duration-200">
-              <h3 className="text-lg font-bold border-b border-border pb-2.5 flex items-center gap-2 text-foreground font-heading">
                 <CheckCircle2 className="w-5 h-5 text-primary" />
-                <span>Step 4: Review & Submit</span>
+                <span>Step 3: Review & Submit Application</span>
               </h3>
 
               <div className="p-5 rounded-2xl bg-muted/30 border border-border space-y-4 text-sm">
@@ -1046,16 +966,49 @@ export const WizardRunner: React.FC = () => {
                   </div>
                 </div>
 
-                <div className="p-3 rounded-lg bg-card border border-border">
-                  <span className="text-xs text-muted-foreground block">Technical Screening Solution</span>
-                  <span className="font-semibold text-primary font-mono text-xs">{selectedMcq}</span>
+                {/* Pre-Exam Information Notice Box */}
+                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 space-y-2">
+                  <div className="flex items-center gap-2 font-bold font-heading text-sm text-amber-800 dark:text-amber-300">
+                    <Clock className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
+                    <span>Upcoming Next Step: 10-Minute Proctored Technical Assessment</span>
+                  </div>
+                  <p className="text-xs leading-relaxed text-amber-900/90 dark:text-amber-200/90">
+                    Upon submitting, your candidate profile is created and you will be directed to your private Candidate Portal. The formal technical assessment for <strong>{selectedJob.title}</strong> will take place there under proctoring:
+                  </p>
+                  <ul className="text-xs space-y-1 list-disc list-inside text-amber-800 dark:text-amber-200 pl-1">
+                    <li><strong>Strict 10-Minute Time Limit:</strong> The technical assessment has a strict 10-minute countdown with automatic submission upon expiration.</li>
+                    <li><strong>No Tab Switching:</strong> Active window focus and tab switching are strictly monitored. 3 strikes will trigger immediate auto-submission.</li>
+                    <li><strong>Pre-Exam Briefing:</strong> You will review full proctoring instructions and confirm readiness before starting the exam timer.</li>
+                  </ul>
+                </div>
+
+                {/* Candidate Agreement Checkbox */}
+                <div className="p-4 rounded-xl bg-muted/40 border border-border">
+                  <label className="flex items-start gap-3 cursor-pointer text-xs sm:text-sm">
+                    <input
+                      type="checkbox"
+                      checked={hasConfirmedFaq}
+                      onChange={(e) => {
+                        setHasConfirmedFaq(e.target.checked);
+                        if (formErrors.hasConfirmedFaq) setFormErrors((prev) => ({ ...prev, hasConfirmedFaq: '' }));
+                      }}
+                      className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary"
+                      required
+                    />
+                    <span className="text-foreground leading-relaxed">
+                      I confirm that all information provided is accurate and agree to participate in the timed, proctored assessment inside the Candidate Portal. <span className="text-red-500 font-bold ml-1">*</span>
+                    </span>
+                  </label>
+                  {formErrors.hasConfirmedFaq && (
+                    <p className="text-xs text-destructive mt-1 pl-7">{formErrors.hasConfirmedFaq}</p>
+                  )}
                 </div>
               </div>
 
               <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 text-xs text-muted-foreground flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-primary shrink-0" />
                 <span>
-                  Submission records your candidate answers securely into the WordPress and SQLite database.
+                  Submission records your candidate profile securely into the recruitment pipeline.
                 </span>
               </div>
             </div>
@@ -1102,7 +1055,7 @@ export const WizardRunner: React.FC = () => {
                 <span>⚡ Test Fill & Next</span>
               </Button>
 
-              {currentStep < 4 ? (
+              {currentStep < 3 ? (
                 <Button
                   type="button"
                   size="sm"
@@ -1135,14 +1088,25 @@ export const WizardRunner: React.FC = () => {
           <p className="text-sm text-muted-foreground max-w-md mx-auto leading-relaxed">
             Your application for <strong className="text-foreground font-semibold">{selectedJob.title}</strong> has been logged into the exam scoring engine.
           </p>
-          <div className="pt-4 flex justify-center gap-3">
+          <div className="pt-4 flex flex-wrap justify-center gap-3">
+            <Button
+              type="button"
+              onClick={() => {
+                const portalToken = email.trim().split('@')[0] || 'candidate';
+                navigate(`/portal/${portalToken}?role=${selectedJob.id}&name=${encodeURIComponent(fullName || 'Candidate')}`);
+              }}
+              className="h-10 px-5 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md flex items-center gap-1.5 cursor-pointer"
+            >
+              <ExternalLink className="w-4 h-4" />
+              <span>Proceed to Candidate Portal & NDA &rarr;</span>
+            </Button>
             <Button
               type="button"
               onClick={() => {
                 setIsSubmitted(false);
                 setCurrentStep(1);
               }}
-              className="h-10 px-5 text-xs font-semibold rounded-xl bg-primary text-primary-foreground"
+              className="h-10 px-5 text-xs font-semibold rounded-xl bg-primary text-primary-foreground cursor-pointer"
             >
               Start New Application
             </Button>
@@ -1150,7 +1114,7 @@ export const WizardRunner: React.FC = () => {
               type="button"
               variant="outline"
               onClick={() => navigate('/')}
-              className="h-10 px-5 text-xs font-semibold rounded-xl border border-border"
+              className="h-10 px-5 text-xs font-semibold rounded-xl border border-border cursor-pointer"
             >
               Return to Website
             </Button>

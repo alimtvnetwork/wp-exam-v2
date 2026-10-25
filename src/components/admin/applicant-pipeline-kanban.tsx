@@ -16,6 +16,7 @@ import {
   Phone,
   Briefcase,
   AlertCircle,
+  HelpCircle,
   ChevronRight,
   Lock,
   Unlock,
@@ -52,6 +53,13 @@ import {
 } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { unifiedFetch } from '@/utils/api-client';
+import {
+  getJobRoles,
+  getJobRoleById,
+  saveJobRole,
+  deleteJobRole,
+  JobRole,
+} from '@/lib/role-assignments';
 
 export interface ApplicantStage {
   id: number;
@@ -79,6 +87,7 @@ export interface Applicant {
   candidate_name: string;
   candidate_email: string;
   phone?: string;
+  job_role?: string;
   current_stage_key: string;
   form_id?: number;
   submission_id?: number;
@@ -354,8 +363,38 @@ export const ApplicantPipelineKanban: React.FC = () => {
   const [newName, setNewName] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newPhone, setNewPhone] = useState('');
+  const [newJobRole, setNewJobRole] = useState('frontend-developer');
   const [newStage, setNewStage] = useState('applied');
   const [newNotes, setNewNotes] = useState('');
+
+  // Role Management State
+  const [rolesList, setRolesList] = useState<JobRole[]>(() => getJobRoles());
+  const [isRolesModalOpen, setIsRolesModalOpen] = useState(false);
+  const [isAddingNewRole, setIsAddingNewRole] = useState(false);
+
+  // New Role Form State
+  const [newRoleTitle, setNewRoleTitle] = useState('');
+  const [newRoleDept, setNewRoleDept] = useState('Engineering');
+  const [newRoleType, setNewRoleType] = useState('Full-Time');
+  const [newRoleDesc, setNewRoleDesc] = useState('');
+  const [newPhase1Question, setNewPhase1Question] = useState('');
+  const [newPhase1Hint, setNewPhase1Hint] = useState('');
+  const [newPhase1Options, setNewPhase1Options] = useState<string>('Option A\nOption B\nOption C\nOption D');
+  const [newPhase2Q1, setNewPhase2Q1] = useState('');
+  const [newPhase2Q1Opts, setNewPhase2Q1Opts] = useState('Choice 1\nChoice 2\nChoice 3\nChoice 4');
+  const [newPhase2Q1Ans, setNewPhase2Q1Ans] = useState('');
+
+  useEffect(() => {
+    const handleRolesUpdate = () => {
+      setRolesList(getJobRoles());
+    };
+
+    window.addEventListener('wp_exam_roles_updated', handleRolesUpdate);
+
+    return () => {
+      window.removeEventListener('wp_exam_roles_updated', handleRolesUpdate);
+    };
+  }, []);
 
   // Assessment Results Dialog
   const [viewAssessmentCandidate, setViewAssessmentCandidate] = useState<Applicant | null>(null);
@@ -537,6 +576,7 @@ export const ApplicantPipelineKanban: React.FC = () => {
       candidate_name: newName.trim(),
       candidate_email: newEmail.trim(),
       phone: newPhone.trim(),
+      job_role: newJobRole,
       current_stage_key: newStage,
       notes: newNotes.trim(),
       rating: 5,
@@ -564,6 +604,7 @@ export const ApplicantPipelineKanban: React.FC = () => {
           candidate_email: candidatePayload.candidate_email,
           phone: candidatePayload.phone,
           stage_key: candidatePayload.current_stage_key,
+          job_role: candidatePayload.job_role,
           notes: candidatePayload.notes,
         }),
       });
@@ -601,6 +642,95 @@ export const ApplicantPipelineKanban: React.FC = () => {
     } catch {
       // Standalone mode
     }
+  };
+
+  const handleSaveNewRole = () => {
+    const cleanTitle = newRoleTitle.trim();
+    const hasCleanTitle = (cleanTitle.length > 0);
+
+    if (!hasCleanTitle) {
+      toast.error('Role Title is required');
+      return;
+    }
+
+    const roleSlug = cleanTitle.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+    const cleanPhase1Q = newPhase1Question.trim();
+    const hasPhase1Q = (cleanPhase1Q.length > 0);
+
+    if (!hasPhase1Q) {
+      toast.error('Phase 1 Screening Question is required');
+      return;
+    }
+
+    const p1OptionLines = newPhase1Options.split('\n').map((l) => l.trim()).filter(Boolean);
+    const hasP1Options = (p1OptionLines.length >= 2);
+
+    if (!hasP1Options) {
+      toast.error('Please provide at least 2 options for the Phase 1 question');
+      return;
+    }
+
+    const p2Questions = [];
+    const hasP2Q1 = (newPhase2Q1.trim().length > 0);
+
+    if (hasP2Q1) {
+      const q1Opts = newPhase2Q1Opts.split('\n').map((l) => l.trim()).filter(Boolean);
+      p2Questions.push({
+        id: `${roleSlug}_q1`,
+        question: newPhase2Q1.trim(),
+        options: (q1Opts.length > 0) ? q1Opts : ['Option A', 'Option B'],
+        correctAnswer: newPhase2Q1Ans.trim() || q1Opts[0] || 'Option A',
+        explanation: `Core ${cleanTitle} competency evaluation.`,
+      });
+    }
+
+    if (p2Questions.length === 0) {
+      p2Questions.push({
+        id: `${roleSlug}_q1`,
+        question: `What is the primary technical competency required for ${cleanTitle}?`,
+        options: ['Demonstrated domain mastery & clean code practices', 'Unverified assumptions', 'Skipping automated test verification'],
+        correctAnswer: 'Demonstrated domain mastery & clean code practices',
+        explanation: 'Domain mastery ensures high code quality and architecture alignment.',
+      });
+    }
+
+    const createdRole: JobRole = {
+      id: roleSlug,
+      title: cleanTitle,
+      department: newRoleDept.trim() || 'Engineering',
+      type: newRoleType,
+      description: newRoleDesc.trim() || `Technical evaluation track for ${cleanTitle}.`,
+      isCustom: true,
+      firstPhaseQuestion: {
+        question: cleanPhase1Q,
+        hint: newPhase1Hint.trim() || 'Review core domain fundamentals.',
+        briefingNotes: [`Technical screening for ${cleanTitle}.`, `Domain fundamentals and standard workflows.`],
+        options: p1OptionLines.map((opt, idx) => ({
+          val: `opt_${idx + 1}`,
+          label: opt,
+        })),
+        correctAnswer: 'opt_1',
+      },
+      secondPhaseQuestions: p2Questions,
+    };
+
+    saveJobRole(createdRole);
+    setRolesList(getJobRoles());
+    toast.success(`Job Role "${cleanTitle}" successfully created and saved!`);
+    setIsAddingNewRole(false);
+
+    setNewRoleTitle('');
+    setNewRoleDesc('');
+    setNewPhase1Question('');
+    setNewPhase1Hint('');
+    setNewPhase2Q1('');
+    setNewPhase2Q1Ans('');
+  };
+
+  const handleDeleteRole = (roleId: string, roleTitle: string) => {
+    deleteJobRole(roleId);
+    setRolesList(getJobRoles());
+    toast.success(`Removed custom role "${roleTitle}"`);
   };
 
   const handleSaveFeedback = async () => {
@@ -837,9 +967,18 @@ export const ApplicantPipelineKanban: React.FC = () => {
               Sync Pipeline
             </Button>
             <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsRolesModalOpen(true)}
+              className="gap-2 border-primary/30 text-primary hover:bg-primary/10 cursor-pointer"
+            >
+              <Briefcase className="w-4 h-4" />
+              <span>Roles & Quizzes ({rolesList.length})</span>
+            </Button>
+            <Button
               size="sm"
               onClick={() => setIsNewDialogOpen(true)}
-              className="gap-2 bg-primary text-primary-foreground font-semibold shadow-sm hover:bg-primary/90"
+              className="gap-2 bg-primary text-primary-foreground font-semibold shadow-sm hover:bg-primary/90 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
               Add Candidate
@@ -1038,6 +1177,14 @@ export const ApplicantPipelineKanban: React.FC = () => {
                                   <Mail className="w-3.5 h-3.5 shrink-0 text-muted-foreground/70" />
                                   <span className="truncate">{candidate.candidate_email}</span>
                                 </p>
+                                {candidate.job_role && (
+                                  <div className="mt-1 flex items-center gap-1">
+                                    <Badge variant="outline" className="text-[10px] py-0 px-1.5 border-primary/30 text-primary font-mono truncate max-w-full">
+                                      <Briefcase className="w-2.5 h-2.5 mr-1 inline shrink-0" />
+                                      <span className="truncate">{getJobRoleById(candidate.job_role).title}</span>
+                                    </Badge>
+                                  </div>
+                                )}
                               </div>
 
                               <DropdownMenu>
@@ -1097,8 +1244,9 @@ export const ApplicantPipelineKanban: React.FC = () => {
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onClick={() => {
+                                      const roleQuery = candidate.job_role ? `?role=${candidate.job_role}` : '';
                                       const portalToken = candidate.candidate_email.split('@')[0] || String(candidate.id);
-                                      const fullUrl = `${window.location.origin}/portal/${portalToken}`;
+                                      const fullUrl = `${window.location.origin}/portal/${portalToken}${roleQuery}`;
                                       navigator.clipboard.writeText(fullUrl);
                                       toast.success(`Copied portal link: ${fullUrl}`);
                                     }}
@@ -1109,8 +1257,9 @@ export const ApplicantPipelineKanban: React.FC = () => {
                                   </DropdownMenuItem>
                                   <DropdownMenuItem
                                     onClick={() => {
+                                      const roleQuery = candidate.job_role ? `?role=${candidate.job_role}` : '';
                                       const portalToken = candidate.candidate_email.split('@')[0] || 'demo';
-                                      window.open(`/portal/${portalToken}`, '_blank');
+                                      window.open(`/portal/${portalToken}${roleQuery}`, '_blank');
                                     }}
                                     className="text-xs gap-2"
                                   >
@@ -1322,13 +1471,28 @@ export const ApplicantPipelineKanban: React.FC = () => {
                   Generated Candidate Portal URL:
                 </span>
                 <code className="font-mono text-[11px] text-muted-foreground break-all select-all">
-                  {window.location.origin}/portal/{newEmail.trim().split('@')[0]}
+                  {window.location.origin}/portal/{newEmail.trim().split('@')[0]}{newJobRole ? `?role=${newJobRole}` : ''}
                 </code>
                 <p className="text-[10px] text-muted-foreground pt-0.5">
                   Share this link with the candidate to let them access their portal directly without needing a password.
                 </p>
               </div>
             )}
+
+            <div className="space-y-1.5">
+              <label className="text-xs font-semibold text-foreground">Target Job Role *</label>
+              <select
+                value={newJobRole}
+                onChange={(e) => setNewJobRole(e.target.value)}
+                className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm shadow-xs focus:outline-hidden focus:ring-1 focus:ring-ring"
+              >
+                {rolesList.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {r.title} ({r.department})
+                  </option>
+                ))}
+              </select>
+            </div>
 
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-foreground">Phone Number</label>
@@ -1372,6 +1536,209 @@ export const ApplicantPipelineKanban: React.FC = () => {
               Create Candidate
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Roles & Quizzes Management Modal */}
+      <Dialog open={isRolesModalOpen} onOpenChange={setIsRolesModalOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Briefcase className="w-5 h-5 text-primary" />
+                <DialogTitle>Job Roles & Role-Specific Quizzes</DialogTitle>
+              </div>
+              <Button
+                size="sm"
+                variant={isAddingNewRole ? 'outline' : 'default'}
+                onClick={() => setIsAddingNewRole(!isAddingNewRole)}
+                className="h-8 text-xs gap-1.5 cursor-pointer"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>{isAddingNewRole ? 'View Roles' : 'Add New Role'}</span>
+              </Button>
+            </div>
+            <DialogDescription>
+              Each role configures Phase 1 screening questions for /apply and Phase 2 in-depth assessment for /portal/:token.
+            </DialogDescription>
+          </DialogHeader>
+
+          {isAddingNewRole ? (
+            <div className="space-y-4 py-2 text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-foreground">Role Title *</label>
+                  <Input
+                    placeholder="e.g. AI Prompt Systems Engineer"
+                    value={newRoleTitle}
+                    onChange={(e) => setNewRoleTitle(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-foreground">Department *</label>
+                  <Input
+                    placeholder="e.g. AI Engineering"
+                    value={newRoleDept}
+                    onChange={(e) => setNewRoleDept(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-foreground">Employment Type</label>
+                  <select
+                    value={newRoleType}
+                    onChange={(e) => setNewRoleType(e.target.value)}
+                    className="w-full rounded-md border border-input bg-background px-3 py-2 text-xs shadow-xs"
+                  >
+                    <option value="Full-Time">Full-Time</option>
+                    <option value="Part-Time">Part-Time</option>
+                    <option value="Internship">Internship</option>
+                    <option value="Contract">Contract</option>
+                  </select>
+                </div>
+                <div className="space-y-1.5">
+                  <label className="font-semibold text-foreground">Description</label>
+                  <Input
+                    placeholder="Brief description of the role responsibilities..."
+                    value={newRoleDesc}
+                    onChange={(e) => setNewRoleDesc(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              {/* Phase 1 Screening Question */}
+              <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/20 space-y-2.5">
+                <span className="font-bold text-foreground block text-sm text-primary flex items-center gap-1.5">
+                  <HelpCircle className="w-4 h-4" />
+                  Phase 1 Screening Question (Displayed in /apply)
+                </span>
+                <div className="space-y-1">
+                  <label className="font-semibold text-foreground">Question Text *</label>
+                  <Input
+                    placeholder="e.g. Which prompt strategy prevents hallucination in multi-turn dialogues?"
+                    value={newPhase1Question}
+                    onChange={(e) => setNewPhase1Question(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="font-semibold text-foreground">Hint for Candidates</label>
+                  <Input
+                    placeholder="e.g. Think of structured XML grounding and system boundary markers."
+                    value={newPhase1Hint}
+                    onChange={(e) => setNewPhase1Hint(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="font-semibold text-foreground">Options (1 per line, line 1 will be correct answer) *</label>
+                  <textarea
+                    rows={4}
+                    value={newPhase1Options}
+                    onChange={(e) => setNewPhase1Options(e.target.value)}
+                    className="w-full rounded-md border border-input bg-background p-2.5 text-xs font-mono"
+                  />
+                </div>
+              </div>
+
+              {/* Phase 2 Assessment Question */}
+              <div className="p-3.5 rounded-xl bg-muted/30 border border-border space-y-2.5">
+                <span className="font-bold text-foreground block text-sm flex items-center gap-1.5">
+                  <Award className="w-4 h-4 text-emerald-500" />
+                  Phase 2 In-Depth Assessment (Displayed in /portal/:token)
+                </span>
+                <div className="space-y-1">
+                  <label className="font-semibold text-foreground">In-Depth Assessment Question</label>
+                  <Input
+                    placeholder="e.g. What is the role of temperature in deterministic tool generation?"
+                    value={newPhase2Q1}
+                    onChange={(e) => setNewPhase2Q1(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="font-semibold text-foreground">Choices (1 per line)</label>
+                  <textarea
+                    rows={3}
+                    value={newPhase2Q1Opts}
+                    onChange={(e) => setNewPhase2Q1Opts(e.target.value)}
+                    className="w-full rounded-md border border-input bg-background p-2 text-xs font-mono"
+                  />
+                </div>
+                <div className="space-y-1">
+                  <label className="font-semibold text-foreground">Exact Correct Answer String</label>
+                  <Input
+                    placeholder="Copy/paste the exact correct option text"
+                    value={newPhase2Q1Ans}
+                    onChange={(e) => setNewPhase2Q1Ans(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end gap-2">
+                <Button variant="outline" size="sm" onClick={() => setIsAddingNewRole(false)}>
+                  Cancel
+                </Button>
+                <Button size="sm" onClick={handleSaveNewRole} className="bg-primary text-primary-foreground font-semibold">
+                  Save Role & Assignments
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-3 py-2">
+              {rolesList.map((role) => (
+                <div key={role.id} className="p-4 rounded-xl border border-border bg-card space-y-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="font-bold text-sm text-foreground">{role.title}</span>
+                        <Badge variant="outline" className="text-[10px] font-mono border-primary/30 text-primary">
+                          {role.department}
+                        </Badge>
+                        <Badge variant="secondary" className="text-[10px]">
+                          {role.type}
+                        </Badge>
+                        {role.isCustom && (
+                          <Badge variant="default" className="text-[10px] bg-emerald-600 text-white">
+                            Custom Role
+                          </Badge>
+                        )}
+                      </div>
+                      <p className="text-xs text-muted-foreground mt-1">{role.description}</p>
+                    </div>
+
+                    {role.isCustom && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleDeleteRole(role.id, role.title)}
+                        className="text-xs text-destructive hover:bg-destructive/10 h-7 px-2 cursor-pointer"
+                        title="Delete Role"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="pt-2 border-t border-border/50 grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                    <div className="p-2.5 rounded-lg bg-primary/5 border border-primary/15 space-y-1">
+                      <span className="font-bold text-primary block text-[11px]">Phase 1 Screening Question:</span>
+                      <p className="text-foreground line-clamp-2">{role.firstPhaseQuestion.question}</p>
+                      <span className="text-[10px] text-muted-foreground block">
+                        {role.firstPhaseQuestion.options.length} options configured
+                      </span>
+                    </div>
+
+                    <div className="p-2.5 rounded-lg bg-muted/40 border border-border/60 space-y-1">
+                      <span className="font-bold text-foreground block text-[11px]">Phase 2 Exam Questions:</span>
+                      <p className="text-muted-foreground">
+                        {role.secondPhaseQuestions.length} in-depth assessment question(s) configured.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </DialogContent>
       </Dialog>
 

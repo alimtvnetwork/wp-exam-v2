@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
+import { getJobRoles, getJobRoleById, JobRole } from '@/lib/role-assignments';
 import {
   CheckCircle2,
   Clock,
@@ -28,6 +29,7 @@ import {
   BookOpen,
   Layers,
   Check,
+  ShieldAlert,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -76,6 +78,7 @@ interface CandidateInfo {
   name?: string;
   email?: string;
   phone?: string;
+  job_role?: string;
   current_stage_key: string;
   current_stage?: string;
   notes?: string;
@@ -823,6 +826,37 @@ export const CandidatePortalRunner: React.FC = () => {
   const [q3Answer, setQ3Answer] = useState<string>('');
   const [examScore, setExamScore] = useState<number | null>(null);
 
+  const [searchParams] = useSearchParams();
+  const queryRole = searchParams.get('role') || searchParams.get('job');
+
+  const [rolesList, setRolesList] = useState<JobRole[]>(() => getJobRoles());
+
+  useEffect(() => {
+    const handleRolesUpdate = () => {
+      setRolesList(getJobRoles());
+    };
+
+    window.addEventListener('wp_exam_roles_updated', handleRolesUpdate);
+
+    return () => {
+      window.removeEventListener('wp_exam_roles_updated', handleRolesUpdate);
+    };
+  }, []);
+
+  const candidateRoleKey = session.candidate?.job_role || queryRole || 'frontend-developer';
+  const currentJobRole = getJobRoleById(candidateRoleKey);
+  const roleQuestions = currentJobRole.secondPhaseQuestions;
+
+  const [assessmentAnswers, setAssessmentAnswers] = useState<Record<string, string>>({});
+
+  // Step 3 Timed Assessment & Anti-Cheat Proctoring State
+  const [isExamStarted, setIsExamStarted] = useState<boolean>(false);
+  const [examBriefingAgreed, setExamBriefingAgreed] = useState<boolean>(false);
+  const [examSecondsLeft, setExamSecondsLeft] = useState<number>(600);
+  const [tabSwitchCount, setTabSwitchCount] = useState<number>(0);
+  const [showFocusLostModal, setShowFocusLostModal] = useState<boolean>(false);
+  const [examIntegrityStatus, setExamIntegrityStatus] = useState<'clean' | 'flagged'>('clean');
+
   // Step 4 Submission State
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [portfolioUrl, setPortfolioUrl] = useState<string>('');
@@ -947,6 +981,10 @@ export const CandidatePortalRunner: React.FC = () => {
               setExamScore(stepScore);
             }
 
+            if (assessmentStep?.data?.answers && typeof assessmentStep.data.answers === 'object') {
+              setAssessmentAnswers(assessmentStep.data.answers);
+            }
+
             const stepQ1 = assessmentStep?.data?.q1;
 
             if (stepQ1) {
@@ -963,6 +1001,25 @@ export const CandidatePortalRunner: React.FC = () => {
 
             if (stepQ3) {
               setQ3Answer(String(stepQ3));
+            }
+
+            const savedStrikes = assessmentStep?.data?.tab_switch_count;
+            const hasSavedStrikes = typeof savedStrikes === 'number';
+
+            if (hasSavedStrikes) {
+              setTabSwitchCount(savedStrikes);
+            }
+
+            const savedIntegrity = assessmentStep?.data?.integrity_status;
+            const isClean = (savedIntegrity === 'clean');
+            const isFlagged = (savedIntegrity === 'flagged');
+
+            if (isClean) {
+              setExamIntegrityStatus('clean');
+            }
+
+            if (isFlagged) {
+              setExamIntegrityStatus('flagged');
             }
           }
 
@@ -1101,7 +1158,10 @@ export const CandidatePortalRunner: React.FC = () => {
 
   // Step 3 satisfaction
   const isStep3Done = Boolean(session.steps.find((s) => s.id === 'step_assessment')?.is_completed);
-  const isStep3Satisfied = Boolean((q1Answer && q2Answer && q3Answer) || isStep3Done);
+  const isAllRoleQuestionsAnswered = (roleQuestions.length > 0)
+    ? roleQuestions.every((q) => Boolean(assessmentAnswers[q.id]))
+    : Boolean(q1Answer && q2Answer && q3Answer);
+  const isStep3Satisfied = Boolean(isAllRoleQuestionsAnswered || isStep3Done);
 
   // Step 4 satisfaction
   const isStep4Done = Boolean(session.steps.find((s) => s.id === 'step_submission')?.is_completed);
@@ -1132,41 +1192,169 @@ export const CandidatePortalRunner: React.FC = () => {
     }
   };
 
-  const handleStep3Submit = () => {
-    if (!isStep3Satisfied) {
-      toast.error('Please answer all 3 assessment questions before proceeding.');
-      return;
+  const formatTimerDisplay = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  const handleStep3Submit = (overrideStrikes?: number, isForcedTimeout?: boolean) => {
+    const isManual = (overrideStrikes === undefined && !isForcedTimeout);
+
+    if (isManual) {
+      if (!isStep3Satisfied) {
+        toast.error('Please answer all assessment questions before proceeding.');
+
+        return;
+      }
     }
+
+    const finalStrikes = (typeof overrideStrikes === 'number') ? overrideStrikes : tabSwitchCount;
+    const isClean = (finalStrikes === 0);
+    const integrityStatus: 'clean' | 'flagged' = isClean ? 'clean' : 'flagged';
+    setExamIntegrityStatus(integrityStatus);
 
     let correctCount = 0;
-    const isQ1Correct = (q1Answer === 'Implicit check: if (isReady)');
-    if (isQ1Correct) {
-      correctCount++;
+    const totalQuestions = roleQuestions.length;
+
+    if (totalQuestions > 0) {
+      roleQuestions.forEach((q) => {
+        const choice = assessmentAnswers[q.id];
+        const isCorrect = (choice === q.correctAnswer);
+        if (isCorrect) {
+          correctCount++;
+        }
+      });
+    } else {
+      const isQ1Correct = (q1Answer === 'Implicit check: if (isReady)');
+      if (isQ1Correct) {
+        correctCount++;
+      }
+
+      const isQ2Correct = (q2Answer === 'SQLite Split-DB architecture (Main + Project shards)');
+      if (isQ2Correct) {
+        correctCount++;
+      }
+
+      const isQ3Correct = (q3Answer === 'Strictly an active indicator mark, never dominant surface or text');
+      if (isQ3Correct) {
+        correctCount++;
+      }
     }
 
-    const isQ2Correct = (q2Answer === 'SQLite Split-DB architecture (Main + Project shards)');
-    if (isQ2Correct) {
-      correctCount++;
-    }
-
-    const isQ3Correct = (q3Answer === 'Strictly an active indicator mark, never dominant surface or text');
-    if (isQ3Correct) {
-      correctCount++;
-    }
-
-    const calculatedScore = Math.round((correctCount / 3) * 100);
+    const calculatedScore = (totalQuestions > 0)
+      ? Math.round((correctCount / totalQuestions) * 100)
+      : Math.round((correctCount / 3) * 100);
 
     setExamScore(calculatedScore);
 
+    const timeSpent = Math.max(0, 600 - examSecondsLeft);
+
     handleCompleteStep('step_assessment', {
+      answers: assessmentAnswers,
       q1: q1Answer,
       q2: q2Answer,
       q3: q3Answer,
       score: calculatedScore,
       correct_count: correctCount,
-      total_questions: 3,
+      total_questions: totalQuestions || 3,
+      role_id: currentJobRole.id,
+      role_title: currentJobRole.title,
+      time_spent_seconds: timeSpent,
+      tab_switch_count: finalStrikes,
+      integrity_status: integrityStatus,
+      is_forced_timeout: Boolean(isForcedTimeout),
     });
   };
+
+  // Proctoring tab switch & window blur detection effect
+  useEffect(() => {
+    if (!isExamStarted) {
+      return;
+    }
+
+    if (isStep3Done) {
+      return;
+    }
+
+    const isAssessmentStep = (activeStepId === 'step_assessment');
+
+    if (!isAssessmentStep) {
+      return;
+    }
+
+    const handleBlurOrHidden = () => {
+      setTabSwitchCount((prev) => {
+        const next = prev + 1;
+        setShowFocusLostModal(true);
+
+        const isExceeded = (next >= 3);
+
+        if (isExceeded) {
+          toast.error('Proctoring violation: 3 tab switches detected! Exam automatically submitted.');
+          handleStep3Submit(next, false);
+        } else {
+          toast.warning(`Proctoring alert: Window focus lost! Strike ${next} of 3 recorded.`);
+        }
+
+        return next;
+      });
+    };
+
+    const handleVisibilityChange = () => {
+      const isHidden = Boolean(document.hidden);
+
+      if (isHidden) {
+        handleBlurOrHidden();
+      }
+    };
+
+    window.addEventListener('blur', handleBlurOrHidden);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('blur', handleBlurOrHidden);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [isExamStarted, isStep3Done, activeStepId, roleQuestions, assessmentAnswers, q1Answer, q2Answer, q3Answer]);
+
+  // Exam 10-minute countdown timer effect
+  useEffect(() => {
+    if (!isExamStarted) {
+      return;
+    }
+
+    if (isStep3Done) {
+      return;
+    }
+
+    const isAssessmentStep = (activeStepId === 'step_assessment');
+
+    if (!isAssessmentStep) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setExamSecondsLeft((prev) => {
+        const isExpired = (prev <= 1);
+
+        if (isExpired) {
+          clearInterval(timer);
+          toast.warning('Exam time limit expired (10:00). Auto-submitting answers.');
+          handleStep3Submit(tabSwitchCount, true);
+
+          return 0;
+        }
+
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => {
+      clearInterval(timer);
+    };
+  }, [isExamStarted, isStep3Done, activeStepId, tabSwitchCount, roleQuestions, assessmentAnswers, q1Answer, q2Answer, q3Answer]);
 
   const handleStep4Submit = () => {
     if (!isStep4Satisfied) {
@@ -1214,24 +1402,36 @@ export const CandidatePortalRunner: React.FC = () => {
       return candScore;
     }
 
-    const hasAnyAnswer = Boolean(q1Answer || q2Answer || q3Answer);
+    const hasRoleAnswers = (Object.keys(assessmentAnswers).length > 0);
+    const hasLegacyAnswers = Boolean(q1Answer || q2Answer || q3Answer);
+    const hasAnyAnswer = Boolean(hasRoleAnswers || hasLegacyAnswers);
 
     if (hasAnyAnswer) {
       let count = 0;
-      const isQ1 = (q1Answer === 'Implicit check: if (isReady)');
+      const totalQuestions = roleQuestions.length;
 
+      if (totalQuestions > 0) {
+        roleQuestions.forEach((q) => {
+          const isMatch = (assessmentAnswers[q.id] === q.correctAnswer);
+          if (isMatch) {
+            count++;
+          }
+        });
+
+        return Math.round((count / totalQuestions) * 100);
+      }
+
+      const isQ1 = (q1Answer === 'Implicit check: if (isReady)');
       if (isQ1) {
         count++;
       }
 
       const isQ2 = (q2Answer === 'SQLite Split-DB architecture (Main + Project shards)');
-
       if (isQ2) {
         count++;
       }
 
       const isQ3 = (q3Answer === 'Strictly an active indicator mark, never dominant surface or text');
-
       if (isQ3) {
         count++;
       }
@@ -2024,10 +2224,20 @@ export const CandidatePortalRunner: React.FC = () => {
                 </p>
               </CardHeader>
               <CardContent className="p-6 pt-0 space-y-4">
+                <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/20 text-xs flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
+                  <div>
+                    <span className="text-muted-foreground block text-[11px]">Evaluation Target Role:</span>
+                    <span className="font-bold text-foreground">{currentJobRole.title} ({currentJobRole.department})</span>
+                  </div>
+                  <Badge variant="outline" className="font-mono text-[10px] border-primary/40 text-primary">
+                    Mutual NDA
+                  </Badge>
+                </div>
+
                 <div className="p-4 rounded-xl bg-muted/40 border border-border/50 text-xs font-mono leading-relaxed space-y-3 max-h-56 overflow-y-auto">
-                  <p className="font-bold text-foreground">1. Confidential Information</p>
+                  <p className="font-bold text-foreground">1. Confidential Information & Role Evaluation Scope</p>
                   <p className="text-muted-foreground">
-                    All technical prompts, curriculum architecture, proprietary interview questions, and evaluation criteria provided in this portal constitute confidential trade secrets.
+                    This agreement is entered between WP Exam and candidate <strong>{candidateName}</strong> for evaluating candidate competency for the position of <strong>{currentJobRole.title}</strong>. All technical prompts, architecture, proprietary interview questions, and evaluation criteria provided in this portal constitute confidential trade secrets.
                   </p>
                   <p className="font-bold text-foreground">2. Non-Disclosure & Non-Circumvention</p>
                   <p className="text-muted-foreground">
@@ -2174,17 +2384,94 @@ export const CandidatePortalRunner: React.FC = () => {
                   </div>
                 </CardContent>
               </>
-            ) : (
+            ) : isStep3Done ? (
+              /* State 1: Completed Assessment Results */
               <>
                 <CardHeader className="p-6 pb-4">
                   <div className="flex items-center gap-2">
-                    <Badge variant="outline" className="border-primary/40 text-primary">
-                      Step 3 of 5
+                    <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 font-mono">
+                      Step 3 Completed
                     </Badge>
-                    <CardTitle className="text-xl">Technical Knowledge & Skills Verification</CardTitle>
+                    <CardTitle className="text-xl">{currentJobRole.title} — Technical Assessment Results</CardTitle>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Answer the baseline engineering questions below to verify core competency.
+                    Your assessment responses and proctoring audit log have been recorded into the candidate pipeline.
+                  </p>
+                </CardHeader>
+                <CardContent className="p-6 pt-0 space-y-6">
+                  <div className="p-6 rounded-2xl bg-muted/30 border border-border space-y-4">
+                    <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-card border border-border/60">
+                      <div>
+                        <span className="text-xs text-muted-foreground block font-mono">Assessment Final Score</span>
+                        <div className="text-3xl font-extrabold text-foreground font-heading mt-0.5">
+                          {displayScore !== null ? `${displayScore}%` : 'Recorded'}
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {examIntegrityStatus === 'clean' ? (
+                          <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 gap-1.5 py-1 px-3">
+                            <CheckCircle2 className="w-3.5 h-3.5" />
+                            <span>Proctoring Clean (0 Tab Switches)</span>
+                          </Badge>
+                        ) : (
+                          <Badge variant="destructive" className="gap-1.5 py-1 px-3">
+                            <ShieldAlert className="w-3.5 h-3.5" />
+                            <span>Proctoring Flagged ({tabSwitchCount} Tab Switches)</span>
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
+                      <div className="p-3 rounded-lg bg-card border border-border">
+                        <span className="text-muted-foreground block">Target Role</span>
+                        <span className="font-semibold text-foreground">{currentJobRole.title}</span>
+                      </div>
+                      <div className="p-3 rounded-lg bg-card border border-border">
+                        <span className="text-muted-foreground block">Questions Answered</span>
+                        <span className="font-semibold text-foreground font-mono">{roleQuestions.length || 3} of {roleQuestions.length || 3}</span>
+                      </div>
+                      <div className="p-3 rounded-lg bg-card border border-border">
+                        <span className="text-muted-foreground block">Proctoring Status</span>
+                        <span className="font-semibold font-mono capitalize">
+                          {examIntegrityStatus === 'clean' ? 'Passed Clean' : 'Flagged for Review'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-3 pt-3 border-t border-border/40">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => setActiveStepId('step_nda')}
+                      className="text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                    >
+                      &larr; View Signed NDA
+                    </Button>
+
+                    <Button
+                      onClick={() => setActiveStepId('step_submission')}
+                      className="gap-2 bg-primary text-primary-foreground font-semibold cursor-pointer shadow-md"
+                    >
+                      <span>Proceed to Step 4: Video & Portfolio</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </>
+            ) : !isExamStarted ? (
+              /* State 2: Pre-Exam Briefing & Rules Notice */
+              <>
+                <CardHeader className="p-6 pb-4">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="outline" className="border-primary/40 text-primary font-mono">
+                      Step 3 of 5 &bull; Timed Evaluation
+                    </Badge>
+                    <CardTitle className="text-xl">{currentJobRole.title} — Technical Assessment Briefing</CardTitle>
+                  </div>
+                  <p className="text-sm text-muted-foreground">
+                    Please carefully review the time limit and anti-cheating proctoring rules before beginning your exam.
                   </p>
                 </CardHeader>
                 <CardContent className="p-6 pt-0 space-y-6">
@@ -2192,89 +2479,73 @@ export const CandidatePortalRunner: React.FC = () => {
                     <CheckCircle2 className="w-4 h-4 shrink-0" />
                     <span>
                       {gatingMode === 'admin_approval'
-                        ? 'Profile approved by recruitment team. Technical assessment module unlocked.'
-                        : 'Instant Self-Service: Identity verified. Technical assessment module unlocked.'}
+                        ? `Profile approved by recruitment team. Technical assessment for ${currentJobRole.title} unlocked.`
+                        : `Instant Self-Service: Identity verified. Technical assessment for ${currentJobRole.title} unlocked.`}
                     </span>
                   </div>
 
-                  <div className="space-y-4">
-                    {/* Question 1 */}
-                    <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-2">
-                      <label className="text-xs font-bold text-foreground">
-                        Q1: How should positive booleans be evaluated in strict coding guidelines?
-                      </label>
-                      <div className="space-y-1.5 pt-1">
-                        {[
-                          'Explicit check: if (isReady == true)',
-                          'Implicit check: if (isReady)',
-                          'Triple equals check: if (isReady === true)',
-                        ].map((opt) => (
-                          <label key={opt} className="flex items-center gap-2 text-xs text-foreground cursor-pointer p-2 rounded-lg hover:bg-muted/50">
-                            <input
-                              type="radio"
-                              name="q1"
-                              value={opt}
-                              checked={q1Answer === opt}
-                              onChange={(e) => setQ1Answer(e.target.value)}
-                              className="cursor-pointer"
-                            />
-                            <span>{opt}</span>
-                          </label>
-                        ))}
-                      </div>
+                  <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-950 dark:text-amber-100 space-y-4">
+                    <div className="flex items-center gap-2 font-bold font-heading text-base text-amber-800 dark:text-amber-300">
+                      <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
+                      <span>Exam Instructions & Anti-Cheat Proctoring Rules</span>
                     </div>
 
-                    {/* Question 2 */}
-                    <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-2">
-                      <label className="text-xs font-bold text-foreground">
-                        Q2: Which architectural pattern is utilized for SQLite sharding in WP Exam?
-                      </label>
-                      <div className="space-y-1.5 pt-1">
-                        {[
-                          'Monolithic central MySQL database',
-                          'SQLite Split-DB architecture (Main + Project shards)',
-                          'External cloud-only Redis cache',
-                        ].map((opt) => (
-                          <label key={opt} className="flex items-center gap-2 text-xs text-foreground cursor-pointer p-2 rounded-lg hover:bg-muted/50">
-                            <input
-                              type="radio"
-                              name="q2"
-                              value={opt}
-                              checked={q2Answer === opt}
-                              onChange={(e) => setQ2Answer(e.target.value)}
-                              className="cursor-pointer"
-                            />
-                            <span>{opt}</span>
-                          </label>
-                        ))}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
+                      <div className="p-3.5 rounded-xl bg-card border border-amber-500/20 text-card-foreground space-y-1">
+                        <div className="font-bold flex items-center gap-1.5 text-foreground">
+                          <Clock className="w-4 h-4 text-primary" />
+                          <span>1. Strict 10-Minute Time Limit</span>
+                        </div>
+                        <p className="text-muted-foreground leading-relaxed">
+                          The 10:00 countdown timer starts as soon as you press "Start 10-Minute Assessment". It cannot be paused or reset. Answers will auto-submit when the timer expires.
+                        </p>
                       </div>
-                    </div>
 
-                    {/* Question 3 */}
-                    <div className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-2">
-                      <label className="text-xs font-bold text-foreground">
-                        Q3: In Riseup theme design tokens, what is the role of Gold (#E8C547)?
-                      </label>
-                      <div className="space-y-1.5 pt-1">
-                        {[
-                          'Dominant background surface fill',
-                          'Strictly an active indicator mark, never dominant surface or text',
-                          'All general body paragraph typography',
-                        ].map((opt) => (
-                          <label key={opt} className="flex items-center gap-2 text-xs text-foreground cursor-pointer p-2 rounded-lg hover:bg-muted/50">
-                            <input
-                              type="radio"
-                              name="q3"
-                              value={opt}
-                              checked={q3Answer === opt}
-                              onChange={(e) => setQ3Answer(e.target.value)}
-                              className="cursor-pointer"
-                            />
-                            <span>{opt}</span>
-                          </label>
-                        ))}
+                      <div className="p-3.5 rounded-xl bg-card border border-amber-500/20 text-card-foreground space-y-1">
+                        <div className="font-bold flex items-center gap-1.5 text-foreground">
+                          <ShieldAlert className="w-4 h-4 text-destructive" />
+                          <span>2. Tab Switching Prohibited</span>
+                        </div>
+                        <p className="text-muted-foreground leading-relaxed">
+                          Active proctoring tracks window focus and browser visibility. Switching tabs, opening secondary apps, or minimizing this screen will trigger proctoring violations.
+                        </p>
+                      </div>
+
+                      <div className="p-3.5 rounded-xl bg-card border border-amber-500/20 text-card-foreground space-y-1">
+                        <div className="font-bold flex items-center gap-1.5 text-foreground">
+                          <AlertCircle className="w-4 h-4 text-amber-500" />
+                          <span>3. 3-Strike Immediate Submission</span>
+                        </div>
+                        <p className="text-muted-foreground leading-relaxed">
+                          Every tab switch or focus loss is recorded as a strike. On the 3rd strike, the exam will immediately auto-submit and flag your application for recruiter review.
+                        </p>
+                      </div>
+
+                      <div className="p-3.5 rounded-xl bg-card border border-amber-500/20 text-card-foreground space-y-1">
+                        <div className="font-bold flex items-center gap-1.5 text-foreground">
+                          <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                          <span>4. Quiet & Focused Environment</span>
+                        </div>
+                        <p className="text-muted-foreground leading-relaxed">
+                          Please ensure all notifications, chat windows, and background browser tabs are closed before launching your exam session.
+                        </p>
                       </div>
                     </div>
+                  </div>
+
+                  {/* Readiness Confirmation Checkbox */}
+                  <div className="p-4 rounded-xl bg-muted/40 border border-border">
+                    <label className="flex items-start gap-3 cursor-pointer text-xs sm:text-sm">
+                      <input
+                        type="checkbox"
+                        checked={examBriefingAgreed}
+                        onChange={(e) => setExamBriefingAgreed(e.target.checked)}
+                        className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary cursor-pointer"
+                      />
+                      <span className="text-foreground leading-relaxed">
+                        I understand the 10-minute time limit and anti-cheating proctoring rules. I confirm I will stay in this browser window until completion. <span className="text-red-500 font-bold ml-1">*</span>
+                      </span>
+                    </label>
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-3 pt-3 border-t border-border/40">
@@ -2287,11 +2558,114 @@ export const CandidatePortalRunner: React.FC = () => {
                       &larr; Previous Step
                     </Button>
 
+                    <Button
+                      onClick={() => {
+                        setIsExamStarted(true);
+                        toast.success('Exam started! 10:00 timer is running.');
+                      }}
+                      disabled={!examBriefingAgreed}
+                      className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-md"
+                    >
+                      <span>Start 10-Minute Assessment</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </>
+            ) : (
+              /* State 3: Active Timed Proctored Exam Mode */
+              <>
+                <CardHeader className="p-6 pb-4">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <div className="flex items-center gap-2">
+                      <Badge variant="outline" className="border-primary/40 text-primary">
+                        Step 3 of 5
+                      </Badge>
+                      <CardTitle className="text-xl">{currentJobRole.title} — Active Assessment</CardTitle>
+                    </div>
+
+                    {/* Sticky / Live Proctoring Timer HUD */}
+                    <div className="flex items-center gap-2.5">
+                      <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 text-xs font-mono font-bold text-foreground">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block" />
+                        <span>Proctored Session</span>
+                      </div>
+
+                      <div className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-bold shadow-xs ${
+                        tabSwitchCount === 0
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                          : tabSwitchCount < 3
+                            ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/30'
+                            : 'bg-destructive/10 text-destructive border border-destructive/30'
+                      }`}>
+                        <ShieldAlert className="w-3.5 h-3.5" />
+                        <span>Strikes: {tabSwitchCount}/3</span>
+                      </div>
+
+                      <div className={`flex items-center gap-1.5 px-3.5 py-1 rounded-lg text-sm font-mono font-bold shadow-xs ${
+                        examSecondsLeft <= 60
+                          ? 'bg-destructive text-destructive-foreground animate-pulse'
+                          : examSecondsLeft <= 180
+                            ? 'bg-amber-500/20 text-amber-700 dark:text-amber-300 border border-amber-500/40'
+                            : 'bg-primary text-primary-foreground'
+                      }`}>
+                        <Clock className="w-4 h-4" />
+                        <span>{formatTimerDisplay(examSecondsLeft)}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Select your answer for each role question. Tab switching is strictly monitored.
+                  </p>
+                </CardHeader>
+
+                <CardContent className="p-6 pt-0 space-y-6">
+                  <div className="space-y-4">
+                    {roleQuestions.map((q, idx) => (
+                      <div key={q.id} className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-2">
+                        <label className="text-xs font-bold text-foreground">
+                          Q{idx + 1}: {q.question}
+                        </label>
+                        <div className="space-y-1.5 pt-1">
+                          {q.options.map((opt) => (
+                            <label
+                              key={opt}
+                              className={`flex items-center gap-2 text-xs text-foreground cursor-pointer p-2.5 rounded-lg transition-colors ${
+                                assessmentAnswers[q.id] === opt
+                                  ? 'bg-primary/10 border border-primary/30 font-semibold'
+                                  : 'hover:bg-muted/50 border border-transparent'
+                              }`}
+                            >
+                              <input
+                                type="radio"
+                                name={`role_q_${q.id}`}
+                                value={opt}
+                                checked={assessmentAnswers[q.id] === opt}
+                                onChange={(e) => {
+                                  setAssessmentAnswers((prev) => ({ ...prev, [q.id]: e.target.value }));
+                                }}
+                                className="cursor-pointer text-primary"
+                              />
+                              <span>{opt}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-3 pt-3 border-t border-border/40">
+                    <div className="text-xs text-muted-foreground flex items-center gap-1.5 font-mono">
+                      <Shield className="w-3.5 h-3.5 text-primary" />
+                      <span>Proctored window focus lock active</span>
+                    </div>
+
                     <div className="flex items-center gap-3">
                       {!isStep3Satisfied ? (
                         <div className="text-xs text-amber-500 flex items-center gap-1.5 font-medium">
                           <AlertCircle className="w-3.5 h-3.5" />
-                          <span>Please answer all 3 questions to proceed.</span>
+                          <span>Please answer all {roleQuestions.length} questions.</span>
                         </div>
                       ) : (
                         <div className="text-xs text-emerald-500 flex items-center gap-1.5 font-medium">
@@ -2301,11 +2675,11 @@ export const CandidatePortalRunner: React.FC = () => {
                       )}
 
                       <Button
-                        onClick={handleStep3Submit}
+                        onClick={() => handleStep3Submit()}
                         disabled={!isStep3Satisfied}
-                        className="gap-2 bg-primary text-primary-foreground font-semibold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                        className="gap-2 bg-primary text-primary-foreground font-semibold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-md"
                       >
-                        <span>{isStep3Done ? 'Update & Next Step' : 'Submit Assessment & Proceed'}</span>
+                        <span>Submit Assessment & Proceed</span>
                         <ArrowRight className="w-4 h-4" />
                       </Button>
                     </div>
@@ -2717,6 +3091,45 @@ export const CandidatePortalRunner: React.FC = () => {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Proctoring Focus Lost Warning Modal */}
+      <Dialog open={showFocusLostModal} onOpenChange={setShowFocusLostModal}>
+        <DialogContent className="sm:max-w-md bg-card text-card-foreground border-2 border-destructive rounded-2xl p-6 shadow-2xl space-y-4">
+          <DialogHeader>
+            <div className="w-14 h-14 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mx-auto mb-2 shadow-inner">
+              <ShieldAlert className="w-8 h-8 animate-bounce" />
+            </div>
+            <DialogTitle className="text-xl font-bold text-center text-foreground font-heading">
+              Anti-Cheat Warning: Window Focus Lost!
+            </DialogTitle>
+            <DialogDescription className="text-center text-xs text-muted-foreground pt-1">
+              Tab switching, minimizing the browser, or navigating away from this window is strictly prohibited during the assessment.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/20 text-center space-y-1">
+            <span className="text-xs text-destructive font-semibold block">Proctoring Infraction Recorded:</span>
+            <span className="text-lg font-bold font-mono text-destructive">
+              Strike #{tabSwitchCount} of 3
+            </span>
+            <p className="text-[11px] text-muted-foreground mt-1">
+              {tabSwitchCount >= 3
+                ? 'Maximum infractions reached. Your exam is being automatically submitted.'
+                : 'Warning: 3 strikes will result in immediate auto-submission with an integrity flag.'}
+            </p>
+          </div>
+
+          <DialogFooter className="pt-2 sm:justify-center">
+            <Button
+              type="button"
+              onClick={() => setShowFocusLostModal(false)}
+              className="w-full bg-primary text-primary-foreground font-bold rounded-xl cursor-pointer"
+            >
+              I Understand & Resume Exam
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
