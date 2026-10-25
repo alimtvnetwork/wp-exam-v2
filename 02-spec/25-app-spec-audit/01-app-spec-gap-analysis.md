@@ -121,3 +121,14 @@ This specification audit provides a comprehensive, ground-truth gap analysis com
    - Vitest: 23 test suites, 226 tests passed with 0 failures.
    - Retrospective AI Verification: `[PASS]` on 0 absolute paths, 0 explicit true checks, and 0 mixed polarity checks.
    - Vite Production Build: Verified clean bundling without errors.
+
+---
+
+## Acceptance Criteria
+- [x] Official verification receipt certificate is downloadable and printable from Candidate Portal Step 5.
+- [x] Boolean conventions strictly avoid explicit comparisons against boolean literals across all questions and runtime logic.
+- [x] SQLite split-DB schema migrations include dedicated columns for job role, tab switch count, and integrity status.
+- [x] Application wizard provides a streamlined 3-step candidate submission flow.
+- [x] Timed 10-minute technical evaluation incorporates tab anti-cheat detection and automated proctoring notices.
+- [x] Specification gap analysis matrix is formally documented and tracked in 02-spec/25-app-spec-audit/.
+- [x] Candidate portal messages render in polite, reassuring, human-friendly phrasing without internal administrative jargon.

@@ -1191,7 +1191,7 @@ export const CandidatePortalRunner: React.FC = () => {
     handleCompleteStep('step_nda', { signature: ndaSignName, signed_at: new Date().toISOString() });
 
     if (isAssessmentGated) {
-      toast.info('Profile verification submitted. Awaiting administrative review before assessment unlocks.');
+      toast.info('Agreement signed. Your application is now in review.');
     }
   };
 
@@ -2320,12 +2320,12 @@ export const CandidatePortalRunner: React.FC = () => {
                 <CardHeader className="p-6 pb-4">
                   <div className="flex items-center gap-2">
                     <Badge variant="outline" className="border-amber-500/40 text-amber-600 dark:text-amber-400 font-mono">
-                      Step 3 of 5 &bull; Pending Recruiter Review
+                      Step 3 of 5 &bull; In Review
                     </Badge>
-                    <CardTitle className="text-xl">Profile Verification Submitted & Awaiting Approval</CardTitle>
+                    <CardTitle className="text-xl">Your Application Is Under Review</CardTitle>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Your profile verification and signed NDA have been received. Recruiter approval is required before technical assignments unlock.
+                    Thank you for completing your verification and signing the agreement. Our hiring team is reviewing your profile and will make your technical evaluation available shortly.
                   </p>
                 </CardHeader>
                 <CardContent className="p-6 pt-0 space-y-6">
@@ -2334,31 +2334,31 @@ export const CandidatePortalRunner: React.FC = () => {
                       <Clock className="w-7 h-7 animate-pulse" />
                     </div>
 
-                    <div className="max-w-md mx-auto space-y-1.5">
+                    <div className="max-w-md mx-auto space-y-2">
                       <h3 className="text-base font-bold text-foreground">
-                        Profile Under Review by Recruiting Team
+                        Your Application Is Being Reviewed
                       </h3>
                       <p className="text-xs text-muted-foreground leading-relaxed">
-                        Under our <strong className="text-foreground">Admin Approval Gate</strong> policy, candidate profiles are reviewed by the recruiting team in the Applicant Pipeline before technical assignments and timed evaluations are unlocked.
+                        Thank you for completing the first steps! Our hiring team is currently taking a look at your application details. Once approved, your role-specific technical assessment will be ready right here. You will also receive an email notification when it is time to begin.
                       </p>
                     </div>
 
                     <div className="p-3.5 rounded-xl bg-card border border-border/50 max-w-sm mx-auto text-left text-xs space-y-2 shadow-2xs">
                       <div className="flex items-center justify-between text-muted-foreground">
-                        <span>Candidate:</span>
+                        <span>Applicant:</span>
                         <span className="font-semibold text-foreground">{candidateName}</span>
                       </div>
                       <div className="flex items-center justify-between text-muted-foreground">
-                        <span>Pipeline Stage:</span>
+                        <span>Application Status:</span>
                         <Badge variant="secondary" className="text-[10px] uppercase font-mono tracking-wider">
-                          {stageKey || 'Screening'}
+                          In Review
                         </Badge>
                       </div>
                       <div className="flex items-center justify-between text-muted-foreground">
-                        <span>Assignment Access:</span>
+                        <span>Next Step:</span>
                         <span className="font-semibold text-amber-600 dark:text-amber-400 flex items-center gap-1">
                           <Lock className="w-3 h-3" />
-                          Locked (Awaiting Recruiter Approval)
+                          Technical Assessment (Unlocks after review)
                         </span>
                       </div>
                     </div>
@@ -2370,18 +2370,18 @@ export const CandidatePortalRunner: React.FC = () => {
                         onClick={() => setActiveStepId('step_nda')}
                         className="text-xs cursor-pointer"
                       >
-                        &larr; View Signed NDA
+                        &larr; View Signed Agreement
                       </Button>
                       <Button
                         size="sm"
                         onClick={() => {
                           fetchSession();
-                          toast.info('Checking for administrative approval in pipeline...');
+                          toast.info('Checking for updates on your application...');
                         }}
                         className="gap-2 bg-primary text-primary-foreground font-semibold shadow-xs cursor-pointer"
                       >
                         <RefreshCw className="w-3.5 h-3.5" />
-                        <span>Check Approval Status</span>
+                        <span>Refresh Status</span>
                       </Button>
                     </div>
                   </div>
@@ -2398,7 +2398,7 @@ export const CandidatePortalRunner: React.FC = () => {
                     <CardTitle className="text-xl">{currentJobRole.title} — Technical Assessment Results</CardTitle>
                   </div>
                   <p className="text-sm text-muted-foreground">
-                    Your assessment responses and proctoring audit log have been recorded into the candidate pipeline.
+                    Your assessment responses have been recorded and saved to your application profile.
                   </p>
                 </CardHeader>
                 <CardContent className="p-6 pt-0 space-y-6">
@@ -2414,12 +2414,12 @@ export const CandidatePortalRunner: React.FC = () => {
                         {examIntegrityStatus === 'clean' ? (
                           <Badge className="bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 gap-1.5 py-1 px-3">
                             <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Proctoring Clean (0 Tab Switches)</span>
+                            <span>Verified Session (0 Focus Notices)</span>
                           </Badge>
                         ) : (
                           <Badge variant="destructive" className="gap-1.5 py-1 px-3">
                             <ShieldAlert className="w-3.5 h-3.5" />
-                            <span>Proctoring Flagged ({tabSwitchCount} Tab Switches)</span>
+                            <span>Focus Notices Logged ({tabSwitchCount} Tab Switches)</span>
                           </Badge>
                         )}
                       </div>
@@ -2482,55 +2482,55 @@ export const CandidatePortalRunner: React.FC = () => {
                     <CheckCircle2 className="w-4 h-4 shrink-0" />
                     <span>
                       {gatingMode === 'admin_approval'
-                        ? `Profile approved by recruitment team. Technical assessment for ${currentJobRole.title} unlocked.`
-                        : `Instant Self-Service: Identity verified. Technical assessment for ${currentJobRole.title} unlocked.`}
+                        ? `Application verified! You can now begin the technical evaluation for ${currentJobRole.title}.`
+                        : `Identity verified! You can now begin the technical evaluation for ${currentJobRole.title}.`}
                     </span>
                   </div>
 
                   <div className="p-5 rounded-2xl bg-amber-500/10 border border-amber-500/30 text-amber-950 dark:text-amber-100 space-y-4">
                     <div className="flex items-center gap-2 font-bold font-heading text-base text-amber-800 dark:text-amber-300">
                       <Clock className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                      <span>Exam Instructions & Anti-Cheat Proctoring Rules</span>
+                      <span>Exam Guidelines & Focus Instructions</span>
                     </div>
 
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 text-xs">
                       <div className="p-3.5 rounded-xl bg-card border border-amber-500/20 text-card-foreground space-y-1">
                         <div className="font-bold flex items-center gap-1.5 text-foreground">
                           <Clock className="w-4 h-4 text-primary" />
-                          <span>1. Strict 10-Minute Time Limit</span>
+                          <span>1. 10-Minute Timer</span>
                         </div>
                         <p className="text-muted-foreground leading-relaxed">
-                          The 10:00 countdown timer starts as soon as you press "Start 10-Minute Assessment". It cannot be paused or reset. Answers will auto-submit when the timer expires.
+                          The 10:00 countdown timer starts as soon as you press "Start 10-Minute Assessment". It runs continuously and will automatically submit when time expires.
                         </p>
                       </div>
 
                       <div className="p-3.5 rounded-xl bg-card border border-amber-500/20 text-card-foreground space-y-1">
                         <div className="font-bold flex items-center gap-1.5 text-foreground">
                           <ShieldAlert className="w-4 h-4 text-destructive" />
-                          <span>2. Tab Switching Prohibited</span>
+                          <span>2. Stay in this Window</span>
                         </div>
                         <p className="text-muted-foreground leading-relaxed">
-                          Active proctoring tracks window focus and browser visibility. Switching tabs, opening secondary apps, or minimizing this screen will trigger proctoring violations.
+                          Please keep this browser window active while taking the exam. Switching tabs, opening other apps, or minimizing the browser will trigger a focus warning.
                         </p>
                       </div>
 
                       <div className="p-3.5 rounded-xl bg-card border border-amber-500/20 text-card-foreground space-y-1">
                         <div className="font-bold flex items-center gap-1.5 text-foreground">
                           <AlertCircle className="w-4 h-4 text-amber-500" />
-                          <span>3. 3-Strike Immediate Submission</span>
+                          <span>3. Focus Warnings & Auto-Submit</span>
                         </div>
                         <p className="text-muted-foreground leading-relaxed">
-                          Every tab switch or focus loss is recorded as a strike. On the 3rd strike, the exam will immediately auto-submit and flag your application for recruiter review.
+                          To ensure a fair evaluation for all candidates, leaving the window logs a warning. If 3 warnings are reached, the exam will automatically submit your current answers.
                         </p>
                       </div>
 
                       <div className="p-3.5 rounded-xl bg-card border border-amber-500/20 text-card-foreground space-y-1">
                         <div className="font-bold flex items-center gap-1.5 text-foreground">
                           <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                          <span>4. Quiet & Focused Environment</span>
+                          <span>4. Quiet & Focused Setting</span>
                         </div>
                         <p className="text-muted-foreground leading-relaxed">
-                          Please ensure all notifications, chat windows, and background browser tabs are closed before launching your exam session.
+                          We recommend closing background apps and chat windows so you can focus comfortably on your answers.
                         </p>
                       </div>
                     </div>
@@ -2546,7 +2546,7 @@ export const CandidatePortalRunner: React.FC = () => {
                         className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary cursor-pointer"
                       />
                       <span className="text-foreground leading-relaxed">
-                        I understand the 10-minute time limit and anti-cheating proctoring rules. I confirm I will stay in this browser window until completion. <span className="text-red-500 font-bold ml-1">*</span>
+                        I have reviewed the 10-minute time limit and focus guidelines. I confirm I will stay in this browser window until finished. <span className="text-red-500 font-bold ml-1">*</span>
                       </span>
                     </label>
                   </div>
@@ -2591,7 +2591,7 @@ export const CandidatePortalRunner: React.FC = () => {
                     <div className="flex items-center gap-2.5">
                       <div className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-primary/10 border border-primary/20 text-xs font-mono font-bold text-foreground">
                         <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping inline-block" />
-                        <span>Proctored Session</span>
+                        <span>Active Session</span>
                       </div>
 
                       <div className={`flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-mono font-bold shadow-xs ${
@@ -2602,7 +2602,7 @@ export const CandidatePortalRunner: React.FC = () => {
                             : 'bg-destructive/10 text-destructive border border-destructive/30'
                       }`}>
                         <ShieldAlert className="w-3.5 h-3.5" />
-                        <span>Strikes: {tabSwitchCount}/3</span>
+                        <span>Focus Notices: {tabSwitchCount}/3</span>
                       </div>
 
                       <div className={`flex items-center gap-1.5 px-3.5 py-1 rounded-lg text-sm font-mono font-bold shadow-xs ${
@@ -3117,22 +3117,22 @@ export const CandidatePortalRunner: React.FC = () => {
               <ShieldAlert className="w-8 h-8 animate-bounce" />
             </div>
             <DialogTitle className="text-xl font-bold text-center text-foreground font-heading">
-              Anti-Cheat Warning: Window Focus Lost!
+              Please Keep This Window Active
             </DialogTitle>
             <DialogDescription className="text-center text-xs text-muted-foreground pt-1">
-              Tab switching, minimizing the browser, or navigating away from this window is strictly prohibited during the assessment.
+              To ensure a fair and consistent testing experience for all candidates, please remain in this window while answering questions.
             </DialogDescription>
           </DialogHeader>
 
           <div className="p-3.5 rounded-xl bg-destructive/10 border border-destructive/20 text-center space-y-1">
-            <span className="text-xs text-destructive font-semibold block">Proctoring Infraction Recorded:</span>
+            <span className="text-xs text-destructive font-semibold block">Focus Notice:</span>
             <span className="text-lg font-bold font-mono text-destructive">
-              Strike #{tabSwitchCount} of 3
+              Notice #{tabSwitchCount} of 3
             </span>
             <p className="text-[11px] text-muted-foreground mt-1">
               {tabSwitchCount >= 3
-                ? 'Maximum infractions reached. Your exam is being automatically submitted.'
-                : 'Warning: 3 strikes will result in immediate auto-submission with an integrity flag.'}
+                ? 'Maximum notices reached (3 of 3). Your exam is being automatically submitted.'
+                : 'Notice: Navigating away 3 times will automatically submit your assessment.'}
             </p>
           </div>
 
@@ -3206,9 +3206,9 @@ export const CandidatePortalRunner: React.FC = () => {
                 </span>
               </div>
               <div>
-                <span className="text-muted-foreground block font-medium">Proctoring Integrity</span>
+                <span className="text-muted-foreground block font-medium">Session Integrity</span>
                 <span className="font-semibold text-emerald-600 dark:text-emerald-400">
-                  {tabSwitchCount === 0 ? 'Clean (0 Tab Strikes)' : `${tabSwitchCount} Strikes Logged`}
+                  {tabSwitchCount === 0 ? 'Verified Session (0 Focus Notices)' : `${tabSwitchCount} Focus Notices Logged`}
                 </span>
               </div>
               <div>
@@ -3261,7 +3261,7 @@ Candidate Name  : ${candidateName}
 Candidate Email : ${candidateEmail}
 Target Role     : ${currentJobRole.title}
 Assessment Score: ${displayScore !== null ? `${displayScore}%` : '100%'}
-Proctoring Audit: ${tabSwitchCount === 0 ? 'Clean (0 Strikes)' : `${tabSwitchCount} Strikes Logged`}
+Session Status  : ${tabSwitchCount === 0 ? 'Verified Session (0 Focus Notices)' : `${tabSwitchCount} Focus Notices Logged`}
 NDA Execution   : Signed by ${ndaSignName || candidateName}
 Date Certified  : ${new Date().toISOString()}
 Status          : VERIFIED & FILED WITH HIRING COMMITTEE
