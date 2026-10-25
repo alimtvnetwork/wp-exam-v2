@@ -736,7 +736,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     }
 
     hudIdleTimer.current = window.setTimeout(() => {
-      setIsHudExpanded(false);
+      if (typeof window !== 'undefined') {
+        setIsHudExpanded(false);
+      }
     }, 3000);
   }, []);
 
@@ -772,7 +774,9 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
     }
 
     previewBannerTimer.current = window.setTimeout(() => {
-      setIsPreviewBannerCollapsed(true);
+      if (typeof window !== 'undefined') {
+        setIsPreviewBannerCollapsed(true);
+      }
     }, 2000);
   }, [isPreviewRoute]);
 

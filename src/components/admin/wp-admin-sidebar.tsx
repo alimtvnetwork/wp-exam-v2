@@ -21,6 +21,7 @@ import {
   ChevronDown,
   UserCheck,
   ShieldCheck,
+  Briefcase,
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import onboardingQuizLogo from '@/assets/onboarding-quiz-logo.svg';
@@ -32,6 +33,7 @@ export type AdminTab =
   | 'focus-runner'
   | 'runner'
   | 'pipeline'
+  | 'roles'
   | 'users'
   | 'invites'
   | 'history'
@@ -116,6 +118,12 @@ const NAV_SECTIONS: NavSection[] = [
         badge: 'Kanban',
         badgeVariant: 'amber',
         description: 'Recruitment stage transitions',
+      },
+      {
+        id: 'roles',
+        label: 'Job Roles & Assessments',
+        icon: Briefcase,
+        description: 'Position definitions & MCQ editor',
       },
       {
         id: 'invites',

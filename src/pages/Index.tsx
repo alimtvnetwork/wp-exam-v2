@@ -13,6 +13,7 @@ import { AIInstructionStudio } from '@/components/admin/ai-instruction-studio';
 import { BackupManager } from '@/components/admin/backup-manager';
 import { AnalyticsDashboard } from '@/components/admin/analytics-dashboard';
 import { ApplicantPipelineKanban } from '@/components/admin/applicant-pipeline-kanban';
+import { JobRolesManager } from '@/components/admin/job-roles-manager';
 import { AdminUsersManager } from '@/components/admin/admin-users-manager';
 import { ThemeBuilder } from '@/components/theme-builder';
 import { GuidedTourManager, GuidedTourReplayButton } from '@/components/onboarding/guided-tour';
@@ -420,7 +421,13 @@ export const Index: React.FC = () => {
 
               {previousTab === 'pipeline' && (
                 <div className="w-full">
-                  <ApplicantPipelineKanban />
+                  <ApplicantPipelineKanban onNavigateTab={handleSelectTab} />
+                </div>
+              )}
+
+              {previousTab === 'roles' && (
+                <div className="w-full">
+                  <JobRolesManager onNavigateTab={handleSelectTab} />
                 </div>
               )}
 
