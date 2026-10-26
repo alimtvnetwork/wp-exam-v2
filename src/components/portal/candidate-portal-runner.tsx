@@ -60,6 +60,12 @@ import {
   saveActiveExamSession,
   clearActiveExamSession,
 } from '@/lib/exam-session-storage';
+import {
+  isValidVideoUrl,
+  isValidPortfolioUrl,
+  normalizeWebUrl,
+  isRecognizedVideoPlatform,
+} from '@/lib/portal-validation';
 
 export interface AssignedTask {
   id: string;
@@ -1233,9 +1239,14 @@ export const CandidatePortalRunner: React.FC = () => {
     : Boolean(q1Answer && q2Answer && q3Answer);
   const isStep3Satisfied = Boolean(isAllRoleQuestionsAnswered || isStep3Done);
 
-  // Step 4 satisfaction
+  // Step 4 satisfaction & link validation
   const isStep4Done = Boolean(session.steps.find((s) => s.id === 'step_submission')?.is_completed);
-  const isStep4Satisfied = (videoUrl.trim().length > 0) || isStep4Done;
+  const isVideoEmpty = (videoUrl.trim().length === 0);
+  const isVideoValid = isValidVideoUrl(videoUrl);
+  const isPortfolioEmpty = (portfolioUrl.trim().length === 0);
+  const isPortfolioValid = isValidPortfolioUrl(portfolioUrl);
+  const isStep4InputValid = (isVideoValid && isPortfolioValid);
+  const isStep4Satisfied = (isStep4InputValid || isStep4Done);
 
   // Step 5 satisfaction / completion
   const isStep5Done = Boolean(session.steps.find((s) => s.id === 'step_complete')?.is_completed || session.is_fully_verified);
@@ -1486,11 +1497,18 @@ export const CandidatePortalRunner: React.FC = () => {
 
   const handleStep4Submit = () => {
     if (!isStep4Satisfied) {
-      toast.error('Please provide an introductory video recording link.');
+      toast.error('Please provide a valid introductory video recording link (e.g. Loom, YouTube, Google Drive).');
       return;
     }
 
-    handleCompleteStep('step_submission', { video_url: videoUrl, portfolio_url: portfolioUrl, notes: submissionNotes });
+    const cleanVideoUrl = normalizeWebUrl(videoUrl);
+    const cleanPortfolioUrl = normalizeWebUrl(portfolioUrl);
+
+    handleCompleteStep('step_submission', {
+      video_url: cleanVideoUrl,
+      portfolio_url: cleanPortfolioUrl,
+      notes: submissionNotes,
+    });
   };
 
   const handleLookupSubmit = (e: React.FormEvent) => {
@@ -2972,6 +2990,21 @@ export const CandidatePortalRunner: React.FC = () => {
                       value={videoUrl}
                       onChange={(e) => setVideoUrl(e.target.value)}
                     />
+                    {!isVideoEmpty && (
+                      <div className="pt-0.5">
+                        {isVideoValid ? (
+                          <div className="flex items-center gap-1.5 text-[11px] text-emerald-500 font-medium">
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Valid video URL {isRecognizedVideoPlatform(videoUrl) ? '(Supported Platform)' : ''}</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-[11px] text-destructive font-medium">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            <span>Please enter a valid web URL (e.g. https://www.loom.com/share/...)</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">
@@ -2984,6 +3017,21 @@ export const CandidatePortalRunner: React.FC = () => {
                       value={portfolioUrl}
                       onChange={(e) => setPortfolioUrl(e.target.value)}
                     />
+                    {!isPortfolioEmpty && (
+                      <div className="pt-0.5">
+                        {isPortfolioValid ? (
+                          <div className="flex items-center gap-1.5 text-[11px] text-emerald-500 font-medium">
+                            <Check className="w-3.5 h-3.5" />
+                            <span>Valid portfolio URL</span>
+                          </div>
+                        ) : (
+                          <div className="flex items-center gap-1.5 text-[11px] text-destructive font-medium">
+                            <AlertCircle className="w-3.5 h-3.5" />
+                            <span>Please enter a valid web URL (e.g. https://github.com/...)</span>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
 
                   <div className="space-y-1.5">

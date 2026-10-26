@@ -277,6 +277,17 @@ class CandidatePortalRestController extends WP_REST_Controller {
             }
         }
 
+        $isSubmissionStep = ($stepId === 'step_submission');
+
+        if ($isSubmissionStep) {
+            if (isset($stepData['video_url'])) {
+                $stepData['video_url'] = filter_var((string) $stepData['video_url'], FILTER_SANITIZE_URL);
+            }
+            if (isset($stepData['portfolio_url'])) {
+                $stepData['portfolio_url'] = filter_var((string) $stepData['portfolio_url'], FILTER_SANITIZE_URL);
+            }
+        }
+
         $jsonData = json_encode($stepData);
         $sql = 'INSERT INTO portal_step_completions (token, step_id, step_data_json, completed_at)
                 VALUES (?, ?, ?, datetime("now"))
