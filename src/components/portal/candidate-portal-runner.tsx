@@ -671,6 +671,7 @@ export const CandidatePortalRunner: React.FC = () => {
   const [taskQuizAnswers, setTaskQuizAnswers] = useState<Record<string, string>>({});
   const [taskQuizScore, setTaskQuizScore] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [isSessionNotFound, setIsSessionNotFound] = useState<boolean>(false);
   const [lookupEmail, setLookupEmail] = useState<string>('');
   const [isLookupOpen, setIsLookupOpen] = useState<boolean>(false);
 
@@ -904,6 +905,14 @@ export const CandidatePortalRunner: React.FC = () => {
   const fetchSession = async () => {
     setIsLoading(true);
 
+    const isDemoToken = (
+      activeToken === 'cpt_candidate_token_demo' ||
+      activeToken === 'demo' ||
+      activeToken === 'alex-morgan' ||
+      activeToken === 'alex' ||
+      !activeToken
+    );
+
     try {
       const tokenEnc = encodeURIComponent(activeToken);
       const res = await unifiedFetch(`/api/v1/portal/${tokenEnc}`, `/wp-json/wp-exam/v1/portal/${tokenEnc}`);
@@ -914,6 +923,7 @@ export const CandidatePortalRunner: React.FC = () => {
         const sessionData = json?.data ?? json;
 
         if (sessionData?.steps) {
+          setIsSessionNotFound(false);
           const rawCandidate = sessionData.candidate || {};
           const candidateName = rawCandidate.candidate_name || rawCandidate.name || searchParams.get('name') || 'Candidate';
           const candidateEmail = rawCandidate.candidate_email || rawCandidate.email || 'candidate@example.com';
@@ -1075,10 +1085,20 @@ export const CandidatePortalRunner: React.FC = () => {
           if (firstUncompleted) {
             setActiveStepId(firstUncompleted.id);
           }
+        } else {
+          if (!isDemoToken) {
+            setIsSessionNotFound(true);
+          }
+        }
+      } else {
+        if (!isDemoToken) {
+          setIsSessionNotFound(true);
         }
       }
     } catch {
-      // Graceful fallback to default session
+      if (!isDemoToken) {
+        setIsSessionNotFound(true);
+      }
     } finally {
       setIsLoading(false);
     }
@@ -1145,6 +1165,14 @@ export const CandidatePortalRunner: React.FC = () => {
 
         if (updated?.steps) {
           setSession(updated);
+
+          const assessmentStep = updated.steps.find((s: PortalStep) => s.id === 'step_assessment');
+          const serverScore = assessmentStep?.data?.score;
+          const hasServerScore = typeof serverScore === 'number';
+
+          if (hasServerScore) {
+            setExamScore(serverScore);
+          }
         }
       }
     } catch {
@@ -1259,16 +1287,22 @@ export const CandidatePortalRunner: React.FC = () => {
 
     let correctCount = 0;
     const totalQuestions = roleQuestions.length;
+    let hasKnownAnswers = false;
 
     if (totalQuestions > 0) {
       roleQuestions.forEach((q) => {
-        const choice = assessmentAnswers[q.id];
-        const isCorrect = (choice === q.correctAnswer);
-        if (isCorrect) {
-          correctCount++;
+        const hasKey = Boolean(q.correctAnswer);
+        if (hasKey) {
+          hasKnownAnswers = true;
+          const choice = assessmentAnswers[q.id];
+          const isCorrect = (choice === q.correctAnswer);
+          if (isCorrect) {
+            correctCount++;
+          }
         }
       });
     } else {
+      hasKnownAnswers = true;
       const isQ1Correct = (q1Answer === 'Implicit check: if (isReady)');
       if (isQ1Correct) {
         correctCount++;
@@ -1285,11 +1319,13 @@ export const CandidatePortalRunner: React.FC = () => {
       }
     }
 
-    const calculatedScore = (totalQuestions > 0)
-      ? Math.round((correctCount / totalQuestions) * 100)
-      : Math.round((correctCount / 3) * 100);
+    if (hasKnownAnswers) {
+      const calculatedScore = (totalQuestions > 0)
+        ? Math.round((correctCount / totalQuestions) * 100)
+        : Math.round((correctCount / 3) * 100);
 
-    setExamScore(calculatedScore);
+      setExamScore(calculatedScore);
+    }
 
     const timeSpent = Math.max(0, examTotalSeconds - examSecondsLeft);
 
@@ -1467,8 +1503,7 @@ export const CandidatePortalRunner: React.FC = () => {
       return;
     }
 
-    const tokenPart = cleanEmail.split('@')[0];
-    navigate(`/portal/${tokenPart}`);
+    navigate(`/portal/${encodeURIComponent(cleanEmail)}`);
     setIsLookupOpen(false);
   };
 
@@ -1549,6 +1584,82 @@ export const CandidatePortalRunner: React.FC = () => {
 
     return 3;
   })();
+
+  if (isSessionNotFound) {
+    if (!isLoading) {
+      return (
+        <div className="min-h-screen bg-background text-foreground py-12 px-4 sm:px-6 lg:px-8 flex items-center justify-center">
+          <div className="max-w-md w-full space-y-6">
+            <div className="relative overflow-hidden rounded-2xl bg-card border border-border/60 shadow-md">
+              <div className="h-0.5 w-full bg-gradient-to-r from-destructive via-primary to-destructive" />
+              <div className="p-6 sm:p-8 space-y-6 text-center">
+                <div className="w-14 h-14 rounded-2xl bg-destructive/10 text-destructive flex items-center justify-center mx-auto shadow-inner">
+                  <ShieldAlert className="w-7 h-7" />
+                </div>
+
+                <div className="space-y-2">
+                  <h1 className="text-2xl font-bold tracking-tight text-foreground font-heading">
+                    Session Not Found or Expired
+                  </h1>
+                  <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed">
+                    No active assessment session was located for token{' '}
+                    <code className="px-1.5 py-0.5 rounded bg-muted font-mono text-xs text-foreground font-semibold">
+                      {activeToken}
+                    </code>
+                    . The link may have expired or was typed incorrectly.
+                  </p>
+                </div>
+
+                <div className="p-4 rounded-xl bg-muted/40 border border-border/60 text-left space-y-3">
+                  <div className="flex items-center gap-2 text-xs font-semibold text-foreground">
+                    <Search className="w-4 h-4 text-primary" />
+                    <span>Retrieve by Application Email</span>
+                  </div>
+                  <form onSubmit={handleLookupSubmit} className="space-y-2">
+                    <Input
+                      type="email"
+                      placeholder="name@example.com"
+                      value={lookupEmail}
+                      onChange={(e) => setLookupEmail(e.target.value)}
+                      className="text-xs h-9"
+                      required
+                    />
+                    <Button type="submit" size="sm" className="w-full text-xs font-semibold">
+                      Find Assessment Session
+                    </Button>
+                  </form>
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-2 pt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setIsSessionNotFound(false);
+                      navigate('/portal/cpt_candidate_token_demo');
+                    }}
+                    className="flex-1 text-xs font-medium cursor-pointer"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 mr-1 text-primary" />
+                    Demo Candidate
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate('/admin')}
+                    className="flex-1 text-xs font-medium cursor-pointer"
+                  >
+                    <Home className="w-3.5 h-3.5 mr-1" />
+                    Admin Console
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    }
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground py-8 px-4 sm:px-6 lg:px-8">

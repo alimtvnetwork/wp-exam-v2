@@ -187,6 +187,16 @@ class CandidatePortalRestController extends WP_REST_Controller {
             }
         }
 
+        $hasJobRole = ($jobRoleData !== null && isset($jobRoleData['secondPhaseQuestions']));
+
+        if ($hasJobRole) {
+            $isAssessmentCompleted = isset($completedMap['step_assessment']);
+
+            if (!$isAssessmentCompleted) {
+                $jobRoleData['secondPhaseQuestions'] = \WpExam\Services\AssessmentService::sanitizeQuestions($jobRoleData['secondPhaseQuestions']);
+            }
+        }
+
         return new WP_REST_Response(EnvelopeBuilder::createSuccessEnvelope([
             'token'                  => $token,
             'candidate'              => $candidateData,
@@ -221,50 +231,69 @@ class CandidatePortalRestController extends WP_REST_Controller {
         }
 
         $db = SqliteDatabase::getInstance();
-        $jsonData = json_encode($stepData);
+        $isAssessmentStep = ($stepId === 'step_assessment');
 
+        if ($isAssessmentStep) {
+            $existing = $db->query(
+                'SELECT id FROM portal_step_completions WHERE token = ? AND step_id = ? LIMIT 1',
+                [$token, $stepId]
+            );
+            $isAlreadyCompleted = !empty($existing);
+
+            if ($isAlreadyCompleted) {
+                // Assessment is immutable once finalized
+                return $this->getPortalSession($request);
+            }
+        }
+
+        $candidate = $this->resolveCandidate($db, $token);
+        $applicantId = (int) ($candidate['id'] ?? 0);
+        $hasApplicantId = ($applicantId > 0);
+
+        if ($isAssessmentStep) {
+            $roleKey = (string) ($candidate['job_role'] ?? 'frontend-developer');
+            $submittedAnswers = is_array($stepData['answers'] ?? null) ? $stepData['answers'] : [];
+
+            // Authoritative server-side score calculation
+            $evalResult = \WpExam\Services\AssessmentService::evaluate($roleKey, $submittedAnswers);
+            $verifiedScore = $evalResult['score'];
+            $tabSwitchCount = (int) ($stepData['tab_switch_count'] ?? 0);
+            $integrityStatus = sanitize_text_field((string) ($stepData['integrity_status'] ?? 'clean'));
+
+            $stepData['score'] = $verifiedScore;
+            $stepData['correct_count'] = $evalResult['correct_count'];
+            $stepData['total_questions'] = $evalResult['total_questions'];
+
+            if ($hasApplicantId) {
+                $db->execute(
+                    'UPDATE applicants SET score = ?, tab_switch_count = ?, integrity_status = ?, updated_at = datetime("now") WHERE id = ?',
+                    [$verifiedScore, $tabSwitchCount, $integrityStatus, $applicantId]
+                );
+            } else {
+                $db->execute(
+                    'UPDATE applicants SET score = ?, tab_switch_count = ?, integrity_status = ?, updated_at = datetime("now") WHERE portal_token = ?',
+                    [$verifiedScore, $tabSwitchCount, $integrityStatus, $token]
+                );
+            }
+        }
+
+        $jsonData = json_encode($stepData);
         $sql = 'INSERT INTO portal_step_completions (token, step_id, step_data_json, completed_at)
                 VALUES (?, ?, ?, datetime("now"))
                 ON CONFLICT(token, step_id) DO UPDATE SET step_data_json = excluded.step_data_json, completed_at = excluded.completed_at';
 
         $db->execute($sql, [$token, $stepId, $jsonData]);
 
-        $isAssessmentStep = ($stepId === 'step_assessment');
-        $candidate = $this->resolveCandidate($db, $token);
-        $applicantId = (int) ($candidate['id'] ?? 0);
-        $hasApplicantId = ($applicantId > 0);
-
-        if ($isAssessmentStep) {
-            $hasScore = isset($stepData['score']);
-
-            if ($hasScore) {
-                $scoreVal = (float) $stepData['score'];
-                $tabSwitchCount = (int) ($stepData['tab_switch_count'] ?? 0);
-                $integrityStatus = sanitize_text_field((string) ($stepData['integrity_status'] ?? 'clean'));
-
-                if ($hasApplicantId) {
-                    $db->execute(
-                        'UPDATE applicants SET score = ?, tab_switch_count = ?, integrity_status = ?, updated_at = datetime("now") WHERE id = ?',
-                        [$scoreVal, $tabSwitchCount, $integrityStatus, $applicantId]
-                    );
-                } else {
-                    $db->execute(
-                        'UPDATE applicants SET score = ?, tab_switch_count = ?, integrity_status = ?, updated_at = datetime("now") WHERE portal_token = ?',
-                        [$scoreVal, $tabSwitchCount, $integrityStatus, $token]
-                    );
-                }
-            }
-        }
-
         // If completing final step, advance recruitment stage if matching applicant exists
         $isFinalStep = ($stepId === 'step_complete');
 
         if ($isFinalStep) {
             if ($hasApplicantId) {
+                $currentStageKey = (string) ($candidate['current_stage_key'] ?? 'applied');
                 $db->execute("UPDATE applicants SET current_stage_key = 'exam', updated_at = datetime('now') WHERE id = ?", [$applicantId]);
                 $db->execute('INSERT INTO applicant_transitions (applicant_id, from_stage_key, to_stage_key, moved_by_user_id, notes) VALUES (?, ?, ?, ?, ?)', [
                     $applicantId,
-                    'applied',
+                    $currentStageKey,
                     'exam',
                     0,
                     'Applicant completed self-service portal verification steps.',

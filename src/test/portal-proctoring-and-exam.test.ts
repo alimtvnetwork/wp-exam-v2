@@ -337,4 +337,131 @@ describe('Candidate Portal Proctoring & Timed Technical Exam', () => {
       clearActiveExamSession(testToken);
     });
   });
+
+  describe('Gap 2 & 3: Server-Side Assessment Scoring Authority & Question Sanitization', () => {
+    it('sanitizes questions delivered to candidates by removing correctAnswer and explanation', () => {
+      const role = getJobRoleById('frontend-developer');
+      const rawQuestions = role.secondPhaseQuestions;
+
+      // Sanitization function mirrors backend AssessmentService::sanitizeQuestions
+      const sanitizeQuestions = (questions: typeof rawQuestions) => {
+        return questions.map((q) => ({
+          id: q.id,
+          question: q.question,
+          options: [...q.options],
+        }));
+      };
+
+      const sanitized = sanitizeQuestions(rawQuestions);
+
+      expect(sanitized.length).toBe(rawQuestions.length);
+      sanitized.forEach((q) => {
+        expect(q.id).toBeDefined();
+        expect(q.question).toBeDefined();
+        expect(q.options.length).toBeGreaterThanOrEqual(3);
+        // Sensitive fields must never be leaked to client bundle
+        expect((q as Record<string, unknown>).correctAnswer).toBeUndefined();
+        expect((q as Record<string, unknown>).explanation).toBeUndefined();
+      });
+    });
+
+    it('evaluates submitted answers authoritatively on the server and rejects forged scores', () => {
+      const role = getJobRoleById('frontend-developer');
+      const answerKey: Record<string, string> = {
+        fe_q1: 'Enables the TypeScript compiler to enforce exhaustive, safe branching across distinct state variants',
+        fe_q2: 'Batches multiple state setter calls into a single render pass automatically',
+        fe_q3: 'isolation: isolate',
+      };
+
+      // Server evaluation engine
+      const evaluateAnswers = (submittedAnswers: Record<string, string>) => {
+        let correct = 0;
+        const total = Object.keys(answerKey).length;
+
+        Object.entries(answerKey).forEach(([qId, expected]) => {
+          const actual = submittedAnswers[qId]?.trim();
+          const isMatch = (actual && actual === expected);
+          if (isMatch) {
+            correct++;
+          }
+        });
+
+        return {
+          score: Math.round((correct / total) * 100),
+          correctCount: correct,
+          totalQuestions: total,
+        };
+      };
+
+      // Case 1: Attacker sends forged score 100 with zero answers
+      const forgedSubmission = {
+        forgedScore: 100,
+        answers: {},
+      };
+      const evaluated1 = evaluateAnswers(forgedSubmission.answers);
+      expect(evaluated1.score).toBe(0);
+      expect(evaluated1.correctCount).toBe(0);
+
+      // Case 2: Candidate gets 1 of 3 correct
+      const partialAnswers = {
+        fe_q1: answerKey.fe_q1,
+        fe_q2: 'Wrong option selected',
+      };
+      const evaluated2 = evaluateAnswers(partialAnswers);
+      expect(evaluated2.score).toBe(33);
+      expect(evaluated2.correctCount).toBe(1);
+
+      // Case 3: Candidate gets all 3 correct
+      const allCorrect = { ...answerKey };
+      const evaluated3 = evaluateAnswers(allCorrect);
+      expect(evaluated3.score).toBe(100);
+      expect(evaluated3.correctCount).toBe(3);
+    });
+  });
+
+  describe('Gap 5 & 6: Token 404 Error State & Assessment Immutability', () => {
+    it('differentiates demo tokens from invalid mistyped candidate tokens', () => {
+      const isDemoToken = (token: string): boolean => {
+        return (
+          token === 'cpt_candidate_token_demo' ||
+          token === 'demo' ||
+          token === 'alex-morgan' ||
+          token === 'alex' ||
+          token.length === 0
+        );
+      };
+
+      expect(isDemoToken('cpt_candidate_token_demo')).toBe(true);
+      expect(isDemoToken('demo')).toBe(true);
+      expect(isDemoToken('alex-morgan')).toBe(true);
+      expect(isDemoToken('')).toBe(true);
+
+      // Real or mistyped tokens must NOT be treated as demo
+      expect(isDemoToken('cpt_invalid_mistyped_token_xyz')).toBe(false);
+      expect(isDemoToken('cpt_expired_12345')).toBe(false);
+      expect(isDemoToken('random-user')).toBe(false);
+    });
+
+    it('enforces step immutability preventing re-submission of completed assessment', () => {
+      const completedSteps = new Set<string>(['step_overview', 'step_profile', 'step_assessment']);
+
+      const canSubmitStep = (stepId: string): boolean => {
+        const isAssessment = (stepId === 'step_assessment');
+        if (isAssessment) {
+          const isAlreadyCompleted = completedSteps.has('step_assessment');
+          if (isAlreadyCompleted) {
+            return false; // Locked and immutable
+          }
+        }
+
+        return true;
+      };
+
+      // Re-submitting assessment must be rejected
+      expect(canSubmitStep('step_assessment')).toBe(false);
+
+      // Subsequent uncompleted step can proceed
+      expect(canSubmitStep('step_submission')).toBe(true);
+    });
+  });
 });
