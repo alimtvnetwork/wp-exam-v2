@@ -32,7 +32,14 @@ import {
   Sparkles,
   PlusCircle,
   Calendar,
+  FileEdit,
+  ShieldAlert,
+  Video,
+  Image as ImageIcon,
+  Volume2,
 } from 'lucide-react';
+import { Textarea } from '@/components/ui/textarea';
+import { getJobRoleById } from '@/lib/role-assignments';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -407,6 +414,87 @@ export const ApplicantPipelineKanban: React.FC<ApplicantPipelineKanbanProps> = (
 
   // Assessment Results Dialog
   const [viewAssessmentCandidate, setViewAssessmentCandidate] = useState<Applicant | null>(null);
+  const [assessmentStepData, setAssessmentStepData] = useState<Record<string, unknown> | null>(null);
+  const [isLoadingAssessmentData, setIsLoadingAssessmentData] = useState<boolean>(false);
+  const [evaluatorScoreInput, setEvaluatorScoreInput] = useState<number>(0);
+  const [evaluatorNotesInput, setEvaluatorNotesInput] = useState<string>('');
+  const [evaluatorRatingInput, setEvaluatorRatingInput] = useState<number>(5);
+  const [isSavingEvaluation, setIsSavingEvaluation] = useState<boolean>(false);
+
+  useEffect(() => {
+    if (!viewAssessmentCandidate) {
+      setAssessmentStepData(null);
+      return;
+    }
+
+    setEvaluatorScoreInput(viewAssessmentCandidate.score ?? 0);
+    setEvaluatorNotesInput(viewAssessmentCandidate.notes || '');
+    setEvaluatorRatingInput(viewAssessmentCandidate.rating ?? 5);
+
+    const token = viewAssessmentCandidate.portal_token || ('cpt_' + viewAssessmentCandidate.id + '_' + viewAssessmentCandidate.candidate_email.split('@')[0]);
+    setIsLoadingAssessmentData(true);
+
+    unifiedFetch(`/api/v1/portal/${encodeURIComponent(token)}`, `/wp-json/wp-exam/v1/portal/${encodeURIComponent(token)}`)
+      .then((res) => {
+        if (res.ok && res.data) {
+          const portalSession = res.data;
+          const step = (portalSession.steps || []).find((s: { id: string }) => s.id === 'step_assessment');
+          if (step && step.data) {
+            setAssessmentStepData(step.data as Record<string, unknown>);
+            const hasStepScore = (typeof step.data.score === 'number');
+            const hasNoCandScore = (viewAssessmentCandidate.score === undefined);
+            if (hasStepScore && hasNoCandScore) {
+              setEvaluatorScoreInput(step.data.score as number);
+            }
+          }
+        }
+      })
+      .catch((err) => {
+        console.warn('Could not load detailed assessment data:', err);
+      })
+      .finally(() => {
+        setIsLoadingAssessmentData(false);
+      });
+  }, [viewAssessmentCandidate]);
+
+  const handleSaveAssessmentEvaluation = async () => {
+    if (!viewAssessmentCandidate) {
+      return;
+    }
+
+    setIsSavingEvaluation(true);
+    const applicantId = viewAssessmentCandidate.id;
+    const newScore = Number(evaluatorScoreInput);
+    const newNotes = evaluatorNotesInput.trim();
+    const newRating = Number(evaluatorRatingInput);
+
+    setApplicants((prev) =>
+      prev.map((app) =>
+        app.id === applicantId ? { ...app, score: newScore, notes: newNotes, rating: newRating } : app
+      )
+    );
+
+    setViewAssessmentCandidate((prev) => (prev ? { ...prev, score: newScore, notes: newNotes, rating: newRating } : null));
+    toast.success('Assessment evaluation and score updated successfully');
+
+    try {
+      await unifiedFetch('/api/v1/applicants/feedback', '/wp-json/wp-exam/v1/applicants/feedback', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          applicant_id: applicantId,
+          candidate_email: viewAssessmentCandidate.candidate_email,
+          rating: newRating,
+          notes: newNotes,
+          score: newScore,
+        }),
+      });
+    } catch {
+      // Standalone mode
+    } finally {
+      setIsSavingEvaluation(false);
+    }
+  };
 
   // Note/Feedback Dialog
   const [activeFeedbackApplicant, setActiveFeedbackApplicant] = useState<Applicant | null>(null);
@@ -1553,68 +1641,275 @@ export const ApplicantPipelineKanban: React.FC<ApplicantPipelineKanbanProps> = (
           }
         }}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl max-h-[88vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2 text-base">
               <Award className="w-5 h-5 text-primary" />
-              <span>Assessment & Exam Results</span>
+              <span>Technical Assessment Review & Candidate Dossier</span>
             </DialogTitle>
             <DialogDescription>
-              Review exam performance and scoring details for {viewAssessmentCandidate?.candidate_name}.
+              Review objective auto-scoring, proctoring integrity, and candidate written responses for {viewAssessmentCandidate?.candidate_name}.
             </DialogDescription>
           </DialogHeader>
 
           {viewAssessmentCandidate && (
-            <div className="space-y-4 py-2">
-              {/* Score Highlight Box */}
-              <div className="p-4 rounded-xl bg-primary/10 border border-primary/20 flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <span className="text-xs text-muted-foreground font-medium">Exam Performance Score</span>
+            <div className="space-y-4 py-2 text-xs">
+              {/* Score & Integrity Highlight Bar */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <div className="p-3.5 rounded-xl bg-primary/10 border border-primary/20 space-y-0.5">
+                  <span className="text-[11px] text-muted-foreground font-medium block">
+                    Auto-Graded Objective Score
+                  </span>
                   <div className="text-2xl font-bold font-mono text-primary">
-                    {viewAssessmentCandidate.score ?? 0}%
+                    {viewAssessmentCandidate.score ?? (assessmentStepData?.score as number ?? 0)}%
                   </div>
                 </div>
-                <Badge
-                  className={`font-semibold ${
-                    (viewAssessmentCandidate.score ?? 0) >= 70
-                      ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-                      : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
-                  }`}
-                >
-                  {(viewAssessmentCandidate.score ?? 0) >= 70 ? 'Passed' : 'Under Review'}
-                </Badge>
+
+                <div className="p-3.5 rounded-xl bg-muted/30 border border-border/40 space-y-0.5">
+                  <span className="text-[11px] text-muted-foreground font-medium block">
+                    Session Integrity
+                  </span>
+                  <div className="text-xs font-semibold pt-1">
+                    {(assessmentStepData?.tab_switch_count as number ?? 0) === 0 ? (
+                      <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 shrink-0" />
+                        0 Focus Notices (Clean)
+                      </span>
+                    ) : (
+                      <span className="text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                        {assessmentStepData?.tab_switch_count as number} Focus Notices
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-muted/30 border border-border/40 space-y-0.5">
+                  <span className="text-[11px] text-muted-foreground font-medium block">
+                    Manual Evaluation
+                  </span>
+                  <div className="text-xs font-semibold pt-1">
+                    {assessmentStepData?.has_pending_manual_review ? (
+                      <Badge variant="outline" className="text-[10px] text-amber-600 border-amber-500/40 bg-amber-500/10">
+                        Pending Written Review
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-500/40 bg-emerald-500/10">
+                        Graded
+                      </Badge>
+                    )}
+                  </div>
+                </div>
               </div>
 
-              {/* Candidate Info Grid */}
-              <div className="space-y-2 text-xs">
-                <div className="flex justify-between py-1.5 border-b border-border/40">
-                  <span className="text-muted-foreground">Candidate Name:</span>
-                  <span className="font-semibold text-foreground">{viewAssessmentCandidate.candidate_name}</span>
+              {/* Candidate Metadata Summary */}
+              <div className="p-3 rounded-xl bg-muted/20 border border-border/40 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                <div>
+                  <span className="text-muted-foreground block text-[10px]">Candidate</span>
+                  <span className="font-semibold text-foreground truncate block">{viewAssessmentCandidate.candidate_name}</span>
                 </div>
-                <div className="flex justify-between py-1.5 border-b border-border/40">
-                  <span className="text-muted-foreground">Email Address:</span>
-                  <span className="font-mono text-foreground">{viewAssessmentCandidate.candidate_email}</span>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-border/40">
-                  <span className="text-muted-foreground">Pipeline Stage:</span>
-                  <Badge variant="outline" className="capitalize text-[10px]">
-                    {viewAssessmentCandidate.current_stage_key}
-                  </Badge>
-                </div>
-                <div className="flex justify-between py-1.5 border-b border-border/40">
-                  <span className="text-muted-foreground">Evaluator Rating:</span>
-                  <span className="font-semibold text-foreground">
-                    {viewAssessmentCandidate.rating ?? 0} / 5 Stars
+                <div>
+                  <span className="text-muted-foreground block text-[10px]">Target Role</span>
+                  <span className="font-semibold text-foreground truncate block">
+                    {getJobRoleById(viewAssessmentCandidate.job_role || 'frontend-developer')?.title || viewAssessmentCandidate.job_role || 'Candidate'}
                   </span>
                 </div>
-                {viewAssessmentCandidate.notes && (
-                  <div className="space-y-1 pt-1">
-                    <span className="text-muted-foreground">Evaluation Notes:</span>
-                    <p className="p-2.5 rounded-lg bg-muted/40 border border-border/30 text-foreground italic">
-                      "{viewAssessmentCandidate.notes}"
-                    </p>
+                <div>
+                  <span className="text-muted-foreground block text-[10px]">Pipeline Stage</span>
+                  <span className="capitalize font-mono text-primary font-semibold">{viewAssessmentCandidate.current_stage_key}</span>
+                </div>
+                <div>
+                  <span className="text-muted-foreground block text-[10px]">Time Spent</span>
+                  <span className="font-mono text-foreground">
+                    {assessmentStepData?.time_spent_seconds ? `${Math.floor((assessmentStepData.time_spent_seconds as number) / 60)}m ${(assessmentStepData.time_spent_seconds as number) % 60}s` : 'Proctored'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Detailed Submissions by Question */}
+              <div className="space-y-3 pt-2">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <ListChecks className="w-4 h-4 text-primary" />
+                    <span>Candidate Assessment Responses & Written Essays</span>
+                  </h4>
+                  {isLoadingAssessmentData && (
+                    <span className="text-[10px] text-muted-foreground animate-pulse">Loading responses...</span>
+                  )}
+                </div>
+
+                {(() => {
+                  const role = getJobRoleById(viewAssessmentCandidate.job_role || 'frontend-developer');
+                  const questions = role?.secondPhaseQuestions || [];
+                  const answers = (assessmentStepData?.answers as Record<string, string>) || {};
+
+                  if (questions.length === 0) {
+                    return (
+                      <div className="p-4 rounded-xl border border-dashed text-center text-muted-foreground">
+                        No technical questions defined for this job role.
+                      </div>
+                    );
+                  }
+
+                  return (
+                    <div className="space-y-3">
+                      {questions.map((q, idx) => {
+                        const candidateAnswer = answers[q.id] || '';
+                        const isChoice = !q.type || q.type === 'mcq' || q.type === 'media_mcq';
+                        const isCorrect = isChoice && candidateAnswer === q.correctAnswer;
+                        const wordCount = candidateAnswer.trim().length > 0 ? candidateAnswer.trim().split(/\s+/).length : 0;
+
+                        return (
+                          <div key={q.id || idx} className="p-3.5 rounded-xl bg-card border border-border/70 space-y-2.5 shadow-2xs">
+                            <div className="flex items-start justify-between gap-2">
+                              <div className="flex items-center gap-1.5 flex-wrap">
+                                <Badge variant="outline" className="font-mono text-[10px] bg-muted/40">
+                                  Q{idx + 1}
+                                </Badge>
+                                <Badge variant="secondary" className="text-[10px]">
+                                  {q.type === 'media_prompt'
+                                    ? '1-Time Media Prompt'
+                                    : q.type === 'text_open'
+                                    ? 'Written Response'
+                                    : q.type === 'media_mcq'
+                                    ? 'Media MCQ'
+                                    : 'Multiple Choice'}
+                                </Badge>
+                                {q.mediaUrl && (
+                                  <Badge variant="outline" className="text-[10px] text-primary border-primary/30">
+                                    {q.mediaType?.toUpperCase() || 'MEDIA'} ATTACHED
+                                  </Badge>
+                                )}
+                              </div>
+
+                              {isChoice && (
+                                <Badge
+                                  className={`text-[10px] font-semibold ${
+                                    isCorrect
+                                      ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
+                                      : 'bg-rose-500/15 text-rose-600 dark:text-rose-400 border border-rose-500/30'
+                                  }`}
+                                >
+                                  {isCorrect ? 'Auto-Graded: Correct' : 'Auto-Graded: Incorrect'}
+                                </Badge>
+                              )}
+                            </div>
+
+                            <p className="font-medium text-foreground text-xs leading-relaxed">
+                              {q.question}
+                            </p>
+
+                            {/* Response content */}
+                            {isChoice ? (
+                              <div className="space-y-1 text-xs">
+                                <div className="p-2 rounded-lg bg-muted/30 border border-border/40 flex items-center justify-between">
+                                  <span className="text-muted-foreground">Candidate Selection:</span>
+                                  <span className="font-semibold text-foreground">{candidateAnswer || <span className="italic text-muted-foreground">Unanswered</span>}</span>
+                                </div>
+                                {!isCorrect && (
+                                  <div className="p-2 rounded-lg bg-emerald-500/5 border border-emerald-500/20 text-emerald-700 dark:text-emerald-300 flex items-center justify-between text-[11px]">
+                                    <span>Correct Key:</span>
+                                    <span className="font-medium">{q.correctAnswer}</span>
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              /* Open-Ended Written / Media Prompt Essay */
+                              <div className="space-y-1.5">
+                                <div className="flex items-center justify-between text-[10px] text-muted-foreground">
+                                  <span className="font-semibold text-foreground flex items-center gap-1">
+                                    <FileEdit className="w-3 h-3 text-primary" />
+                                    Submitted Written Response
+                                  </span>
+                                  <span className="font-mono">{wordCount} words {q.maxWordCount ? `(max ${q.maxWordCount})` : ''}</span>
+                                </div>
+                                <div className="p-3 rounded-lg bg-muted/20 border border-border/50 text-xs leading-relaxed whitespace-pre-wrap text-foreground font-sans">
+                                  {candidateAnswer || <span className="italic text-muted-foreground">No written response provided</span>}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  );
+                })()}
+              </div>
+
+              {/* Evaluator Manual Grading & Review Notes */}
+              <div className="p-4 rounded-xl bg-muted/30 border border-border/60 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-1.5">
+                    <Sparkles className="w-4 h-4 text-primary" />
+                    <span>Hiring Manager Evaluation & Grading</span>
+                  </h4>
+                  <span className="text-[10px] text-muted-foreground">Persists to candidate profile</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div>
+                    <label className="text-[11px] font-semibold text-foreground block mb-1">
+                      Final Verified Score (%)
+                    </label>
+                    <Input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={evaluatorScoreInput}
+                      onChange={(e) => setEvaluatorScoreInput(Number(e.target.value))}
+                      className="h-8 text-xs font-mono font-bold"
+                    />
                   </div>
-                )}
+
+                  <div className="sm:col-span-2">
+                    <label className="text-[11px] font-semibold text-foreground block mb-1">
+                      Evaluator Rating (1 to 5 Stars)
+                    </label>
+                    <div className="flex items-center gap-1.5 pt-1">
+                      {[1, 2, 3, 4, 5].map((star) => (
+                        <button
+                          key={star}
+                          type="button"
+                          onClick={() => setEvaluatorRatingInput(star)}
+                          className="cursor-pointer transition-transform hover:scale-110"
+                        >
+                          <Star
+                            className={`w-5 h-5 ${
+                              star <= evaluatorRatingInput
+                                ? 'fill-amber-400 text-amber-400'
+                                : 'text-muted-foreground/40'
+                            }`}
+                          />
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-[11px] font-semibold text-foreground block mb-1">
+                    Evaluator Assessment Notes & Feedback
+                  </label>
+                  <Textarea
+                    placeholder="Candidate demonstrated deep architectural mastery in the open response. Code syntax is production-grade..."
+                    value={evaluatorNotesInput}
+                    onChange={(e) => setEvaluatorNotesInput(e.target.value)}
+                    rows={3}
+                    className="text-xs resize-y"
+                  />
+                </div>
+
+                <div className="flex justify-end pt-1">
+                  <Button
+                    size="sm"
+                    onClick={handleSaveAssessmentEvaluation}
+                    disabled={isSavingEvaluation}
+                    className="bg-primary hover:bg-primary/90 text-primary-foreground font-semibold text-xs gap-1.5 cursor-pointer"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>{isSavingEvaluation ? 'Saving...' : 'Save Evaluation & Score'}</span>
+                  </Button>
+                </div>
               </div>
             </div>
           )}

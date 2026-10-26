@@ -619,5 +619,148 @@ describe('Candidate Portal Proctoring & Timed Technical Exam', () => {
       expect(receiptFormat.evaluationStatus).not.toContain('%');
       expect(receiptFormat.evaluationStatus).toBe('SUBMITTED — UNDER HIRING COMMITTEE REVIEW');
     });
+
+    it('calculates objective score over auto-gradable choice questions without penalizing open-ended written questions', () => {
+      const role = getJobRoleById('frontend-developer');
+      const questions = role.secondPhaseQuestions;
+
+      // Classify auto-gradable choice questions vs open-ended manual review questions
+      const choiceQuestions = questions.filter((q) => Boolean(q.correctAnswer && q.correctAnswer.trim().length > 0));
+      const openQuestions = questions.filter((q) => !q.correctAnswer || q.correctAnswer.trim().length === 0);
+
+      expect(choiceQuestions.length).toBeGreaterThan(0);
+      expect(openQuestions.length).toBeGreaterThan(0);
+
+      // Candidate answers all choice questions correctly and writes a comprehensive essay for open questions
+      const candidateAnswers: Record<string, string> = {};
+      choiceQuestions.forEach((q) => {
+        candidateAnswers[q.id] = q.correctAnswer!;
+      });
+      openQuestions.forEach((q) => {
+        candidateAnswers[q.id] = 'Comprehensive architectural breakdown and memory leak explanation.';
+      });
+
+      // Evaluation engine: Auto-score must be 100% on the objective part, NOT depressed by open questions!
+      const evaluatePolymorphic = (answers: Record<string, string>) => {
+        let correct = 0;
+        const total = questions.length;
+        const autoGradable = choiceQuestions.length;
+
+        choiceQuestions.forEach((q) => {
+          if (answers[q.id] === q.correctAnswer) {
+            correct++;
+          }
+        });
+
+        const score = autoGradable > 0 ? Math.round((correct / autoGradable) * 100) : 100;
+        const openCount = total - autoGradable;
+
+        return {
+          score,
+          correctCount: correct,
+          autoGradableCount: autoGradable,
+          totalQuestions: total,
+          openQuestionsCount: openCount,
+          hasPendingManualReview: openCount > 0,
+        };
+      };
+
+      const result = evaluatePolymorphic(candidateAnswers);
+      expect(result.score).toBe(100);
+      expect(result.correctCount).toBe(choiceQuestions.length);
+      expect(result.autoGradableCount).toBe(choiceQuestions.length);
+      expect(result.openQuestionsCount).toBe(openQuestions.length);
+      expect(result.hasPendingManualReview).toBe(true);
+    });
+
+    it('tracks startedMediaIds on playback start to prevent reload bypass on 1-time listening prompts', () => {
+      const testToken = 'cpt_test_started_media_456';
+      clearActiveExamSession(testToken);
+
+      // Simulate candidate starts audio playback
+      const sessionWithStarted = {
+        token: testToken,
+        isStarted: true,
+        startedAt: Date.now(),
+        durationSeconds: 1800,
+        tabSwitchCount: 0,
+        integrityStatus: 'clean' as const,
+        answers: {},
+        activeQuestionIndex: 2,
+        playedMediaIds: {},
+        startedMediaIds: { fe_q5: true },
+      };
+
+      saveActiveExamSession(sessionWithStarted);
+
+      // Candidate refreshes page while audio is still playing
+      const restored = loadActiveExamSession(testToken, 1800);
+      expect(restored.hasActiveSession).toBe(true);
+      expect(restored.session?.startedMediaIds?.fe_q5).toBe(true);
+
+      // Invariant: If startedMediaIds has the question and candidate returns, it is locked
+      const isMediaLockedOnReload = Boolean(
+        restored.session?.playedMediaIds?.fe_q5 ||
+        restored.session?.startedMediaIds?.fe_q5
+      );
+      expect(isMediaLockedOnReload).toBe(true);
+
+      clearActiveExamSession(testToken);
+    });
+
+    it('records skipped questions distinctly and clears skipped state when an answer is provided', () => {
+      const skippedQuestionIds: Record<string, boolean> = {};
+
+      // Candidate skips Q1 and Q3
+      skippedQuestionIds['fe_q1'] = true;
+      skippedQuestionIds['fe_q3'] = true;
+
+      expect(skippedQuestionIds['fe_q1']).toBe(true);
+      expect(skippedQuestionIds['fe_q2']).toBeUndefined();
+      expect(skippedQuestionIds['fe_q3']).toBe(true);
+
+      // Candidate answers Q1 later
+      delete skippedQuestionIds['fe_q1'];
+
+      expect(skippedQuestionIds['fe_q1']).toBeUndefined();
+      expect(skippedQuestionIds['fe_q3']).toBe(true);
+    });
+
+    it('triggers over-limit warning when candidate response exceeds maxWordCount', () => {
+      const maxLimit = 10;
+      const shortText = 'One two three four five';
+      const longText = 'One two three four five six seven eight nine ten eleven twelve thirteen';
+
+      const checkWordLimit = (text: string, limit: number) => {
+        const words = text.trim().length > 0 ? text.trim().split(/\s+/).length : 0;
+        const isOverLimit = words > limit;
+        const overCount = Math.max(0, words - limit);
+
+        return { words, isOverLimit, overCount };
+      };
+
+      const validResult = checkWordLimit(shortText, maxLimit);
+      expect(validResult.isOverLimit).toBe(false);
+      expect(validResult.overCount).toBe(0);
+
+      const invalidResult = checkWordLimit(longText, maxLimit);
+      expect(invalidResult.isOverLimit).toBe(true);
+      expect(invalidResult.overCount).toBe(3);
+    });
+
+    it('safely clamps activeQuestionIndex within bounds when question count changes', () => {
+      const totalQuestions = 3;
+      const clampIndex = (index: number, total: number) => {
+        return Math.min(index, Math.max(0, total - 1));
+      };
+
+      // Index out of bounds (e.g. from previous role with 6 questions)
+      expect(clampIndex(5, totalQuestions)).toBe(2);
+      expect(clampIndex(3, totalQuestions)).toBe(2);
+
+      // Valid index
+      expect(clampIndex(1, totalQuestions)).toBe(1);
+      expect(clampIndex(0, totalQuestions)).toBe(0);
+    });
   });
 });

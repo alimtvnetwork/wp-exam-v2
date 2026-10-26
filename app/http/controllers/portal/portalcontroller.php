@@ -390,7 +390,10 @@ class PortalController
 
                 $stepData['score'] = $verifiedScore;
                 $stepData['correct_count'] = $evalResult['correct_count'];
+                $stepData['auto_gradable_count'] = $evalResult['auto_gradable_count'];
                 $stepData['total_questions'] = $evalResult['total_questions'];
+                $stepData['open_questions_count'] = $evalResult['open_questions_count'];
+                $stepData['has_pending_manual_review'] = $evalResult['has_pending_manual_review'];
 
                 $db->execute(
                     'UPDATE applicants SET score = ?, tab_switch_count = ?, integrity_status = ?, updated_at = datetime("now") WHERE portal_token = ? OR candidate_email = ? OR candidate_email LIKE ? OR id = ?',

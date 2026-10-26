@@ -262,7 +262,10 @@ class CandidatePortalRestController extends WP_REST_Controller {
 
             $stepData['score'] = $verifiedScore;
             $stepData['correct_count'] = $evalResult['correct_count'];
+            $stepData['auto_gradable_count'] = $evalResult['auto_gradable_count'];
             $stepData['total_questions'] = $evalResult['total_questions'];
+            $stepData['open_questions_count'] = $evalResult['open_questions_count'];
+            $stepData['has_pending_manual_review'] = $evalResult['has_pending_manual_review'];
 
             if ($hasApplicantId) {
                 $db->execute(

@@ -310,6 +310,7 @@ class ApplicantPipelineRestController extends WP_REST_Controller {
         $applicantId = (int) ($body['applicant_id'] ?? 0);
         $rating = isset($body['rating']) ? (int) $body['rating'] : null;
         $notes = isset($body['notes']) ? trim((string) $body['notes']) : null;
+        $score = isset($body['score']) ? (int) $body['score'] : null;
 
         $isInvalidId = ($applicantId <= 0);
 
@@ -337,6 +338,12 @@ class ApplicantPipelineRestController extends WP_REST_Controller {
 
         if ($hasNotes) {
             $db->execute('UPDATE applicants SET notes = ? WHERE id = ?', [$notes, $applicantId]);
+        }
+
+        $hasScore = ($score !== null);
+
+        if ($hasScore) {
+            $db->execute('UPDATE applicants SET score = ? WHERE id = ?', [$score, $applicantId]);
         }
 
         $db->execute("UPDATE applicants SET updated_at = datetime('now') WHERE id = ?", [$applicantId]);

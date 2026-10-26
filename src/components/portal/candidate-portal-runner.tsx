@@ -896,6 +896,8 @@ export const CandidatePortalRunner: React.FC = () => {
   // Step 3 One-by-One Stepper & Polymorphic Media Tracking State
   const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
   const [playedMediaIds, setPlayedMediaIds] = useState<Record<string, boolean>>({});
+  const [startedMediaIds, setStartedMediaIds] = useState<Record<string, boolean>>({});
+  const [skippedQuestionIds, setSkippedQuestionIds] = useState<Record<string, boolean>>({});
   const [activeAudioPlayingId, setActiveAudioPlayingId] = useState<string | null>(null);
   const [showUnansweredPrompt, setShowUnansweredPrompt] = useState<boolean>(false);
 
@@ -1311,13 +1313,15 @@ export const CandidatePortalRunner: React.FC = () => {
 
     let correctCount = 0;
     const totalQuestions = roleQuestions.length;
+    let autoGradableCount = 0;
     let hasKnownAnswers = false;
 
     if (totalQuestions > 0) {
       roleQuestions.forEach((q) => {
-        const hasKey = Boolean(q.correctAnswer);
+        const hasKey = Boolean(q.correctAnswer && q.correctAnswer.trim().length > 0);
         if (hasKey) {
           hasKnownAnswers = true;
+          autoGradableCount++;
           const choice = assessmentAnswers[q.id];
           const isCorrect = (choice === q.correctAnswer);
           if (isCorrect) {
@@ -1327,6 +1331,7 @@ export const CandidatePortalRunner: React.FC = () => {
       });
     } else {
       hasKnownAnswers = true;
+      autoGradableCount = 3;
       const isQ1Correct = (q1Answer === 'Implicit check: if (isReady)');
       if (isQ1Correct) {
         correctCount++;
@@ -1343,15 +1348,16 @@ export const CandidatePortalRunner: React.FC = () => {
       }
     }
 
-    if (hasKnownAnswers) {
-      const calculatedScore = (totalQuestions > 0)
-        ? Math.round((correctCount / totalQuestions) * 100)
-        : Math.round((correctCount / 3) * 100);
+    const calculatedScore = (autoGradableCount > 0)
+      ? Math.round((correctCount / autoGradableCount) * 100)
+      : 100;
 
+    if (hasKnownAnswers) {
       setExamScore(calculatedScore);
     }
 
     const timeSpent = Math.max(0, examTotalSeconds - examSecondsLeft);
+    const openQuestionsCount = Math.max(0, totalQuestions - autoGradableCount);
 
     clearActiveExamSession(activeToken);
 
@@ -1362,7 +1368,10 @@ export const CandidatePortalRunner: React.FC = () => {
       q3: q3Answer,
       score: calculatedScore,
       correct_count: correctCount,
+      auto_gradable_count: autoGradableCount,
       total_questions: totalQuestions || 3,
+      open_questions_count: openQuestionsCount,
+      has_pending_manual_review: openQuestionsCount > 0,
       role_id: currentJobRole.id,
       role_title: currentJobRole.title,
       time_spent_seconds: timeSpent,
@@ -1407,6 +1416,12 @@ export const CandidatePortalRunner: React.FC = () => {
 
       if (hasPlayedMedia) {
         setPlayedMediaIds(activeData.playedMediaIds!);
+      }
+
+      const hasStartedMedia = Boolean(activeData.startedMediaIds && Object.keys(activeData.startedMediaIds).length > 0);
+
+      if (hasStartedMedia) {
+        setStartedMediaIds(activeData.startedMediaIds!);
       }
 
       const isTimeExpired = Boolean(restored.isExpired);
@@ -2910,9 +2925,11 @@ export const CandidatePortalRunner: React.FC = () => {
 
                 <CardContent className="p-6 pt-0 space-y-6">
                   {(() => {
-                    const currentQuestion = roleQuestions[activeQuestionIndex] || roleQuestions[0];
+                    const safeActiveIndex = Math.min(activeQuestionIndex, Math.max(0, roleQuestions.length - 1));
+                    const currentQuestion = roleQuestions[safeActiveIndex] || roleQuestions[0];
                     const totalQuestions = roleQuestions.length;
                     const answeredCount = roleQuestions.filter((q) => Boolean(assessmentAnswers[q.id]?.trim())).length;
+                    const skippedCount = Object.keys(skippedQuestionIds).filter((id) => !assessmentAnswers[id]?.trim()).length;
                     const isCurrentAnswered = Boolean(assessmentAnswers[currentQuestion?.id]?.trim());
 
                     if (!currentQuestion) {
@@ -2930,7 +2947,7 @@ export const CandidatePortalRunner: React.FC = () => {
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-mono font-bold text-primary px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20">
-                                Question {activeQuestionIndex + 1} of {totalQuestions}
+                                Question {safeActiveIndex + 1} of {totalQuestions}
                               </span>
                               <Badge variant="outline" className="text-[11px] font-medium border-border/80 text-muted-foreground capitalize">
                                 {currentQuestion.type === 'media_prompt'
@@ -2948,6 +2965,15 @@ export const CandidatePortalRunner: React.FC = () => {
                                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
                                 <span>{answeredCount} Answered</span>
                               </span>
+                              {skippedCount > 0 && (
+                                <>
+                                  <span>&bull;</span>
+                                  <span className="flex items-center gap-1 text-amber-600 dark:text-amber-400 font-semibold">
+                                    <SkipForward className="w-3 h-3" />
+                                    <span>{skippedCount} Skipped</span>
+                                  </span>
+                                </>
+                              )}
                               <span>&bull;</span>
                               <span>{totalQuestions - answeredCount} Left</span>
                             </div>
@@ -3096,7 +3122,7 @@ export const CandidatePortalRunner: React.FC = () => {
                                     )}
                                   </div>
 
-                                  {Boolean(playedMediaIds[currentQuestion.id] && currentQuestion.isOneTimePlay) ? (
+                                  {Boolean(currentQuestion.isOneTimePlay && (playedMediaIds[currentQuestion.id] || (startedMediaIds[currentQuestion.id] && activeAudioPlayingId !== currentQuestion.id))) ? (
                                     <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400 flex items-center gap-2">
                                       <ShieldAlert className="w-4 h-4 shrink-0" />
                                       <span>Recording playback completed (Single listen policy enforced). Answer based on what you heard.</span>
@@ -3108,8 +3134,29 @@ export const CandidatePortalRunner: React.FC = () => {
                                         src={currentQuestion.mediaUrl}
                                         className="w-full h-9"
                                         controls
+                                        controlsList="nodownload noplaybackrate"
+                                        onPlay={() => {
+                                          if (currentQuestion.isOneTimePlay) {
+                                            setActiveAudioPlayingId(currentQuestion.id);
+                                            const updatedStarted = { ...startedMediaIds, [currentQuestion.id]: true };
+                                            setStartedMediaIds(updatedStarted);
+                                            saveActiveExamSession({
+                                              token: activeToken,
+                                              isStarted: true,
+                                              startedAt: Date.now() - Math.max(0, examTotalSeconds - examSecondsLeft) * 1000,
+                                              durationSeconds: examTotalSeconds,
+                                              tabSwitchCount,
+                                              integrityStatus: examIntegrityStatus,
+                                              answers: assessmentAnswers,
+                                              activeQuestionIndex: safeActiveIndex,
+                                              playedMediaIds,
+                                              startedMediaIds: updatedStarted,
+                                            });
+                                          }
+                                        }}
                                         onEnded={() => {
                                           if (currentQuestion.isOneTimePlay) {
+                                            setActiveAudioPlayingId(null);
                                             const updatedPlayed = { ...playedMediaIds, [currentQuestion.id]: true };
                                             setPlayedMediaIds(updatedPlayed);
                                             toast.warning('Audio recording ended. Single-play restriction recorded.');
@@ -3121,8 +3168,9 @@ export const CandidatePortalRunner: React.FC = () => {
                                               tabSwitchCount,
                                               integrityStatus: examIntegrityStatus,
                                               answers: assessmentAnswers,
-                                              activeQuestionIndex,
+                                              activeQuestionIndex: safeActiveIndex,
                                               playedMediaIds: updatedPlayed,
+                                              startedMediaIds,
                                             });
                                           }
                                         }}
@@ -3147,6 +3195,13 @@ export const CandidatePortalRunner: React.FC = () => {
                                 value={assessmentAnswers[currentQuestion.id] || ''}
                                 onChange={(e) => {
                                   const val = e.target.value;
+                                  if (skippedQuestionIds[currentQuestion.id]) {
+                                    setSkippedQuestionIds((prev) => {
+                                      const next = { ...prev };
+                                      delete next[currentQuestion.id];
+                                      return next;
+                                    });
+                                  }
                                   setAssessmentAnswers((prev) => {
                                     const next = { ...prev, [currentQuestion.id]: val };
                                     saveActiveExamSession({
@@ -3157,24 +3212,39 @@ export const CandidatePortalRunner: React.FC = () => {
                                       tabSwitchCount,
                                       integrityStatus: examIntegrityStatus,
                                       answers: next,
-                                      activeQuestionIndex,
+                                      activeQuestionIndex: safeActiveIndex,
                                       playedMediaIds,
+                                      startedMediaIds,
                                     });
                                     return next;
                                   });
                                 }}
                                 className="text-xs sm:text-sm font-sans leading-relaxed resize-y min-h-[140px]"
                               />
-                              <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-0.5">
-                                <span>Auto-saved to active assessment session</span>
-                                <span className="font-mono">
-                                  {(() => {
-                                    const text = (assessmentAnswers[currentQuestion.id] || '').trim();
-                                    const words = text.length > 0 ? text.split(/\s+/).length : 0;
-                                    return `${words} words${currentQuestion.maxWordCount ? ` (max ${currentQuestion.maxWordCount})` : ''}`;
-                                  })()}
-                                </span>
-                              </div>
+                              {(() => {
+                                const text = (assessmentAnswers[currentQuestion.id] || '').trim();
+                                const words = text.length > 0 ? text.split(/\s+/).length : 0;
+                                const maxLimit = currentQuestion.maxWordCount || 300;
+                                const isOverLimit = words > maxLimit;
+                                const overCount = words - maxLimit;
+
+                                return (
+                                  <div className="space-y-1">
+                                    <div className="flex items-center justify-between text-[11px] pt-0.5">
+                                      <span className="text-muted-foreground">Auto-saved to active assessment session</span>
+                                      <span className={`font-mono ${isOverLimit ? 'text-rose-500 font-bold flex items-center gap-1' : 'text-muted-foreground'}`}>
+                                        {isOverLimit && <AlertCircle className="w-3 h-3 text-rose-500 shrink-0 inline" />}
+                                        <span>{words} / {maxLimit} words{isOverLimit ? ` (${overCount} over limit)` : ''}</span>
+                                      </span>
+                                    </div>
+                                    {isOverLimit && (
+                                      <p className="text-[11px] text-rose-500 font-medium">
+                                        Your response exceeds the recommended {maxLimit}-word limit. Please condense your answer before submitting.
+                                      </p>
+                                    )}
+                                  </div>
+                                );
+                              })()}
                             </div>
                           ) : (
                             /* MCQ Radio Choices */
@@ -3202,6 +3272,13 @@ export const CandidatePortalRunner: React.FC = () => {
                                         checked={isSelected}
                                         onChange={(e) => {
                                           const selectedVal = e.target.value;
+                                          if (skippedQuestionIds[currentQuestion.id]) {
+                                            setSkippedQuestionIds((prev) => {
+                                              const next = { ...prev };
+                                              delete next[currentQuestion.id];
+                                              return next;
+                                            });
+                                          }
                                           setAssessmentAnswers((prev) => {
                                             const next = { ...prev, [currentQuestion.id]: selectedVal };
                                             saveActiveExamSession({
@@ -3212,8 +3289,9 @@ export const CandidatePortalRunner: React.FC = () => {
                                               tabSwitchCount,
                                               integrityStatus: examIntegrityStatus,
                                               answers: next,
-                                              activeQuestionIndex,
+                                              activeQuestionIndex: safeActiveIndex,
                                               playedMediaIds,
+                                              startedMediaIds,
                                             });
                                             return next;
                                           });

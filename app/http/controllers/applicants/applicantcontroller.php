@@ -425,6 +425,7 @@ class ApplicantController
         $candidateEmail = trim((string) ($body['candidate_email'] ?? ''));
         $rating = isset($body['rating']) ? (int) $body['rating'] : null;
         $notes = isset($body['notes']) ? trim((string) $body['notes']) : null;
+        $score = isset($body['score']) ? (int) $body['score'] : null;
 
         $hasNoId = ($applicantId <= 0);
         $hasNoEmail = (strlen($candidateEmail) === 0);
@@ -486,6 +487,12 @@ class ApplicantController
 
                 if ($hasNotes) {
                     $db->execute('UPDATE applicants SET notes = ? WHERE id = ?', [$notes, $applicantId]);
+                }
+
+                $hasScore = ($score !== null);
+
+                if ($hasScore) {
+                    $db->execute('UPDATE applicants SET score = ? WHERE id = ?', [$score, $applicantId]);
                 }
 
                 $updatedRows = $db->query('SELECT * FROM applicants WHERE id = ?', [$applicantId]);

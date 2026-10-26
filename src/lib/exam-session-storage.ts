@@ -14,6 +14,7 @@ export interface ActiveExamSession {
   answers: Record<string, string>;
   activeQuestionIndex?: number;
   playedMediaIds?: Record<string, boolean>;
+  startedMediaIds?: Record<string, boolean>;
 }
 
 export interface SessionLoadResult {
@@ -109,6 +110,7 @@ export function loadActiveExamSession(token: string, totalDurationSeconds: numbe
         answers: data.answers || {},
         activeQuestionIndex: typeof data.activeQuestionIndex === 'number' ? data.activeQuestionIndex : 0,
         playedMediaIds: (data.playedMediaIds && typeof data.playedMediaIds === 'object') ? data.playedMediaIds : {},
+        startedMediaIds: (data.startedMediaIds && typeof data.startedMediaIds === 'object') ? data.startedMediaIds : {},
       },
       remainingSeconds,
       isExpired,

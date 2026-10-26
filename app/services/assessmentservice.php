@@ -114,15 +114,42 @@ class AssessmentService
 
         if (!$hasQuestions) {
             return [
-                'score'           => 0.0,
-                'correct_count'   => 0,
-                'total_questions' => 0,
+                'score'                     => 0.0,
+                'correct_count'             => 0,
+                'auto_gradable_count'       => 0,
+                'total_questions'           => 0,
+                'open_questions_count'      => 0,
+                'has_pending_manual_review' => false,
+            ];
+        }
+
+        // Only choice-based questions with non-empty correctAnswer can be auto-graded
+        $autoGradableKey = [];
+        foreach ($answerKey as $qId => $expected) {
+            $hasExpected = (strlen(trim((string) $expected)) > 0);
+            if ($hasExpected) {
+                $autoGradableKey[$qId] = trim((string) $expected);
+            }
+        }
+
+        $autoGradableCount = count($autoGradableKey);
+        $openQuestionsCount = max(0, $totalQuestions - $autoGradableCount);
+        $hasPendingManualReview = ($openQuestionsCount > 0);
+
+        if ($autoGradableCount === 0) {
+            return [
+                'score'                     => 100.0,
+                'correct_count'             => 0,
+                'auto_gradable_count'       => 0,
+                'total_questions'           => $totalQuestions,
+                'open_questions_count'      => $openQuestionsCount,
+                'has_pending_manual_review' => $hasPendingManualReview,
             ];
         }
 
         $correctCount = 0;
 
-        foreach ($answerKey as $qId => $expectedAnswer) {
+        foreach ($autoGradableKey as $qId => $expectedAnswer) {
             $candidateAnswer = trim((string) ($submittedAnswers[$qId] ?? ''));
             $isCorrect = (strlen($candidateAnswer) > 0 && $candidateAnswer === $expectedAnswer);
 
@@ -131,12 +158,16 @@ class AssessmentService
             }
         }
 
-        $score = round(($correctCount / $totalQuestions) * 100, 1);
+        // Objective score evaluated over auto-gradable choice questions only
+        $score = round(($correctCount / $autoGradableCount) * 100, 1);
 
         return [
-            'score'           => $score,
-            'correct_count'   => $correctCount,
-            'total_questions' => $totalQuestions,
+            'score'                     => $score,
+            'correct_count'             => $correctCount,
+            'auto_gradable_count'       => $autoGradableCount,
+            'total_questions'           => $totalQuestions,
+            'open_questions_count'      => $openQuestionsCount,
+            'has_pending_manual_review' => $hasPendingManualReview,
         ];
     }
 
