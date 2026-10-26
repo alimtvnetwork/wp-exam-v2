@@ -50,6 +50,11 @@ import { toast } from 'sonner';
 import { unifiedFetch } from '@/utils/api-client';
 import { useAuth } from '@/lib/auth-context';
 import { buildGoogleCalendarUrl, downloadIcsFile } from '@/lib/calendar-reminder';
+import {
+  loadActiveExamSession,
+  saveActiveExamSession,
+  clearActiveExamSession,
+} from '@/lib/exam-session-storage';
 
 export interface AssignedTask {
   id: string;
@@ -1277,6 +1282,8 @@ export const CandidatePortalRunner: React.FC = () => {
 
     const timeSpent = Math.max(0, examTotalSeconds - examSecondsLeft);
 
+    clearActiveExamSession(activeToken);
+
     handleCompleteStep('step_assessment', {
       answers: assessmentAnswers,
       q1: q1Answer,
@@ -1293,6 +1300,43 @@ export const CandidatePortalRunner: React.FC = () => {
       is_forced_timeout: Boolean(isForcedTimeout),
     });
   };
+
+  // Restore persisted active exam session on mount or reload
+  useEffect(() => {
+    if (isStep3Done) {
+      clearActiveExamSession(activeToken);
+
+      return;
+    }
+
+    const restored = loadActiveExamSession(activeToken, examTotalSeconds);
+    const hasActive = Boolean(restored.hasActiveSession && restored.session);
+
+    if (hasActive) {
+      const activeData = restored.session!;
+      setIsExamStarted(true);
+      setExamBriefingAgreed(true);
+      setExamSecondsLeft(restored.remainingSeconds);
+      setTabSwitchCount(activeData.tabSwitchCount);
+      setExamIntegrityStatus(activeData.integrityStatus);
+
+      const hasAnswers = Boolean(activeData.answers && Object.keys(activeData.answers).length > 0);
+
+      if (hasAnswers) {
+        setAssessmentAnswers(activeData.answers);
+      }
+
+      const isTimeExpired = Boolean(restored.isExpired);
+
+      if (isTimeExpired) {
+        toast.warning('Exam time limit expired while away. Auto-submitting answers.');
+        handleStep3Submit(activeData.tabSwitchCount, true);
+        clearActiveExamSession(activeToken);
+      } else {
+        toast.info(`Active exam session restored. ${formatTimerDisplay(restored.remainingSeconds)} remaining.`);
+      }
+    }
+  }, [activeToken, isStep3Done, examTotalSeconds]);
 
   // Proctoring tab switch & window blur detection effect
   useEffect(() => {
@@ -1316,6 +1360,17 @@ export const CandidatePortalRunner: React.FC = () => {
         setShowFocusLostModal(true);
 
         const isExceeded = (next >= 3);
+        const nextIntegrity = isExceeded ? 'flagged' : examIntegrityStatus;
+
+        saveActiveExamSession({
+          token: activeToken,
+          isStarted: true,
+          startedAt: Date.now() - Math.max(0, examTotalSeconds - examSecondsLeft) * 1000,
+          durationSeconds: examTotalSeconds,
+          tabSwitchCount: next,
+          integrityStatus: nextIntegrity,
+          answers: assessmentAnswers,
+        });
 
         if (isExceeded) {
           toast.error('Proctoring violation: 3 tab switches detected! Exam automatically submitted.');
@@ -2613,6 +2668,18 @@ export const CandidatePortalRunner: React.FC = () => {
                     <Button
                       onClick={() => {
                         setIsExamStarted(true);
+                        const now = Date.now();
+
+                        saveActiveExamSession({
+                          token: activeToken,
+                          isStarted: true,
+                          startedAt: now,
+                          durationSeconds: examTotalSeconds,
+                          tabSwitchCount: 0,
+                          integrityStatus: 'clean',
+                          answers: assessmentAnswers,
+                        });
+
                         toast.success(`Exam started! ${examDurationMinutes}:00 timer is running.`);
                       }}
                       disabled={!examBriefingAgreed}
@@ -2695,7 +2762,23 @@ export const CandidatePortalRunner: React.FC = () => {
                                 value={opt}
                                 checked={assessmentAnswers[q.id] === opt}
                                 onChange={(e) => {
-                                  setAssessmentAnswers((prev) => ({ ...prev, [q.id]: e.target.value }));
+                                  const selectedVal = e.target.value;
+
+                                  setAssessmentAnswers((prev) => {
+                                    const next = { ...prev, [q.id]: selectedVal };
+
+                                    saveActiveExamSession({
+                                      token: activeToken,
+                                      isStarted: true,
+                                      startedAt: Date.now() - Math.max(0, examTotalSeconds - examSecondsLeft) * 1000,
+                                      durationSeconds: examTotalSeconds,
+                                      tabSwitchCount,
+                                      integrityStatus: examIntegrityStatus,
+                                      answers: next,
+                                    });
+
+                                    return next;
+                                  });
                                 }}
                                 className="cursor-pointer text-primary"
                               />

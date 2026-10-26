@@ -5,6 +5,12 @@ import {
   generateIcsContent,
   formatUtcDateTime,
 } from '@/lib/calendar-reminder';
+import {
+  loadActiveExamSession,
+  saveActiveExamSession,
+  clearActiveExamSession,
+  getExamStorageKey,
+} from '@/lib/exam-session-storage';
 
 describe('Candidate Portal Proctoring & Timed Technical Exam', () => {
   it('provides comprehensive second-phase technical questions for all roles', () => {
@@ -243,5 +249,92 @@ describe('Candidate Portal Proctoring & Timed Technical Exam', () => {
     const formatted = formatUtcDateTime(date);
 
     expect(formatted).toBe('20260315T080509Z');
+  });
+
+  describe('Gap 1: Active Exam Session Storage & Refresh Resilience', () => {
+    const testToken = 'cpt_test_refresh_resilience_123';
+
+    it('generates consistent storage keys for candidate tokens', () => {
+      const key = getExamStorageKey(testToken);
+      expect(key).toBe(`wp_exam_active_session_${testToken}`);
+    });
+
+    it('saves and restores active exam session across simulated browser reload', () => {
+      const now = Date.now();
+      const durationSeconds = 1800; // 30 minutes
+
+      saveActiveExamSession({
+        token: testToken,
+        isStarted: true,
+        startedAt: now,
+        durationSeconds,
+        tabSwitchCount: 1,
+        integrityStatus: 'flagged',
+        answers: { q1: 'val1', q2: 'val2' },
+      });
+
+      const restored = loadActiveExamSession(testToken, durationSeconds);
+      expect(restored.hasActiveSession).toBe(true);
+      expect(restored.isExpired).toBe(false);
+      expect(restored.session?.tabSwitchCount).toBe(1);
+      expect(restored.session?.integrityStatus).toBe('flagged');
+      expect(restored.session?.answers).toEqual({ q1: 'val1', q2: 'val2' });
+      expect(restored.remainingSeconds).toBeGreaterThan(1790);
+      expect(restored.remainingSeconds).toBeLessThanOrEqual(1800);
+
+      clearActiveExamSession(testToken);
+      const afterClear = loadActiveExamSession(testToken, durationSeconds);
+      expect(afterClear.hasActiveSession).toBe(false);
+    });
+
+    it('prevents timer cheat on browser refresh by deducting elapsed wall-clock time', () => {
+      const durationSeconds = 1800; // 30 mins
+      // Simulate candidate who started exam 10 minutes (600 seconds) ago
+      const tenMinutesAgo = Date.now() - 600 * 1000;
+
+      saveActiveExamSession({
+        token: testToken,
+        isStarted: true,
+        startedAt: tenMinutesAgo,
+        durationSeconds,
+        tabSwitchCount: 2,
+        integrityStatus: 'flagged',
+        answers: {},
+      });
+
+      const reloaded = loadActiveExamSession(testToken, durationSeconds);
+      expect(reloaded.hasActiveSession).toBe(true);
+      expect(reloaded.isExpired).toBe(false);
+      // Candidate must only have ~1200 seconds (20 mins) left, NOT full 1800 seconds!
+      expect(reloaded.remainingSeconds).toBeLessThanOrEqual(1205);
+      expect(reloaded.remainingSeconds).toBeGreaterThanOrEqual(1195);
+      // Proctoring strikes MUST NOT be cleared by refresh
+      expect(reloaded.session?.tabSwitchCount).toBe(2);
+
+      clearActiveExamSession(testToken);
+    });
+
+    it('detects expired sessions when candidate returns after time limit', () => {
+      const durationSeconds = 900; // 15 mins
+      // Simulate candidate who started exam 20 minutes (1200 seconds) ago
+      const twentyMinutesAgo = Date.now() - 1200 * 1000;
+
+      saveActiveExamSession({
+        token: testToken,
+        isStarted: true,
+        startedAt: twentyMinutesAgo,
+        durationSeconds,
+        tabSwitchCount: 0,
+        integrityStatus: 'clean',
+        answers: {},
+      });
+
+      const reloaded = loadActiveExamSession(testToken, durationSeconds);
+      expect(reloaded.hasActiveSession).toBe(true);
+      expect(reloaded.isExpired).toBe(true);
+      expect(reloaded.remainingSeconds).toBe(0);
+
+      clearActiveExamSession(testToken);
+    });
   });
 });
