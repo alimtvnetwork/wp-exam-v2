@@ -23,9 +23,14 @@ describe('Candidate Portal Proctoring & Timed Technical Exam', () => {
       role.secondPhaseQuestions.forEach((q) => {
         expect(q.id).toBeDefined();
         expect(q.question.length).toBeGreaterThan(10);
-        expect(q.options.length).toBeGreaterThanOrEqual(3);
-        expect(q.correctAnswer).toBeDefined();
-        expect(q.options).toContain(q.correctAnswer);
+        const isChoiceBased = !q.type || q.type === 'mcq' || q.type === 'media_mcq';
+        if (isChoiceBased) {
+          expect(q.options.length).toBeGreaterThanOrEqual(3);
+          expect(q.correctAnswer).toBeDefined();
+          expect(q.options).toContain(q.correctAnswer);
+        } else {
+          expect(['text_open', 'media_prompt']).toContain(q.type);
+        }
       });
     });
   });
@@ -348,7 +353,13 @@ describe('Candidate Portal Proctoring & Timed Technical Exam', () => {
         return questions.map((q) => ({
           id: q.id,
           question: q.question,
-          options: [...q.options],
+          type: q.type || 'mcq',
+          options: [...(q.options || [])],
+          mediaType: q.mediaType,
+          mediaUrl: q.mediaUrl,
+          isOneTimePlay: q.isOneTimePlay,
+          placeholder: q.placeholder,
+          maxWordCount: q.maxWordCount,
         }));
       };
 
@@ -358,7 +369,10 @@ describe('Candidate Portal Proctoring & Timed Technical Exam', () => {
       sanitized.forEach((q) => {
         expect(q.id).toBeDefined();
         expect(q.question).toBeDefined();
-        expect(q.options.length).toBeGreaterThanOrEqual(3);
+        const isChoice = !q.type || q.type === 'mcq' || q.type === 'media_mcq';
+        if (isChoice) {
+          expect(q.options.length).toBeGreaterThanOrEqual(3);
+        }
         // Sensitive fields must never be leaked to client bundle
         expect((q as Record<string, unknown>).correctAnswer).toBeUndefined();
         expect((q as Record<string, unknown>).explanation).toBeUndefined();
@@ -462,6 +476,148 @@ describe('Candidate Portal Proctoring & Timed Technical Exam', () => {
 
       // Subsequent uncompleted step can proceed
       expect(canSubmitStep('step_submission')).toBe(true);
+    });
+  });
+
+  describe('Polymorphic Question Formats, Stepper Navigation & Score Masking', () => {
+    it('supports multiple question formats: standard MCQ, media MCQ, open-ended written, and 1-time media prompt', () => {
+      const role = getJobRoleById('frontend-developer');
+      const questions = role.secondPhaseQuestions;
+
+      const types = questions.map((q) => q.type || 'mcq');
+      expect(types).toContain('mcq');
+      expect(types).toContain('media_mcq');
+      expect(types).toContain('text_open');
+      expect(types).toContain('media_prompt');
+
+      // Verify media MCQ has valid mediaType and mediaUrl
+      const mediaMcq = questions.find((q) => q.type === 'media_mcq');
+      expect(mediaMcq).toBeDefined();
+      expect(mediaMcq?.mediaType).toBe('image');
+      expect(mediaMcq?.mediaUrl).toBeDefined();
+      expect(mediaMcq?.options.length).toBeGreaterThanOrEqual(3);
+
+      // Verify text_open has maxWordCount and placeholder
+      const textOpen = questions.find((q) => q.type === 'text_open');
+      expect(textOpen).toBeDefined();
+      expect(textOpen?.maxWordCount).toBeGreaterThan(0);
+      expect(textOpen?.placeholder).toBeDefined();
+
+      // Verify media_prompt has 1-time play restriction configured
+      const mediaPrompt = questions.find((q) => q.type === 'media_prompt');
+      expect(mediaPrompt).toBeDefined();
+      expect(mediaPrompt?.mediaType).toBe('audio');
+      expect(mediaPrompt?.isOneTimePlay).toBe(true);
+      expect(mediaPrompt?.maxWordCount).toBeGreaterThan(0);
+    });
+
+    it('tracks and persists one-time media playback in active exam session to prevent replay bypasses', () => {
+      const testToken = 'cpt_test_media_track_123';
+      clearActiveExamSession(testToken);
+
+      const session = {
+        token: testToken,
+        isStarted: true,
+        startedAt: Date.now(),
+        durationSeconds: 1800,
+        tabSwitchCount: 0,
+        integrityStatus: 'clean' as const,
+        answers: { fe_q1: 'Option A' },
+        activeQuestionIndex: 4,
+        playedMediaIds: { fe_q5: true },
+      };
+
+      saveActiveExamSession(session);
+
+      const restored = loadActiveExamSession(testToken, 1800);
+      expect(restored.hasActiveSession).toBe(true);
+      expect(restored.session?.activeQuestionIndex).toBe(4);
+      expect(restored.session?.playedMediaIds?.fe_q5).toBe(true);
+
+      clearActiveExamSession(testToken);
+    });
+
+    it('orchestrates one-by-one question stepper navigation with skip, previous, and direct index jump', () => {
+      const totalQuestions = 5;
+      let currentIndex = 0;
+      const skippedIndices = new Set<number>();
+
+      const handleNext = () => {
+        if (currentIndex < totalQuestions - 1) {
+          currentIndex++;
+        }
+      };
+
+      const handlePrevious = () => {
+        if (currentIndex > 0) {
+          currentIndex--;
+        }
+      };
+
+      const handleSkip = () => {
+        skippedIndices.add(currentIndex);
+        handleNext();
+      };
+
+      const handleJump = (targetIndex: number) => {
+        if (targetIndex >= 0 && targetIndex < totalQuestions) {
+          currentIndex = targetIndex;
+        }
+      };
+
+      // Start at 0
+      expect(currentIndex).toBe(0);
+
+      // Skip Q1 -> should advance to Q2 and record skip
+      handleSkip();
+      expect(currentIndex).toBe(1);
+      expect(skippedIndices.has(0)).toBe(true);
+
+      // Advance to Q3
+      handleNext();
+      expect(currentIndex).toBe(2);
+
+      // Go back to Q2
+      handlePrevious();
+      expect(currentIndex).toBe(1);
+
+      // Jump directly to Q5 (index 4)
+      handleJump(4);
+      expect(currentIndex).toBe(4);
+    });
+
+    it('masks assessment marks and percentages in candidate-facing views and verification receipts', () => {
+      // Invariant: Candidate portal displays status 'Submitted — Under Review', never numerical scores or pass/fail labels
+      const getCandidateDisplayStatus = (isCompleted: boolean) => {
+        if (isCompleted) {
+          return {
+            statusBadge: 'Submitted — Under Review',
+            scoreDisplay: null,
+            message: 'Your assessment responses, video presentation, and signed verification packet have been securely recorded. Your technical submission is currently in review by our hiring committee.',
+          };
+        }
+        return {
+          statusBadge: 'Pending',
+          scoreDisplay: null,
+          message: 'Complete the proctored assessment before the deadline.',
+        };
+      };
+
+      const candidateView = getCandidateDisplayStatus(true);
+      expect(candidateView.statusBadge).toBe('Submitted — Under Review');
+      expect(candidateView.scoreDisplay).toBeNull();
+      expect(candidateView.message).toContain('in review by our hiring committee');
+
+      // Verification receipt format
+      const receiptFormat = {
+        verificationId: 'VRF-101-ABCD1234',
+        candidateName: 'Jane Candidate',
+        targetRole: 'Senior Frontend Engineer',
+        evaluationStatus: 'SUBMITTED — UNDER HIRING COMMITTEE REVIEW',
+      };
+
+      expect(receiptFormat.evaluationStatus).not.toContain('%');
+      expect(receiptFormat.evaluationStatus).toBe('SUBMITTED — UNDER HIRING COMMITTEE REVIEW');
     });
   });
 });

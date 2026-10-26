@@ -38,9 +38,16 @@ import {
   Download,
   Printer,
   CalendarPlus,
+  Play,
+  Volume2,
+  Image as ImageIcon,
+  SkipForward,
+  FileEdit,
+  RotateCcw,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import {
@@ -832,7 +839,7 @@ export const CandidatePortalRunner: React.FC = () => {
 
     setTaskQuizScore(scorePercent);
     handleUpdateTaskStatus(activeTask.id, 'completed', scorePercent);
-    toast.success(`Quiz completed with ${scorePercent}% score!`);
+    toast.success("Assessment submitted successfully! Your submission is now in review.");
   };
 
   // Step 1 Form State
@@ -885,6 +892,12 @@ export const CandidatePortalRunner: React.FC = () => {
   const [tabSwitchCount, setTabSwitchCount] = useState<number>(0);
   const [showFocusLostModal, setShowFocusLostModal] = useState<boolean>(false);
   const [examIntegrityStatus, setExamIntegrityStatus] = useState<'clean' | 'flagged'>('clean');
+
+  // Step 3 One-by-One Stepper & Polymorphic Media Tracking State
+  const [activeQuestionIndex, setActiveQuestionIndex] = useState<number>(0);
+  const [playedMediaIds, setPlayedMediaIds] = useState<Record<string, boolean>>({});
+  const [activeAudioPlayingId, setActiveAudioPlayingId] = useState<string | null>(null);
+  const [showUnansweredPrompt, setShowUnansweredPrompt] = useState<boolean>(false);
 
   // Pre-exam readiness & calendar reminder scheduling state
   const [isReminderModalOpen, setIsReminderModalOpen] = useState<boolean>(false);
@@ -1382,6 +1395,18 @@ export const CandidatePortalRunner: React.FC = () => {
 
       if (hasAnswers) {
         setAssessmentAnswers(activeData.answers);
+      }
+
+      const hasQuestionIdx = (typeof activeData.activeQuestionIndex === 'number');
+
+      if (hasQuestionIdx) {
+        setActiveQuestionIndex(activeData.activeQuestionIndex!);
+      }
+
+      const hasPlayedMedia = Boolean(activeData.playedMediaIds && Object.keys(activeData.playedMediaIds).length > 0);
+
+      if (hasPlayedMedia) {
+        setPlayedMediaIds(activeData.playedMediaIds!);
       }
 
       const isTimeExpired = Boolean(restored.isExpired);
@@ -1928,14 +1953,14 @@ export const CandidatePortalRunner: React.FC = () => {
                         </p>
                       )}
 
-                      {/* Score pill if completed assessment */}
-                      {task.type === 'assessment' && isStep5Done && displayScore !== null && (
-                        <div className="flex items-center justify-between p-2 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
+                      {/* Assessment review badge if completed */}
+                      {task.type === 'assessment' && isStep5Done && (
+                        <div className="flex items-center justify-between p-2 rounded-xl bg-primary/10 border border-primary/20 text-xs text-foreground font-semibold">
                           <span className="flex items-center gap-1.5">
-                            <Award className="w-3.5 h-3.5" />
-                            Final Exam Performance
+                            <Award className="w-3.5 h-3.5 text-primary" />
+                            Technical Evaluation
                           </span>
-                          <span className="font-mono text-sm">{displayScore}%</span>
+                          <span className="font-mono text-xs px-2 py-0.5 rounded bg-primary/20 text-primary">Submitted — In Review</span>
                         </div>
                       )}
                     </div>
@@ -2078,14 +2103,14 @@ export const CandidatePortalRunner: React.FC = () => {
                 )}
 
                 {/* Quiz Score Banner if completed */}
-                {isQuiz && taskQuizScore !== null && (
-                  <div className="p-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-between text-xs text-emerald-600 dark:text-emerald-400 font-semibold">
+                {isQuiz && isTaskCompleted && (
+                  <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-between text-xs text-amber-600 dark:text-amber-400 font-semibold">
                     <span className="flex items-center gap-1.5">
-                      <Award className="w-4 h-4" />
-                      Quiz Score: {taskQuizScore}%
+                      <Clock className="w-4 h-4" />
+                      Assessment Status: Submitted — In Review
                     </span>
-                    <Badge variant="outline" className="border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px]">
-                      Verified
+                    <Badge variant="outline" className="border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px]">
+                      Pending Review
                     </Badge>
                   </div>
                 )}
@@ -2613,7 +2638,7 @@ export const CandidatePortalRunner: React.FC = () => {
                     <Badge variant="outline" className="border-emerald-500/40 text-emerald-600 dark:text-emerald-400 font-mono">
                       Step 3 Completed
                     </Badge>
-                    <CardTitle className="text-xl">{currentJobRole.title} — Technical Assessment Results</CardTitle>
+                    <CardTitle className="text-xl">{currentJobRole.title} — Technical Assessment Submitted</CardTitle>
                   </div>
                   <p className="text-sm text-muted-foreground">
                     Your assessment responses have been recorded and saved to your application profile.
@@ -2623,10 +2648,14 @@ export const CandidatePortalRunner: React.FC = () => {
                   <div className="p-6 rounded-2xl bg-muted/30 border border-border space-y-4">
                     <div className="flex flex-col sm:flex-row items-center justify-between gap-4 p-4 rounded-xl bg-card border border-border/60">
                       <div>
-                        <span className="text-xs text-muted-foreground block font-mono">Assessment Final Score</span>
-                        <div className="text-3xl font-extrabold text-foreground font-heading mt-0.5">
-                          {displayScore !== null ? `${displayScore}%` : 'Recorded'}
+                        <span className="text-xs text-muted-foreground block font-mono">Assessment Submission Status</span>
+                        <div className="text-2xl font-bold text-foreground font-heading mt-0.5 flex items-center gap-2">
+                          <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                          <span>Submitted & Under Review</span>
                         </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Your responses have been securely received and forwarded to our hiring committee for technical review.
+                        </p>
                       </div>
                       <div className="flex items-center gap-2">
                         {examIntegrityStatus === 'clean' ? (
@@ -2649,8 +2678,8 @@ export const CandidatePortalRunner: React.FC = () => {
                         <span className="font-semibold text-foreground">{currentJobRole.title}</span>
                       </div>
                       <div className="p-3 rounded-lg bg-card border border-border">
-                        <span className="text-muted-foreground block">Questions Answered</span>
-                        <span className="font-semibold text-foreground font-mono">{roleQuestions.length || 3} of {roleQuestions.length || 3}</span>
+                        <span className="text-muted-foreground block">Evaluation Status</span>
+                        <span className="font-semibold text-primary font-mono">Under Review</span>
                       </div>
                       <div className="p-3 rounded-lg bg-card border border-border">
                         <span className="text-muted-foreground block">Proctoring Status</span>
@@ -2880,33 +2909,246 @@ export const CandidatePortalRunner: React.FC = () => {
                 </CardHeader>
 
                 <CardContent className="p-6 pt-0 space-y-6">
-                  <div className="space-y-4">
-                    {roleQuestions.map((q, idx) => (
-                      <div key={q.id} className="p-4 rounded-xl bg-muted/20 border border-border/40 space-y-2">
-                        <label className="text-xs font-bold text-foreground">
-                          Q{idx + 1}: {q.question}
-                        </label>
-                        <div className="space-y-1.5 pt-1">
-                          {q.options.map((opt) => (
-                            <label
-                              key={opt}
-                              className={`flex items-center gap-2 text-xs text-foreground cursor-pointer p-2.5 rounded-lg transition-colors ${
-                                assessmentAnswers[q.id] === opt
-                                  ? 'bg-primary/10 border border-primary/30 font-semibold'
-                                  : 'hover:bg-muted/50 border border-transparent'
-                              }`}
-                            >
-                              <input
-                                type="radio"
-                                name={`role_q_${q.id}`}
-                                value={opt}
-                                checked={assessmentAnswers[q.id] === opt}
+                  {(() => {
+                    const currentQuestion = roleQuestions[activeQuestionIndex] || roleQuestions[0];
+                    const totalQuestions = roleQuestions.length;
+                    const answeredCount = roleQuestions.filter((q) => Boolean(assessmentAnswers[q.id]?.trim())).length;
+                    const isCurrentAnswered = Boolean(assessmentAnswers[currentQuestion?.id]?.trim());
+
+                    if (!currentQuestion) {
+                      return (
+                        <div className="p-8 text-center text-muted-foreground">
+                          No assessment questions configured for this role.
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <div className="space-y-6">
+                        {/* Top Question Stepper & Navigation Palette */}
+                        <div className="p-4 rounded-2xl bg-card border border-border/70 shadow-xs space-y-3.5">
+                          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-mono font-bold text-primary px-2.5 py-1 rounded-md bg-primary/10 border border-primary/20">
+                                Question {activeQuestionIndex + 1} of {totalQuestions}
+                              </span>
+                              <Badge variant="outline" className="text-[11px] font-medium border-border/80 text-muted-foreground capitalize">
+                                {currentQuestion.type === 'media_prompt'
+                                  ? '1-Time Listening Prompt'
+                                  : currentQuestion.type === 'text_open'
+                                  ? 'Written Technical Response'
+                                  : currentQuestion.type === 'media_mcq'
+                                  ? 'Media MCQ'
+                                  : 'Multiple Choice'}
+                              </Badge>
+                            </div>
+
+                            <div className="flex items-center gap-2 text-xs text-muted-foreground font-mono">
+                              <span className="flex items-center gap-1">
+                                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500" />
+                                <span>{answeredCount} Answered</span>
+                              </span>
+                              <span>&bull;</span>
+                              <span>{totalQuestions - answeredCount} Left</span>
+                            </div>
+                          </div>
+
+                          {/* Question Number Tabs Palette */}
+                          <div className="flex items-center gap-1.5 flex-wrap pt-1">
+                            {roleQuestions.map((q, idx) => {
+                              const isCurrent = idx === activeQuestionIndex;
+                              const isAnswered = Boolean(assessmentAnswers[q.id]?.trim());
+
+                              return (
+                                <button
+                                  key={q.id}
+                                  type="button"
+                                  onClick={() => {
+                                    setActiveQuestionIndex(idx);
+                                    saveActiveExamSession({
+                                      token: activeToken,
+                                      isStarted: true,
+                                      startedAt: Date.now() - Math.max(0, examTotalSeconds - examSecondsLeft) * 1000,
+                                      durationSeconds: examTotalSeconds,
+                                      tabSwitchCount,
+                                      integrityStatus: examIntegrityStatus,
+                                      answers: assessmentAnswers,
+                                      activeQuestionIndex: idx,
+                                      playedMediaIds,
+                                    });
+                                  }}
+                                  className={`w-8 h-8 rounded-lg text-xs font-mono font-bold transition-all flex items-center justify-center cursor-pointer ${
+                                    isCurrent
+                                      ? 'bg-primary text-primary-foreground ring-2 ring-primary ring-offset-2 ring-offset-background shadow-xs'
+                                      : isAnswered
+                                      ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/25'
+                                      : 'bg-muted/40 text-muted-foreground border border-border/60 hover:bg-muted/70 hover:text-foreground'
+                                  }`}
+                                  title={`Jump to Question ${idx + 1}${isAnswered ? ' (Answered)' : ' (Unanswered)'}`}
+                                >
+                                  {idx + 1}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Active Question Canvas Card */}
+                        <div className="p-6 rounded-2xl bg-card border-2 border-border/80 shadow-md space-y-5">
+                          {/* Question Header */}
+                          <div className="space-y-1.5 border-b border-border/50 pb-3">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-mono text-muted-foreground uppercase tracking-wider">
+                                Question {activeQuestionIndex + 1}
+                              </span>
+                              {isCurrentAnswered && (
+                                <Badge variant="outline" className="text-[10px] text-emerald-500 border-emerald-500/30 gap-1 py-0 h-5">
+                                  <Check className="w-2.5 h-2.5" />
+                                  <span>Saved</span>
+                                </Badge>
+                              )}
+                            </div>
+                            <h3 className="text-base sm:text-lg font-bold text-foreground font-heading leading-snug">
+                              {currentQuestion.question}
+                            </h3>
+                          </div>
+
+                          {/* Attached Media Section (Image / Video / Audio) */}
+                          {Boolean(currentQuestion.mediaUrl) && (
+                            <div className="p-4 rounded-xl bg-muted/30 border border-border/60 space-y-3">
+                              {currentQuestion.mediaType === 'image' && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-1.5 text-xs font-semibold text-muted-foreground">
+                                    <ImageIcon className="w-4 h-4 text-primary" />
+                                    <span>Technical Reference Image:</span>
+                                  </div>
+                                  <div className="overflow-hidden rounded-xl border border-border/70 bg-black/5 flex items-center justify-center p-2">
+                                    <img
+                                      src={currentQuestion.mediaUrl}
+                                      alt="Question Reference"
+                                      className="max-h-72 w-auto object-contain rounded-lg shadow-xs"
+                                      loading="lazy"
+                                    />
+                                  </div>
+                                </div>
+                              )}
+
+                              {currentQuestion.mediaType === 'video' && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center justify-between text-xs font-semibold text-muted-foreground">
+                                    <div className="flex items-center gap-1.5">
+                                      <Play className="w-4 h-4 text-primary" />
+                                      <span>Video Prompt:</span>
+                                    </div>
+                                    {Boolean(currentQuestion.isOneTimePlay) && (
+                                      <Badge variant="outline" className="border-rose-500/40 text-rose-500 font-mono text-[10px]">
+                                        1-Time Playback Restriction
+                                      </Badge>
+                                    )}
+                                  </div>
+                                  <div className="aspect-video rounded-xl overflow-hidden border border-border/70 bg-black">
+                                    {Boolean(playedMediaIds[currentQuestion.id] && currentQuestion.isOneTimePlay) ? (
+                                      <div className="h-full flex flex-col items-center justify-center p-6 text-center space-y-2 text-muted-foreground">
+                                        <ShieldAlert className="w-8 h-8 text-rose-500" />
+                                        <span className="text-xs font-semibold text-foreground">Video Playback Completed</span>
+                                        <span className="text-[11px] text-muted-foreground">1-time view restriction enforced for this evaluation.</span>
+                                      </div>
+                                    ) : (
+                                      <video
+                                        src={currentQuestion.mediaUrl}
+                                        controls
+                                        className="w-full h-full object-contain"
+                                        onEnded={() => {
+                                          if (currentQuestion.isOneTimePlay) {
+                                            const updatedPlayed = { ...playedMediaIds, [currentQuestion.id]: true };
+                                            setPlayedMediaIds(updatedPlayed);
+                                            toast.warning('Video finished. Single-play restriction recorded.');
+                                            saveActiveExamSession({
+                                              token: activeToken,
+                                              isStarted: true,
+                                              startedAt: Date.now() - Math.max(0, examTotalSeconds - examSecondsLeft) * 1000,
+                                              durationSeconds: examTotalSeconds,
+                                              tabSwitchCount,
+                                              integrityStatus: examIntegrityStatus,
+                                              answers: assessmentAnswers,
+                                              activeQuestionIndex,
+                                              playedMediaIds: updatedPlayed,
+                                            });
+                                          }
+                                        }}
+                                      />
+                                    )}
+                                  </div>
+                                </div>
+                              )}
+
+                              {currentQuestion.mediaType === 'audio' && (
+                                <div className="p-4 rounded-xl bg-card border border-border space-y-3">
+                                  <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                      <Volume2 className="w-4 h-4 text-primary" />
+                                      <span className="text-xs font-semibold text-foreground">Technical Audio Recording</span>
+                                    </div>
+                                    {Boolean(currentQuestion.isOneTimePlay) && (
+                                      <Badge variant="outline" className="border-rose-500/40 text-rose-500 font-mono text-[10px]">
+                                        1-Time Listen Policy
+                                      </Badge>
+                                    )}
+                                  </div>
+
+                                  {Boolean(playedMediaIds[currentQuestion.id] && currentQuestion.isOneTimePlay) ? (
+                                    <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs text-rose-600 dark:text-rose-400 flex items-center gap-2">
+                                      <ShieldAlert className="w-4 h-4 shrink-0" />
+                                      <span>Recording playback completed (Single listen policy enforced). Answer based on what you heard.</span>
+                                    </div>
+                                  ) : (
+                                    <div className="flex items-center gap-3">
+                                      <audio
+                                        id={`audio_${currentQuestion.id}`}
+                                        src={currentQuestion.mediaUrl}
+                                        className="w-full h-9"
+                                        controls
+                                        onEnded={() => {
+                                          if (currentQuestion.isOneTimePlay) {
+                                            const updatedPlayed = { ...playedMediaIds, [currentQuestion.id]: true };
+                                            setPlayedMediaIds(updatedPlayed);
+                                            toast.warning('Audio recording ended. Single-play restriction recorded.');
+                                            saveActiveExamSession({
+                                              token: activeToken,
+                                              isStarted: true,
+                                              startedAt: Date.now() - Math.max(0, examTotalSeconds - examSecondsLeft) * 1000,
+                                              durationSeconds: examTotalSeconds,
+                                              tabSwitchCount,
+                                              integrityStatus: examIntegrityStatus,
+                                              answers: assessmentAnswers,
+                                              activeQuestionIndex,
+                                              playedMediaIds: updatedPlayed,
+                                            });
+                                          }
+                                        }}
+                                      />
+                                    </div>
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          )}
+
+                          {/* Candidate Answer Input: Textarea (Open-ended or Media Prompt) vs Radio choices (MCQ / Media MCQ) */}
+                          {(currentQuestion.type === 'text_open' || currentQuestion.type === 'media_prompt') ? (
+                            <div className="space-y-2">
+                              <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                                <FileEdit className="w-4 h-4 text-primary" />
+                                <span>Candidate Written Response *</span>
+                              </label>
+                              <Textarea
+                                placeholder={currentQuestion.placeholder || 'Write your structured technical analysis and response here...'}
+                                rows={6}
+                                value={assessmentAnswers[currentQuestion.id] || ''}
                                 onChange={(e) => {
-                                  const selectedVal = e.target.value;
-
+                                  const val = e.target.value;
                                   setAssessmentAnswers((prev) => {
-                                    const next = { ...prev, [q.id]: selectedVal };
-
+                                    const next = { ...prev, [currentQuestion.id]: val };
                                     saveActiveExamSession({
                                       token: activeToken,
                                       isStarted: true,
@@ -2915,50 +3157,223 @@ export const CandidatePortalRunner: React.FC = () => {
                                       tabSwitchCount,
                                       integrityStatus: examIntegrityStatus,
                                       answers: next,
+                                      activeQuestionIndex,
+                                      playedMediaIds,
                                     });
-
                                     return next;
                                   });
                                 }}
-                                className="cursor-pointer text-primary"
+                                className="text-xs sm:text-sm font-sans leading-relaxed resize-y min-h-[140px]"
                               />
-                              <span>{opt}</span>
-                            </label>
-                          ))}
+                              <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-0.5">
+                                <span>Auto-saved to active assessment session</span>
+                                <span className="font-mono">
+                                  {(() => {
+                                    const text = (assessmentAnswers[currentQuestion.id] || '').trim();
+                                    const words = text.length > 0 ? text.split(/\s+/).length : 0;
+                                    return `${words} words${currentQuestion.maxWordCount ? ` (max ${currentQuestion.maxWordCount})` : ''}`;
+                                  })()}
+                                </span>
+                              </div>
+                            </div>
+                          ) : (
+                            /* MCQ Radio Choices */
+                            <div className="space-y-2">
+                              <label className="text-xs font-semibold text-muted-foreground block">
+                                Select the best technical option:
+                              </label>
+                              <div className="space-y-2">
+                                {(currentQuestion.options || []).map((opt) => {
+                                  const isSelected = assessmentAnswers[currentQuestion.id] === opt;
+
+                                  return (
+                                    <label
+                                      key={opt}
+                                      className={`flex items-start gap-3 p-3.5 rounded-xl border transition-all cursor-pointer text-xs sm:text-sm leading-relaxed ${
+                                        isSelected
+                                          ? 'bg-primary/10 border-primary shadow-xs font-semibold text-foreground'
+                                          : 'bg-muted/20 border-border/60 hover:bg-muted/40 hover:border-border text-foreground'
+                                      }`}
+                                    >
+                                      <input
+                                        type="radio"
+                                        name={`role_q_${currentQuestion.id}`}
+                                        value={opt}
+                                        checked={isSelected}
+                                        onChange={(e) => {
+                                          const selectedVal = e.target.value;
+                                          setAssessmentAnswers((prev) => {
+                                            const next = { ...prev, [currentQuestion.id]: selectedVal };
+                                            saveActiveExamSession({
+                                              token: activeToken,
+                                              isStarted: true,
+                                              startedAt: Date.now() - Math.max(0, examTotalSeconds - examSecondsLeft) * 1000,
+                                              durationSeconds: examTotalSeconds,
+                                              tabSwitchCount,
+                                              integrityStatus: examIntegrityStatus,
+                                              answers: next,
+                                              activeQuestionIndex,
+                                              playedMediaIds,
+                                            });
+                                            return next;
+                                          });
+                                        }}
+                                        className="mt-0.5 cursor-pointer text-primary"
+                                      />
+                                      <span>{opt}</span>
+                                    </label>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Unanswered Notice Banner if triggered */}
+                        {showUnansweredPrompt && (
+                          <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-xs space-y-2">
+                            <div className="font-semibold text-amber-700 dark:text-amber-300 flex items-center gap-1.5">
+                              <AlertCircle className="w-4 h-4 text-amber-600 shrink-0" />
+                              <span>Notice: You have {totalQuestions - answeredCount} unanswered question(s).</span>
+                            </div>
+                            <p className="text-muted-foreground">
+                              You can jump directly to any question to review your answers, or proceed to finalize your submission.
+                            </p>
+                            <div className="flex items-center gap-2 pt-1">
+                              <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                onClick={() => {
+                                  const firstUnanswered = roleQuestions.findIndex((q) => !assessmentAnswers[q.id]?.trim());
+                                  if (firstUnanswered >= 0) {
+                                    setActiveQuestionIndex(firstUnanswered);
+                                  }
+                                  setShowUnansweredPrompt(false);
+                                }}
+                                className="text-xs cursor-pointer"
+                              >
+                                Review First Unanswered Question
+                              </Button>
+                              <Button
+                                type="button"
+                                size="sm"
+                                onClick={() => {
+                                  setShowUnansweredPrompt(false);
+                                  handleStep3Submit();
+                                }}
+                                className="text-xs bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer"
+                              >
+                                Confirm & Submit Anyway
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+
+                        {/* Question Stepper Action Bar */}
+                        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-border/40">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              const prevIdx = Math.max(0, activeQuestionIndex - 1);
+                              setActiveQuestionIndex(prevIdx);
+                              saveActiveExamSession({
+                                token: activeToken,
+                                isStarted: true,
+                                startedAt: Date.now() - Math.max(0, examTotalSeconds - examSecondsLeft) * 1000,
+                                durationSeconds: examTotalSeconds,
+                                tabSwitchCount,
+                                integrityStatus: examIntegrityStatus,
+                                answers: assessmentAnswers,
+                                activeQuestionIndex: prevIdx,
+                                playedMediaIds,
+                              });
+                            }}
+                            disabled={activeQuestionIndex === 0}
+                            className="gap-1.5 text-xs w-full sm:w-auto cursor-pointer"
+                          >
+                            <ArrowLeft className="w-3.5 h-3.5" />
+                            <span>Previous Question</span>
+                          </Button>
+
+                          <div className="flex items-center gap-2 w-full sm:w-auto justify-end">
+                            {activeQuestionIndex < totalQuestions - 1 ? (
+                              <>
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const nextIdx = activeQuestionIndex + 1;
+                                    setActiveQuestionIndex(nextIdx);
+                                    toast.info(`Skipped to Question ${nextIdx + 1}. You can return anytime.`);
+                                    saveActiveExamSession({
+                                      token: activeToken,
+                                      isStarted: true,
+                                      startedAt: Date.now() - Math.max(0, examTotalSeconds - examSecondsLeft) * 1000,
+                                      durationSeconds: examTotalSeconds,
+                                      tabSwitchCount,
+                                      integrityStatus: examIntegrityStatus,
+                                      answers: assessmentAnswers,
+                                      activeQuestionIndex: nextIdx,
+                                      playedMediaIds,
+                                    });
+                                  }}
+                                  className="gap-1.5 text-xs text-muted-foreground hover:text-foreground cursor-pointer"
+                                >
+                                  <SkipForward className="w-3.5 h-3.5" />
+                                  <span>Skip for Now</span>
+                                </Button>
+
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  onClick={() => {
+                                    const nextIdx = activeQuestionIndex + 1;
+                                    setActiveQuestionIndex(nextIdx);
+                                    saveActiveExamSession({
+                                      token: activeToken,
+                                      isStarted: true,
+                                      startedAt: Date.now() - Math.max(0, examTotalSeconds - examSecondsLeft) * 1000,
+                                      durationSeconds: examTotalSeconds,
+                                      tabSwitchCount,
+                                      integrityStatus: examIntegrityStatus,
+                                      answers: assessmentAnswers,
+                                      activeQuestionIndex: nextIdx,
+                                      playedMediaIds,
+                                    });
+                                  }}
+                                  className="gap-1.5 text-xs font-semibold cursor-pointer"
+                                >
+                                  <span>Next Question</span>
+                                  <ArrowRight className="w-3.5 h-3.5" />
+                                </Button>
+                              </>
+                            ) : (
+                              /* Last Question or Submit Action */
+                              <Button
+                                type="button"
+                                onClick={() => {
+                                  const unanswered = roleQuestions.filter((q) => !assessmentAnswers[q.id]?.trim());
+                                  if (unanswered.length > 0) {
+                                    setShowUnansweredPrompt(true);
+                                  } else {
+                                    handleStep3Submit();
+                                  }
+                                }}
+                                className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold cursor-pointer shadow-md text-xs sm:text-sm"
+                              >
+                                <CheckCircle2 className="w-4 h-4" />
+                                <span>Review & Submit Assessment</span>
+                              </Button>
+                            )}
+                          </div>
                         </div>
                       </div>
-                    ))}
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-3 pt-3 border-t border-border/40">
-                    <div className="text-xs text-muted-foreground flex items-center gap-1.5 font-mono">
-                      <Shield className="w-3.5 h-3.5 text-primary" />
-                      <span>Proctored window focus lock active</span>
-                    </div>
-
-                    <div className="flex items-center gap-3">
-                      {!isStep3Satisfied ? (
-                        <div className="text-xs text-amber-500 flex items-center gap-1.5 font-medium">
-                          <AlertCircle className="w-3.5 h-3.5" />
-                          <span>Please answer all {roleQuestions.length} questions.</span>
-                        </div>
-                      ) : (
-                        <div className="text-xs text-emerald-500 flex items-center gap-1.5 font-medium">
-                          <CheckCircle2 className="w-3.5 h-3.5" />
-                          <span>All questions answered.</span>
-                        </div>
-                      )}
-
-                      <Button
-                        onClick={() => handleStep3Submit()}
-                        disabled={!isStep3Satisfied}
-                        className="gap-2 bg-primary text-primary-foreground font-semibold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-md"
-                      >
-                        <span>Submit Assessment & Proceed</span>
-                        <ArrowRight className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
+                    );
+                  })()}
                 </CardContent>
               </>
             )
@@ -3637,9 +4052,9 @@ export const CandidatePortalRunner: React.FC = () => {
                 </span>
               </div>
               <div>
-                <span className="text-muted-foreground block font-medium">Assessment Score</span>
-                <span className="font-mono font-bold text-primary text-sm">
-                  {displayScore !== null ? `${displayScore}%` : '100%'}
+                <span className="text-muted-foreground block font-medium">Evaluation Status</span>
+                <span className="font-mono font-bold text-amber-600 dark:text-amber-400 text-sm">
+                  Submitted — Under Review
                 </span>
               </div>
               <div>
@@ -3665,7 +4080,7 @@ export const CandidatePortalRunner: React.FC = () => {
                 Cryptographic Verification Fingerprint (SHA-256 Stamp)
               </span>
               <p className="font-mono text-[11px] text-muted-foreground break-all">
-                {`sha256-verified:${activeToken}:${session.candidate?.id || 1}:${displayScore || 100}:${ndaSignName || 'signed'}:${Date.now().toString(36)}`}
+                {`sha256-verified:${activeToken}:${session.candidate?.id || 1}:submitted-review:${ndaSignName || 'signed'}:${Date.now().toString(36)}`}
               </p>
             </div>
           </div>
@@ -3697,7 +4112,7 @@ Verification ID : VRF-${Math.abs(session.candidate?.id || 101)}-${activeToken.sl
 Candidate Name  : ${candidateName}
 Candidate Email : ${candidateEmail}
 Target Role     : ${currentJobRole.title}
-Assessment Score: ${displayScore !== null ? `${displayScore}%` : '100%'}
+Evaluation Status: SUBMITTED — UNDER HIRING COMMITTEE REVIEW
 Session Status  : ${tabSwitchCount === 0 ? 'Verified Session (0 Focus Notices)' : `${tabSwitchCount} Focus Notices Logged`}
 NDA Execution   : Signed by ${ndaSignName || candidateName}
 Date Certified  : ${new Date().toISOString()}

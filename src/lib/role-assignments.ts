@@ -20,12 +20,20 @@ export interface FirstPhaseQuestion {
   correctAnswer: string;
 }
 
+export type AssessmentQuestionType = 'mcq' | 'media_mcq' | 'text_open' | 'media_prompt';
+
 export interface AssessmentQuizQuestion {
   id: string;
   question: string;
-  options: string[];
-  correctAnswer: string;
-  explanation: string;
+  type?: AssessmentQuestionType;
+  options?: string[];
+  correctAnswer?: string;
+  explanation?: string;
+  mediaType?: 'image' | 'video' | 'audio';
+  mediaUrl?: string;
+  isOneTimePlay?: boolean;
+  placeholder?: string;
+  maxWordCount?: number;
 }
 
 export interface JobRole {
@@ -66,6 +74,7 @@ export const SEEDED_JOB_ROLES: JobRole[] = [
     secondPhaseQuestions: [
       {
         id: 'fe_q1',
+        type: 'mcq',
         question: 'What is the primary benefit of TypeScript Discriminated Unions in state management?',
         options: [
           'Enables the TypeScript compiler to enforce exhaustive, safe branching across distinct state variants',
@@ -78,7 +87,10 @@ export const SEEDED_JOB_ROLES: JobRole[] = [
       },
       {
         id: 'fe_q2',
-        question: 'How does React 18 automatic batching optimize state updates inside asynchronous promises and timeouts?',
+        type: 'media_mcq',
+        mediaType: 'image',
+        mediaUrl: 'https://images.unsplash.com/photo-1555066931-4365d14bab8c?w=800&auto=format&fit=crop&q=80',
+        question: 'Referring to the architecture diagram above, how does React 18 automatic batching optimize state updates inside asynchronous promises and timeouts?',
         options: [
           'Batches multiple state setter calls into a single render pass automatically',
           'Prevents any re-rendering until the user manually triggers a refresh',
@@ -90,6 +102,7 @@ export const SEEDED_JOB_ROLES: JobRole[] = [
       },
       {
         id: 'fe_q3',
+        type: 'mcq',
         question: 'Which CSS property creates a new stacking context without repositioning or transforming an element?',
         options: [
           'isolation: isolate',
@@ -99,6 +112,29 @@ export const SEEDED_JOB_ROLES: JobRole[] = [
         ],
         correctAnswer: 'isolation: isolate',
         explanation: 'isolation: isolate creates a clean local stacking context without changing layout coordinates.',
+      },
+      {
+        id: 'fe_q4',
+        type: 'text_open',
+        question: 'Explain how you diagnose and eliminate unnecessary re-renders in complex React component subtrees. What tools and architectural patterns do you employ?',
+        placeholder: 'Describe your diagnostic workflow, React DevTools Profiler usage, state collocation, and selector memoization strategies...',
+        maxWordCount: 200,
+        options: [],
+        correctAnswer: '',
+        explanation: 'Evaluates practical engineering experience with React DevTools Profiler, state collocation, and selector memoization.',
+      },
+      {
+        id: 'fe_q5',
+        type: 'media_prompt',
+        mediaType: 'audio',
+        mediaUrl: 'https://actions.google.com/sounds/v1/speech/greeting_male.ogg',
+        isOneTimePlay: true,
+        question: 'Listen to this technical audio recording (single-playback allowed). Summarize the key architectural requirements and list two potential failure modes.',
+        placeholder: 'Write your summary and engineering risk analysis based on what you heard in the recording...',
+        maxWordCount: 250,
+        options: [],
+        correctAnswer: '',
+        explanation: 'Tests candidate comprehension and immediate technical synthesis under real-time constraints.',
       },
     ],
   },

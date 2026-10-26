@@ -141,7 +141,8 @@ class AssessmentService
     }
 
     /**
-     * Sanitizes question array for candidate delivery by removing correctAnswer and explanation.
+     * Sanitizes question array for candidate delivery by removing correctAnswer and explanation,
+     * while preserving rich polymorphic question metadata (media, type, playback rules).
      */
     public static function sanitizeQuestions(array $questions): array
     {
@@ -149,9 +150,15 @@ class AssessmentService
 
         foreach ($questions as $q) {
             $sanitized[] = [
-                'id'       => $q['id'] ?? '',
-                'question' => $q['question'] ?? '',
-                'options'  => $q['options'] ?? [],
+                'id'            => $q['id'] ?? '',
+                'question'      => $q['question'] ?? '',
+                'type'          => $q['type'] ?? 'mcq',
+                'options'       => $q['options'] ?? [],
+                'mediaType'     => $q['mediaType'] ?? null,
+                'mediaUrl'      => $q['mediaUrl'] ?? null,
+                'isOneTimePlay' => (bool) ($q['isOneTimePlay'] ?? false),
+                'placeholder'   => $q['placeholder'] ?? '',
+                'maxWordCount'  => isset($q['maxWordCount']) ? (int) $q['maxWordCount'] : null,
             ];
         }
 

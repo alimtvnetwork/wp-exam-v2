@@ -12,6 +12,8 @@ export interface ActiveExamSession {
   tabSwitchCount: number;
   integrityStatus: 'clean' | 'flagged';
   answers: Record<string, string>;
+  activeQuestionIndex?: number;
+  playedMediaIds?: Record<string, boolean>;
 }
 
 export interface SessionLoadResult {
@@ -105,6 +107,8 @@ export function loadActiveExamSession(token: string, totalDurationSeconds: numbe
         tabSwitchCount: Number(data.tabSwitchCount) || 0,
         integrityStatus: (data.integrityStatus === 'flagged') ? 'flagged' : 'clean',
         answers: data.answers || {},
+        activeQuestionIndex: typeof data.activeQuestionIndex === 'number' ? data.activeQuestionIndex : 0,
+        playedMediaIds: (data.playedMediaIds && typeof data.playedMediaIds === 'object') ? data.playedMediaIds : {},
       },
       remainingSeconds,
       isExpired,
