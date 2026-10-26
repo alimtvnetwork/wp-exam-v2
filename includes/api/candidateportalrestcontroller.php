@@ -215,6 +215,9 @@ class CandidatePortalRestController extends WP_REST_Controller {
         $db->execute($sql, [$token, $stepId, $jsonData]);
 
         $isAssessmentStep = ($stepId === 'step_assessment');
+        $candidate = $this->resolveCandidate($db, $token);
+        $applicantId = (int) ($candidate['id'] ?? 0);
+        $hasApplicantId = ($applicantId > 0);
 
         if ($isAssessmentStep) {
             $hasScore = isset($stepData['score']);
@@ -224,10 +227,17 @@ class CandidatePortalRestController extends WP_REST_Controller {
                 $tabSwitchCount = (int) ($stepData['tab_switch_count'] ?? 0);
                 $integrityStatus = sanitize_text_field((string) ($stepData['integrity_status'] ?? 'clean'));
 
-                $db->execute(
-                    'UPDATE applicants SET score = ?, tab_switch_count = ?, integrity_status = ?, updated_at = datetime("now") WHERE candidate_email = ? OR candidate_email LIKE ? OR id = ?',
-                    [$scoreVal, $tabSwitchCount, $integrityStatus, $token, $token . '@%', (int) $token]
-                );
+                if ($hasApplicantId) {
+                    $db->execute(
+                        'UPDATE applicants SET score = ?, tab_switch_count = ?, integrity_status = ?, updated_at = datetime("now") WHERE id = ?',
+                        [$scoreVal, $tabSwitchCount, $integrityStatus, $applicantId]
+                    );
+                } else {
+                    $db->execute(
+                        'UPDATE applicants SET score = ?, tab_switch_count = ?, integrity_status = ?, updated_at = datetime("now") WHERE portal_token = ?',
+                        [$scoreVal, $tabSwitchCount, $integrityStatus, $token]
+                    );
+                }
             }
         }
 
@@ -235,10 +245,6 @@ class CandidatePortalRestController extends WP_REST_Controller {
         $isFinalStep = ($stepId === 'step_complete');
 
         if ($isFinalStep) {
-            $candidate = $this->resolveCandidate($db, $token);
-            $applicantId = (int) ($candidate['id'] ?? 0);
-            $hasApplicantId = ($applicantId > 0);
-
             if ($hasApplicantId) {
                 $db->execute("UPDATE applicants SET current_stage_key = 'exam', updated_at = datetime('now') WHERE id = ?", [$applicantId]);
                 $db->execute('INSERT INTO applicant_transitions (applicant_id, from_stage_key, to_stage_key, moved_by_user_id, notes) VALUES (?, ?, ?, ?, ?)', [
@@ -255,7 +261,16 @@ class CandidatePortalRestController extends WP_REST_Controller {
     }
 
     private function resolveCandidate(SqliteDatabase $db, string $token): array {
-        // First check user_invites
+        // 1. Direct match on applicants table by unique portal_token
+        $tokenRows = $db->query('SELECT * FROM applicants WHERE portal_token = ? AND portal_token != "" LIMIT 1', [$token]);
+        $tokenApplicant = $tokenRows[0] ?? null;
+        $hasTokenApplicant = ($tokenApplicant !== null);
+
+        if ($hasTokenApplicant) {
+            return $tokenApplicant;
+        }
+
+        // 2. Check user_invites by unique invite_token
         $inviteRows = $db->query('SELECT * FROM user_invites WHERE invite_token = ? LIMIT 1', [$token]);
         $invite = $inviteRows[0] ?? null;
         $hasInvite = ($invite !== null);
@@ -281,25 +296,26 @@ class CandidatePortalRestController extends WP_REST_Controller {
             ];
         }
 
-        // Second check applicants by email, email prefix, or numeric ID
+        // 3. Fallback for legacy development/exact email lookup (only if exact match)
         $appRows = $db->query(
-            'SELECT * FROM applicants WHERE candidate_email = ? OR candidate_email LIKE ? OR id = ? LIMIT 1',
-            [$token, $token . '@%', (int) $token]
+            'SELECT * FROM applicants WHERE candidate_email = ? OR id = ? LIMIT 1',
+            [$token, (int) $token]
         );
         $directApplicant = $appRows[0] ?? null;
         $hasDirect = ($directApplicant !== null);
 
         if ($hasDirect) {
+            // Auto-backfill portal_token if missing
+            $portalToken = (string) ($directApplicant['portal_token'] ?? '');
+            $hasNoToken = (strlen($portalToken) === 0);
+
+            if ($hasNoToken) {
+                $newToken = 'cpt_' . bin2hex(random_bytes(16));
+                $db->execute('UPDATE applicants SET portal_token = ? WHERE id = ?', [$newToken, $directApplicant['id']]);
+                $directApplicant['portal_token'] = $newToken;
+            }
+
             return $directApplicant;
-        }
-
-        // Third check latest applicant or default demo
-        $applicantRows = $db->query('SELECT * FROM applicants ORDER BY id DESC LIMIT 1');
-        $fallbackApplicant = $applicantRows[0] ?? null;
-        $hasFallback = ($fallbackApplicant !== null);
-
-        if ($hasFallback) {
-            return $fallbackApplicant;
         }
 
         return [

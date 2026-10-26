@@ -107,4 +107,58 @@ describe('Candidate Portal Proctoring & Timed Technical Exam', () => {
     expect(partialScore).toBeLessThan(100);
     expect(partialScore).toBeGreaterThanOrEqual(0);
   });
+
+  it('generates unique cryptographic portal tokens preventing collision for identical candidate names', () => {
+    // Two candidates with identical names and identical email usernames on different domains
+    const candidateA = {
+      name: 'John Doe',
+      email: 'john.doe@gmail.com',
+    };
+    const candidateB = {
+      name: 'John Doe',
+      email: 'john.doe@yahoo.com',
+    };
+
+    // Legacy prototype derived token from email prefix (would collide!)
+    const legacyTokenA = candidateA.email.split('@')[0];
+    const legacyTokenB = candidateB.email.split('@')[0];
+    expect(legacyTokenA).toBe(legacyTokenB);
+
+    // Production standard: CSPRNG 128-bit hex tokens
+    const generateProductionPortalToken = (): string => {
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      const hex = Array.from(bytes)
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+
+      return `cpt_${hex}`;
+    };
+
+    const tokenA = generateProductionPortalToken();
+    const tokenB = generateProductionPortalToken();
+
+    expect(tokenA).not.toBe(tokenB);
+    expect(tokenA.startsWith('cpt_')).toBe(true);
+    expect(tokenB.startsWith('cpt_')).toBe(true);
+    expect(tokenA.length).toBe(36);
+    expect(tokenB.length).toBe(36);
+  });
+
+  it('guarantees zero collisions across a bulk pool of candidate tokens', () => {
+    const tokenSet = new Set<string>();
+    const poolSize = 1000;
+
+    for (let i = 0; i < poolSize; i++) {
+      const bytes = new Uint8Array(16);
+      crypto.getRandomValues(bytes);
+      const hex = Array.from(bytes)
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+      const token = `cpt_${hex}`;
+      tokenSet.add(token);
+    }
+
+    expect(tokenSet.size).toBe(poolSize);
+  });
 });

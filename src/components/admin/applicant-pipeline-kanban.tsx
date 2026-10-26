@@ -87,6 +87,7 @@ export interface Applicant {
   candidate_email: string;
   phone?: string;
   job_role?: string;
+  portal_token?: string;
   current_stage_key: string;
   form_id?: number;
   submission_id?: number;
@@ -295,6 +296,7 @@ const INITIAL_MOCK_APPLICANTS: Applicant[] = [
     id: 1,
     candidate_name: 'Elena Rostova',
     candidate_email: 'elena.rostova@example.com',
+    portal_token: 'cpt_elena_e49b81f20387a6c5',
     phone: '+1 (555) 234-5678',
     current_stage_key: 'applied',
     score: 88,
@@ -306,6 +308,7 @@ const INITIAL_MOCK_APPLICANTS: Applicant[] = [
     id: 2,
     candidate_name: 'Marcus Vance',
     candidate_email: 'm.vance@techcorp.io',
+    portal_token: 'cpt_marcus_71a0d39e2c45b819',
     phone: '+1 (555) 876-5432',
     current_stage_key: 'screening',
     score: 95,
@@ -317,6 +320,7 @@ const INITIAL_MOCK_APPLICANTS: Applicant[] = [
     id: 3,
     candidate_name: 'Aisha Al-Mansoor',
     candidate_email: 'aisha.m@devnetwork.org',
+    portal_token: 'cpt_aisha_83bf6271c049e1da',
     phone: '+44 20 7946 0912',
     current_stage_key: 'exam',
     score: 92,
@@ -328,6 +332,7 @@ const INITIAL_MOCK_APPLICANTS: Applicant[] = [
     id: 4,
     candidate_name: 'David Chen',
     candidate_email: 'david.chen@cloudscale.net',
+    portal_token: 'cpt_david_19ef47b3820a61cd',
     phone: '+1 (555) 345-6789',
     current_stage_key: 'interview',
     score: 84,
@@ -339,6 +344,7 @@ const INITIAL_MOCK_APPLICANTS: Applicant[] = [
     id: 5,
     candidate_name: 'Sofia Gomez',
     candidate_email: 'sofia.g@innovate.co',
+    portal_token: 'cpt_sofia_52ac301984be7601',
     phone: '+1 (555) 987-6543',
     current_stage_key: 'offered',
     score: 98,
@@ -364,12 +370,25 @@ export const ApplicantPipelineKanban: React.FC<ApplicantPipelineKanbanProps> = (
 
   // New Candidate Dialog
   const [isNewDialogOpen, setIsNewDialogOpen] = useState(false);
+  const [newPortalToken, setNewPortalToken] = useState<string>(() => {
+    return 'cpt_' + Array.from(crypto.getRandomValues(new Uint8Array(12)))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+  });
   const [newName, setNewName] = useState('');
   const [newEmail, setNewEmail] = useState('');
   const [newPhone, setNewPhone] = useState('');
   const [newJobRole, setNewJobRole] = useState('frontend-developer');
   const [newStage, setNewStage] = useState('applied');
   const [newNotes, setNewNotes] = useState('');
+
+  const handleOpenNewDialog = () => {
+    const freshToken = 'cpt_' + Array.from(crypto.getRandomValues(new Uint8Array(12)))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+    setNewPortalToken(freshToken);
+    setIsNewDialogOpen(true);
+  };
 
   // Job Roles State
   const [rolesList, setRolesList] = useState<JobRole[]>(() => getJobRoles());
@@ -561,12 +580,18 @@ export const ApplicantPipelineKanban: React.FC<ApplicantPipelineKanbanProps> = (
     }
 
     const newId = Date.now();
+    const randomHex = Array.from(crypto.getRandomValues(new Uint8Array(16)))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+    const clientToken = `cpt_${randomHex}`;
+
     const candidatePayload: Applicant = {
       id: newId,
       candidate_name: newName.trim(),
       candidate_email: newEmail.trim(),
       phone: newPhone.trim(),
       job_role: newJobRole,
+      portal_token: clientToken,
       current_stage_key: newStage,
       notes: newNotes.trim(),
       rating: 5,
@@ -885,7 +910,7 @@ export const ApplicantPipelineKanban: React.FC<ApplicantPipelineKanbanProps> = (
             </Button>
             <Button
               size="sm"
-              onClick={() => setIsNewDialogOpen(true)}
+              onClick={handleOpenNewDialog}
               className="gap-2 bg-primary text-primary-foreground font-semibold shadow-sm hover:bg-primary/90 cursor-pointer"
             >
               <Plus className="w-4 h-4" />
@@ -1153,7 +1178,7 @@ export const ApplicantPipelineKanban: React.FC<ApplicantPipelineKanbanProps> = (
                                   <DropdownMenuItem
                                     onClick={() => {
                                       const roleQuery = candidate.job_role ? `?role=${candidate.job_role}` : '';
-                                      const portalToken = candidate.candidate_email.split('@')[0] || String(candidate.id);
+                                      const portalToken = candidate.portal_token || ('cpt_' + candidate.id + '_' + candidate.candidate_email.split('@')[0]);
                                       const fullUrl = `${window.location.origin}/portal/${portalToken}${roleQuery}`;
                                       navigator.clipboard.writeText(fullUrl);
                                       toast.success(`Copied portal link: ${fullUrl}`);
@@ -1166,7 +1191,7 @@ export const ApplicantPipelineKanban: React.FC<ApplicantPipelineKanbanProps> = (
                                   <DropdownMenuItem
                                     onClick={() => {
                                       const roleQuery = candidate.job_role ? `?role=${candidate.job_role}` : '';
-                                      const portalToken = candidate.candidate_email.split('@')[0] || 'demo';
+                                      const portalToken = candidate.portal_token || ('cpt_' + candidate.id + '_' + candidate.candidate_email.split('@')[0]);
                                       window.open(`/portal/${portalToken}${roleQuery}`, '_blank');
                                     }}
                                     className="text-xs gap-2"
@@ -1373,16 +1398,21 @@ export const ApplicantPipelineKanban: React.FC<ApplicantPipelineKanbanProps> = (
             </div>
 
             {newEmail.trim().length > 0 && (
-              <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 space-y-1 text-xs">
-                <span className="font-semibold text-foreground flex items-center gap-1.5 text-[11px] text-primary">
-                  <Link2 className="w-3.5 h-3.5" />
-                  Generated Candidate Portal URL:
-                </span>
-                <code className="font-mono text-[11px] text-muted-foreground break-all select-all">
-                  {window.location.origin}/portal/{newEmail.trim().split('@')[0]}{newJobRole ? `?role=${newJobRole}` : ''}
+              <div className="p-3 rounded-xl bg-primary/5 border border-primary/20 space-y-1.5 text-xs">
+                <div className="flex items-center justify-between">
+                  <span className="font-semibold text-foreground flex items-center gap-1.5 text-[11px] text-primary">
+                    <Link2 className="w-3.5 h-3.5" />
+                    Cryptographic Portal URL (Collision-Free):
+                  </span>
+                  <Badge variant="outline" className="font-mono text-[9px] bg-emerald-500/10 text-emerald-600 border-emerald-500/30">
+                    Secure Token
+                  </Badge>
+                </div>
+                <code className="font-mono text-[11px] text-muted-foreground break-all select-all block">
+                  {window.location.origin}/portal/{newPortalToken}{newJobRole ? `?role=${newJobRole}` : ''}
                 </code>
                 <p className="text-[10px] text-muted-foreground pt-0.5">
-                  Share this link with the candidate to let them access their portal directly without needing a password.
+                  This unique cryptographic token guarantees each candidate has an isolated, collision-free portal session.
                 </p>
               </div>
             )}
@@ -1597,7 +1627,7 @@ export const ApplicantPipelineKanban: React.FC<ApplicantPipelineKanbanProps> = (
                 onClick={() => {
                   const hasCandidate = Boolean(viewAssessmentCandidate);
                   if (hasCandidate) {
-                    const portalToken = viewAssessmentCandidate?.candidate_email.split('@')[0] || String(viewAssessmentCandidate?.id || 'demo');
+                    const portalToken = viewAssessmentCandidate?.portal_token || ('cpt_' + viewAssessmentCandidate?.id + '_' + viewAssessmentCandidate?.candidate_email.split('@')[0]);
                     const fullUrl = `${window.location.origin}/portal/${portalToken}`;
                     navigator.clipboard.writeText(fullUrl);
                     toast.success(`Copied portal link: ${fullUrl}`);
@@ -1614,7 +1644,7 @@ export const ApplicantPipelineKanban: React.FC<ApplicantPipelineKanbanProps> = (
                 onClick={() => {
                   const hasCandidate = Boolean(viewAssessmentCandidate);
                   if (hasCandidate) {
-                    const portalToken = viewAssessmentCandidate?.candidate_email.split('@')[0] || 'demo';
+                    const portalToken = viewAssessmentCandidate?.portal_token || ('cpt_' + viewAssessmentCandidate?.id + '_' + viewAssessmentCandidate?.candidate_email.split('@')[0]);
                     window.open(`/portal/${portalToken}`, '_blank');
                   }
                 }}

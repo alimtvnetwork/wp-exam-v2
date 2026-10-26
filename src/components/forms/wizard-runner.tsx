@@ -163,6 +163,7 @@ export const WizardRunner: React.FC = () => {
   const [draftToken, setDraftToken] = useState<string>('');
   const [isDraftSaved, setIsDraftSaved] = useState<boolean>(false);
   const [isSubmitted, setIsSubmitted] = useState<boolean>(false);
+  const [submittedPortalToken, setSubmittedPortalToken] = useState<string>('');
 
   // Filtered job list for searchable combobox
   const filteredJobs = useMemo(() => {
@@ -421,6 +422,12 @@ export const WizardRunner: React.FC = () => {
       setIsSubmitted(true);
       toast.success('Application successfully submitted!');
 
+      const cryptoHex = Array.from(crypto.getRandomValues(new Uint8Array(12)))
+        .map((b) => b.toString(16).padStart(2, '0'))
+        .join('');
+      const fallbackToken = `cpt_${cryptoHex}`;
+      setSubmittedPortalToken(fallbackToken);
+
       // Persist candidate into applicant pipeline
       const applicantPayload = {
         candidate_name: fullName.trim(),
@@ -435,21 +442,30 @@ export const WizardRunner: React.FC = () => {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(applicantPayload),
-      }).catch(() => {
-        try {
-          const raw = localStorage.getItem('wp_exam_mock_applicants');
-          const existing = raw ? JSON.parse(raw) : [];
-          existing.unshift({
-            id: Date.now(),
-            ...applicantPayload,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
-          });
-          localStorage.setItem('wp_exam_mock_applicants', JSON.stringify(existing));
-        } catch {
-          // ignore
-        }
-      });
+      })
+        .then((res) => res.json())
+        .then((json) => {
+          const serverToken = json?.data?.applicant?.portal_token;
+          if (serverToken) {
+            setSubmittedPortalToken(serverToken);
+          }
+        })
+        .catch(() => {
+          try {
+            const raw = localStorage.getItem('wp_exam_mock_applicants');
+            const existing = raw ? JSON.parse(raw) : [];
+            existing.unshift({
+              id: Date.now(),
+              ...applicantPayload,
+              portal_token: fallbackToken,
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            });
+            localStorage.setItem('wp_exam_mock_applicants', JSON.stringify(existing));
+          } catch {
+            // ignore
+          }
+        });
     }
   };
 
@@ -1092,8 +1108,8 @@ export const WizardRunner: React.FC = () => {
             <Button
               type="button"
               onClick={() => {
-                const portalToken = email.trim().split('@')[0] || 'candidate';
-                navigate(`/portal/${portalToken}?role=${selectedJob.id}&name=${encodeURIComponent(fullName || 'Candidate')}`);
+                const targetToken = submittedPortalToken || email.trim().split('@')[0] || 'candidate';
+                navigate(`/portal/${targetToken}?role=${selectedJob.id}&name=${encodeURIComponent(fullName || 'Candidate')}`);
               }}
               className="h-10 px-5 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md flex items-center gap-1.5 cursor-pointer"
             >

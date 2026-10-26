@@ -81,6 +81,7 @@ interface CandidateInfo {
   email?: string;
   phone?: string;
   job_role?: string;
+  portal_token?: string;
   current_stage_key: string;
   current_stage?: string;
   notes?: string;
@@ -879,7 +880,7 @@ export const CandidatePortalRunner: React.FC = () => {
 
         if (sessionData?.steps) {
           const rawCandidate = sessionData.candidate || {};
-          const candidateName = rawCandidate.candidate_name || rawCandidate.name || 'Candidate';
+          const candidateName = rawCandidate.candidate_name || rawCandidate.name || searchParams.get('name') || 'Candidate';
           const candidateEmail = rawCandidate.candidate_email || rawCandidate.email || 'candidate@example.com';
           const currentStage = rawCandidate.current_stage_key || rawCandidate.current_stage || 'assessment';
           const phone = rawCandidate.phone || '';
@@ -894,6 +895,8 @@ export const CandidatePortalRunner: React.FC = () => {
             current_stage_key: currentStage,
             notes: rawCandidate.notes || '',
             score: hasCandScore ? candScoreRaw : undefined,
+            job_role: rawCandidate.job_role,
+            portal_token: rawCandidate.portal_token || activeToken,
           };
 
           const localTasksKey = `wp_exam_assigned_tasks_${normalizedCandidate.candidate_email}`;

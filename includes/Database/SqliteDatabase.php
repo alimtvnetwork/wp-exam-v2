@@ -314,6 +314,7 @@ class SqliteDatabase {
             candidate_email TEXT NOT NULL,
             phone TEXT DEFAULT '',
             job_role TEXT DEFAULT '',
+            portal_token TEXT DEFAULT '',
             current_stage_key TEXT NOT NULL DEFAULT 'applied',
             form_id INTEGER DEFAULT 0,
             submission_id INTEGER DEFAULT 0,
@@ -469,6 +470,33 @@ class SqliteDatabase {
             $this->pdo->exec("ALTER TABLE applicants ADD COLUMN integrity_status TEXT DEFAULT 'clean'");
         } catch (Throwable) {
             // Column may already exist
+        }
+
+        try {
+            $this->pdo->exec("ALTER TABLE applicants ADD COLUMN portal_token TEXT DEFAULT ''");
+        } catch (Throwable) {
+            // Column may already exist
+        }
+
+        try {
+            $this->pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_applicants_portal_token ON applicants(portal_token) WHERE portal_token != ''");
+        } catch (Throwable) {
+            // Index creation handled gracefully
+        }
+
+        try {
+            $untokened = $this->pdo->query("SELECT id FROM applicants WHERE portal_token IS NULL OR portal_token = ''")->fetchAll(\PDO::FETCH_COLUMN);
+            $hasUntokened = !empty($untokened);
+
+            if ($hasUntokened) {
+                $stmt = $this->pdo->prepare("UPDATE applicants SET portal_token = ? WHERE id = ?");
+                foreach ($untokened as $appId) {
+                    $token = 'cpt_' . bin2hex(random_bytes(16));
+                    $stmt->execute([$token, $appId]);
+                }
+            }
+        } catch (Throwable) {
+            // Backfill migration handled gracefully
         }
 
         try {

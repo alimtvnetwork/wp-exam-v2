@@ -177,10 +177,11 @@ class ApplicantPipelineRestController extends WP_REST_Controller {
         }
 
         $db = SqliteDatabase::getInstance();
-        $sql = 'INSERT INTO applicants (candidate_name, candidate_email, phone, job_role, current_stage_key, form_id, notes) VALUES (?, ?, ?, ?, ?, ?, ?)';
-        $db->execute($sql, [$name, $email, $phone, $jobRole, $stageKey, $formId, $notes]);
+        $portalToken = 'cpt_' . bin2hex(random_bytes(16));
+        $sql = 'INSERT INTO applicants (candidate_name, candidate_email, phone, job_role, portal_token, current_stage_key, form_id, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+        $db->execute($sql, [$name, $email, $phone, $jobRole, $portalToken, $stageKey, $formId, $notes]);
 
-        $newApplicantRows = $db->query('SELECT * FROM applicants WHERE candidate_email = ? ORDER BY id DESC LIMIT 1', [$email]);
+        $newApplicantRows = $db->query('SELECT * FROM applicants WHERE portal_token = ? LIMIT 1', [$portalToken]);
         $newApplicant = $newApplicantRows[0] ?? null;
 
         $hasApplicant = ($newApplicant !== null);
