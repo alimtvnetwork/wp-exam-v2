@@ -70,6 +70,10 @@ Route::get('/api/v1/applicants/settings', [ApplicantController::class, 'getSetti
 Route::post('/api/v1/applicants/settings', [ApplicantController::class, 'updateSettings']);
 Route::get('/api/v1/pipeline/settings', [ApplicantController::class, 'getSettings']);
 Route::post('/api/v1/pipeline/settings', [ApplicantController::class, 'updateSettings']);
+Route::get('/api/v1/applicants/roles', [ApplicantController::class, 'getRoles']);
+Route::post('/api/v1/applicants/roles', [ApplicantController::class, 'saveRoles']);
+Route::get('/api/v1/roles', [ApplicantController::class, 'getRoles']);
+Route::post('/api/v1/roles', [ApplicantController::class, 'saveRoles']);
 Route::post('/api/v1/applicants', [ApplicantController::class, 'store']);
 Route::post('/api/v1/applicants/stage-transition', [ApplicantController::class, 'transitionStage']);
 Route::post('/api/v1/applicants/feedback', [ApplicantController::class, 'updateFeedback']);

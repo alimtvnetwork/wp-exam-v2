@@ -574,6 +574,75 @@ class ApplicantController
         ];
     }
 
+    /**
+     * GET /api/v1/applicants/roles or /api/v1/roles
+     */
+    public function getRoles(array $params = [], array $body = []): array
+    {
+        $customRoles = [];
+
+        try {
+            $db = SqliteDatabase::getInstance();
+            $db->init();
+            $rawJson = $db->getSetting('custom_job_roles_json', '[]');
+            $decoded = json_decode($rawJson, true);
+            $isArray = is_array($decoded);
+
+            if ($isArray) {
+                $customRoles = $decoded;
+            }
+        } catch (Throwable) {
+            // Non-blocking fallback
+        }
+
+        return [
+            'status' => 'success',
+            'is_success' => true,
+            'data' => [
+                'roles' => $customRoles,
+            ],
+        ];
+    }
+
+    /**
+     * POST /api/v1/applicants/roles or /api/v1/roles
+     */
+    public function saveRoles(array $params = [], array $body = []): array
+    {
+        $roles = $body['roles'] ?? [];
+        $isRolesArray = is_array($roles);
+
+        if (!$isRolesArray) {
+            return [
+                'status' => 'error',
+                'is_success' => false,
+                'message' => 'Invalid roles payload. Must be an array of job roles',
+            ];
+        }
+
+        try {
+            $db = SqliteDatabase::getInstance();
+            $db->init();
+            $json = json_encode($roles);
+            $db->setSetting('custom_job_roles_json', $json);
+        } catch (Throwable $e) {
+            return [
+                'status' => 'error',
+                'is_success' => false,
+                'message' => 'Failed to save job roles: ' . $e->getMessage(),
+            ];
+        }
+
+        return [
+            'status' => 'success',
+            'is_success' => true,
+            'data' => [
+                'roles' => $roles,
+                'message' => 'Job roles saved successfully',
+            ],
+        ];
+    }
+
     public function assignTask(array $params = [], array $body = []): array {
         $applicantId = (int) ($body['applicant_id'] ?? 0);
         $candidateEmail = trim((string) ($body['candidate_email'] ?? ''));

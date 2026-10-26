@@ -1,9 +1,12 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import {
   getJobRoles,
   getJobRoleById,
   saveJobRole,
   deleteJobRole,
+  getCustomJobRoles,
+  persistJobRoleToServer,
+  deleteJobRoleFromServer,
   SEEDED_JOB_ROLES,
   JobRole,
 } from '@/lib/role-assignments';
@@ -77,5 +80,76 @@ describe('Role Assignments & Two-Tier Quizzing', () => {
     const rolesAfterDelete = getJobRoles();
     const foundAfterDelete = rolesAfterDelete.find((r) => r.id === 'qa-engineer');
     expect(foundAfterDelete).toBeUndefined();
+  });
+
+  describe('Gap 4: Server SQLite Synchronization for Job Roles & MCQs', () => {
+    it('retrieves isolated custom job roles list with getCustomJobRoles', () => {
+      const initialCustom = getCustomJobRoles();
+      expect(initialCustom).toEqual([]);
+
+      const mockRole: JobRole = {
+        id: 'ai-prompt-engineer',
+        title: 'AI Prompt Engineer',
+        department: 'AI',
+        type: 'Full-Time',
+        description: 'Design robust system prompts.',
+        durationMinutes: 45,
+        isCustom: true,
+        firstPhaseQuestion: {
+          question: 'Test Q',
+          hint: 'Hint',
+          briefingNotes: [],
+          options: [{ val: '1', label: 'One' }],
+          correctAnswer: '1',
+        },
+        secondPhaseQuestions: [],
+      };
+
+      saveJobRole(mockRole);
+      const customList = getCustomJobRoles();
+      expect(customList.length).toBe(1);
+      expect(customList[0].id).toBe('ai-prompt-engineer');
+      expect(customList[0].durationMinutes).toBe(45);
+    });
+
+    it('persists role to server and updates local cache simultaneously', async () => {
+      const mockFetch = vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ status: 'success', data: { roles: [] } }),
+      });
+      vi.stubGlobal('fetch', mockFetch);
+
+      const role: JobRole = {
+        id: 'cloud-architect',
+        title: 'Cloud Architect',
+        department: 'Infrastructure',
+        type: 'Full-Time',
+        description: 'Architect multi-region topologies.',
+        durationMinutes: 60,
+        isCustom: true,
+        firstPhaseQuestion: {
+          question: 'Cloud Q',
+          hint: 'Cloud Hint',
+          briefingNotes: [],
+          options: [{ val: 'a', label: 'AWS' }],
+          correctAnswer: 'a',
+        },
+        secondPhaseQuestions: [],
+      };
+
+      await persistJobRoleToServer(role);
+
+      const resolved = getJobRoleById('cloud-architect');
+      expect(resolved).toBeDefined();
+      expect(resolved.title).toBe('Cloud Architect');
+      expect(resolved.durationMinutes).toBe(60);
+
+      await deleteJobRoleFromServer('cloud-architect');
+      const resolvedAfterDelete = getJobRoleById('cloud-architect');
+      // Should fall back to seeded role when deleted
+      expect(resolvedAfterDelete.id).toBe(SEEDED_JOB_ROLES[0].id);
+
+      vi.unstubAllGlobals();
+    });
   });
 });

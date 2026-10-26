@@ -1,6 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom';
-import { getJobRoles, getJobRoleById, JobRole } from '@/lib/role-assignments';
+import {
+  getJobRoles,
+  getJobRoleById,
+  syncJobRolesFromServer,
+  JobRole,
+} from '@/lib/role-assignments';
 import {
   CheckCircle2,
   Clock,
@@ -106,6 +111,7 @@ interface PortalSession {
   is_fully_verified: boolean;
   assessment_gating_mode?: 'admin_approval' | 'instant_self_service';
   is_assessment_approved?: boolean;
+  job_role_data?: JobRole;
 }
 
 export interface TaskContentItem {
@@ -842,6 +848,10 @@ export const CandidatePortalRunner: React.FC = () => {
   const [rolesList, setRolesList] = useState<JobRole[]>(() => getJobRoles());
 
   useEffect(() => {
+    syncJobRolesFromServer().then((synced) => {
+      setRolesList(synced);
+    });
+
     const handleRolesUpdate = () => {
       setRolesList(getJobRoles());
     };
@@ -854,7 +864,7 @@ export const CandidatePortalRunner: React.FC = () => {
   }, []);
 
   const candidateRoleKey = session.candidate?.job_role || queryRole || 'frontend-developer';
-  const currentJobRole = getJobRoleById(candidateRoleKey);
+  const currentJobRole = session.job_role_data || getJobRoleById(candidateRoleKey);
   const roleQuestions = currentJobRole.secondPhaseQuestions;
 
   const [assessmentAnswers, setAssessmentAnswers] = useState<Record<string, string>>({});
@@ -996,6 +1006,7 @@ export const CandidatePortalRunner: React.FC = () => {
             is_fully_verified: Boolean(sessionData.is_fully_verified),
             assessment_gating_mode: sessionData.assessment_gating_mode || 'admin_approval',
             is_assessment_approved: Boolean(sessionData.is_assessment_approved),
+            job_role_data: sessionData.job_role_data,
           };
 
           setSession(normalizedSession);

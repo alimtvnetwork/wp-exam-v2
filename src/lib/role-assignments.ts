@@ -5,6 +5,8 @@
  * across the Candidate Portal (/portal/:token) and Admin Pipeline.
  */
 
+import { unifiedFetch } from '@/utils/api-client';
+
 export interface ScreeningQuestionOption {
   val: string;
   label: string;
@@ -468,6 +470,106 @@ export const SEEDED_JOB_ROLES: JobRole[] = [
 ];
 
 const STORAGE_KEY = 'wp_exam_custom_job_roles';
+
+export function getCustomJobRoles(): JobRole[] {
+  const isWindowDefined = (typeof window !== 'undefined');
+
+  if (!isWindowDefined) {
+    return [];
+  }
+
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    const hasRaw = Boolean(raw);
+
+    if (hasRaw) {
+      const parsed = JSON.parse(raw as string);
+      const isArr = Array.isArray(parsed);
+
+      if (isArr) {
+        return parsed;
+      }
+    }
+  } catch {
+    // Ignore parse error
+  }
+
+  return [];
+}
+
+/**
+ * Synchronizes custom job roles from the SQLite database server to local storage cache.
+ */
+export async function syncJobRolesFromServer(): Promise<JobRole[]> {
+  const isWindowDefined = (typeof window !== 'undefined');
+
+  if (!isWindowDefined) {
+    return SEEDED_JOB_ROLES;
+  }
+
+  try {
+    const res = await unifiedFetch('/api/v1/applicants/roles', '/wp-json/wp-exam/v1/applicants/roles');
+    const isSuccess = res.ok;
+
+    if (isSuccess) {
+      const json = await res.json();
+      const serverRoles = json?.data?.roles ?? json?.roles ?? [];
+      const isRolesArray = Array.isArray(serverRoles);
+
+      if (isRolesArray) {
+        const customOnly = serverRoles.filter((r: JobRole) => Boolean(r && r.id));
+        const hasCustom = (customOnly.length > 0);
+
+        if (hasCustom) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(customOnly));
+          window.dispatchEvent(new Event('wp_exam_roles_updated'));
+        }
+      }
+    }
+  } catch (err) {
+    console.warn('Non-blocking: could not fetch job roles from server:', err);
+  }
+
+  return getJobRoles();
+}
+
+/**
+ * Persists a job role to both local cache and SQLite backend.
+ */
+export async function persistJobRoleToServer(role: JobRole): Promise<void> {
+  saveJobRole(role);
+
+  try {
+    const customList = getCustomJobRoles();
+
+    await unifiedFetch('/api/v1/applicants/roles', '/wp-json/wp-exam/v1/applicants/roles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roles: customList }),
+    });
+  } catch (err) {
+    console.error('Failed to sync job role to server:', err);
+  }
+}
+
+/**
+ * Deletes a job role from both local cache and SQLite backend.
+ */
+export async function deleteJobRoleFromServer(roleId: string): Promise<void> {
+  deleteJobRole(roleId);
+
+  try {
+    const customList = getCustomJobRoles();
+
+    await unifiedFetch('/api/v1/applicants/roles', '/wp-json/wp-exam/v1/applicants/roles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ roles: customList }),
+    });
+  } catch (err) {
+    console.error('Failed to sync job role deletion to server:', err);
+  }
+}
 
 /**
  * Returns all active job roles, merging default seeded roles with any admin-created custom roles.

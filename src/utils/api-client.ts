@@ -33,8 +33,27 @@ export async function unifiedFetch(
     headers: mergedHeaders,
   };
 
+  const toAbsoluteUrl = (path: string): string => {
+    const isFullUrl = path.startsWith('http://') || path.startsWith('https://');
+
+    if (isFullUrl) {
+      return path;
+    }
+
+    const hasWindow = (typeof window !== 'undefined');
+    const hasOrigin = Boolean(hasWindow && window.location?.origin && window.location.origin !== 'null');
+    const origin = hasOrigin ? window.location.origin : 'http://localhost';
+    const startsWithSlash = path.startsWith('/');
+    const prefix = startsWithSlash ? '' : '/';
+
+    return `${origin}${prefix}${path}`;
+  };
+
+  const laravelUrl = toAbsoluteUrl(laravelPath);
+  const wpUrl = toAbsoluteUrl(wpPath);
+
   try {
-    const laravelRes = await fetch(laravelPath, requestOptions);
+    const laravelRes = await fetch(laravelUrl, requestOptions);
     const isSuccess = laravelRes.ok;
 
     if (isSuccess) {
@@ -44,5 +63,5 @@ export async function unifiedFetch(
     // Continue to WordPress fallback
   }
 
-  return fetch(wpPath, requestOptions);
+  return fetch(wpUrl, requestOptions);
 }

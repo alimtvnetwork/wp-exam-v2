@@ -75,6 +75,19 @@ class ApplicantPipelineRestController extends WP_REST_Controller {
             ],
         ]);
 
+        register_rest_route($this->namespace, '/applicants/roles', [
+            [
+                'methods'             => WP_REST_Server::READABLE,
+                'callback'            => [$this, 'getRoles'],
+                'permission_callback' => '__return_true',
+            ],
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [$this, 'saveRoles'],
+                'permission_callback' => [$this, 'checkAdminPermission'],
+            ],
+        ]);
+
         register_rest_route($this->namespace, '/applicants/assign-task', [
             [
                 'methods'             => WP_REST_Server::CREATABLE,
@@ -379,6 +392,35 @@ class ApplicantPipelineRestController extends WP_REST_Controller {
         return new WP_REST_Response(EnvelopeBuilder::createSuccessEnvelope([
             'assessment_gating_mode' => $rawMode,
             'message'                => 'Pipeline assessment gating configuration updated successfully',
+        ]), 200);
+    }
+
+    public function getRoles(WP_REST_Request $request): WP_REST_Response {
+        $db = SqliteDatabase::getInstance();
+        $raw = $db->getSetting('custom_job_roles_json', '[]');
+        $decoded = json_decode($raw, true);
+        $roles = is_array($decoded) ? $decoded : [];
+
+        return new WP_REST_Response(EnvelopeBuilder::createSuccessEnvelope([
+            'roles' => $roles,
+        ]), 200);
+    }
+
+    public function saveRoles(WP_REST_Request $request): WP_REST_Response {
+        $body = $request->get_json_params() ?: [];
+        $roles = $body['roles'] ?? [];
+        $isRolesArray = is_array($roles);
+
+        if (!$isRolesArray) {
+            return new WP_REST_Response(EnvelopeBuilder::createErrorEnvelope('Invalid roles payload. Must be an array of job roles'), 400);
+        }
+
+        $db = SqliteDatabase::getInstance();
+        $db->setSetting('custom_job_roles_json', json_encode($roles));
+
+        return new WP_REST_Response(EnvelopeBuilder::createSuccessEnvelope([
+            'roles'   => $roles,
+            'message' => 'Job roles saved successfully',
         ]), 200);
     }
 

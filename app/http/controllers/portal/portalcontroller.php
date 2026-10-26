@@ -254,6 +254,20 @@ class PortalController
             }
         }
 
+        $rawRoles = $db->getSetting('custom_job_roles_json', '[]');
+        $customRoles = json_decode($rawRoles, true) ?: [];
+        $targetRoleKey = (string) ($applicant['job_role'] ?? '');
+        $jobRoleData = null;
+
+        foreach ($customRoles as $cr) {
+            $isMatch = (isset($cr['id']) && $cr['id'] === $targetRoleKey);
+
+            if ($isMatch) {
+                $jobRoleData = $cr;
+                break;
+            }
+        }
+
         return [
             'status' => 'success',
             'is_success' => true,
@@ -266,10 +280,12 @@ class PortalController
                     'name' => $candidateName,
                     'email' => $candidateEmail,
                     'phone' => $phone,
+                    'job_role' => $applicant['job_role'] ?? 'frontend-developer',
                     'current_stage_key' => $stageKey,
                     'current_stage' => $stageKey,
                     'applied_at' => '2026-10-18',
                 ],
+                'job_role_data' => $jobRoleData,
                 'assessment_gating_mode' => $gatingMode,
                 'is_assessment_approved' => $isAssessmentApproved,
                 'assigned_tasks' => $assignedTasks,

@@ -173,9 +173,24 @@ class CandidatePortalRestController extends WP_REST_Controller {
             }
         }
 
+        $rawRoles = $db->getSetting('custom_job_roles_json', '[]');
+        $customRoles = json_decode($rawRoles, true) ?: [];
+        $targetRoleKey = (string) ($candidateData['job_role'] ?? '');
+        $jobRoleData = null;
+
+        foreach ($customRoles as $cr) {
+            $isMatch = (isset($cr['id']) && $cr['id'] === $targetRoleKey);
+
+            if ($isMatch) {
+                $jobRoleData = $cr;
+                break;
+            }
+        }
+
         return new WP_REST_Response(EnvelopeBuilder::createSuccessEnvelope([
             'token'                  => $token,
             'candidate'              => $candidateData,
+            'job_role_data'          => $jobRoleData,
             'assessment_gating_mode' => $gatingMode,
             'is_assessment_approved' => $isAssessmentApproved,
             'steps'                  => $steps,

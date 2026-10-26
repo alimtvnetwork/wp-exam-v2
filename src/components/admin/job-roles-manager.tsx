@@ -24,6 +24,9 @@ import {
   getJobRoles,
   saveJobRole,
   deleteJobRole,
+  persistJobRoleToServer,
+  deleteJobRoleFromServer,
+  syncJobRolesFromServer,
   JobRole,
   AssessmentQuizQuestion,
 } from '@/lib/role-assignments';
@@ -59,6 +62,10 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
   const [mcqExplanation, setMcqExplanation] = useState<string>('');
 
   useEffect(() => {
+    syncJobRolesFromServer().then((synced) => {
+      setRolesList(synced);
+    });
+
     const handleRolesUpdate = () => {
       setRolesList(getJobRoles());
     };
@@ -204,7 +211,7 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
       isCustom: true,
     };
 
-    saveJobRole(updatedRole);
+    persistJobRoleToServer(updatedRole);
     setRolesList(getJobRoles());
     toast.success(isExisting ? 'Assessment question updated!' : 'New assessment question added!');
     resetMcqForm();
@@ -233,7 +240,7 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
       isCustom: true,
     };
 
-    saveJobRole(updatedRole);
+    persistJobRoleToServer(updatedRole);
     setRolesList(getJobRoles());
     toast.success('Question deleted');
   };
@@ -290,7 +297,7 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
       secondPhaseQuestions: defaultAssessmentQuestions,
     };
 
-    saveJobRole(createdRole);
+    persistJobRoleToServer(createdRole);
     setRolesList(getJobRoles());
     toast.success(`Job Role "${cleanTitle}" successfully created!`);
     setIsAddingNewRole(false);
@@ -315,7 +322,7 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
         isCustom: true,
       };
 
-      saveJobRole(updatedRole);
+      persistJobRoleToServer(updatedRole);
       setRolesList(getJobRoles());
       toast.success(`Updated exam time limit to ${cleanMins} minutes`);
     }
@@ -325,7 +332,7 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
     const isConfirmed = window.confirm(`Are you sure you want to delete the custom role "${title}"?`);
 
     if (isConfirmed) {
-      deleteJobRole(roleId);
+      deleteJobRoleFromServer(roleId);
       setRolesList(getJobRoles());
       toast.success(`Role "${title}" deleted`);
 
