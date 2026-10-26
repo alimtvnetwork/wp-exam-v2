@@ -32,6 +32,7 @@ import {
   ShieldAlert,
   Download,
   Printer,
+  CalendarPlus,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -48,6 +49,7 @@ import {
 import { toast } from 'sonner';
 import { unifiedFetch } from '@/utils/api-client';
 import { useAuth } from '@/lib/auth-context';
+import { buildGoogleCalendarUrl, downloadIcsFile } from '@/lib/calendar-reminder';
 
 export interface AssignedTask {
   id: string;
@@ -853,12 +855,30 @@ export const CandidatePortalRunner: React.FC = () => {
   const [assessmentAnswers, setAssessmentAnswers] = useState<Record<string, string>>({});
 
   // Step 3 Timed Assessment & Anti-Cheat Proctoring State
+  const examDurationMinutes = currentJobRole.durationMinutes || 30;
+  const examTotalSeconds = examDurationMinutes * 60;
   const [isExamStarted, setIsExamStarted] = useState<boolean>(false);
   const [examBriefingAgreed, setExamBriefingAgreed] = useState<boolean>(false);
-  const [examSecondsLeft, setExamSecondsLeft] = useState<number>(600);
+  const [examSecondsLeft, setExamSecondsLeft] = useState<number>(() => examTotalSeconds);
   const [tabSwitchCount, setTabSwitchCount] = useState<number>(0);
   const [showFocusLostModal, setShowFocusLostModal] = useState<boolean>(false);
   const [examIntegrityStatus, setExamIntegrityStatus] = useState<'clean' | 'flagged'>('clean');
+
+  // Pre-exam readiness & calendar reminder scheduling state
+  const [isReminderModalOpen, setIsReminderModalOpen] = useState<boolean>(false);
+  const [reminderDate, setReminderDate] = useState<string>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 1);
+
+    return d.toISOString().split('T')[0];
+  });
+  const [reminderTime, setReminderTime] = useState<string>('10:00');
+
+  useEffect(() => {
+    if (!isExamStarted) {
+      setExamSecondsLeft(examTotalSeconds);
+    }
+  }, [examTotalSeconds, isExamStarted]);
 
   // Step 4 Submission State
   const [videoUrl, setVideoUrl] = useState<string>('');
@@ -1255,7 +1275,7 @@ export const CandidatePortalRunner: React.FC = () => {
 
     setExamScore(calculatedScore);
 
-    const timeSpent = Math.max(0, 600 - examSecondsLeft);
+    const timeSpent = Math.max(0, examTotalSeconds - examSecondsLeft);
 
     handleCompleteStep('step_assessment', {
       answers: assessmentAnswers,
@@ -1347,7 +1367,7 @@ export const CandidatePortalRunner: React.FC = () => {
 
         if (isExpired) {
           clearInterval(timer);
-          toast.warning('Exam time limit expired (10:00). Auto-submitting answers.');
+          toast.warning(`Exam time limit expired (${examDurationMinutes}:00). Auto-submitting answers.`);
           handleStep3Submit(tabSwitchCount, true);
 
           return 0;
@@ -2500,10 +2520,10 @@ export const CandidatePortalRunner: React.FC = () => {
                       <div className="p-3.5 rounded-xl bg-card border border-amber-500/20 text-card-foreground space-y-1">
                         <div className="font-bold flex items-center gap-1.5 text-foreground">
                           <Clock className="w-4 h-4 text-primary" />
-                          <span>1. 10-Minute Timer</span>
+                          <span>1. {examDurationMinutes}-Minute Timer</span>
                         </div>
                         <p className="text-muted-foreground leading-relaxed">
-                          The 10:00 countdown timer starts as soon as you press "Start 10-Minute Assessment". It runs continuously and will automatically submit when time expires.
+                          The {examDurationMinutes}:00 countdown timer starts as soon as you press "Start {examDurationMinutes}-Minute Assessment". It runs continuously and will automatically submit when time expires.
                         </p>
                       </div>
 
@@ -2539,19 +2559,45 @@ export const CandidatePortalRunner: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Readiness Confirmation Checkbox */}
-                  <div className="p-4 rounded-xl bg-muted/40 border border-border">
-                    <label className="flex items-start gap-3 cursor-pointer text-xs sm:text-sm">
-                      <input
-                        type="checkbox"
-                        checked={examBriefingAgreed}
-                        onChange={(e) => setExamBriefingAgreed(e.target.checked)}
-                        className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary cursor-pointer"
-                      />
-                      <span className="text-foreground leading-relaxed">
-                        I have reviewed the 10-minute time limit and focus guidelines. I confirm I will stay in this browser window until finished. <span className="text-red-500 font-bold ml-1">*</span>
-                      </span>
-                    </label>
+                  {/* Readiness & Schedule Gate */}
+                  <div className="p-5 rounded-2xl bg-card border-2 border-primary/20 shadow-xs space-y-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div>
+                        <h4 className="font-bold text-sm text-foreground flex items-center gap-2">
+                          <Clock className="w-4 h-4 text-primary" />
+                          <span>Do you have {examDurationMinutes} uninterrupted minutes right now?</span>
+                        </h4>
+                        <p className="text-xs text-muted-foreground mt-0.5">
+                          Once started, the exam timer cannot be paused. Choose whether to take it now or add a calendar reminder.
+                        </p>
+                      </div>
+
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setIsReminderModalOpen(true)}
+                        className="gap-1.5 text-xs border-primary/40 text-foreground hover:bg-primary/10 shrink-0 cursor-pointer shadow-2xs"
+                      >
+                        <CalendarPlus className="w-4 h-4 text-primary" />
+                        <span>Take Exam Later — Add Calendar Reminder</span>
+                      </Button>
+                    </div>
+
+                    {/* Readiness Confirmation Checkbox */}
+                    <div className="p-4 rounded-xl bg-muted/40 border border-border">
+                      <label className="flex items-start gap-3 cursor-pointer text-xs sm:text-sm">
+                        <input
+                          type="checkbox"
+                          checked={examBriefingAgreed}
+                          onChange={(e) => setExamBriefingAgreed(e.target.checked)}
+                          className="mt-1 h-4 w-4 rounded text-primary focus:ring-primary cursor-pointer"
+                        />
+                        <span className="text-foreground leading-relaxed">
+                          I have {examDurationMinutes} uninterrupted minutes available right now and have reviewed the focus guidelines. I confirm I will stay in this browser window until finished. <span className="text-red-500 font-bold ml-1">*</span>
+                        </span>
+                      </label>
+                    </div>
                   </div>
 
                   <div className="flex flex-col sm:flex-row items-end sm:items-center justify-between gap-3 pt-3 border-t border-border/40">
@@ -2567,12 +2613,12 @@ export const CandidatePortalRunner: React.FC = () => {
                     <Button
                       onClick={() => {
                         setIsExamStarted(true);
-                        toast.success('Exam started! 10:00 timer is running.');
+                        toast.success(`Exam started! ${examDurationMinutes}:00 timer is running.`);
                       }}
                       disabled={!examBriefingAgreed}
                       className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer shadow-md"
                     >
-                      <span>Start 10-Minute Assessment</span>
+                      <span>Start {examDurationMinutes}-Minute Assessment</span>
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                   </div>
@@ -3146,6 +3192,141 @@ export const CandidatePortalRunner: React.FC = () => {
               className="w-full bg-primary text-primary-foreground font-bold rounded-xl cursor-pointer"
             >
               I Understand & Resume Exam
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Schedule Assessment & Google Calendar Reminder Modal */}
+      <Dialog open={isReminderModalOpen} onOpenChange={setIsReminderModalOpen}>
+        <DialogContent className="sm:max-w-md bg-card text-card-foreground border border-border rounded-2xl p-6 shadow-2xl space-y-4">
+          <DialogHeader>
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mx-auto mb-1 shadow-inner">
+              <CalendarPlus className="w-6 h-6" />
+            </div>
+            <DialogTitle className="text-xl font-bold text-center text-foreground font-heading">
+              Schedule Assessment Reminder
+            </DialogTitle>
+            <DialogDescription className="text-center text-xs text-muted-foreground pt-1">
+              Need to take the exam later? Pick a date and time when you will have {examDurationMinutes} uninterrupted minutes in a quiet environment.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3.5 py-1">
+            <div className="p-3.5 rounded-xl bg-muted/40 border border-border/60 text-xs space-y-1.5">
+              <div className="font-semibold text-foreground flex items-center justify-between">
+                <span>{currentJobRole.title} Assessment</span>
+                <Badge variant="outline" className="border-primary/40 text-primary font-mono text-[11px]">
+                  {examDurationMinutes} Minutes
+                </Badge>
+              </div>
+              <p className="text-muted-foreground text-[11px] leading-relaxed">
+                The assessment timer runs continuously once started. Adding a reminder reserves dedicated time on your schedule.
+              </p>
+            </div>
+
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                  <Calendar className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span>Exam Date</span>
+                </label>
+                <Input
+                  type="date"
+                  value={reminderDate}
+                  min={new Date().toISOString().split('T')[0]}
+                  onChange={(e) => setReminderDate(e.target.value)}
+                  className="text-xs font-mono h-9"
+                />
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-foreground flex items-center gap-1">
+                  <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span>Start Time</span>
+                </label>
+                <Input
+                  type="time"
+                  value={reminderTime}
+                  onChange={(e) => setReminderTime(e.target.value)}
+                  className="text-xs font-mono h-9"
+                />
+              </div>
+            </div>
+
+            <div className="p-3 rounded-lg bg-primary/5 border border-primary/20 text-xs space-y-1">
+              <div className="font-semibold text-foreground flex items-center gap-1.5 text-[11px]">
+                <Clock className="w-3.5 h-3.5 text-primary" />
+                <span>Scheduled Window:</span>
+              </div>
+              <p className="text-muted-foreground font-mono text-[11px]">
+                {reminderDate} at {reminderTime} ({examDurationMinutes} minutes reserved)
+              </p>
+            </div>
+          </div>
+
+          <DialogFooter className="flex-col sm:flex-row gap-2 pt-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                const [hours, minutes] = reminderTime.split(':').map(Number);
+                const start = new Date(reminderDate);
+                start.setHours(hours || 10, minutes || 0, 0, 0);
+
+                const portalUrl = (typeof window !== 'undefined')
+                  ? `${window.location.origin}/portal/${activeToken}`
+                  : `https://wp-exam.local/portal/${activeToken}`;
+
+                downloadIcsFile({
+                  title: `${currentJobRole.title} — Technical Assessment`,
+                  description: `Scheduled ${examDurationMinutes}-minute technical assessment for ${currentJobRole.title}.\n\nDirect Portal Link: ${portalUrl}\n\nPlease ensure a quiet environment with no tab switching.`,
+                  locationUrl: portalUrl,
+                  startDate: start,
+                  durationMinutes: examDurationMinutes,
+                });
+
+                toast.success('Calendar file (.ics) downloaded! Open it to add to Apple Calendar or Outlook.');
+                setIsReminderModalOpen(false);
+              }}
+              className="gap-1.5 text-xs w-full sm:w-auto cursor-pointer"
+            >
+              <Download className="w-3.5 h-3.5" />
+              <span>Download iCal (.ics)</span>
+            </Button>
+
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                const [hours, minutes] = reminderTime.split(':').map(Number);
+                const start = new Date(reminderDate);
+                start.setHours(hours || 10, minutes || 0, 0, 0);
+
+                const portalUrl = (typeof window !== 'undefined')
+                  ? `${window.location.origin}/portal/${activeToken}`
+                  : `https://wp-exam.local/portal/${activeToken}`;
+
+                const gcalUrl = buildGoogleCalendarUrl({
+                  title: `${currentJobRole.title} — Technical Assessment`,
+                  description: `Scheduled ${examDurationMinutes}-minute technical assessment for ${currentJobRole.title}.\n\nDirect Portal Link: ${portalUrl}\n\nPlease ensure a quiet environment with no tab switching.`,
+                  locationUrl: portalUrl,
+                  startDate: start,
+                  durationMinutes: examDurationMinutes,
+                });
+
+                if (typeof window !== 'undefined') {
+                  window.open(gcalUrl, '_blank', 'noopener,noreferrer');
+                }
+
+                toast.success('Google Calendar opened in a new tab!');
+                setIsReminderModalOpen(false);
+              }}
+              className="gap-1.5 bg-primary text-primary-foreground font-bold text-xs w-full sm:w-auto cursor-pointer shadow-xs"
+            >
+              <CalendarPlus className="w-3.5 h-3.5" />
+              <span>Add to Google Calendar</span>
             </Button>
           </DialogFooter>
         </DialogContent>

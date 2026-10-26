@@ -46,6 +46,7 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
   const [newRoleTitle, setNewRoleTitle] = useState('');
   const [newRoleDept, setNewRoleDept] = useState('Engineering');
   const [newRoleType, setNewRoleType] = useState('Full-Time');
+  const [newRoleDuration, setNewRoleDuration] = useState<number>(30);
   const [newRoleDesc, setNewRoleDesc] = useState('');
 
   // Assessment MCQ Editor State
@@ -274,6 +275,7 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
       department: newRoleDept.trim() || 'Engineering',
       type: newRoleType,
       description: newRoleDesc.trim() || `Technical evaluation track for ${cleanTitle}.`,
+      durationMinutes: newRoleDuration || 30,
       isCustom: true,
       firstPhaseQuestion: {
         question: `Technical screening for ${cleanTitle}`,
@@ -294,10 +296,29 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
     setIsAddingNewRole(false);
     setNewRoleTitle('');
     setNewRoleDesc('');
+    setNewRoleDuration(30);
 
     // Switch to MCQ Editor tab for this role so user can add/edit questions immediately
     setSelectedRoleForMcq(roleSlug);
     setActiveTab('mcqs');
+  };
+
+  const handleUpdateRoleDuration = (roleId: string, duration: number) => {
+    const cleanMins = Math.max(5, Math.min(180, duration));
+    const targetRole = rolesList.find((r) => r.id === roleId);
+    const hasTarget = Boolean(targetRole);
+
+    if (hasTarget) {
+      const updatedRole: JobRole = {
+        ...targetRole!,
+        durationMinutes: cleanMins,
+        isCustom: true,
+      };
+
+      saveJobRole(updatedRole);
+      setRolesList(getJobRoles());
+      toast.success(`Updated exam time limit to ${cleanMins} minutes`);
+    }
   };
 
   const handleDeleteRole = (roleId: string, title: string) => {
@@ -448,7 +469,7 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     <div className="space-y-1.5">
                       <label className="font-semibold text-foreground">Employment Type</label>
                       <select
@@ -461,6 +482,17 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
                         <option value="Contract">Contract</option>
                         <option value="Internship">Internship</option>
                       </select>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="font-semibold text-foreground">Exam Duration (Minutes)</label>
+                      <Input
+                        type="number"
+                        min={5}
+                        max={180}
+                        value={newRoleDuration}
+                        onChange={(e) => setNewRoleDuration(Number(e.target.value) || 30)}
+                        className="text-xs"
+                      />
                     </div>
                     <div className="space-y-1.5">
                       <label className="font-semibold text-foreground">Role Description</label>
@@ -530,11 +562,19 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
                   </div>
 
                   <div className="pt-3 border-t border-border/50 flex items-center justify-between gap-2 text-xs">
-                    <div className="flex items-center gap-1.5">
-                      <Award className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                      <span className="font-mono text-[11px] text-muted-foreground">
-                        {role.secondPhaseQuestions.length} MCQ{role.secondPhaseQuestions.length === 1 ? '' : 's'}
-                      </span>
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5">
+                        <Award className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                        <span className="font-mono text-[11px] text-muted-foreground">
+                          {role.secondPhaseQuestions.length} MCQ{role.secondPhaseQuestions.length === 1 ? '' : 's'}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-primary shrink-0" />
+                        <span className="font-mono text-[11px] text-muted-foreground">
+                          {role.durationMinutes || 30} mins
+                        </span>
+                      </div>
                     </div>
 
                     <Button
@@ -593,6 +633,24 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
                   </select>
                 </div>
 
+                <div className="flex items-center gap-1.5 bg-muted/40 px-2.5 py-1 rounded-md border border-border/60">
+                  <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
+                  <span className="text-[11px] font-semibold text-muted-foreground whitespace-nowrap">Time Limit:</span>
+                  <select
+                    value={selectedRole?.durationMinutes || 30}
+                    onChange={(e) => handleUpdateRoleDuration(selectedRoleForMcq, Number(e.target.value))}
+                    className="rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground font-medium"
+                  >
+                    <option value={10}>10 Mins</option>
+                    <option value={15}>15 Mins</option>
+                    <option value={20}>20 Mins</option>
+                    <option value={30}>30 Mins</option>
+                    <option value={45}>45 Mins</option>
+                    <option value={60}>60 Mins</option>
+                    <option value={90}>90 Mins</option>
+                  </select>
+                </div>
+
                 {!isEditingMcq && (
                   <Button
                     size="sm"
@@ -611,12 +669,12 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
               <div className="flex items-center gap-2.5">
                 <Clock className="w-4 h-4 text-primary shrink-0" />
                 <span className="text-foreground">
-                  <strong>Active Assessment:</strong> {selectedRole?.title} — {selectedRole?.secondPhaseQuestions.length || 0} Questions configured
+                  <strong>Active Assessment:</strong> {selectedRole?.title} — {selectedRole?.secondPhaseQuestions.length || 0} Questions configured ({selectedRole?.durationMinutes || 30} Minutes)
                 </span>
               </div>
               <div className="flex items-center gap-1.5 text-muted-foreground text-[11px]">
                 <FileCheck className="w-3.5 h-3.5 text-emerald-500" />
-                <span>10-Minute Proctored Delivery with Tab Switch Sentinel</span>
+                <span>{selectedRole?.durationMinutes || 30}-Minute Proctored Delivery with Tab Switch Sentinel</span>
               </div>
             </div>
 

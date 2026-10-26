@@ -32,6 +32,7 @@ export interface JobRole {
   department: string;
   type: string;
   description: string;
+  durationMinutes?: number;
   isCustom?: boolean;
   firstPhaseQuestion: FirstPhaseQuestion;
   secondPhaseQuestions: AssessmentQuizQuestion[];
@@ -44,6 +45,7 @@ export const SEEDED_JOB_ROLES: JobRole[] = [
     department: 'Frontend Engineering',
     type: 'Full-Time',
     description: 'Build high-performance, accessible React user interfaces with TypeScript, Tailwind CSS, and state management.',
+    durationMinutes: 30,
     firstPhaseQuestion: {
       question: 'Which React hook should be used to memoize an expensive calculation between renders?',
       hint: 'Think of the hook that caches a computed value until one of its dependencies changes.',
@@ -104,6 +106,7 @@ export const SEEDED_JOB_ROLES: JobRole[] = [
     department: 'CMS Engineering',
     type: 'Full-Time',
     description: 'Architect custom WordPress plugins, REST API extensions, custom post types, and WooCommerce modules.',
+    durationMinutes: 30,
     firstPhaseQuestion: {
       question: 'Which WordPress action hook is the canonical location for registering custom REST API endpoints?',
       hint: 'This hook fires when the WordPress REST API is being loaded and initialized.',
@@ -164,6 +167,7 @@ export const SEEDED_JOB_ROLES: JobRole[] = [
     department: 'Platform Engineering',
     type: 'Full-Time',
     description: 'Design and operate distributed services, split SQLite architectures, high-throughput APIs, and concurrency pipelines.',
+    durationMinutes: 30,
     firstPhaseQuestion: {
       question: 'Which database design pattern isolates tenant workloads while keeping schema queries lean and scalable?',
       hint: 'Think about local single-file SQLite databases where each project has its own dedicated database file.',
@@ -223,6 +227,7 @@ export const SEEDED_JOB_ROLES: JobRole[] = [
     department: 'Engineering',
     type: 'Internship',
     description: 'Learn modern web engineering practices, build core features, and collaborate on testing and documentation.',
+    durationMinutes: 30,
     firstPhaseQuestion: {
       question: 'What is the average time complexity of looking up a value by key in a Hash Map / Hash Table?',
       hint: 'Hash functions compute an array index directly from the key in constant time.',
@@ -283,6 +288,7 @@ export const SEEDED_JOB_ROLES: JobRole[] = [
     department: 'Engineering',
     type: 'Full-Time',
     description: 'Develop and maintain web services, participate in code reviews, and write unit and integration tests.',
+    durationMinutes: 30,
     firstPhaseQuestion: {
       question: 'Which HTTP status code signifies that a client request lacks valid authentication credentials?',
       hint: 'The standard status code indicating unauthenticated access.',
@@ -343,6 +349,7 @@ export const SEEDED_JOB_ROLES: JobRole[] = [
     department: 'Engineering Leadership',
     type: 'Full-Time',
     description: 'Lead technical architecture, system design, split database topologies, and full-stack performance optimization.',
+    durationMinutes: 30,
     firstPhaseQuestion: {
       question: 'In modern full-stack web architectures, what is the best strategy for client-side server state management?',
       hint: 'Think of stale-while-revalidate caching and declarative query invalidation.',
@@ -403,6 +410,7 @@ export const SEEDED_JOB_ROLES: JobRole[] = [
     department: 'Operations',
     type: 'Full-Time',
     description: 'Maintain CI/CD pipelines, container orchestration, zero-storage workflows, and cloud infrastructure.',
+    durationMinutes: 30,
     firstPhaseQuestion: {
       question: 'What is the primary architectural benefit of multi-stage Docker builds?',
       hint: 'Separating build tools from runtime assets produces lean, hardened production images.',

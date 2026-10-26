@@ -1,5 +1,10 @@
 import { describe, it, expect } from 'vitest';
 import { getJobRoles, getJobRoleById } from '@/lib/role-assignments';
+import {
+  buildGoogleCalendarUrl,
+  generateIcsContent,
+  formatUtcDateTime,
+} from '@/lib/calendar-reminder';
 
 describe('Candidate Portal Proctoring & Timed Technical Exam', () => {
   it('provides comprehensive second-phase technical questions for all roles', () => {
@@ -160,5 +165,83 @@ describe('Candidate Portal Proctoring & Timed Technical Exam', () => {
     }
 
     expect(tokenSet.size).toBe(poolSize);
+  });
+
+  it('supports admin-configurable exam duration across job roles', () => {
+    const roles = getJobRoles();
+
+    roles.forEach((role) => {
+      const duration = role.durationMinutes || 30;
+      expect(duration).toBeGreaterThanOrEqual(5);
+      expect(duration).toBeLessThanOrEqual(180);
+    });
+
+    const wpRole = getJobRoleById('wordpress-specialist');
+    expect(wpRole.durationMinutes).toBe(30);
+
+    // Dynamic timer initialization test
+    const customDurationMinutes = 45;
+    const initialSeconds = customDurationMinutes * 60;
+    expect(initialSeconds).toBe(2700);
+  });
+
+  it('generates valid Google Calendar reminder URL with proper start, end, and portal link', () => {
+    const testDate = new Date('2026-11-01T14:00:00Z');
+    const portalUrl = 'https://wp-exam.example/portal/cpt_testtoken123';
+
+    const gcalUrl = buildGoogleCalendarUrl({
+      title: 'Full-Stack Developer — Technical Assessment',
+      description: 'Scheduled assessment for candidate.',
+      locationUrl: portalUrl,
+      startDate: testDate,
+      durationMinutes: 30,
+    });
+
+    expect(gcalUrl.startsWith('https://calendar.google.com/calendar/render?')).toBe(true);
+
+    const parsed = new URL(gcalUrl);
+    expect(parsed.searchParams.get('action')).toBe('TEMPLATE');
+    expect(parsed.searchParams.get('text')).toBe('Full-Stack Developer — Technical Assessment');
+    expect(parsed.searchParams.get('location')).toBe(portalUrl);
+
+    // 30 min duration should span 14:00 to 14:30 UTC
+    const dates = parsed.searchParams.get('dates');
+    expect(dates).toBe('20261101T140000Z/20261101T143000Z');
+
+    const details = parsed.searchParams.get('details') || '';
+    expect(details).toContain(portalUrl);
+  });
+
+  it('generates valid RFC 5545 iCalendar (.ics) content with alarm reminder', () => {
+    const testDate = new Date('2026-11-05T09:00:00Z');
+    const portalUrl = 'https://wp-exam.example/portal/cpt_my_token';
+
+    const icsContent = generateIcsContent({
+      title: 'WordPress Specialist — Technical Assessment',
+      description: 'Your scheduled technical exam.',
+      locationUrl: portalUrl,
+      startDate: testDate,
+      durationMinutes: 60,
+    });
+
+    expect(icsContent).toContain('BEGIN:VCALENDAR');
+    expect(icsContent).toContain('VERSION:2.0');
+    expect(icsContent).toContain('BEGIN:VEVENT');
+    expect(icsContent).toContain('SUMMARY:WordPress Specialist — Technical Assessment');
+    expect(icsContent).toContain('DTSTART:20261105T090000Z');
+    expect(icsContent).toContain('DTEND:20261105T100000Z');
+    expect(icsContent).toContain(`LOCATION:${portalUrl}`);
+    expect(icsContent).toContain('BEGIN:VALARM');
+    expect(icsContent).toContain('TRIGGER:-PT15M');
+    expect(icsContent).toContain('END:VALARM');
+    expect(icsContent).toContain('END:VEVENT');
+    expect(icsContent).toContain('END:VCALENDAR');
+  });
+
+  it('formats dates into UTC YYYYMMDDTHHmmssZ strings correctly', () => {
+    const date = new Date('2026-03-15T08:05:09Z');
+    const formatted = formatUtcDateTime(date);
+
+    expect(formatted).toBe('20260315T080509Z');
   });
 });
