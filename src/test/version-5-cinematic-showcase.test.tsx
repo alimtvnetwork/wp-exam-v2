@@ -3,17 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Version5CinematicShowcase } from '@/components/public/layouts/version-5-cinematic-showcase';
 
-class ResizeObserverMock {
-  observe = vi.fn();
-
-  unobserve = vi.fn();
-
-  disconnect = vi.fn();
-}
-
-vi.stubGlobal('ResizeObserver', ResizeObserverMock);
-
-const renderTuneItPage = () => {
+const renderAnswerSheetPage = () => {
   const onAdminClick = vi.fn();
   const onCandidateClick = vi.fn();
 
@@ -29,36 +19,48 @@ const renderTuneItPage = () => {
   return { onAdminClick, onCandidateClick };
 };
 
-describe('Version 5 tune-it-see-it homepage', () => {
+describe('Version 5 answer sheet homepage', () => {
   afterEach(() => {
     cleanup();
   });
 
-  it('updates the candidate view when the time limit changes', () => {
-    renderTuneItPage();
+  it('routes the visitor based on the answer to question 1', () => {
+    const { onAdminClick, onCandidateClick } = renderAnswerSheetPage();
 
-    expect(screen.getByText('30:00 left')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: /i hire people/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /open the builder/i })[0]);
+    expect(onAdminClick).toHaveBeenCalledTimes(1);
 
-    fireEvent.click(screen.getByRole('button', { name: '45 min' }));
-    expect(screen.getByText('45:00 left')).toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('button', { name: 'No limit' }));
-    expect(screen.queryByText(/left$/)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('radio', { name: /been sent an assessment/i }));
+    fireEvent.click(screen.getByRole('button', { name: /start your assessment/i }));
+    expect(onCandidateClick).toHaveBeenCalledTimes(1);
   }, 15000);
 
-  it('shows the score or a thank-you note on the result screen', () => {
-    const { onAdminClick, onCandidateClick } = renderTuneItPage();
+  it('marks the fairness question and awards full marks', () => {
+    renderAnswerSheetPage();
 
-    fireEvent.click(screen.getByRole('tab', { name: /result/i }));
-    expect(screen.getByText('78%')).toBeVisible();
-    expect(screen.getByText('Passed')).toBeVisible();
+    const unfairStatement = screen.getByRole('checkbox', { name: /reviewer decides/i });
+    fireEvent.click(unfairStatement);
+    expect(screen.getByText(/that’s the problem we fix/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('button', { name: /a thank-you note/i }));
-    expect(screen.queryByText('78%')).not.toBeInTheDocument();
-    expect(screen.getByText(/you're all done/i)).toBeVisible();
+    fireEvent.click(unfairStatement);
+    expect(screen.queryByText(/that’s the problem we fix/i)).not.toBeInTheDocument();
 
-    fireEvent.click(screen.getAllByRole('button', { name: /try it as a candidate/i })[0]);
-    fireEvent.click(screen.getAllByRole('button', { name: /sign in to build/i })[0]);
+    fireEvent.click(screen.getByRole('checkbox', { name: /same questions/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /same time limit/i }));
+    fireEvent.click(screen.getByRole('checkbox', { name: /marked the same way/i }));
+    expect(screen.getByRole('status')).toHaveTextContent('3/3, well done');
+    expect(screen.queryByText('Full marks')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('radio', { name: /i hire people/i }));
+    expect(screen.getByText('Full marks')).toBeInTheDocument();
+  }, 15000);
+
+  it('routes the footer actions', () => {
+    const { onAdminClick, onCandidateClick } = renderAnswerSheetPage();
+
+    fireEvent.click(screen.getByRole('button', { name: /take a sample assessment/i }));
+    fireEvent.click(screen.getByRole('button', { name: /open the builder/i }));
 
     expect(onCandidateClick).toHaveBeenCalledTimes(1);
     expect(onAdminClick).toHaveBeenCalledTimes(1);

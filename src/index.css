@@ -312,53 +312,34 @@ All colors MUST be HSL.
   animation: steady-beam 3.5s ease-in-out infinite;
 }
 
-@keyframes v4-reveal {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 18px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
+@keyframes v4-rise {
+  from { transform: translate3d(0, 105%, 0); }
+  to { transform: translate3d(0, 0, 0); }
 }
 
-@keyframes v4-pop {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 6px, 0) scale(0.98);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0) scale(1);
-  }
+@keyframes v4-fade {
+  from { opacity: 0; transform: translate3d(0, 12px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-@keyframes v4-caret {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+@keyframes v4-flap {
+  from { transform: scaleY(0.15); opacity: 0.4; }
+  to { transform: scaleY(1); opacity: 1; }
 }
 
-@keyframes v5-reveal {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 16px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
+@keyframes v5-fade {
+  from { opacity: 0; transform: translate3d(0, 10px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-@keyframes v5-swap {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 8px, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
+@keyframes v5-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes v5-write {
+  from { clip-path: inset(-0.3em 100% -0.3em -0.3em); }
+  to { clip-path: inset(-0.3em -0.3em -0.3em -0.3em); }
 }
 
 @keyframes v6-reveal {
@@ -414,38 +395,69 @@ All colors MUST be HSL.
   50% { opacity: 1; }
 }
 
-.v4-reveal {
-  animation: v4-reveal 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.font-v4-display {
+  font-family: 'Archivo', 'Ubuntu', sans-serif;
+  font-stretch: 62%;
+  font-weight: 900;
+  letter-spacing: -0.01em;
 }
 
-.v4-delay-1 { animation-delay: 80ms; }
-.v4-delay-2 { animation-delay: 160ms; }
-.v4-delay-3 { animation-delay: 240ms; }
-.v4-delay-4 { animation-delay: 360ms; }
-
-.v4-pop {
-  animation: v4-pop 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.font-v4-mono {
+  font-family: 'IBM Plex Mono', 'Ubuntu Mono', monospace;
 }
 
-.v4-caret {
-  animation: v4-caret 1s steps(1) infinite;
+.v4-rise {
+  animation: v4-rise 900ms cubic-bezier(0.19, 1, 0.22, 1) both;
 }
 
-.v5-reveal {
-  animation: v5-reveal 720ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.v4-fade {
+  animation: v4-fade 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.v5-delay-1 { animation-delay: 80ms; }
-.v5-delay-2 { animation-delay: 160ms; }
-.v5-delay-3 { animation-delay: 280ms; }
-
-.v5-swap {
-  animation: v5-swap 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.v4-flap {
+  display: inline-block;
+  transform-origin: center;
+  animation: v4-flap 90ms ease-out both;
 }
 
-.v5-number {
-  font-variant-numeric: tabular-nums;
+.v4-delay-1 { animation-delay: 90ms; }
+.v4-delay-2 { animation-delay: 180ms; }
+.v4-delay-3 { animation-delay: 420ms; }
+
+.font-v5-serif {
+  font-family: 'Newsreader', Georgia, serif;
 }
+
+.font-v5-hand {
+  font-family: 'Caveat', 'Segoe Print', cursive;
+}
+
+.v5-ruled {
+  background-image: repeating-linear-gradient(
+    to bottom,
+    transparent 0,
+    transparent 35px,
+    rgba(110, 140, 180, 0.22) 35px,
+    rgba(110, 140, 180, 0.22) 36px
+  );
+}
+
+.v5-fade {
+  animation: v5-fade 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.v5-draw {
+  stroke-dasharray: 1;
+  animation: v5-draw 650ms cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.v5-write {
+  animation: v5-write 700ms steps(14, end) both;
+}
+
+.v5-delay-1 { animation-delay: 120ms; }
+.v5-delay-2 { animation-delay: 300ms; }
+.v5-delay-3 { animation-delay: 550ms; }
 
 .v6-reveal {
   animation: v6-reveal 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -503,11 +515,12 @@ All colors MUST be HSL.
   .animate-radar-sweep,
   .animate-steady-pulse,
   .animate-steady-beam,
-  .v4-reveal,
-  .v4-pop,
-  .v4-caret,
-  .v5-reveal,
-  .v5-swap,
+  .v4-rise,
+  .v4-fade,
+  .v4-flap,
+  .v5-fade,
+  .v5-draw,
+  .v5-write,
   .v6-reveal,
   .v6-float,
   .v6-scan,

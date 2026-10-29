@@ -1,108 +1,174 @@
 import React, { useEffect, useState } from 'react';
-import {
-  ArrowRight,
-  Award,
-  Briefcase,
-  Clock,
-  GitBranch,
-  Link2,
-  ListChecks,
-  Palette,
-  RotateCcw,
-} from 'lucide-react';
-import { Button } from '@/components/ui/button';
+import { ArrowRight, RotateCcw } from 'lucide-react';
 import { LayoutProps } from './version-1-classic';
 
-const DEMO_QUESTION = 'A page takes six seconds to load. What do you check first?';
+type RowTone = 'shortlisted' | 'passed' | 'pending' | 'below';
 
-const DEMO_OPTIONS = [
-  'The network waterfall in DevTools',
-  'Rewrite it in a newer framework',
-  'Add more memory to the server',
+interface BoardRow {
+  name: string;
+  role: string;
+  score: string;
+  status: string;
+  tone: RowTone;
+}
+
+const FLAP_CHARS = ' ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-.%';
+const FLAP_TICK_MS = 28;
+const FRAME_MS = 3600;
+
+const COLUMN_WIDTHS = { name: 12, role: 9, score: 3, status: 11 };
+
+const getColumnWidth = (cells: number) => `calc(${cells} * 1.05em + ${cells - 1} * 3px)`;
+
+const BOARD_GRID_STYLE: React.CSSProperties = {
+  gridTemplateColumns: `${getColumnWidth(COLUMN_WIDTHS.name)} ${getColumnWidth(COLUMN_WIDTHS.role)} ${getColumnWidth(COLUMN_WIDTHS.score)} 1fr`,
+};
+
+const BOARD_FRAMES: BoardRow[][] = [
+  [
+    { name: 'Maya Rossi', role: 'Frontend', score: '91', status: 'Shortlisted', tone: 'shortlisted' },
+    { name: 'Daniel Kim', role: 'Backend', score: '84', status: 'Passed', tone: 'passed' },
+    { name: 'Sofia Lopez', role: 'Design', score: '--', status: 'In progress', tone: 'pending' },
+    { name: 'Tom Ward', role: 'Support', score: '58', status: 'Below bar', tone: 'below' },
+    { name: 'Priya Nair', role: 'Frontend', score: '--', status: 'Invited', tone: 'pending' },
+  ],
+  [
+    { name: 'Maya Rossi', role: 'Frontend', score: '91', status: 'Shortlisted', tone: 'shortlisted' },
+    { name: 'Daniel Kim', role: 'Backend', score: '84', status: 'Passed', tone: 'passed' },
+    { name: 'Sofia Lopez', role: 'Design', score: '77', status: 'Passed', tone: 'passed' },
+    { name: 'Tom Ward', role: 'Support', score: '58', status: 'Below bar', tone: 'below' },
+    { name: 'Priya Nair', role: 'Frontend', score: '--', status: 'In progress', tone: 'pending' },
+  ],
+  [
+    { name: 'Maya Rossi', role: 'Frontend', score: '91', status: 'Shortlisted', tone: 'shortlisted' },
+    { name: 'Daniel Kim', role: 'Backend', score: '84', status: 'Passed', tone: 'passed' },
+    { name: 'Sofia Lopez', role: 'Design', score: '77', status: 'Passed', tone: 'passed' },
+    { name: 'Tom Ward', role: 'Support', score: '58', status: 'Below bar', tone: 'below' },
+    { name: 'Priya Nair', role: 'Frontend', score: '88', status: 'Shortlisted', tone: 'shortlisted' },
+  ],
 ];
 
-const TICK_MS = 40;
-const OPTION_GAP_TICKS = 8;
-const SELECT_DELAY_TICKS = 18;
-const TOTAL_TICKS = DEMO_QUESTION.length + DEMO_OPTIONS.length * OPTION_GAP_TICKS + SELECT_DELAY_TICKS;
+const TONE_CLASS: Record<RowTone, string> = {
+  shortlisted: 'text-[#ff5a1f]',
+  passed: 'text-[#ece8df]',
+  pending: 'text-[#8f8b83]',
+  below: 'text-[#5f5c56]',
+};
 
-const FEATURES = [
+const STEPS = [
   {
-    icon: ListChecks,
-    title: 'Question formats that fit the role',
-    description: 'Multiple choice, true or false, open answers, and image, audio or video prompts.',
+    number: '01',
+    title: 'Write the test once',
+    description: 'Pick a role template or start blank. Multiple choice, open answers, and image, audio or video prompts.',
   },
   {
-    icon: GitBranch,
-    title: 'Branching paths',
-    description: 'Send strong answers to harder questions and route others to the fundamentals.',
+    number: '02',
+    title: 'Send one link',
+    description: 'Candidates open it and start. No account, a clear time limit, and progress that saves as they go.',
   },
   {
-    icon: Clock,
-    title: 'Timers and focus logging',
-    description: 'Set a time limit per assessment. Tab switches are logged for your review.',
-  },
-  {
-    icon: Award,
-    title: 'Certificates',
-    description: 'Candidates who pass can receive a certificate automatically.',
-  },
-  {
-    icon: Briefcase,
-    title: 'Job role templates',
-    description: 'Start from a role, adjust the questions, and reuse it for every opening.',
-  },
-  {
-    icon: Palette,
-    title: 'Nine built-in themes',
-    description: 'Match the candidate experience to your employer brand.',
+    number: '03',
+    title: 'Read the board',
+    description: 'Every result is scored the same way and lands in one place. The shortlist is the top of the list.',
   },
 ];
 
-const PIPELINE_COLUMNS = [
-  { title: 'Invited', people: ['Maya R.', 'Daniel K.', 'Sofia L.'] },
-  { title: 'Completed', people: ['Priya N. · 86%', 'Tom W. · 71%'] },
-  { title: 'Shortlisted', people: ['Priya N.'] },
+const INDEX_ROWS = [
+  { label: 'Formats', description: 'Multiple choice, true or false, open answers, media prompts.' },
+  { label: 'Paths', description: 'Strong answers unlock harder questions. Others go back to basics.' },
+  { label: 'Timing', description: 'Time limits per assessment. Tab switches are logged for review.' },
+  { label: 'Output', description: 'Scores, a pipeline board, and certificates for people who pass.' },
+  { label: 'Look', description: 'Nine built-in themes so the test feels like your company.' },
 ];
 
-const useAuthoringDemo = () => {
-  const [tick, setTick] = useState(0);
-  const isComplete = tick >= TOTAL_TICKS;
+const toFlapString = (value: string, length: number) => {
+  const upper = value.toUpperCase().padEnd(length).slice(0, length);
+
+  return upper
+    .split('')
+    .map((char) => (FLAP_CHARS.includes(char) ? char : ' '))
+    .join('');
+};
+
+const getIsReducedMotion = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const FlapText: React.FC<{ value: string; length: number; tone: RowTone }> = ({ value, length, tone }) => {
+  const target = toFlapString(value, length);
+  const [display, setDisplay] = useState(() => (getIsReducedMotion() ? target : ' '.repeat(length)));
 
   useEffect(() => {
-    const isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    if (getIsReducedMotion()) {
+      setDisplay(target);
 
-    if (isReducedMotion) {
-      setTick(TOTAL_TICKS);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (isComplete) {
       return;
     }
 
-    const timer = window.setTimeout(() => setTick((current) => current + 1), TICK_MS);
+    const timer = window.setInterval(() => {
+      setDisplay((current) => {
+        if (current === target) {
+          window.clearInterval(timer);
+
+          return current;
+        }
+
+        return current
+          .split('')
+          .map((char, index) => {
+            const goal = target[index];
+
+            if (char === goal) {
+              return char;
+            }
+
+            const nextIndex = (FLAP_CHARS.indexOf(char) + 1) % FLAP_CHARS.length;
+
+            return FLAP_CHARS[nextIndex];
+          })
+          .join('');
+      });
+    }, FLAP_TICK_MS);
+
+    return () => window.clearInterval(timer);
+  }, [target]);
+
+  return (
+    <span className={`flex gap-[3px] ${TONE_CLASS[tone]}`}>
+      <span className="sr-only">{value}</span>
+      {display.split('').map((char, index) => (
+        <span
+          key={index}
+          aria-hidden="true"
+          className="relative flex h-[1.6em] w-[1.05em] items-center justify-center overflow-hidden rounded-[2px] bg-[#1a1a19]"
+        >
+          <span key={char} className="v4-flap">
+            {char === ' ' ? '\u00A0' : char}
+          </span>
+          <span className="pointer-events-none absolute inset-x-0 top-1/2 h-px bg-black/70" />
+        </span>
+      ))}
+    </span>
+  );
+};
+
+const useBoardFrames = () => {
+  const [frameIndex, setFrameIndex] = useState(0);
+  const lastFrame = BOARD_FRAMES.length - 1;
+  const isFinished = frameIndex >= lastFrame;
+
+  useEffect(() => {
+    if (isFinished) {
+      return;
+    }
+
+    const timer = window.setTimeout(() => setFrameIndex((current) => current + 1), FRAME_MS);
 
     return () => window.clearTimeout(timer);
-  }, [tick, isComplete]);
-
-  const typedQuestion = DEMO_QUESTION.slice(0, tick);
-  const ticksAfterTyping = Math.max(0, tick - DEMO_QUESTION.length);
-  const visibleOptionCount = Math.min(
-    DEMO_OPTIONS.length,
-    Math.floor(ticksAfterTyping / OPTION_GAP_TICKS),
-  );
-  const isAnswerSelected = isComplete;
-  const isTyping = tick < DEMO_QUESTION.length;
+  }, [frameIndex, isFinished]);
 
   return {
-    typedQuestion,
-    visibleOptionCount,
-    isAnswerSelected,
-    isTyping,
-    isComplete,
-    replay: () => setTick(0),
+    rows: BOARD_FRAMES[frameIndex],
+    isFinished,
+    replay: () => setFrameIndex(0),
   };
 };
 
@@ -110,272 +176,167 @@ export const Version4DeveloperPlatform: React.FC<LayoutProps> = ({
   onAdminClick,
   onCandidateClick,
 }) => {
-  const demo = useAuthoringDemo();
-  const visibleOptions = DEMO_OPTIONS.slice(0, demo.visibleOptionCount);
+  const board = useBoardFrames();
 
   return (
-    <div className="w-full bg-background text-foreground">
-      {/* Hero */}
-      <section className="mx-auto max-w-6xl px-4 pt-20 text-center sm:px-6 sm:pt-28">
-        <p className="v4-reveal text-sm font-medium text-primary">Onboarding Quiz for hiring teams</p>
+    <div className="w-full overflow-hidden bg-[#0d0d0c] text-[#ece8df] selection:bg-[#ff5a1f] selection:text-black">
+      {/* Meta row */}
+      <div className="border-b border-[#ece8df]/15">
+        <div className="mx-auto grid max-w-7xl grid-cols-2 gap-4 px-4 py-3 font-v4-mono text-[11px] uppercase tracking-wider text-[#ece8df]/55 sm:px-6 md:grid-cols-4">
+          <span>Onboarding Quiz</span>
+          <span className="hidden md:block">Hiring assessments</span>
+          <span className="hidden md:block">Runs on WordPress</span>
+          <span className="text-right">Issue 04 / Results</span>
+        </div>
+      </div>
 
-        <h1 className="v4-reveal v4-delay-1 mx-auto mt-5 max-w-4xl font-heading text-4xl font-bold leading-[1.08] tracking-tight sm:text-6xl">
-          Build hiring assessments candidates actually finish.
+      {/* Hero */}
+      <section className="mx-auto max-w-7xl px-4 pt-14 sm:px-6 sm:pt-20">
+        <h1 className="font-v4-display text-[clamp(3.4rem,12.5vw,11.5rem)] uppercase leading-[0.84]">
+          <span className="block overflow-hidden">
+            <span className="v4-rise block">Every candidate.</span>
+          </span>
+          <span className="block overflow-hidden">
+            <span className="v4-rise v4-delay-1 block text-[#ff5a1f]">One score.</span>
+          </span>
+          <span className="block overflow-hidden">
+            <span className="v4-rise v4-delay-2 block">No guesswork.</span>
+          </span>
         </h1>
 
-        <p className="v4-reveal v4-delay-2 mx-auto mt-6 max-w-2xl text-base leading-7 text-muted-foreground sm:text-lg">
-          Write questions for the role, send one link, and review scored results with your team.
-          It runs on your own WordPress site.
-        </p>
-
-        <div className="v4-reveal v4-delay-3 mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button
-            onClick={onCandidateClick}
-            className="h-12 rounded-lg px-6 text-sm font-semibold"
-          >
-            Try the candidate experience
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-          <Button
-            variant="ghost"
-            onClick={onAdminClick}
-            className="h-12 rounded-lg px-6 text-sm font-semibold text-muted-foreground hover:text-foreground"
-          >
-            Open the builder
-          </Button>
+        <div className="mt-12 grid gap-8 border-t border-[#ece8df]/15 pt-8 md:grid-cols-12">
+          <p className="font-v4-mono text-[11px] uppercase tracking-wider text-[#ece8df]/55 md:col-span-3">
+            For hiring teams
+          </p>
+          <div className="v4-fade v4-delay-3 md:col-span-9 lg:col-span-7">
+            <p className="text-lg leading-8 text-[#ece8df]/80 sm:text-xl sm:leading-9">
+              Write one assessment per role. Candidates take it from a single link. Every result
+              lands on one board, scored the same way, so the shortlist is simply the top of the
+              list.
+            </p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+              <button
+                type="button"
+                onClick={onCandidateClick}
+                className="group inline-flex h-14 items-center justify-between gap-6 bg-[#ff5a1f] px-6 text-sm font-semibold text-black transition-colors hover:bg-[#ff7440]"
+              >
+                Try the candidate side
+                <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+              </button>
+              <button
+                type="button"
+                onClick={onAdminClick}
+                className="inline-flex h-14 items-center justify-center border border-[#ece8df]/30 px-6 text-sm font-semibold transition-colors hover:border-[#ece8df] hover:bg-[#ece8df] hover:text-black"
+              >
+                Open the builder
+              </button>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* Product view: builder and candidate side by side */}
-      <section className="mx-auto mt-16 max-w-6xl px-4 sm:mt-20 sm:px-6" aria-label="Builder and candidate preview">
-        <div className="v4-reveal v4-delay-4 overflow-hidden rounded-2xl border border-border bg-card shadow-2xl shadow-black/40">
-          <div className="flex items-center justify-between border-b border-border px-5 py-3 text-xs text-muted-foreground">
-            <span>Frontend Engineer · Assessment</span>
-            <span>Saved</span>
-          </div>
-
-          <div className="grid lg:grid-cols-2">
-            {/* Builder */}
-            <div className="border-b border-border p-6 sm:p-8 lg:border-b-0 lg:border-r">
-              <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">Builder</p>
-
-              <label className="mt-5 block text-xs text-muted-foreground" htmlFor="v4-demo-question">
-                Question 3
-              </label>
-              <div
-                id="v4-demo-question"
-                className="mt-2 min-h-[4.5rem] rounded-lg border border-border bg-background px-4 py-3 text-base leading-6"
-              >
-                {demo.typedQuestion}
-                {demo.isTyping && <span aria-hidden="true" className="v4-caret ml-0.5 inline-block h-5 w-px translate-y-1 bg-primary" />}
-              </div>
-
-              <ul className="mt-4 space-y-2">
-                {visibleOptions.map((option, index) => (
-                  <li
-                    key={option}
-                    className="v4-pop flex items-center gap-3 rounded-lg border border-border px-4 py-2.5 text-sm"
-                  >
-                    <span className="flex h-5 w-5 items-center justify-center rounded-full border border-border text-[11px] text-muted-foreground">
-                      {String.fromCharCode(65 + index)}
-                    </span>
-                    <span className="flex-1">{option}</span>
-                    {index === 0 && <span className="text-xs font-medium text-primary">Correct</span>}
-                  </li>
-                ))}
-              </ul>
-
-              <div className="mt-5 flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground">
-                <span>10 points</span>
-                <span>If wrong, go to: Fundamentals</span>
-              </div>
-            </div>
-
-            {/* Candidate preview */}
-            <div className="bg-background/60 p-6 sm:p-8">
-              <div className="flex items-center justify-between text-xs text-muted-foreground">
-                <span className="font-medium uppercase tracking-wide">What the candidate sees</span>
-                <span>Question 3 of 8</span>
-              </div>
-              <div className="mt-3 h-1 overflow-hidden rounded-full bg-muted">
-                <div className="h-full w-[37.5%] rounded-full bg-primary" />
-              </div>
-
-              <p className="mt-6 min-h-[3.5rem] font-heading text-lg font-semibold leading-snug sm:text-xl">
-                {demo.typedQuestion}
-              </p>
-
-              <ul className="mt-5 space-y-2.5">
-                {visibleOptions.map((option, index) => {
-                  const isChosen = index === 0;
-                  const isHighlighted = isChosen ? demo.isAnswerSelected : false;
-
-                  return (
-                    <li
-                      key={option}
-                      className={`v4-pop rounded-xl border px-4 py-3 text-sm transition-colors duration-300 ${
-                        isHighlighted
-                          ? 'border-primary bg-primary/10 text-foreground'
-                          : 'border-border text-muted-foreground'
-                      }`}
-                    >
-                      {option}
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </div>
-        </div>
-
-        <div className="mt-4 flex justify-center">
+      {/* Results board */}
+      <section className="mx-auto mt-24 max-w-7xl px-4 sm:mt-32 sm:px-6" aria-labelledby="v4-board-caption">
+        <div className="flex items-baseline justify-between gap-4 font-v4-mono text-[11px] uppercase tracking-wider text-[#ece8df]/55">
+          <span id="v4-board-caption">Fig. 1 — Results board, sample data</span>
           <button
             type="button"
-            onClick={demo.replay}
-            disabled={!demo.isComplete}
-            className="inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground disabled:opacity-0"
+            onClick={board.replay}
+            disabled={!board.isFinished}
+            className="inline-flex items-center gap-1.5 transition-colors hover:text-[#ff5a1f] disabled:opacity-0"
           >
-            <RotateCcw className="h-3.5 w-3.5" />
+            <RotateCcw className="h-3 w-3" />
             Replay
           </button>
         </div>
-      </section>
 
-      {/* Build / Send / Review */}
-      <section className="mx-auto mt-24 max-w-6xl space-y-24 px-4 sm:mt-32 sm:space-y-32 sm:px-6">
-        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-          <div>
-            <p className="text-sm font-medium text-primary">Build</p>
-            <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-              One assessment, different paths.
-            </h2>
-            <p className="mt-4 max-w-md leading-7 text-muted-foreground">
-              Strong answers lead to harder questions. Weaker ones lead to the fundamentals, so
-              every candidate gets a fair read on what they actually know.
-            </p>
-          </div>
-
-          <div className="rounded-2xl border border-border bg-card p-8" aria-hidden="true">
-            <div className="flex flex-col items-center gap-4 text-sm">
-              <div className="rounded-lg border border-border bg-background px-4 py-2">Warm-up questions</div>
-              <div className="h-6 w-px bg-border" />
-              <div className="rounded-lg border border-primary/60 bg-primary/10 px-4 py-2 text-primary">Score above 70%?</div>
-              <div className="grid w-full grid-cols-2 gap-4">
-                <div className="flex flex-col items-center gap-3">
-                  <div className="h-6 w-px bg-border" />
-                  <div className="w-full rounded-lg border border-border bg-background px-3 py-2 text-center">Advanced</div>
-                </div>
-                <div className="flex flex-col items-center gap-3">
-                  <div className="h-6 w-px bg-border" />
-                  <div className="w-full rounded-lg border border-border bg-background px-3 py-2 text-center">Fundamentals</div>
-                </div>
-              </div>
+        <div className="mt-3 overflow-x-auto border border-[#ece8df]/15 bg-[#050505]">
+          <div className="min-w-[680px] p-5 font-v4-mono text-[14px] font-medium sm:p-8 md:text-[17px] lg:p-10 lg:text-[21px]">
+            <div className="mb-4 grid gap-x-6 sm:gap-x-8" style={BOARD_GRID_STYLE}>
+              {['Candidate', 'Role', 'Score', 'Status'].map((label) => (
+                <span key={label} className="text-[10px] uppercase tracking-[0.2em] text-[#ece8df]/40">
+                  {label}
+                </span>
+              ))}
             </div>
-          </div>
-        </div>
 
-        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-          <div className="lg:order-2">
-            <p className="text-sm font-medium text-primary">Send</p>
-            <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-              One link. No account to create.
-            </h2>
-            <p className="mt-4 max-w-md leading-7 text-muted-foreground">
-              Candidates open the link and start. Progress saves as they go, so a dropped
-              connection doesn&apos;t cost them their answers.
-            </p>
-          </div>
+            <ul className="space-y-2.5" aria-label="Candidate results">
+              {board.rows.map((row) => (
+                <li key={row.name} className="grid gap-x-6 sm:gap-x-8" style={BOARD_GRID_STYLE}>
+                  <FlapText value={row.name} length={COLUMN_WIDTHS.name} tone="passed" />
+                  <FlapText value={row.role} length={COLUMN_WIDTHS.role} tone="pending" />
+                  <FlapText value={row.score} length={COLUMN_WIDTHS.score} tone={row.tone} />
+                  <FlapText value={row.status} length={COLUMN_WIDTHS.status} tone={row.tone} />
+                </li>
+              ))}
+            </ul>
 
-          <div className="rounded-2xl border border-border bg-card p-6 sm:p-8 lg:order-1" aria-hidden="true">
-            <p className="text-xs text-muted-foreground">Invite link</p>
-            <div className="mt-2 flex items-center gap-3 rounded-lg border border-border bg-background px-4 py-3 text-sm">
-              <Link2 className="h-4 w-4 shrink-0 text-primary" />
-              <span className="truncate">careers.yourcompany.com/apply/frontend-engineer</span>
+            <div className="mt-6 flex justify-between border-t border-[#ece8df]/10 pt-4 text-[10px] uppercase tracking-[0.2em] text-[#ece8df]/40">
+              <span>Pass mark 70</span>
+              <span>Frontend round 2</span>
             </div>
-            <div className="mt-4 flex flex-wrap gap-x-6 gap-y-2 text-xs text-muted-foreground">
-              <span>One attempt</span>
-              <span>45 minute limit</span>
-              <span>Expires in 7 days</span>
-            </div>
-          </div>
-        </div>
-
-        <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
-          <div>
-            <p className="text-sm font-medium text-primary">Review</p>
-            <h2 className="mt-3 font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-              Scores land on a board your team already understands.
-            </h2>
-            <p className="mt-4 max-w-md leading-7 text-muted-foreground">
-              Every result is scored the same way, so moving someone forward is a decision you
-              can explain.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-3 gap-3 rounded-2xl border border-border bg-card p-4 sm:p-6" aria-hidden="true">
-            {PIPELINE_COLUMNS.map((column) => (
-              <div key={column.title}>
-                <p className="mb-3 text-xs text-muted-foreground">
-                  {column.title} · {column.people.length}
-                </p>
-                <div className="space-y-2">
-                  {column.people.map((person) => (
-                    <div
-                      key={person}
-                      className="rounded-lg border border-border bg-background px-3 py-2 text-xs transition-transform duration-200 hover:-translate-y-0.5"
-                    >
-                      {person}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </section>
 
-      {/* Feature list */}
-      <section id="features" className="mx-auto mt-32 max-w-6xl px-4 sm:px-6">
-        <h2 className="max-w-xl font-heading text-3xl font-bold tracking-tight sm:text-4xl">
-          Everything else you&apos;d expect.
+      {/* Steps */}
+      <section id="features" className="mx-auto mt-28 max-w-7xl px-4 sm:mt-40 sm:px-6">
+        <h2 className="font-v4-display text-[clamp(2.5rem,7vw,5.5rem)] uppercase leading-[0.9]">
+          How the board fills up
         </h2>
-        <dl className="mt-12 grid gap-x-12 gap-y-10 border-t border-border pt-12 sm:grid-cols-2 lg:grid-cols-3">
-          {FEATURES.map((feature) => {
-            const Icon = feature.icon;
+        <ol className="mt-14 grid gap-12 md:grid-cols-3 md:gap-8">
+          {STEPS.map((step) => (
+            <li key={step.number} className="group border-t border-[#ece8df]/25 pt-6">
+              <span className="font-v4-display block text-[5.5rem] leading-none text-[#ff5a1f] transition-transform duration-300 group-hover:-translate-y-1">
+                {step.number}
+              </span>
+              <h3 className="mt-6 text-xl font-semibold">{step.title}</h3>
+              <p className="mt-3 max-w-sm leading-7 text-[#ece8df]/65">{step.description}</p>
+            </li>
+          ))}
+        </ol>
+      </section>
 
-            return (
-              <div key={feature.title}>
-                <dt className="flex items-center gap-3 font-semibold">
-                  <Icon className="h-5 w-5 text-primary" aria-hidden="true" />
-                  {feature.title}
-                </dt>
-                <dd className="mt-2 text-sm leading-6 text-muted-foreground">{feature.description}</dd>
-              </div>
-            );
-          })}
+      {/* Index */}
+      <section className="mx-auto mt-28 grid max-w-7xl gap-10 px-4 sm:mt-40 sm:px-6 md:grid-cols-12">
+        <h2 className="font-v4-display text-[clamp(2.5rem,6vw,4.5rem)] uppercase leading-[0.9] md:col-span-4">
+          What goes into the test
+        </h2>
+        <dl className="md:col-span-8">
+          {INDEX_ROWS.map((row) => (
+            <div
+              key={row.label}
+              className="group grid gap-2 border-t border-[#ece8df]/15 py-6 transition-colors last:border-b hover:border-[#ff5a1f] sm:grid-cols-[10rem_1fr]"
+            >
+              <dt className="font-v4-mono text-xs uppercase tracking-[0.2em] text-[#ff5a1f]">{row.label}</dt>
+              <dd className="text-lg leading-8 text-[#ece8df]/85">{row.description}</dd>
+            </div>
+          ))}
         </dl>
       </section>
 
-      {/* Closing CTA */}
-      <section className="mx-auto max-w-3xl px-4 py-32 text-center sm:px-6">
-        <h2 className="font-heading text-3xl font-bold tracking-tight sm:text-5xl">
-          See it from the candidate&apos;s side first.
+      {/* Closing */}
+      <section className="mx-auto max-w-7xl px-4 pb-28 pt-28 sm:px-6 sm:pb-40 sm:pt-40">
+        <h2 className="font-v4-display text-[clamp(3.4rem,12vw,10.5rem)] uppercase leading-[0.84]">
+          Your board
+          <span className="block text-[#ff5a1f]">is empty.</span>
         </h2>
-        <p className="mx-auto mt-5 max-w-lg text-muted-foreground">
-          Take a sample assessment in a few minutes, then open the builder to make your own.
-        </p>
-        <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
-          <Button onClick={onCandidateClick} className="h-12 rounded-lg px-6 text-sm font-semibold">
+        <div className="mt-10 flex flex-col gap-3 sm:flex-row">
+          <button
+            type="button"
+            onClick={onCandidateClick}
+            className="group inline-flex h-14 items-center justify-between gap-6 bg-[#ff5a1f] px-6 text-sm font-semibold text-black transition-colors hover:bg-[#ff7440]"
+          >
             Take a sample assessment
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Button>
-          <Button
-            variant="outline"
+            <ArrowRight className="h-4 w-4 transition-transform duration-200 group-hover:translate-x-1" />
+          </button>
+          <button
+            type="button"
             onClick={onAdminClick}
-            className="h-12 rounded-lg px-6 text-sm font-semibold"
+            className="inline-flex h-14 items-center justify-center border border-[#ece8df]/30 px-6 text-sm font-semibold transition-colors hover:border-[#ece8df] hover:bg-[#ece8df] hover:text-black"
           >
             Open the builder
-          </Button>
+          </button>
         </div>
       </section>
     </div>
