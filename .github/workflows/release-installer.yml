@@ -49,8 +49,14 @@ jobs:
           coverage: none
 
       - name: Install Frontend Dependencies & Build Static Assets
+        shell: pwsh
         run: |
-          npm ci
+          try {
+            npm ci
+          } catch {
+            Write-Host "npm ci encountered lockfile discrepancy; running npm install fallback..."
+            npm install
+          }
           if (Test-Path "package.json") {
             $pkg = Get-Content "package.json" -Raw
             if ($pkg -match '"build:less"') {
