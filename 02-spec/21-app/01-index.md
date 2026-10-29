@@ -79,6 +79,7 @@ App-specific specification content for the WP Exam plugin. This engine provides 
 | 69 | [ui-ux-improvement-for-wp-exam/05-email-checklist-spec.md](./ui-ux-improvement-for-wp-exam/05-email-checklist-spec.md) | Token-scoped candidate checklist dashboard plus checklist and reminder emails | Complete |
 | 69 | [ui-ux-improvement-for-wp-exam/06-video-questions-spec.md](./ui-ux-improvement-for-wp-exam/06-video-questions-spec.md) | Video as question content: media-library uploads, video or text answers | Complete |
 | 69 | [ui-ux-improvement-for-wp-exam/07-security-hardening-spec.md](./ui-ux-improvement-for-wp-exam/07-security-hardening-spec.md) | Kill hardcoded auth, libsodium secretbox for secrets, JWT fail-closed, endpoint auth gating | Complete |
+| 81 | [81-recruitment-pipeline-and-candidate-portal.md](./81-recruitment-pipeline-and-candidate-portal.md) | Recruitment Pipeline, Applicant Tracking Kanban & Candidate Self-Service Verification Portal | Complete |
 
 ---
 

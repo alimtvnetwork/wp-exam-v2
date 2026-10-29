@@ -807,7 +807,6 @@
     transform: none !important;
   }
 }
-
 /* Admin sidebar motion — ui-ux-enhancement-and-animation-improvement */
 :root {
   --ease-out-editorial: cubic-bezier(0.16, 1, 0.3, 1);

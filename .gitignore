@@ -42,6 +42,7 @@ test-results/
 
 # Temp cache and build artifacts
 tmp/
+.tools/
 .ai-memory/temp/
 .ai-memory/cicd/
 *.tsbuildinfo
@@ -67,3 +68,8 @@ antigravity_resume_task.json
 .antigravity-resume_task.json
 .ai-memory/temp-agents/**/agent-task.db
 .ai-memory/temp-agents/**/agent-task.db-*
+
+# SQLite database files
+*.sqlite
+*.sqlite3
+*.sqlite-*

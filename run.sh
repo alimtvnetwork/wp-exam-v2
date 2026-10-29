@@ -37,10 +37,10 @@ npm run build:less || true
 echo ""
 echo "[3/3] Launching Vite development server on port ${PORT}..."
 
-# Open browser in background
-if command -v xdg-open &> /dev/null; then
+# Browser auto-launch disabled for production
+if [ "${2:-}" = "--open" ] && command -v xdg-open &> /dev/null; then
     (sleep 2 && xdg-open "${TARGET_URL}") &
-elif command -v open &> /dev/null; then
+elif [ "${2:-}" = "--open" ] && command -v open &> /dev/null; then
     (sleep 2 && open "${TARGET_URL}") &
 fi
 

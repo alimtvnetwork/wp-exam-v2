@@ -82,13 +82,17 @@
 
 .presentation-option-card {
   opacity: 0.82;
+  background-color: hsl(var(--card) / 0.75);
+  backdrop-filter: blur(2px);
+  -webkit-backdrop-filter: blur(2px);
   box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.03);
   transition: transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
               box-shadow 220ms ease,
               border-color 200ms ease,
               background-color 200ms ease,
               background 200ms ease,
-              opacity 200ms ease;
+              opacity 200ms ease,
+              backdrop-filter 220ms ease;
   will-change: transform, opacity, box-shadow;
 
   &:hover {
@@ -854,3 +858,118 @@
 
 
 
+
+/* Admin sidebar motion — ui-ux-enhancement-and-animation-improvement */
+:root {
+  --ease-out-editorial: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-state: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes sidebar-label-in {
+  from {
+    opacity: 0;
+    transform: translateX(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes sidebar-label-out {
+  from {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateX(-4px);
+  }
+}
+
+@keyframes sidebar-item-in {
+  from {
+    opacity: 0;
+    transform: translateX(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes tab-panel-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes tab-panel-out {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+
+.animate-sidebar-label-in {
+  animation: sidebar-label-in 0.25s var(--ease-out-editorial) both;
+  will-change: transform, opacity;
+}
+
+.animate-sidebar-item-in {
+  animation: sidebar-item-in 0.25s var(--ease-out-editorial) both;
+  will-change: transform, opacity;
+}
+
+.animate-tab-panel-in {
+  animation: tab-panel-in 0.3s var(--ease-out-editorial) both;
+  will-change: transform, opacity;
+}
+
+.animate-tab-panel-out {
+  animation: tab-panel-out 0.15s var(--ease-state) forwards;
+  will-change: transform, opacity;
+}
+
+.sidebar-label {
+  transition: opacity 0.2s var(--ease-state), transform 0.2s var(--ease-state);
+  white-space: nowrap;
+}
+
+.sidebar-label.is-collapsed {
+  opacity: 0;
+  transform: translateX(-8px);
+  pointer-events: none;
+}
+
+.admin-active-indicator {
+  position: absolute;
+  left: 0.5rem;
+  width: 4px;
+  border-radius: 0 4px 4px 0;
+  background: hsl(var(--primary));
+  transition: transform 0.25s var(--ease-state), opacity 0.2s var(--ease-state);
+  will-change: transform;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-sidebar-label-in,
+  .animate-sidebar-item-in,
+  .animate-tab-panel-in,
+  .animate-tab-panel-out,
+  .sidebar-label,
+  .admin-active-indicator {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+    transform: none !important;
+  }
+}

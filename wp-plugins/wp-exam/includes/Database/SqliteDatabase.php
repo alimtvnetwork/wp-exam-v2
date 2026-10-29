@@ -200,6 +200,18 @@ class SqliteDatabase {
             FOREIGN KEY (form_id) REFERENCES forms(id) ON DELETE CASCADE
         );
 
+        CREATE TABLE IF NOT EXISTS form_options (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            field_id INTEGER NOT NULL,
+            option_key TEXT NOT NULL,
+            option_label TEXT NOT NULL,
+            display_order INTEGER NOT NULL DEFAULT 0,
+            is_correct INTEGER NOT NULL DEFAULT 0,
+            branch_target_section_id INTEGER DEFAULT NULL,
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (field_id) REFERENCES form_fields(id) ON DELETE CASCADE
+        );
+
         CREATE TABLE IF NOT EXISTS form_submissions (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             form_id INTEGER NOT NULL,
@@ -286,9 +298,137 @@ class SqliteDatabase {
             status TEXT NOT NULL DEFAULT 'open',
             created_at TEXT DEFAULT (datetime('now'))
         );
+
+        CREATE TABLE IF NOT EXISTS applicant_stages (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            stage_key TEXT NOT NULL UNIQUE,
+            stage_name TEXT NOT NULL,
+            display_order INTEGER NOT NULL DEFAULT 0,
+            color_code TEXT DEFAULT '#3b82f6',
+            created_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS applicants (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            candidate_name TEXT NOT NULL,
+            candidate_email TEXT NOT NULL,
+            phone TEXT DEFAULT '',
+            job_role TEXT DEFAULT '',
+            portal_token TEXT DEFAULT '',
+            current_stage_key TEXT NOT NULL DEFAULT 'applied',
+            form_id INTEGER DEFAULT 0,
+            submission_id INTEGER DEFAULT 0,
+            score REAL DEFAULT 0,
+            rating INTEGER DEFAULT 0,
+            notes TEXT DEFAULT '',
+            assigned_tasks_json TEXT DEFAULT '[]',
+            tab_switch_count INTEGER DEFAULT 0,
+            integrity_status TEXT DEFAULT 'clean',
+            created_at TEXT DEFAULT (datetime('now')),
+            updated_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS applicant_transitions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            applicant_id INTEGER NOT NULL,
+            from_stage_key TEXT,
+            to_stage_key TEXT NOT NULL,
+            moved_by_user_id INTEGER DEFAULT 0,
+            notes TEXT DEFAULT '',
+            created_at TEXT DEFAULT (datetime('now')),
+            FOREIGN KEY (applicant_id) REFERENCES applicants(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS portal_step_completions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            token TEXT NOT NULL,
+            step_id TEXT NOT NULL,
+            step_data_json TEXT DEFAULT '{}',
+            completed_at TEXT DEFAULT (datetime('now')),
+            UNIQUE(token, step_id)
+        );
+
+        CREATE TABLE IF NOT EXISTS form_drafts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            form_id INTEGER DEFAULT 0,
+            form_slug TEXT DEFAULT '',
+            applicant_email TEXT NOT NULL,
+            resume_token TEXT NOT NULL UNIQUE,
+            current_step INTEGER NOT NULL DEFAULT 1,
+            payload_json TEXT NOT NULL DEFAULT '{}',
+            created_at TEXT DEFAULT (datetime('now')),
+            expires_at TEXT DEFAULT (datetime('now', '+30 days'))
+        );
+
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            email TEXT NOT NULL UNIQUE,
+            username TEXT UNIQUE,
+            password_hash TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'candidate',
+            phone TEXT DEFAULT '',
+            is_active INTEGER NOT NULL DEFAULT 1,
+            created_at TEXT DEFAULT (datetime('now')),
+            updated_at TEXT DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS user_tokens (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id INTEGER NOT NULL,
+            token TEXT NOT NULL UNIQUE,
+            role TEXT NOT NULL DEFAULT 'candidate',
+            created_at TEXT DEFAULT (datetime('now')),
+            expires_at TEXT DEFAULT (datetime('now', '+7 days')),
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS system_settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL,
+            updated_at TEXT DEFAULT (datetime('now'))
+        );
         ";
 
         $this->pdo->exec($schema);
+
+        try {
+            $stageCount = (int) $this->pdo->query('SELECT COUNT(*) FROM applicant_stages')->fetchColumn();
+            $hasNoStages = ($stageCount === 0);
+
+            if ($hasNoStages) {
+                $defaultStages = [
+                    ['applied', 'Applied', 0, '#64748b'],
+                    ['screening', 'Screening', 1, '#0284c7'],
+                    ['exam', 'Assessment / Exam', 2, '#8b5cf6'],
+                    ['interview', 'Interview', 3, '#f59e0b'],
+                    ['offered', 'Offer Extended', 4, '#10b981'],
+                    ['hired', 'Hired', 5, '#059669'],
+                    ['rejected', 'Archived / Rejected', 6, '#ef4444'],
+                ];
+
+                $insertStageStmt = $this->pdo->prepare('INSERT INTO applicant_stages (stage_key, stage_name, display_order, color_code) VALUES (?, ?, ?, ?)');
+
+                foreach ($defaultStages as $stage) {
+                    $insertStageStmt->execute($stage);
+                }
+            }
+        } catch (Throwable) {
+            // Table may already be populated or in migration
+        }
+
+        try {
+            $userCount = (int) $this->pdo->query("SELECT COUNT(*) FROM users WHERE role = 'admin'")->fetchColumn();
+            $hasNoAdmin = ($userCount === 0);
+
+            if ($hasNoAdmin) {
+                $adminPwHash = password_hash('Admin@1234', PASSWORD_BCRYPT);
+                $insertUserStmt = $this->pdo->prepare('INSERT INTO users (id, name, email, username, password_hash, role) VALUES (?, ?, ?, ?, ?, ?)');
+                $insertUserStmt->execute([1, 'System Administrator', 'admin@example.com', 'admin', $adminPwHash, 'admin']);
+            }
+        } catch (Throwable) {
+            // Already seeded or migration in progress
+        }
 
         try {
             $this->pdo->exec("ALTER TABLE form_submissions ADD COLUMN client_ip TEXT DEFAULT ''");
@@ -306,6 +446,106 @@ class SqliteDatabase {
             $this->pdo->exec("ALTER TABLE projects ADD COLUMN parent_project_id TEXT DEFAULT ''");
         } catch (Throwable) {
             // Column may already exist
+        }
+
+        try {
+            $this->pdo->exec("ALTER TABLE applicants ADD COLUMN assigned_tasks_json TEXT DEFAULT '[]'");
+        } catch (Throwable) {
+            // Column may already exist
+        }
+
+        try {
+            $this->pdo->exec("ALTER TABLE applicants ADD COLUMN job_role TEXT DEFAULT ''");
+        } catch (Throwable) {
+            // Column may already exist
+        }
+
+        try {
+            $this->pdo->exec("ALTER TABLE applicants ADD COLUMN tab_switch_count INTEGER DEFAULT 0");
+        } catch (Throwable) {
+            // Column may already exist
+        }
+
+        try {
+            $this->pdo->exec("ALTER TABLE applicants ADD COLUMN integrity_status TEXT DEFAULT 'clean'");
+        } catch (Throwable) {
+            // Column may already exist
+        }
+
+        try {
+            $this->pdo->exec("ALTER TABLE applicants ADD COLUMN portal_token TEXT DEFAULT ''");
+        } catch (Throwable) {
+            // Column may already exist
+        }
+
+        try {
+            $this->pdo->exec("CREATE UNIQUE INDEX IF NOT EXISTS idx_applicants_portal_token ON applicants(portal_token) WHERE portal_token != ''");
+        } catch (Throwable) {
+            // Index creation handled gracefully
+        }
+
+        try {
+            $untokened = $this->pdo->query("SELECT id FROM applicants WHERE portal_token IS NULL OR portal_token = ''")->fetchAll(\PDO::FETCH_COLUMN);
+            $hasUntokened = !empty($untokened);
+
+            if ($hasUntokened) {
+                $stmt = $this->pdo->prepare("UPDATE applicants SET portal_token = ? WHERE id = ?");
+                foreach ($untokened as $appId) {
+                    $token = 'cpt_' . bin2hex(random_bytes(16));
+                    $stmt->execute([$token, $appId]);
+                }
+            }
+        } catch (Throwable) {
+            // Backfill migration handled gracefully
+        }
+
+        try {
+            $settingCount = (int) $this->pdo->query("SELECT COUNT(*) FROM system_settings WHERE key = 'assessment_gating_mode'")->fetchColumn();
+            $hasNoGatingSetting = ($settingCount === 0);
+
+            if ($hasNoGatingSetting) {
+                $this->pdo->exec("INSERT OR IGNORE INTO system_settings (key, value) VALUES ('assessment_gating_mode', 'admin_approval')");
+            }
+        } catch (Throwable) {
+            // Already initialized or migration pending
+        }
+    }
+
+    public function getSetting(string $key, string $default = ''): string {
+        if ($this->pdo === null) {
+            $this->init();
+        }
+
+        if ($this->pdo === null) {
+            return $default;
+        }
+
+        try {
+            $stmt = $this->pdo->prepare('SELECT value FROM system_settings WHERE key = ? LIMIT 1');
+            $stmt->execute([$key]);
+            $val = $stmt->fetchColumn();
+
+            return ($val !== false && $val !== null) ? (string) $val : $default;
+        } catch (Throwable) {
+            return $default;
+        }
+    }
+
+    public function setSetting(string $key, string $value): bool {
+        if ($this->pdo === null) {
+            $this->init();
+        }
+
+        if ($this->pdo === null) {
+            return false;
+        }
+
+        try {
+            $stmt = $this->pdo->prepare('INSERT OR REPLACE INTO system_settings (key, value, updated_at) VALUES (?, ?, datetime(\'now\'))');
+
+            return $stmt->execute([$key, $value]);
+        } catch (Throwable) {
+            return false;
         }
     }
 
@@ -337,6 +577,30 @@ class SqliteDatabase {
             FileLogger::getInstance()->error('SQLite execute error: ' . $e->getMessage(), ['sql' => $sql]);
             return 0;
         }
+    }
+
+    public function queryWrapped(string $sql, array $params = []): QueryResult {
+        if ($this->pdo === null) {
+            return QueryResult::failure('PDO connection not initialized', $sql);
+        }
+
+        return SqlQueryWrapper::execute($this->pdo, function (PDO $db) use ($sql, $params) {
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->fetchAll();
+        }, $sql);
+    }
+
+    public function executeWrapped(string $sql, array $params = []): QueryResult {
+        if ($this->pdo === null) {
+            return QueryResult::failure('PDO connection not initialized', $sql);
+        }
+
+        return SqlQueryWrapper::execute($this->pdo, function (PDO $db) use ($sql, $params) {
+            $stmt = $db->prepare($sql);
+            $stmt->execute($params);
+            return $stmt->rowCount();
+        }, $sql);
     }
 
     public function getTableCounts(): array {

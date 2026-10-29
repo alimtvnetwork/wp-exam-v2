@@ -63,4 +63,17 @@ describe('WordPress Admin Navigation & Layout Standards', () => {
     // Assert balanced right-column downward offset (pt-2 lg:pt-6 xl:pt-8)
     expect(formRunnerSource).toContain('pt-2 lg:pt-6 xl:pt-8');
   });
+
+  it('should include roles tab in AdminTab and provide dedicated job-roles-manager page', async () => {
+    const fs = await import('fs');
+    const path = await import('path');
+
+    const jobRolesManagerPath = path.resolve(__dirname, '../components/admin/job-roles-manager.tsx');
+    expect(fs.existsSync(jobRolesManagerPath)).toBe(true);
+
+    const source = fs.readFileSync(jobRolesManagerPath, 'utf-8');
+    expect(source).toContain('Job Roles & Technical Assessments');
+    expect(source).toContain('Assessment Question Editor');
+    expect(source).toContain('Job Openings');
+  });
 });

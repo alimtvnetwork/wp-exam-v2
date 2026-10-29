@@ -67,7 +67,7 @@ class SplitDbManager
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
         ]);
 
-        $pdo->exec('PRAGMA journal_mode = WAL;');
+        $pdo->exec('PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 5000; PRAGMA synchronous = NORMAL;');
         $pdo->exec('PRAGMA foreign_keys = ON;');
 
         $this->connections[$key] = $pdo;
@@ -128,6 +128,74 @@ class SplitDbManager
             PayloadJson TEXT NOT NULL,
             ExpiresAt TEXT NOT NULL
         );
+
+        CREATE TABLE IF NOT EXISTS FormOption (
+            FormOptionId INTEGER PRIMARY KEY AUTOINCREMENT,
+            FormFieldId INTEGER NOT NULL,
+            OptionKey TEXT NOT NULL,
+            OptionLabel TEXT NOT NULL,
+            DisplayOrder INTEGER NOT NULL DEFAULT 0,
+            IsCorrect INTEGER NOT NULL DEFAULT 0,
+            BranchTargetSectionId INTEGER DEFAULT NULL,
+            FOREIGN KEY (FormFieldId) REFERENCES FormField(FormFieldId) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS FormSubmissionValue (
+            FormSubmissionValueId INTEGER PRIMARY KEY AUTOINCREMENT,
+            FormSubmissionId INTEGER NOT NULL,
+            FormFieldId INTEGER NOT NULL,
+            StringValue TEXT,
+            NumericValue REAL,
+            BooleanValue INTEGER,
+            JsonValue TEXT,
+            CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (FormSubmissionId) REFERENCES FormSubmission(FormSubmissionId) ON DELETE CASCADE,
+            FOREIGN KEY (FormFieldId) REFERENCES FormField(FormFieldId) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS ApplicantStage (
+            ApplicantStageId INTEGER PRIMARY KEY AUTOINCREMENT,
+            StageKey TEXT NOT NULL UNIQUE,
+            StageName TEXT NOT NULL,
+            DisplayOrder INTEGER NOT NULL DEFAULT 0,
+            ColorCode TEXT DEFAULT '#3b82f6',
+            CreatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS Applicant (
+            ApplicantId INTEGER PRIMARY KEY AUTOINCREMENT,
+            CandidateName TEXT NOT NULL,
+            CandidateEmail TEXT NOT NULL,
+            Phone TEXT DEFAULT '',
+            CurrentStageKey TEXT NOT NULL DEFAULT 'applied',
+            FormId INTEGER DEFAULT 0,
+            FormSubmissionId INTEGER DEFAULT 0,
+            Score REAL DEFAULT 0,
+            Rating INTEGER DEFAULT 0,
+            Notes TEXT DEFAULT '',
+            CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+            UpdatedAt TEXT NOT NULL DEFAULT (datetime('now'))
+        );
+
+        CREATE TABLE IF NOT EXISTS ApplicantTransition (
+            ApplicantTransitionId INTEGER PRIMARY KEY AUTOINCREMENT,
+            ApplicantId INTEGER NOT NULL,
+            FromStageKey TEXT,
+            ToStageKey TEXT NOT NULL,
+            MovedByUserId INTEGER DEFAULT 0,
+            Notes TEXT DEFAULT '',
+            CreatedAt TEXT NOT NULL DEFAULT (datetime('now')),
+            FOREIGN KEY (ApplicantId) REFERENCES Applicant(ApplicantId) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS PortalStepCompletion (
+            PortalStepCompletionId INTEGER PRIMARY KEY AUTOINCREMENT,
+            Token TEXT NOT NULL,
+            StepId TEXT NOT NULL,
+            StepDataJson TEXT DEFAULT '{}',
+            CompletedAt TEXT NOT NULL DEFAULT (datetime('now')),
+            UNIQUE(Token, StepId)
+        );
         ";
 
         return QueryWrapper::execute(
@@ -139,4 +207,3 @@ class SplitDbManager
         );
     }
 }
-

@@ -50,6 +50,14 @@ class JsonImportExportRestController extends WP_REST_Controller {
                 'permission_callback' => [$this, 'checkAdminPermission'],
             ],
         ]);
+
+        register_rest_route($this->namespace, '/admin/sqlite/vacuum', [
+            [
+                'methods'             => WP_REST_Server::CREATABLE,
+                'callback'            => [$this, 'vacuumDatabase'],
+                'permission_callback' => [$this, 'checkAdminPermission'],
+            ],
+        ]);
     }
 
     public function checkAdminPermission(): bool {
@@ -93,7 +101,11 @@ class JsonImportExportRestController extends WP_REST_Controller {
                 'settings_json' => json_encode($formData['settings'] ?? []),
             ]);
 
-            if ($newFormId > 0 && !empty($formData['fields']) && is_array($formData['fields'])) {
+            $hasNewFormId = ($newFormId > 0);
+            $hasFields = (!empty($formData['fields']) && is_array($formData['fields']));
+            $canInsertFields = ($hasNewFormId && $hasFields);
+
+            if ($canInsertFields) {
                 foreach ($formData['fields'] as $index => $field) {
                     Orm::forTable('form_fields')->insert([
                         'form_id'           => $newFormId,
@@ -121,5 +133,16 @@ class JsonImportExportRestController extends WP_REST_Controller {
         $status = SqliteDatabase::getInstance()->getTableCounts();
         $builder = EnvelopeBuilder::createSuccess($status, HttpStatusType::Ok->value, ResponseMessageType::Ok->value);
         return new WP_REST_Response($builder->build(), HttpStatusType::Ok->value);
+    }
+
+    public function vacuumDatabase(WP_REST_Request $request): WP_REST_Response {
+        $result = SqliteDatabase::getInstance()->vacuum();
+        $isSuccess = (bool) ($result['is_success'] ?? false);
+        $status = $isSuccess ? HttpStatusType::Ok->value : HttpStatusType::InternalServerError->value;
+        $builder = $isSuccess
+            ? EnvelopeBuilder::createSuccess($result, $status, ResponseMessageType::Ok->value)
+            : EnvelopeBuilder::createError($result['message'] ?? 'Vacuum failed', $status);
+
+        return new WP_REST_Response($builder->build(), $status);
     }
 }

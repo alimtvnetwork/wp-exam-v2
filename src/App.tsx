@@ -10,7 +10,9 @@ import VisualNodeCanvas from "./components/forms/visual-node-canvas.tsx";
 import LandingPage from "./components/public/LandingPage.tsx";
 import { FormRunner } from "@/components/runner/FormRunner.tsx";
 import { CandidateChecklist } from "@/components/checklist/candidate-checklist.tsx";
+import { CandidatePortalRunner } from "@/components/portal/candidate-portal-runner.tsx";
 import { ThemeProvider } from "@/lib/theme-context";
+import { AuthProvider } from "@/lib/auth-context";
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
 
@@ -75,45 +77,57 @@ const App = () => (
   <ErrorBoundary>
     <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/admin" element={<Index />} />
-            <Route path="/admin/:tab" element={<Index />} />
-            <Route path="/admin/form/:slug" element={<Index />} />
-            <Route
-              path="/apply"
-              element={
-                <div className="min-h-screen bg-background text-foreground transition-colors duration-300 py-8 px-4 sm:px-6 flex items-center justify-center">
-                  <WizardRunner />
-                </div>
-              }
-            />
-            <Route
-              path="/forms/wizard"
-              element={
-                <div className="min-h-screen bg-background text-foreground transition-colors duration-300 py-8 px-4 sm:px-6 flex items-center justify-center">
-                  <WizardRunner />
-                </div>
-              }
-            />
-            <Route path="/forms/canvas" element={<VisualNodeCanvas />} />
-            <Route path="/forms/nodes" element={<VisualNodeCanvas />} />
-            <Route path="/f/:slug" element={<FormRunner />} />
-            <Route path="/f/:category/:slug" element={<FormRunner />} />
-            <Route path="/preview/:slug" element={<FormRunner isPreviewRoute />} />
-            <Route path="/preview" element={<FormRunner isPreviewRoute />} />
-            <Route path="/runner" element={<FormRunner />} />
-            <Route path="/wp-exam-runner" element={<LegacyRunnerRedirect />} />
-            <Route path="/checklist/:token" element={<CandidateChecklist />} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <AuthProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/admin" element={<Index />} />
+              <Route path="/admin/:tab" element={<Index />} />
+              <Route path="/admin/form/:slug" element={<Index />} />
+              <Route
+                path="/apply"
+                element={
+                  <div className="min-h-screen bg-background text-foreground transition-colors duration-300 py-8 px-4 sm:px-6 flex items-center justify-center">
+                    <WizardRunner />
+                  </div>
+                }
+              />
+              <Route
+                path="/apply/resume/:token"
+                element={
+                  <div className="min-h-screen bg-background text-foreground transition-colors duration-300 py-8 px-4 sm:px-6 flex items-center justify-center">
+                    <WizardRunner />
+                  </div>
+                }
+              />
+              <Route
+                path="/forms/wizard"
+                element={
+                  <div className="min-h-screen bg-background text-foreground transition-colors duration-300 py-8 px-4 sm:px-6 flex items-center justify-center">
+                    <WizardRunner />
+                  </div>
+                }
+              />
+              <Route path="/forms/canvas" element={<VisualNodeCanvas />} />
+              <Route path="/forms/nodes" element={<VisualNodeCanvas />} />
+              <Route path="/f/:slug" element={<FormRunner />} />
+              <Route path="/f/:category/:slug" element={<FormRunner />} />
+              <Route path="/preview/:slug" element={<FormRunner isPreviewRoute />} />
+              <Route path="/preview" element={<FormRunner isPreviewRoute />} />
+              <Route path="/runner" element={<FormRunner />} />
+              <Route path="/wp-exam-runner" element={<LegacyRunnerRedirect />} />
+              <Route path="/checklist/:token" element={<CandidateChecklist />} />
+              <Route path="/portal/:token" element={<CandidatePortalRunner />} />
+              <Route path="/portal" element={<CandidatePortalRunner />} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </AuthProvider>
     </ThemeProvider>
   </QueryClientProvider>
   </ErrorBoundary>

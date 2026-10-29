@@ -89,6 +89,29 @@ switch ($command) {
         echo $json . "\n";
         exit(0);
 
+    case 'serve':
+        $host = $argv[2] ?? '127.0.0.1:8080';
+        echo "\n\033[1;32m  STARTING LARAVEL DEVELOPMENT SERVER\033[0m\n";
+        echo "  Server running on [http://{$host}]\n";
+        echo "  Press Ctrl+C to stop the server\n\n";
+        passthru("php -S {$host} router.php");
+        exit(0);
+
+    case 'migrate':
+        echo "\n\033[1;32m  RUNNING LARAVEL MIGRATIONS\033[0m\n";
+        echo "  " . str_repeat('─', 60) . "\n";
+        require_once __DIR__ . '/includes/Database/SqliteDatabase.php';
+        $db = \WpExam\Database\SqliteDatabase::getInstance();
+        $hasInit = $db->init();
+
+        if ($hasInit) {
+            echo "  ✓ Database migrated successfully: " . $db->getDbPath() . "\n\n";
+        } else {
+            echo "  ⚠ SQLite driver not loaded or migration in fallback mode\n\n";
+        }
+
+        exit(0);
+
     case 'forms:list':
         echo "\n\033[1;32m  Available Form Schemas\033[0m\n";
         echo "  - job-application (Intern Programmer Application - 4-step DAG wizard)\n";
@@ -102,6 +125,8 @@ switch ($command) {
         echo "\033[1;33mUsage:\033[0m\n";
         echo "  php artisan [command] [options]\n\n";
         echo "\033[1;33mAvailable commands:\033[0m\n";
+        echo "  \033[1;32mserve [host:port]\033[0m      Start the standalone Laravel development API server\n";
+        echo "  \033[1;32mmigrate\033[0m               Run database migrations and schema setup\n";
         echo "  \033[1;32mtest\033[0m                  Run the full PHPUnit and Feature test suite\n";
         echo "  \033[1;32mroute:list\033[0m            List all registered REST API routes\n";
         echo "  \033[1;32mforms:list\033[0m            List active form schemas and wizards\n";

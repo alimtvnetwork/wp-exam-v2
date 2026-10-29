@@ -1,0 +1,19 @@
+{
+  "name": "wp-exam-v2",
+  "version": "0.4.17",
+  "frontend": {
+    "port": 5174,
+    "command": "bun run dev -- --host 127.0.0.1 --port {fePort}",
+    "fallbackCommand": "npm run dev -- --host 127.0.0.1 --port {fePort}",
+    "healthUrl": "http://127.0.0.1:{fePort}"
+  },
+  "backend": {
+    "port": 8080,
+    "command": "php -S 127.0.0.1:{bePort} router.php",
+    "healthUrl": "http://127.0.0.1:{bePort}/api/health"
+  },
+  "prerequisites": {
+    "node": ">=18.0.0",
+    "php": ">=8.2.0"
+  }
+}

@@ -5,6 +5,7 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from '@/lib/theme-context';
+import { AuthProvider } from '@/lib/auth-context';
 
 import LandingPage from '@/components/public/LandingPage';
 import Index from '@/pages/Index';
@@ -35,7 +36,8 @@ const renderRoute = (initialPath: string) => {
   return render(
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
           <MemoryRouter initialEntries={[initialPath]}>
             <Routes>
               <Route path="/" element={<LandingPage />} />
@@ -53,7 +55,8 @@ const renderRoute = (initialPath: string) => {
               <Route path="/runner" element={<FormRunner />} />
             </Routes>
           </MemoryRouter>
-        </TooltipProvider>
+          </TooltipProvider>
+        </AuthProvider>
       </ThemeProvider>
     </QueryClientProvider>
   );

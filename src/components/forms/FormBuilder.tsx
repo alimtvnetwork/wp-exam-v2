@@ -50,6 +50,8 @@ import { BranchingFlowModal } from './branching-flow-modal';
 import { SlugManagementModal } from './slug-management-modal';
 import { NotificationTriggerModal } from './notification-trigger-modal';
 import { CentralQuizConfigModal } from './central-quiz-config-modal';
+import { QuizLibraryModal } from './quiz-library-modal';
+import { saveCustomQuiz } from '@/quiz/store/quiz-registry';
 import { SortableFieldCard } from './sortable-field-card';
 import { FieldPalette } from './field-palette';
 import { toast } from 'sonner';
@@ -64,6 +66,7 @@ import {
   Layers,
   Plus,
   PlusCircle,
+  BookOpen,
   HelpCircle,
   ListOrdered,
   Shuffle,
@@ -136,10 +139,13 @@ export const FormBuilder: React.FC = () => {
     clearTrash,
     setFields,
     saveForm,
+    resetForm,
+    loadForm,
   } = useQuizStore();
 
   const { theme: currentTheme, setTheme } = useTheme();
 
+  const [isQuizLibraryOpen, setIsQuizLibraryOpen] = useState(false);
   const [isJsonModalOpen, setIsJsonModalOpen] = useState(false);
   const [isGoogleModalOpen, setIsGoogleModalOpen] = useState(false);
   const [isFlowModalOpen, setIsFlowModalOpen] = useState(false);
@@ -508,6 +514,54 @@ export const FormBuilder: React.FC = () => {
       const message = err instanceof Error ? err.message : String(err);
       toast.error(`Saved locally (API simulated: ${message})`);
     }
+
+    try {
+      saveCustomQuiz(
+        {
+          title,
+          description,
+          formType,
+          formAccess,
+          isSequential,
+          isPublished: true,
+          settings,
+          fields,
+        },
+        activeSlug
+      );
+    } catch {
+      // Local storage fallback
+    }
+  };
+
+  const handleCreateBlankQuiz = () => {
+    if (fields.length > 0) {
+      const isConfirmed = window.confirm(
+        'Start a new blank quiz? Any unsaved edits on the current quiz will be cleared.'
+      );
+      if (!isConfirmed) {
+        return;
+      }
+    }
+
+    const newSlug = `quiz-${Date.now().toString(36)}`;
+    resetForm('New Assessment Quiz', newSlug, 'quiz');
+    saveCustomQuiz(
+      {
+        title: 'New Assessment Quiz',
+        formType: 'quiz',
+        formAccess: 'public',
+        isSequential: false,
+        isPublished: true,
+        settings: {
+          passingScore: 70,
+          timeLimitSeconds: 600,
+        },
+        fields: [],
+      },
+      newSlug
+    );
+    toast.success('Started new blank assessment quiz');
   };
 
   const activeSlug = slug || 'custom-form';
@@ -569,14 +623,24 @@ export const FormBuilder: React.FC = () => {
             type="button"
             variant="ghost"
             size="icon"
-            onClick={() => window.history.back()}
+            onClick={() => {
+              if (window.history.length > 1) {
+                window.history.back();
+              } else {
+                window.location.href = '/admin';
+              }
+            }}
             className="h-8 w-8 rounded-lg bg-card/60 text-foreground hover:bg-accent hover:text-accent-foreground transition-all shrink-0 cursor-pointer"
             title="Back to Admin Dashboard"
           >
             <ArrowLeft className="w-4 h-4 text-foreground" />
           </Button>
 
-          <div className="flex items-center gap-2 group/brand cursor-pointer hover:opacity-90 transition-opacity">
+          <div
+            onClick={() => setIsQuizLibraryOpen(true)}
+            className="flex items-center gap-2 group/brand cursor-pointer hover:opacity-90 transition-opacity"
+            title="Click to open Quiz Library & view all assessments"
+          >
             <img
               src={onboardingQuizLogo}
               alt="Onboarding Quiz"
@@ -784,6 +848,61 @@ export const FormBuilder: React.FC = () => {
                 {(settings.showSlideNumbers ?? true) && (
                   <CheckCircle2 className="w-3.5 h-3.5 text-primary ml-auto" />
                 )}
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+
+          {/* Quiz Library Button */}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => setIsQuizLibraryOpen(true)}
+            className="h-8 gap-1.5 px-2.5 rounded-lg border-border hover:bg-accent text-xs font-semibold shrink-0 cursor-pointer"
+            title="Browse all quizzes, manage assessments, or switch forms"
+          >
+            <BookOpen className="w-3.5 h-3.5 text-primary" />
+            <span className="hidden sm:inline">Quiz Library</span>
+            <span className="sm:hidden">Library</span>
+          </Button>
+
+          {/* New Quiz Dropdown / Action */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                type="button"
+                size="sm"
+                className="h-8 gap-1 px-2.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shrink-0 cursor-pointer shadow-xs"
+                title="Create a new quiz or start from a template"
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">New Quiz</span>
+                <span className="sm:hidden">New</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52 bg-popover border border-border shadow-xl p-1 text-xs">
+              <DropdownMenuLabel className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-1">
+                Create Assessment
+              </DropdownMenuLabel>
+              <DropdownMenuItem
+                onClick={handleCreateBlankQuiz}
+                className="gap-2 cursor-pointer py-1.5"
+              >
+                <Plus className="w-3.5 h-3.5 text-emerald-500" />
+                <div>
+                  <div className="font-semibold text-foreground">Blank Quiz</div>
+                  <div className="text-[10px] text-muted-foreground">Start fresh with empty canvas</div>
+                </div>
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                onClick={() => setIsQuizLibraryOpen(true)}
+                className="gap-2 cursor-pointer py-1.5"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-primary" />
+                <div>
+                  <div className="font-semibold text-foreground">From Template…</div>
+                  <div className="text-[10px] text-muted-foreground">Choose from pre-built quizzes</div>
+                </div>
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -1377,8 +1496,8 @@ export const FormBuilder: React.FC = () => {
             </Button>
           </div>
         ) : (
-        <div className="lg:col-span-4 sticky top-6">
-          <div className="flex justify-end -mb-1">
+        <div className="lg:col-span-4 sticky top-4 max-h-[calc(100vh-5rem)] flex flex-col">
+          <div className="flex justify-end -mb-1 shrink-0 pb-1">
             <Button
               type="button"
               variant="ghost"
@@ -1391,10 +1510,10 @@ export const FormBuilder: React.FC = () => {
               <span>Hide Dock</span>
             </Button>
           </div>
-          <Card className="border border-border bg-card shadow-md rounded-xl overflow-hidden">
-            <Tabs value={inspectorTab} onValueChange={setInspectorTab} className="w-full">
+          <Card className="border border-border bg-card shadow-md rounded-xl overflow-hidden flex flex-col flex-1 min-h-0">
+            <Tabs value={inspectorTab} onValueChange={setInspectorTab} className="w-full flex flex-col flex-1 min-h-0">
               {/* Sleek Segmented Dock Tabs Header (Larger, more tactile) */}
-              <div className="p-2 border-b border-border/80 bg-muted/20">
+              <div className="p-2 border-b border-border/80 bg-muted/20 shrink-0">
                 <TabsList className="grid grid-cols-4 h-11 p-1 bg-muted/60 rounded-xl gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -1452,7 +1571,7 @@ export const FormBuilder: React.FC = () => {
               </div>
 
               {/* Tab 1: Component Palette */}
-              <TabsContent value="palette" className="p-3 m-0 focus-visible:outline-none">
+              <TabsContent value="palette" className="p-3 m-0 focus-visible:outline-none flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 <FieldPalette
                   onAddField={handleQuickAdd}
                   activeCount={fields.length}
@@ -1467,7 +1586,7 @@ export const FormBuilder: React.FC = () => {
               </TabsContent>
 
               {/* Tab 2: Questions Outline */}
-              <TabsContent value="outline" className="p-3 m-0 space-y-3 focus-visible:outline-none">
+              <TabsContent value="outline" className="p-3 m-0 space-y-3 focus-visible:outline-none flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 <div className="space-y-2">
                   {/* Outline Search Filter */}
                   <div className="relative">
@@ -1595,7 +1714,7 @@ export const FormBuilder: React.FC = () => {
               </TabsContent>
 
               {/* Tab 3: Embedded Design Validation Audit */}
-              <TabsContent value="audit" className="p-3 m-0 focus-visible:outline-none">
+              <TabsContent value="audit" className="p-3 m-0 focus-visible:outline-none flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 <DesignValidationSidebarView
                   report={designReport}
                   fields={fields}
@@ -1606,7 +1725,7 @@ export const FormBuilder: React.FC = () => {
               </TabsContent>
 
               {/* Tab 4: Form Settings / Config */}
-              <TabsContent value="settings" className="p-3 m-0 space-y-3 focus-visible:outline-none text-sm">
+              <TabsContent value="settings" className="p-3 m-0 space-y-3 focus-visible:outline-none text-sm flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 {/* 1. Access & Candidate Permissions */}
                 <div className="p-3 rounded-xl border border-border/70 bg-card/60 space-y-2">
                   <div className="flex items-center gap-1.5 text-foreground font-semibold">
@@ -2002,6 +2121,12 @@ export const FormBuilder: React.FC = () => {
       <CentralQuizConfigModal
         isOpen={isCentralConfigOpen}
         onClose={() => setIsCentralConfigOpen(false)}
+      />
+
+      {/* Quiz & Form Library Manager Modal */}
+      <QuizLibraryModal
+        isOpen={isQuizLibraryOpen}
+        onClose={() => setIsQuizLibraryOpen(false)}
       />
     </div>
   );

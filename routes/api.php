@@ -4,6 +4,11 @@ declare(strict_types=1);
 
 use App\Routing\Route;
 use App\Http\Controllers\Forms\FormController;
+use App\Http\Controllers\Applicants\ApplicantController;
+use App\Http\Controllers\Portal\PortalController;
+use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Curriculum\ProjectHierarchyController;
 
 /*
 |--------------------------------------------------------------------------
@@ -26,6 +31,17 @@ Route::get('/api/health', function() {
     ];
 });
 
+// Authentication & User Management
+Route::get('/api/v1/auth/admin-status', [AuthController::class, 'adminStatus']);
+Route::post('/api/v1/auth/login', [AuthController::class, 'login']);
+Route::post('/api/v1/auth/register', [AuthController::class, 'register']);
+Route::post('/api/v1/auth/logout', [AuthController::class, 'logout']);
+
+// Admin Management (Default Superadmin manages other admins)
+Route::get('/api/v1/admin/users', [AdminUserController::class, 'index']);
+Route::post('/api/v1/admin/users', [AdminUserController::class, 'store']);
+Route::delete('/api/v1/admin/users/{id}', [AdminUserController::class, 'destroy']);
+
 // Form Schema & Rendering
 Route::get('/api/v1/forms/{slug}', [FormController::class, 'show']);
 
@@ -41,9 +57,44 @@ Route::get('/api/v1/forms/countries/cache', [FormController::class, 'countriesCa
 // Draft Save & Resume Mode
 Route::post('/api/v1/forms/{slug}/draft', [FormController::class, 'saveDraft']);
 Route::get('/api/v1/forms/draft/{token}', [FormController::class, 'resumeDraft']);
+Route::post('/api/v1/apply/draft', [FormController::class, 'saveDraft']);
+Route::get('/api/v1/apply/resume/{token}', [FormController::class, 'resumeDraft']);
 
 // Form Submission with Server-Side Conditional Engine
 Route::post('/api/v1/forms/{slug}/submit', [FormController::class, 'submit']);
+
+// Applicant Recruitment Pipeline & Kanban
+Route::get('/api/v1/applicants', [ApplicantController::class, 'index']);
+Route::get('/api/v1/applicants/stages', [ApplicantController::class, 'stages']);
+Route::get('/api/v1/applicants/settings', [ApplicantController::class, 'getSettings']);
+Route::post('/api/v1/applicants/settings', [ApplicantController::class, 'updateSettings']);
+Route::get('/api/v1/pipeline/settings', [ApplicantController::class, 'getSettings']);
+Route::post('/api/v1/pipeline/settings', [ApplicantController::class, 'updateSettings']);
+Route::get('/api/v1/applicants/roles', [ApplicantController::class, 'getRoles']);
+Route::post('/api/v1/applicants/roles', [ApplicantController::class, 'saveRoles']);
+Route::get('/api/v1/roles', [ApplicantController::class, 'getRoles']);
+Route::post('/api/v1/roles', [ApplicantController::class, 'saveRoles']);
+Route::post('/api/v1/applicants', [ApplicantController::class, 'store']);
+Route::post('/api/v1/applicants/stage-transition', [ApplicantController::class, 'transitionStage']);
+Route::post('/api/v1/applicants/feedback', [ApplicantController::class, 'updateFeedback']);
+
+// Candidate Self-Service Portal & Verification
+Route::get('/api/v1/portal/{token}', [PortalController::class, 'show']);
+Route::post('/api/v1/portal/{token}/complete-step', [PortalController::class, 'completeStep']);
+
+// Hierarchical Curriculum, Projects, and Categories Engine
+Route::get('/api/v1/categories', [ProjectHierarchyController::class, 'getCategories']);
+Route::post('/api/v1/categories', [ProjectHierarchyController::class, 'saveCategory']);
+Route::get('/api/v1/projects', [ProjectHierarchyController::class, 'getProjects']);
+Route::post('/api/v1/projects', [ProjectHierarchyController::class, 'saveProject']);
+Route::get('/api/v1/projects/{id}', [ProjectHierarchyController::class, 'getProject']);
+
+// Candidate Checklist & Invites
+Route::get('/api/v1/checklist/{token}', [ProjectHierarchyController::class, 'getChecklist']);
+
+// Question Bug Reporting & Triage Feedback
+Route::get('/api/v1/reports', [ProjectHierarchyController::class, 'getReports']);
+Route::post('/api/v1/reports', [ProjectHierarchyController::class, 'submitReport']);
 
 // AGM Mailbox Auto-Config & Real-Time Verification
 // Both endpoints are admin-only: they handle mailbox credentials, so an
@@ -99,4 +150,3 @@ Route::post('/api/v1/email/verify-connection', function(array $params, array $bo
         'message' => $result['message'],
     ];
 });
-

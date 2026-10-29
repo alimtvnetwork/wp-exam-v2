@@ -86,6 +86,10 @@ export default {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
       },
+      transitionTimingFunction: {
+        state: "var(--ease-state)",
+        "out-editorial": "var(--ease-out-editorial)",
+      },
       fontFamily: {
         sans: ['"Poppins"', 'ui-sans-serif', 'system-ui', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
         body: ['"Poppins"', 'sans-serif'],

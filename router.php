@@ -16,7 +16,7 @@ if ($isNotRoot) {
 
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, PUT, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-Forwarded-For');
+header('Access-Control-Allow-Headers: Content-Type, Authorization, X-Requested-With, X-Forwarded-For, X-WPExam-Auth-Token');
 
 $isOptionsMethod = (($_SERVER['REQUEST_METHOD'] ?? 'GET') === 'OPTIONS');
 
@@ -54,11 +54,29 @@ if ($hasEmptyBody) {
     }
 }
 
+$hasGet = !empty($_GET);
+
+if ($hasGet) {
+    $body = array_merge($_GET, $body);
+}
+
 $hasGetAllHeaders = function_exists('getallheaders');
 $headers = [];
 
 if ($hasGetAllHeaders) {
     $headers = getallheaders() ?: [];
+}
+
+$hasServerAuth = isset($_SERVER['HTTP_AUTHORIZATION']);
+
+if ($hasServerAuth) {
+    $headers['Authorization'] = $_SERVER['HTTP_AUTHORIZATION'];
+}
+
+$hasServerWpToken = isset($_SERVER['HTTP_X_WPEXAM_AUTH_TOKEN']);
+
+if ($hasServerWpToken) {
+    $headers['X-WPExam-Auth-Token'] = $_SERVER['HTTP_X_WPEXAM_AUTH_TOKEN'];
 }
 
 $result = Route::dispatch($method, $uri, $body, $headers);

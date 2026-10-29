@@ -108,7 +108,9 @@ class SystemBackupRestController extends WP_REST_Controller {
 
         $zip = new ZipArchive();
         $status = $zip->open($zipPath, ZipArchive::CREATE | ZipArchive::OVERWRITE);
-        if ($status !== true) {
+        $isZipOpenFail = is_int($status);
+
+        if ($isZipOpenFail) {
             return new WP_REST_Response(EnvelopeBuilder::createErrorEnvelope('Failed to create ZIP archive: code ' . $status), 500);
         }
 
