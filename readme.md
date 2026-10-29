@@ -126,6 +126,8 @@ curl -fsSL https://raw.githubusercontent.com/alimtvnetwork/wp-exam-v2/main/scrip
 iwr -useb https://raw.githubusercontent.com/alimtvnetwork/wp-exam-v2/main/scripts/install.ps1 | iex
 ```
 
+Flags: `--help`, `--dry-run` (print actions, change nothing), `--skip-build`, `--port <n>` (dev-server port for the next-steps output, default 5174).
+
 ---
 
 ## Specification & Standards Traceability
@@ -135,3 +137,18 @@ All specifications adhere to the repository architecture defined in `02-spec/`:
 - `02-spec/05-split-db-architecture/`: Split SQLite Database Architecture.
 - `02-spec/02-coding-guidelines/`: Strict Boolean conventions and implicit condition evaluation.
 - `version.json`: Canonical repository version manifest.
+
+## What's Next
+
+The project scaffold is ready. The next details to add are:
+
+- Exam / quiz name
+- Core features and question types
+- WordPress integration details
+- Data source for questions and answers
+
+## Memory
+
+- .ai-memory/memory/readme.md
+- .ai-memory/memory/learned/01-recent-session-2026-10-29.md
+- .ai-memory/plans/readme.md

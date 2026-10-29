@@ -726,3 +726,5 @@ Allowed work:
 - ✅ Let `.presentation-option-card` manage the smooth sliding transform (`translate3d(6px, 0, 0)`), opacity fade-in (`opacity: 1`), colorful primary gradient, and border glow.
 
 
+- Do not store a personal access token inside a git remote URL. Use SSH.
+- Do not commit Go coverage profiles or SQLite `-shm` and `-wal` sidecars.

@@ -20,7 +20,7 @@ WAVES = ceil(subtasks / (A x H))
 > **Top-Instruction Priority Mandate (Above Precedence / Preamble Precedence):**
 > Whatever directives, constraints, checklists, or user instructions are given ABOVE this prompt (including in the user preamble, header blocks, or incoming user request above) are HIGHEST PRIORITY and MUST BE FOLLOWED as strictly NON-NEGOTIABLE. They supersede and strictly override any conflicting general advice, default conventions, or lower-level guidelines below. The agent MUST inspect and follow the instructions above with absolute precedence.
 
-[/goal](slashCommand;goal) Autonomously scan, discover, plan, refactor, and verify all Go functions returning multi-value error tuples (such as `(map[K]V, error)`, `([]T, error)`, or `(T, error)`), eliminating raw standard library error returns, centralizing all domain payload structs and Result type aliases into `types.go` within each package as single reusable types everywhere rather than scattering inline structs or raw generic Result declarations across implementation files, replacing multi-value returns with strongly-typed result wrappers (`ResultMap[K, V]`, `ResultSlice[T]`, `Result[T]`) and structured `*appfault.AppError` returns, guaranteeing a single return object, pointer-attached null safety (`*Result[T]`, `*ResultSlice[T]`, `*ResultMap[K, V]`) with methods attached to pointer receivers (`(r *Result[T])`, `(rs *ResultSlice[T])`, `(rm *ResultMap[K, V])`) that verify `if r == nil` before dereferencing any fields or checking errors, standardized outer-layer inspection predicates (`IsSuccess`, `IsFailure`, `HasError`, `IsEmptyError`, `IsEmpty`, `HasRecord`, `IsDefined`, `IsCountOtherThan`, `Data`, `Items`, `AppError`, `Fault`, `Get`, `Has`, `Count`), eliminating dual-handling, and replacing verbose `if err != nil || len(...) != N` or `IsFailure() || Count() != N` conditions with fluent `if res.IsCountOtherThan(N)` across the entire codebase: FIRST showcase and list out the given task in visible chat during Turn 1 with the 5 Mandatory Pillars and 6-part verification schema, capture it verbatim, plan it in the repo, spawn autonomous subagents via `invoke_subagent` (A = 3, H = 2, Capacity = 6; solo execution without calling `invoke_subagent` is an auto-reject failure) in disjoint file boxes using GitMap high-speed commands as primary, prove every single claim with concrete evidence, enforce coding guidelines to 100%, and finish with one atomic GitMap commit (`gitmap cpf "<module> - <summary>"` / `gitmap cpb "<module> - <summary>"`) using hyphen format (no colons in GitMap arguments, as the colon is already provided by GitMap) that holds strictly this task's files.
+[/goal](slashCommand;goal) Autonomously scan, discover, plan, refactor, and verify all Go functions returning multi-value error tuples (such as `(map[K]V, error)`, `([]T, error)`, or `(T, error)`), eliminating raw standard library error returns, centralizing all domain payload structs and Result type aliases into `types.go` within each package as single reusable types everywhere rather than scattering inline structs or raw generic Result declarations across implementation files, replacing multi-value returns with strongly-typed result wrappers (`result.Wrap[T]`, `result.WrapSlice[T]`, `result.WrapMap[K, V]`) and structured `*apperror.AppError` (or `*appfault.AppError`) returns, guaranteeing a single return object, pointer-attached null safety (`*result.Wrap[T]`, `*result.WrapSlice[T]`, `*result.WrapMap[K, V]`) with methods attached to pointer receivers (`(r *Result[T])`, `(rs *ResultSlice[T])`, `(rm *ResultMap[K, V])`) that verify `if r == nil` before dereferencing any fields or checking errors, standardized outer-layer inspection predicates (`IsSuccess`, `IsFailure`, `HasError`, `IsEmptyError`, `IsEmpty`, `HasRecord`, `IsDefined`, `IsCountOtherThan`, `Data`, `Items`, `AppError`, `Fault`, `Get`, `Has`, `Count`), eliminating dual-handling, and replacing verbose `if err != nil || len(...) != N` or `IsFailure() || Count() != N` conditions with fluent `if res.IsCountOtherThan(N)` across the entire codebase: FIRST showcase and list out the given task in visible chat during Turn 1 with the 5 Mandatory Pillars and 6-part verification schema, capture it verbatim, plan it in the repo, spawn autonomous subagents via `invoke_subagent` (A = 3, H = 2, Capacity = 6; solo execution without calling `invoke_subagent` is an auto-reject failure) in disjoint file boxes using GitMap high-speed commands as primary, prove every single claim with concrete evidence, enforce coding guidelines to 100%, and finish with one atomic GitMap commit (`gitmap cpf "<module> - <summary>"` / `gitmap cpb "<module> - <summary>"`) using hyphen format (no colons in GitMap arguments, as the colon is already provided by GitMap) that holds strictly this task's files.
 
 [/learn](slashCommand;learn) Enforce the Top-Instruction Priority Mandate: whatever directives, custom requirements, checklists, or user instructions are provided ABOVE this prompt outrank everything below. Turn 1 MUST showcase the given task list in visible chat before any background execution. Each rule is stated once (R1 to R16) and cited by ID. Progress lives in the ledger and in `.ai-memory/plans/`, never only in chat.
 
@@ -39,6 +39,342 @@ WAVES = ceil(subtasks / (A x H))
   3. **Execution Step (A = 3 `self` worker subagents):** Spawn 3 worker subagents (`TypeName: "self"`) to execute code modifications in strictly disjoint file boxes.
 - **DYNAMIC AGENT JOIN & IMMEDIATE RESPAWN (NO IDLE WORKERS):** Worker capacity `A` must remain pinned at 3 active agents (System Concurrency Capacity = 6) throughout execution. The lead orchestrator MUST NOT wait for an entire 3-agent wave to finish. As soon as ANY single worker completes, the lead immediately spawns a replacement worker for the next pending subtask, or commands the worker to dynamically join an active subtask in collaborative assistance mode (parallel reading, companion linters, memory logging) to keep concurrency at exactly 3 active subagents (100% duty cycle).
 - **SOLO EXECUTION IS AN AUTO-REJECT FAILURE:** The lead orchestrator is **STRICTLY FORBIDDEN** from executing planning, spec writing, or code changes by itself without calling the `invoke_subagent` tool. Failing to call the actual tool is a critical protocol violation.
+
+---
+
+## 0. Canonical Result Wrapper Standards & Concrete Go Examples
+
+### 0.1 Core Monadic Types & Single-Return Container Architecture
+
+In enterprise Go architecture, functions must NEVER return multi-value error tuples such as `(T, error)`, `([]T, error)`, or `(map[K]V, error)`. Bare error tuples cause error dual-handling, accidental nil dereferences, unhandled error states, and unstandardized callers.
+
+All fallible operations MUST return a single monadic container from `cli/result` (or `pkg/appfault` / `pkg/result`):
+
+| Container Type | Canonical Alias | Payload Representation | Primary Constructor Helpers |
+| :--- | :--- | :--- | :--- |
+| **`result.Result[T]`** | **`result.Wrap[T]`** | Single entity, scalar, or struct | `result.Ok(val)`, `result.Fail[T](err)` |
+| **`result.ResultSlice[T]`** | **`result.WrapSlice[T]`** | Slice of entities or items | `result.OkSlice(items)`, `result.FailSlice[T](err)` |
+| **`result.ResultMap[K, V]`** | **`result.WrapMap[K, V]`** | Keyed lookup dictionary or index | `result.OkMap(mapData)`, `result.FailMap[K, V](err)` |
+| **`*apperror.AppError`** | **`*appfault.AppError`** | Structured enterprise error | `apperror.New(...)`, `apperror.Wrap(...)`, `apperror.WrapSimple(err, op)` |
+
+---
+
+### 0.2 ❌ Anti-Pattern: The Double-Wrap Anti-Pattern (`FailWrap` + `WrapSimple`)
+
+> [!CAUTION]
+> **STRICT BAN ON DOUBLE-WRAPPING:**
+> Never call a constructor with "Wrap" in its name that wraps another "Wrap" in its argument:
+> ```go
+> // ❌ FORBIDDEN: Double-wrap anti-pattern — calling "wrap" twice in the same invocation!
+> return result.FailWrapSlice[model.ScanRecord](apperror.WrapSimple(err, "store.RepoRepository.queryScanRecords"))
+>
+> // ❌ FORBIDDEN: Double-wrap anti-pattern on single entity
+> return result.FailWrap[string](apperror.WrapSimple(scanErr, "store.RepoRepository.FindPathBySlug"))
+> ```
+>
+> **Root Cause & Mandate:**
+> 1. `result.Wrap[T]`, `result.WrapSlice[T]`, and `result.WrapMap[K, V]` are strictly **TYPE ALIASES** for return signatures, NOT constructor functions.
+> 2. The constructor functions are strictly:
+>    - `result.Ok(val)` and `result.Fail[T](err)` for single entities.
+>    - `result.OkSlice(items)` and `result.FailSlice[T](err)` for slices.
+>    - `result.OkMap(data)` and `result.FailMap[K, V](err)` for maps.
+> 3. Constructors must NEVER be named `FailWrap` or `FailWrapSlice`. Defining or calling `FailWrap(WrapSimple(...))` is redundant, creates API confusion, and calls "wrap" twice.
+> 4. Use single canonical constructors:
+> ```go
+> // ✅ MANDATORY: Single wrap — canonical constructor + wrapped AppError
+> return result.FailSlice[model.ScanRecord](apperror.WrapSimple(err, "store.RepoRepository.queryScanRecords"))
+>
+> // ✅ MANDATORY: Single wrap for single entity
+> return result.Fail[string](apperror.WrapSimple(scanErr, "store.RepoRepository.FindPathBySlug"))
+>
+> // ✅ MANDATORY: Propagating existing AppError from another Result container
+> return result.Fail[model.ScanRecord](sliceRes.Err)
+>
+> // ✅ MANDATORY: Canonical success constructors
+> return result.Ok(absPath)
+> return result.OkSlice(records)
+> ```
+
+---
+
+### 0.3 Concrete Before vs. After Go Code Examples
+
+#### Pattern 1: Fallible Single-Entity Lookup (`result.Wrap[T]`)
+
+##### ❌ ANTI-PATTERN: Multi-Value Tuple & Bare Error
+```go
+// ❌ BANNED: Multi-value return tuple, bare error, nil pointer hazard
+func (r *RepoRepository) FindBySlug(slug string) (*model.ScanRecord, error) {
+	row := r.conn.QueryRow(SQLSelectBySlug, slug)
+	var rec model.ScanRecord
+	if err := row.Scan(&rec.RepoId, &rec.Slug, &rec.Branch); err != nil {
+		return nil, err
+	}
+
+	return &rec, nil
+}
+
+// ❌ BANNED: Verbose dual-handling caller
+rec, err := repo.FindBySlug("gitmap")
+if err != nil {
+	return nil, fmt.Errorf("failed to find: %w", err)
+}
+if rec == nil {
+	return nil, errors.New("not found")
+}
+fmt.Println(rec.Slug)
+```
+
+##### ✅ MANDATORY: Single Monadic Container with DRY types.go Definition
+
+```go
+// Step 1: In cli/store/types.go (in the package where it is defined)
+// Declare the single reusable named type alias — NEVER leak raw generic brackets in implementation signatures!
+package store
+
+type (
+	// ScanRecordWrap is the canonical single reusable result container for ScanRecord.
+	ScanRecordWrap = result.Wrap[model.ScanRecord]
+)
+```
+
+```go
+// Step 2: In cli/store/repo_repository.go
+// ✅ MANDATORY: Reuses ScanRecordWrap from types.go for 100% DRY code with value semantics
+func (r *RepoRepository) FindBySlug(slug string) ScanRecordWrap {
+	row := r.conn.QueryRow(SQLSelectBySlug, slug)
+	var rec model.ScanRecord
+	if err := row.Scan(&rec.RepoId, &rec.Slug, &rec.Branch); err != nil {
+		return result.Fail[model.ScanRecord](apperror.WrapSimple(err, "store.RepoRepository.FindBySlug"))
+	}
+
+	return result.Ok(rec)
+}
+
+// ✅ MANDATORY: Clean, fluent inspection via Result guard rule
+res := repo.FindBySlug("gitmap")
+if res.HasError() {
+	return result.Fail[Output](res.Err)
+}
+if res.IsEmpty() {
+	return result.Fail[Output](apperror.NewNotFound("slug not found: " + slug))
+}
+rec := res.Value
+fmt.Println(rec.Slug)
+```
+
+---
+
+#### Pattern 2: Fallible Slice / Collection Query (`result.WrapSlice[T]`)
+
+##### ❌ ANTI-PATTERN: Multi-Value Slice Tuple
+```go
+// ❌ BANNED: Slice + error tuple return
+func (r *RepoRepository) ListDirty() ([]model.ScanRecord, error) {
+	rows, err := r.conn.Query(SQLSelectDirtyRepos)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var list []model.ScanRecord
+	for rows.Next() {
+		var rec model.ScanRecord
+		_ = rows.Scan(&rec.RepoId, &rec.Slug)
+		list = append(list, rec)
+	}
+
+	return list, nil
+}
+```
+
+##### ✅ MANDATORY: Canonical Slice Container with DRY types.go Definition
+
+```go
+// Step 1: In cli/store/types.go (in the package where it is defined)
+type (
+	// ScanRecordSliceWrap is the canonical single reusable collection container for ScanRecord.
+	ScanRecordSliceWrap = result.WrapSlice[model.ScanRecord]
+)
+```
+
+```go
+// Step 2: In cli/store/repo_repository.go
+// ✅ MANDATORY: Reuses ScanRecordSliceWrap from types.go — clean, DRY single-type reuse
+func (r *RepoRepository) ListDirty() ScanRecordSliceWrap {
+	rows, err := r.conn.Query(SQLSelectDirtyRepos)
+	if err != nil {
+		return result.FailSlice[model.ScanRecord](apperror.WrapSimple(err, "store.RepoRepository.ListDirty"))
+	}
+	defer rows.Close()
+
+	records := make([]model.ScanRecord, 0)
+	for rows.Next() {
+		var rec model.ScanRecord
+		if scanErr := rows.Scan(&rec.RepoId, &rec.Slug); scanErr != nil {
+			return result.FailSlice[model.ScanRecord](apperror.WrapSimple(scanErr, "store.RepoRepository.ListDirty.Scan"))
+		}
+		records = append(records, rec)
+	}
+
+	return result.OkSlice(records)
+}
+
+// ✅ MANDATORY: Fluent caller consumption
+res := repo.ListDirty()
+if res.HasError() {
+	return result.FailSlice[Output](res.Err)
+}
+if res.IsEmpty() {
+	return result.OkSlice([]Output{})
+}
+for _, rec := range res.Items() {
+	processRecord(rec)
+}
+```
+
+---
+
+#### Pattern 3: Fallible Keyed Map Lookup (`result.WrapMap[K, V]`)
+
+##### ❌ ANTI-PATTERN: Multi-Value Map Tuple
+```go
+// ❌ BANNED: Map + error tuple return
+func (r *RepoRepository) IndexBySlug() (map[string]model.ScanRecord, error) {
+	// ...
+	return lookup, nil
+}
+```
+
+##### ✅ MANDATORY: Canonical Map Container with DRY types.go Definition
+
+```go
+// Step 1: In cli/store/types.go (in the package where it is defined)
+type (
+	// ScanRecordMapWrap is the canonical single reusable keyed lookup container for ScanRecord.
+	ScanRecordMapWrap = result.WrapMap[string, model.ScanRecord]
+)
+```
+
+```go
+// Step 2: In cli/store/repo_repository.go
+// ✅ MANDATORY: Reuses ScanRecordMapWrap from types.go — clean, DRY single-type reuse
+func (r *RepoRepository) IndexBySlug() ScanRecordMapWrap {
+	recordsRes := r.ListAll()
+	if recordsRes.HasError() {
+		return result.FailMap[string, model.ScanRecord](recordsRes.Err)
+	}
+
+	lookup := make(map[string]model.ScanRecord, recordsRes.Count())
+	for _, rec := range recordsRes.Items() {
+		lookup[rec.Slug] = rec
+	}
+
+	return result.OkMap(lookup)
+}
+
+// ✅ MANDATORY: Keyed lookup caller
+res := repo.IndexBySlug()
+if res.HasError() {
+	return result.Fail[Output](res.Err)
+}
+if res.Has("gitmap") {
+	rec, isFound := res.Get("gitmap")
+	// use rec safely
+}
+```
+
+---
+
+#### Pattern 4: Domain Types Centralization (`types.go` DRY Mandate)
+
+**Why defining single types in `types.go` is mandatory for DRY code:**
+1. **Zero Repetitive Generic Noise:** Prevents raw generic brackets (e.g. `result.Wrap[model.ScanRecord]`) from being copy-pasted across multiple repository, service, coordinator, and handler files.
+2. **Single Point of Evolution:** If an entity container evolves or acquires special metadata, changing the single alias in `types.go` updates the entire package automatically without refactoring dozens of function signatures.
+3. **Encapsulation & Clean Public Contracts:** Callers consume clean, domain-named types like `ScanRecordWrap` and `ScanRecordSliceWrap`, making package APIs self-documenting.
+4. **Enforces Function & File Limits:** Eliminating verbose inline generic signatures keeps function headers on a single line and prevents file bloat, directly supporting the 15-line function limit.
+
+```go
+// cli/mydomain/types.go (in the package where the domain is defined)
+package mydomain
+
+import (
+	"github.com/alimtvnetwork/gitmap-v28/cli/result"
+)
+
+type (
+	// ProjectRecord represents a registered workspace project.
+	ProjectRecord struct {
+		ProjectId   string
+		Slug        string
+		DisplayName string
+		IsActive    bool
+	}
+
+	// ProjectWrap is the canonical single reusable result container for ProjectRecord.
+	ProjectWrap = result.Wrap[ProjectRecord]
+
+	// ProjectSliceWrap is the canonical collection container for ProjectRecord.
+	ProjectSliceWrap = result.WrapSlice[ProjectRecord]
+
+	// ProjectMapWrap is the canonical keyed lookup container for ProjectRecord.
+	ProjectMapWrap = result.WrapMap[string, ProjectRecord]
+)
+```
+
+Implementation files in the package import or consume `ProjectWrap`, `ProjectSliceWrap`, and `ProjectMapWrap` directly without repeating generic brackets:
+
+```go
+// cli/mydomain/service.go
+package mydomain
+
+func (s *Service) GetProject(slug string) ProjectWrap {
+	// returns ProjectWrap directly
+}
+
+func (s *Service) ListProjects() ProjectSliceWrap {
+	// returns ProjectSliceWrap directly
+}
+```
+
+---
+
+#### Pattern 5: Pointer-Attached Null Safety & Standard Inspection Predicates
+
+Every Result inspection method is attached to a pointer receiver (`(r *Result[T])`, `(rs *ResultSlice[T])`, `(rm *ResultMap[K, V])`) and begins with an explicit `if r == nil` guard returning safe defaults:
+
+```go
+func (r *Result[T]) IsSuccess() bool {
+	if r == nil {
+		return false
+	}
+
+	return r.Err == nil || r.Err.HasNoError()
+}
+
+func (r *Result[T]) HasError() bool {
+	if r == nil {
+		return true // Null pointer is treated as error condition
+	}
+
+	return r.Err != nil && r.Err.HasError()
+}
+```
+
+##### Inspection Predicates Cheatsheet:
+- `res.IsSuccess()`: Operation completed without error.
+- `res.IsFailure()`: Operation failed with active error.
+- `res.HasError()`: Active `*apperror.AppError` is attached (or container is nil).
+- `res.IsEmpty()`: Result payload is nil, empty slice, empty map, or zero-value.
+- `res.HasRecord()`: Operation succeeded AND contains at least 1 record.
+- `res.IsDefined()`: Succeeded and contains non-zero payload.
+- `res.IsCountOtherThan(N)`: Fluent count check replacing verbose `if err != nil || len(...) != N`.
+- `res.Count()`: Returns integer count (0 on error/empty, len on slices/maps, 1 on scalar).
+- `res.Value` / `res.Data`: Direct payload access (guarded by prior `HasError()` check).
+- `res.Items()`: Returns safe slice copy (returns empty slice `[]T{}` if nil or failed).
+- `res.Err` / `res.AppError()`: Structured `*apperror.AppError` reference.
+#### Pattern 6: Repository Boundary, Enum Dispatch & Error Tie-Ins
+Repository methods (`FindBySlug`, `ListDirty`, `IndexBySlug`) are the only place SQL may appear: services and handlers call only the repository interface, dialect stays inside the implementation, and multi-repository transactions go through unit-of-work. Every wrap at this boundary names the repository and the operation (e.g. `"store.RepoRepository.FindBySlug"`). Every action/operation/command/event kind handled by code in this prompt is a named enum member dispatched by exhaustive `switch`/`match` only, with `IsValid` checked before dispatch; an unknown enum value, a failed parse, or an unhandled case returns a typed `*apperror.AppError` inside the Result wrapper with the offending value in the message — never a panic and never a silent default.
 
 ---
 
@@ -677,7 +1013,7 @@ Confirm scripts exist via harmless workspace call before invoking (R4). Run on c
 - [ ] Strict In-Repository Execution: All Python scripts executed strictly within the codebase repository root.
 - [ ] Strict .ai-memory/ Folder Storage: All helper scripts, local runners, and linters stored in `03-ai-scripts/`.
 - [ ] Native File Manipulator: Use `python 03-ai-scripts/03-file-manipulator.py <command>` for mass file operations.
-- [ ] Go Generate Sync: If Go constants or enums are modified, run `go generate ./...` in the relevant package and commit generated files.
+- [ ] Go Generate Sync & Enum Util Checkup: If Go constants or enums are modified, verify the enum lives in the shared types/constants module with explicit stable serialized values and a complete util set (`String`, `Parse`/`TryParse`, `IsValid`, `All`/`Values`) — add any missing util in the same change, never defer it — then run `go generate ./...` in the relevant package and commit generated files.
 
 ---
 
@@ -714,8 +1050,10 @@ Confirm scripts exist via harmless workspace call before invoking (R4). Run on c
 [/goal](slashCommand;goal) You must verify every item on this checklist before committing any code. If a subagent violated one of these rules, you must reject their work.
 
 - [ ] Master Guidelines: Fully enforced every file in `02-spec/02-coding-guidelines/` and `.ai-memory/coding-guidelines.md`.
-- [ ] Concrete Types Centralization (`types.go`): Extracted domain structs, raw generic instantiations, and Result wrappers into dedicated `types.go` files as single reusable named types with follow-through comments (never leak raw generics like `result.Result[*Config]`).
-- [ ] Error Management: Enforced `02-spec/03-error-manage/` using domain-specific `*appfault.AppError`, never generic error.
+- [ ] Concrete Types Centralization (`types.go`): Extracted domain structs, raw generic instantiations, and Result wrappers into dedicated `types.go` files as single reusable named types with follow-through comments (never leak raw generics like `result.Result[*Config]` or `result.Wrap[*Config]`). Enforce canonical `result.Wrap[T]`, `result.WrapSlice[T]`, and `result.WrapMap[K, V]` aliases.
+- [ ] Error Management: Enforced `02-spec/03-error-manage/` using domain-specific `*apperror.AppError` (or `*appfault.AppError`), never generic standard library error; repository errors wrapped at the repository boundary with repository + operation named; unknown enum values and failed parses surfaced as typed errors naming the offending value.
+- [ ] SQL Repository Pattern: No SQL strings, query builders, or ORM calls outside a repository implementation; repository Result wrappers are returned only from intention-named repository methods.
+- [ ] Enum Action Dispatch & Authoring: Actions dispatched by exhaustive `switch`/`match` on named enum members only; each enum lives in the shared types/constants module with `String`, `Parse`/`TryParse`, `IsValid`, `All`/`Values` utils complete in the same change.
 - [ ] Boolean Conventions: All booleans begin with is or has only (all other prefixes like can, should, was, will, did, must are banned). No negatives (`!isSuccess` is banned; use `isFail`).
 - [ ] Semantic Naming: Zero generic garbage names (`temp`, `data`, `obj`). Behavior-driven unit test names.
 - [ ] Multi-Line Arguments (Rule 9a/9b): Signatures and call sites with >2 arguments formatted one argument per line with trailing commas.
