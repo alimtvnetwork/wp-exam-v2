@@ -312,6 +312,16 @@ All colors MUST be HSL.
   animation: steady-beam 3.5s ease-in-out infinite;
 }
 
+@keyframes v3-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes v3-fade {
+  from { opacity: 0; transform: translate3d(0, 8px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
 @keyframes v4-rise {
   from { transform: translate3d(0, 105%, 0); }
   to { transform: translate3d(0, 0, 0); }
@@ -393,6 +403,27 @@ All colors MUST be HSL.
 @keyframes v7-flow {
   0%, 100% { opacity: 0.45; }
   50% { opacity: 1; }
+}
+
+.font-v3 {
+  font-family: 'Overpass', 'Ubuntu', sans-serif;
+}
+
+.font-v3 :is(h1, h2, h3, h4, button) {
+  font-family: inherit;
+}
+
+.font-v3-mono {
+  font-family: 'Overpass Mono', 'Ubuntu Mono', monospace;
+}
+
+.v3-draw {
+  stroke-dasharray: 1;
+  animation: v3-draw 1400ms cubic-bezier(0.65, 0, 0.35, 1) both;
+}
+
+.v3-fade {
+  animation: v3-fade 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .font-v4-display {
@@ -515,6 +546,8 @@ All colors MUST be HSL.
   .animate-radar-sweep,
   .animate-steady-pulse,
   .animate-steady-beam,
+  .v3-draw,
+  .v3-fade,
   .v4-rise,
   .v4-fade,
   .v4-flap,
