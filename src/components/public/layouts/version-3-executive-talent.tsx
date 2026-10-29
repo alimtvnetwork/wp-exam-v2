@@ -27,9 +27,9 @@ interface MapLine {
   questions: number;
 }
 
-const PAPER = '#f4f1ea';
-const INK = '#1b1f24';
-const RIVER = '#d6e5ec';
+const NIGHT = '#0c0f14';
+const INK = '#eceff3';
+const RIVER = '#132235';
 
 const START = { x: 160, y: 300 };
 const END = { x: 1040, y: 300 };
@@ -38,8 +38,8 @@ const LINES: MapLine[] = [
   {
     id: 'frontend',
     name: 'Frontend developer',
-    color: '#00843d',
-    onColor: '#ffffff',
+    color: '#2fbf71',
+    onColor: NIGHT,
     y: 120,
     labelSide: 'below',
     path: 'M160 300 L340 120 H860 L1040 300',
@@ -62,8 +62,8 @@ const LINES: MapLine[] = [
   {
     id: 'support',
     name: 'Customer support',
-    color: '#0f62ae',
-    onColor: '#ffffff',
+    color: '#4c9dff',
+    onColor: NIGHT,
     y: 240,
     labelSide: 'above',
     path: 'M160 300 L220 240 H980 L1040 300',
@@ -79,8 +79,8 @@ const LINES: MapLine[] = [
   {
     id: 'sales',
     name: 'Sales',
-    color: '#e8a200',
-    onColor: INK,
+    color: '#f5b72e',
+    onColor: NIGHT,
     y: 360,
     labelSide: 'below',
     path: 'M160 300 L220 360 H980 L1040 300',
@@ -96,8 +96,8 @@ const LINES: MapLine[] = [
   {
     id: 'design',
     name: 'Product designer',
-    color: '#8e2c6e',
-    onColor: '#ffffff',
+    color: '#d16bb4',
+    onColor: NIGHT,
     y: 480,
     labelSide: 'below',
     path: 'M160 300 L340 480 H860 L1040 300',
@@ -150,7 +150,7 @@ const KeySymbol: React.FC<{ symbol: (typeof MAP_KEY)[number]['symbol'] }> = ({ s
     {symbol === 'interchange' && (
       <>
         <path d="M24 20 H76" stroke={LINES[1].color} strokeWidth={8} />
-        <circle cx={22} cy={20} r={13} fill="#fff" stroke={INK} strokeWidth={5} />
+        <circle cx={22} cy={20} r={13} fill={NIGHT} stroke={INK} strokeWidth={5} />
       </>
     )}
     {symbol === 'stop' && (
@@ -168,7 +168,7 @@ const KeySymbol: React.FC<{ symbol: (typeof MAP_KEY)[number]['symbol'] }> = ({ s
     {symbol === 'terminus' && (
       <>
         <path d="M4 20 H56" stroke={LINES[3].color} strokeWidth={8} />
-        <circle cx={58} cy={20} r={13} fill="#fff" stroke={INK} strokeWidth={5} />
+        <circle cx={58} cy={20} r={13} fill={NIGHT} stroke={INK} strokeWidth={5} />
       </>
     )}
   </svg>
@@ -260,7 +260,7 @@ const NetworkMap: React.FC<{ activeId: LineId; onSelect: (id: LineId) => void }>
       )}
 
       {[START, END].map((point) => (
-        <circle key={point.x} cx={point.x} cy={point.y} r={21} fill="#fff" stroke={INK} strokeWidth={7} />
+        <circle key={point.x} cx={point.x} cy={point.y} r={21} fill={NIGHT} stroke={INK} strokeWidth={7} />
       ))}
       <text x={START.x - 36} y={START.y + 2} textAnchor="end" fontSize={19} fontWeight={800} fill={INK}>
         Link sent
@@ -283,7 +283,7 @@ export const Version3ExecutiveTalent: React.FC<LayoutProps> = ({ onAdminClick, o
   const activeLine = LINES.find((line) => line.id === activeId) ?? LINES[0];
 
   return (
-    <div className="font-v3 w-full overflow-hidden text-[#1b1f24]" style={{ backgroundColor: PAPER }}>
+    <div className="font-v3 w-full overflow-hidden text-[#eceff3]" style={{ backgroundColor: NIGHT }}>
       {/* Line colour strip */}
       <div className="flex h-1.5" aria-hidden="true">
         {LINES.map((line) => (
@@ -294,7 +294,7 @@ export const Version3ExecutiveTalent: React.FC<LayoutProps> = ({ onAdminClick, o
       {/* Hero */}
       <section className="mx-auto grid max-w-7xl gap-10 px-4 pb-12 pt-14 sm:px-6 sm:pt-20 lg:grid-cols-12 lg:items-end">
         <div className="lg:col-span-7">
-          <p className="v3-fade font-v3-mono text-xs uppercase tracking-[0.2em] text-[#1b1f24]/60">
+          <p className="v3-fade font-v3-mono text-xs uppercase tracking-[0.2em] text-[#eceff3]/60">
             Onboarding Quiz · Assessment network
           </p>
           <h1 className="v3-fade mt-5 text-[clamp(2.6rem,6vw,5.25rem)] font-extrabold leading-[0.95] tracking-[-0.02em]">
@@ -303,7 +303,7 @@ export const Version3ExecutiveTalent: React.FC<LayoutProps> = ({ onAdminClick, o
           </h1>
         </div>
         <div className="v3-fade lg:col-span-5" style={{ animationDelay: '150ms' }}>
-          <p className="text-lg leading-8 text-[#1b1f24]/80">
+          <p className="text-lg leading-8 text-[#eceff3]/80">
             Each role gets its own line. Every candidate rides the same stops in the same order, and
             arrives at one board with a score you can compare.
           </p>
@@ -311,7 +311,7 @@ export const Version3ExecutiveTalent: React.FC<LayoutProps> = ({ onAdminClick, o
             <button
               type="button"
               onClick={onCandidateClick}
-              className="group inline-flex h-12 items-center justify-center gap-3 rounded-full bg-[#1b1f24] px-6 text-sm font-bold text-white transition-colors hover:bg-[#0f62ae]"
+              className="group inline-flex h-12 items-center justify-center gap-3 rounded-full bg-[#eceff3] px-6 text-sm font-bold text-[#0c0f14] transition-colors hover:bg-[#4c9dff]"
             >
               Try a sample assessment
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
@@ -319,7 +319,7 @@ export const Version3ExecutiveTalent: React.FC<LayoutProps> = ({ onAdminClick, o
             <button
               type="button"
               onClick={onAdminClick}
-              className="inline-flex h-12 items-center justify-center rounded-full border-2 border-[#1b1f24] px-6 text-sm font-bold transition-colors hover:bg-[#1b1f24] hover:text-white"
+              className="inline-flex h-12 items-center justify-center rounded-full border-2 border-[#eceff3] px-6 text-sm font-bold transition-colors hover:bg-[#eceff3] hover:text-[#0c0f14]"
             >
               Open the builder
             </button>
@@ -329,8 +329,8 @@ export const Version3ExecutiveTalent: React.FC<LayoutProps> = ({ onAdminClick, o
 
       {/* Map */}
       <section className="mx-auto max-w-7xl px-4 sm:px-6" aria-labelledby="v3-map-caption">
-        <div className="flex flex-col gap-4 border-t-2 border-[#1b1f24] pt-4 md:flex-row md:items-center md:justify-between">
-          <span id="v3-map-caption" className="font-v3-mono text-xs uppercase tracking-[0.2em] text-[#1b1f24]/60">
+        <div className="flex flex-col gap-4 border-t-2 border-[#eceff3] pt-4 md:flex-row md:items-center md:justify-between">
+          <span id="v3-map-caption" className="font-v3-mono text-xs uppercase tracking-[0.2em] text-[#eceff3]/60">
             Map 1 · Sample routes
           </span>
           <div className="flex flex-wrap gap-2" role="group" aria-label="Choose a line">
@@ -368,18 +368,18 @@ export const Version3ExecutiveTalent: React.FC<LayoutProps> = ({ onAdminClick, o
         </div>
 
         {/* Line diagram for the chosen line */}
-        <div className="mt-8 grid gap-10 border-t border-[#1b1f24]/20 pt-10 md:grid-cols-12">
+        <div className="mt-8 grid gap-10 border-t border-[#eceff3]/20 pt-10 md:grid-cols-12">
           <div className="md:col-span-5">
             <span className="block h-2.5 w-16 rounded-full" style={{ backgroundColor: activeLine.color }} aria-hidden="true" />
             <h2 className="mt-5 text-3xl font-extrabold tracking-tight sm:text-4xl">{activeLine.name} line</h2>
-            <dl className="mt-6 grid grid-cols-3 gap-4 border-y border-[#1b1f24]/20 py-5">
+            <dl className="mt-6 grid grid-cols-3 gap-4 border-y border-[#eceff3]/20 py-5">
               {[
                 { label: 'Time limit', value: `${activeLine.minutes} min` },
                 { label: 'Questions', value: String(activeLine.questions) },
                 { label: 'Pass mark', value: `${activeLine.passMark}%` },
               ].map((item) => (
                 <div key={item.label}>
-                  <dt className="font-v3-mono text-[11px] uppercase tracking-[0.15em] text-[#1b1f24]/55">{item.label}</dt>
+                  <dt className="font-v3-mono text-[11px] uppercase tracking-[0.15em] text-[#eceff3]/55">{item.label}</dt>
                   <dd className="mt-1 text-2xl font-extrabold">{item.value}</dd>
                 </div>
               ))}
@@ -418,16 +418,16 @@ export const Version3ExecutiveTalent: React.FC<LayoutProps> = ({ onAdminClick, o
               <li key={stop.label} className="relative flex gap-6 py-3">
                 <span className="relative z-10 flex w-[34px] shrink-0 justify-center pt-1" aria-hidden="true">
                   {stop.isInterchange ? (
-                    <span className="h-6 w-6 rounded-full border-[5px] border-[#1b1f24] bg-white" />
+                    <span className="h-6 w-6 rounded-full border-[5px] border-[#eceff3] bg-[#0c0f14]" />
                   ) : (
                     <span className="mt-1.5 h-1.5 w-6 translate-x-3" style={{ backgroundColor: activeLine.color }} />
                   )}
                 </span>
                 <div>
                   <p className={stop.isInterchange ? 'text-lg font-extrabold' : 'text-lg font-bold'}>{stop.label}</p>
-                  <p className="font-v3-mono text-xs uppercase tracking-[0.12em] text-[#1b1f24]/55">{stop.format}</p>
+                  <p className="font-v3-mono text-xs uppercase tracking-[0.12em] text-[#eceff3]/55">{stop.format}</p>
                   {'alternative' in stop && stop.alternative && (
-                    <p className="mt-2 text-sm text-[#1b1f24]/75">
+                    <p className="mt-2 text-sm text-[#eceff3]/75">
                       Strong answers switch to <strong>{stop.alternative.label}</strong> ({stop.alternative.format.toLowerCase()}).
                     </p>
                   )}
@@ -443,10 +443,10 @@ export const Version3ExecutiveTalent: React.FC<LayoutProps> = ({ onAdminClick, o
         <h2 className="text-[clamp(2rem,4vw,3.25rem)] font-extrabold leading-none tracking-tight">How to read the map</h2>
         <ul className="mt-10 grid gap-x-8 gap-y-10 sm:grid-cols-2 lg:grid-cols-4">
           {MAP_KEY.map((item) => (
-            <li key={item.title} className="border-t-2 border-[#1b1f24] pt-5">
+            <li key={item.title} className="border-t-2 border-[#eceff3] pt-5">
               <KeySymbol symbol={item.symbol} />
               <h3 className="mt-4 text-lg font-extrabold">{item.title}</h3>
-              <p className="mt-2 leading-7 text-[#1b1f24]/70">{item.description}</p>
+              <p className="mt-2 leading-7 text-[#eceff3]/70">{item.description}</p>
             </li>
           ))}
         </ul>
@@ -456,11 +456,11 @@ export const Version3ExecutiveTalent: React.FC<LayoutProps> = ({ onAdminClick, o
       <section className="mx-auto mt-24 grid max-w-7xl gap-10 px-4 sm:mt-32 sm:px-6 md:grid-cols-12">
         <div className="md:col-span-4">
           <h2 className="text-[clamp(2rem,4vw,3.25rem)] font-extrabold leading-none tracking-tight">Service notes</h2>
-          <p className="mt-4 max-w-xs leading-7 text-[#1b1f24]/70">What every line has, whichever role it is for.</p>
+          <p className="mt-4 max-w-xs leading-7 text-[#eceff3]/70">What every line has, whichever role it is for.</p>
         </div>
         <dl className="md:col-span-8">
           {SERVICE_NOTES.map((note, index) => (
-            <div key={note.label} className="grid gap-2 border-t border-[#1b1f24]/20 py-5 last:border-b sm:grid-cols-[11rem_1fr]">
+            <div key={note.label} className="grid gap-2 border-t border-[#eceff3]/20 py-5 last:border-b sm:grid-cols-[11rem_1fr]">
               <dt className="flex items-center gap-3 font-extrabold">
                 <span
                   aria-hidden="true"
@@ -469,7 +469,7 @@ export const Version3ExecutiveTalent: React.FC<LayoutProps> = ({ onAdminClick, o
                 />
                 {note.label}
               </dt>
-              <dd className="text-lg leading-8 text-[#1b1f24]/80">{note.description}</dd>
+              <dd className="text-lg leading-8 text-[#eceff3]/80">{note.description}</dd>
             </div>
           ))}
         </dl>
@@ -477,7 +477,7 @@ export const Version3ExecutiveTalent: React.FC<LayoutProps> = ({ onAdminClick, o
 
       {/* Closing */}
       <section className="mx-auto max-w-7xl px-4 pb-24 pt-24 sm:px-6 sm:pb-32 sm:pt-32">
-        <div className="rounded-[28px] bg-[#1b1f24] px-6 py-12 text-white sm:px-12 sm:py-16">
+        <div className="rounded-[28px] border border-[#eceff3]/12 bg-[#151a21] px-6 py-12 text-white sm:px-12 sm:py-16">
           <div className="flex h-1.5 max-w-[12rem] overflow-hidden rounded-full" aria-hidden="true">
             {LINES.map((line) => (
               <span key={line.id} className="flex-1" style={{ backgroundColor: line.color }} />
@@ -493,7 +493,7 @@ export const Version3ExecutiveTalent: React.FC<LayoutProps> = ({ onAdminClick, o
             <button
               type="button"
               onClick={onAdminClick}
-              className="group inline-flex h-12 items-center justify-center gap-3 rounded-full bg-white px-6 text-sm font-bold text-[#1b1f24] transition-colors hover:bg-[#e8a200]"
+              className="group inline-flex h-12 items-center justify-center gap-3 rounded-full bg-white px-6 text-sm font-bold text-[#0c0f14] transition-colors hover:bg-[#f5b72e]"
             >
               Build your first assessment
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />

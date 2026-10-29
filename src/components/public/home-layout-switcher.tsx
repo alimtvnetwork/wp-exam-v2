@@ -65,8 +65,8 @@ export const HOME_LAYOUT_OPTIONS: HomeLayoutOption[] = [
     tagline: 'Roles drawn as lines, test sections as stops',
     badgeText: 'Map',
     signatureTheme: 'riseup',
-    themeName: 'Map Paper & Line Colours',
-    themeDotColor: '#00843D',
+    themeName: 'Night Map & Line Colours',
+    themeDotColor: '#2FBF71',
     icon: Route,
   },
   {
