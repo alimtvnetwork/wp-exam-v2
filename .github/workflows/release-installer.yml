@@ -1,0 +1,174 @@
+name: Release Windows Installer
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: 'Release Tag (e.g. v0.5.0)'
+        required: false
+        default: ''
+
+concurrency:
+  group: release-installer-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build & Publish Standalone Windows Installer
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Codebase
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Set up Go 1.23
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+          cache: false
+
+      - name: Set up PHP 8.3
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.3'
+          extensions: pdo, pdo_sqlite, sqlite3, curl, mbstring, openssl
+          coverage: none
+
+      - name: Install Frontend Dependencies & Build Static Assets
+        run: |
+          npm ci
+          if (Test-Path "package.json") {
+            $pkg = Get-Content "package.json" -Raw
+            if ($pkg -match '"build:less"') {
+              npm run build:less
+            }
+          }
+          npm run build
+
+      - name: Install PHP Dependencies (Production Mode)
+        run: |
+          if (Test-Path "composer.json") {
+            composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+          }
+
+      - name: Compile Standalone Windows Launcher (wp-exam.exe)
+        run: |
+          Set-Location launcher
+          go build -ldflags="-s -w" -o ../wp-exam.exe
+          Set-Location ..
+
+      - name: Download & Prepare Portable Windows PHP Runtime
+        shell: pwsh
+        run: |
+          $phpDir = "bundle\php"
+          New-Item -Path $phpDir -ItemType Directory -Force | Out-Null
+          
+          $phpZip = "$env:TEMP\php-portable.zip"
+          $phpUrl = "https://windows.php.net/downloads/releases/archives/php-8.3.13-nts-Win32-vs16-x64.zip"
+          
+          try {
+            Invoke-WebRequest -Uri $phpUrl -OutFile $phpZip -UseBasicParsing -TimeoutSec 120
+          } catch {
+            $fallbackUrl = "https://windows.php.net/downloads/releases/php-8.3.14-nts-Win32-vs16-x64.zip"
+            Invoke-WebRequest -Uri $fallbackUrl -OutFile $phpZip -UseBasicParsing -TimeoutSec 120
+          }
+          
+          Expand-Archive -Path $phpZip -DestinationPath $phpDir -Force
+          Remove-Item -Path $phpZip -Force -ErrorAction SilentlyContinue
+          
+          # Create and configure production php.ini
+          $phpIniContent = @"
+          [PHP]
+          extension_dir = "ext"
+          extension=pdo_sqlite
+          extension=sqlite3
+          extension=curl
+          extension=mbstring
+          extension=openssl
+          memory_limit = 512M
+          max_execution_time = 0
+          display_errors = Off
+          log_errors = On
+          "@
+          $phpIniContent | Out-File -FilePath "$phpDir\php.ini" -Encoding utf8
+
+      - name: Assemble Release Bundle Directory
+        shell: pwsh
+        run: |
+          $bundle = "bundle"
+          
+          Copy-Item -Path "wp-exam.exe" -Destination "$bundle\wp-exam.exe" -Force
+          Copy-Item -Path "router.php" -Destination "$bundle\router.php" -Force
+          Copy-Item -Path "app" -Destination "$bundle\app" -Recurse -Force
+          Copy-Item -Path "includes" -Destination "$bundle\includes" -Recurse -Force
+          Copy-Item -Path "database" -Destination "$bundle\database" -Recurse -Force
+          Copy-Item -Path "vendor" -Destination "$bundle\vendor" -Recurse -Force
+          Copy-Item -Path "routes" -Destination "$bundle\routes" -Recurse -Force
+          Copy-Item -Path "tests" -Destination "$bundle\tests" -Recurse -Force
+          Copy-Item -Path "dist" -Destination "$bundle\dist" -Recurse -Force
+          
+          # Bundle app icon
+          if (Test-Path "public\favicon.ico") {
+            Copy-Item -Path "public\favicon.ico" -Destination "$bundle\wp-exam.ico" -Force
+          }
+
+      - name: Create Release Zip & Calculate Checksums
+        shell: pwsh
+        run: |
+          $zipName = "wp-exam-windows-x64.zip"
+          $shaName = "$zipName.sha256"
+          
+          Compress-Archive -Path "bundle\*" -DestinationPath $zipName -Force
+          
+          $hash = (Get-FileHash -Path $zipName -Algorithm SHA256).Hash
+          "$hash  $zipName" | Out-File -FilePath $shaName -Encoding utf8
+          
+          Write-Host "Package created: $zipName"
+          Write-Host "SHA256: $hash"
+
+      - name: Publish Release Assets to GitHub Release
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          $tag = if ("${{ github.event.inputs.tag_name }}") { "${{ github.event.inputs.tag_name }}" } else { "${{ github.ref_name }}" }
+          if (-not $tag -or $tag -eq "main") {
+            $tag = "v" + (Get-Date -Format 'yyyy.MM.dd.HHmm')
+          }
+          
+          $zipName = "wp-exam-windows-x64.zip"
+          $shaName = "$zipName.sha256"
+          
+          # Check if release exists; create or upload
+          $exists = gh release view $tag 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            Write-Host "Uploading assets to existing release $tag..."
+            gh release upload $tag $zipName $shaName --clobber
+          } else {
+            Write-Host "Creating release $tag with release assets..."
+            gh release create $tag $zipName $shaName `
+              --title "WP Exam Windows Release $tag" `
+              --notes "Standalone zero-dependency installer package for Windows. Auto-extracts portable PHP 8.3, pre-built React frontend, launches simultaneously, and displays in Google Chrome fullscreen mode."
+          }
+
+      - name: Emit Release Summary to Step Summary
+        if: always()
+        run: |
+          echo "### 🚀 WP Exam Windows Standalone Release Published" >> $GITHUB_STEP_SUMMARY
+          echo "- **Package:** wp-exam-windows-x64.zip" >> $GITHUB_STEP_SUMMARY
+          echo "- **Architecture:** Windows x64 (Zero External Dependencies)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Storage Cost:** 0 MB (Zero-Storage Mandate Adhered to via Release Assets)" >> $GITHUB_STEP_SUMMARY

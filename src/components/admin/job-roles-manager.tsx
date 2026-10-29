@@ -25,6 +25,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
+import { JobAssessmentBuilder } from './job-assessment-builder';
 import {
   getJobRoles,
   saveJobRole,
@@ -58,20 +59,8 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
   const [newRoleDuration, setNewRoleDuration] = useState<number>(30);
   const [newRoleDesc, setNewRoleDesc] = useState('');
 
-  // Assessment Question Editor State (Polymorphic: mcq, media_mcq, text_open, media_prompt)
+  // Assessment Question Editor Selected Role
   const [selectedRoleForMcq, setSelectedRoleForMcq] = useState<string>('frontend-developer');
-  const [isEditingMcq, setIsEditingMcq] = useState<boolean>(false);
-  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
-  const [mcqType, setMcqType] = useState<AssessmentQuestionType>('mcq');
-  const [mcqMediaType, setMcqMediaType] = useState<'image' | 'video' | 'audio'>('image');
-  const [mcqMediaUrl, setMcqMediaUrl] = useState<string>('');
-  const [mcqIsOneTimePlay, setMcqIsOneTimePlay] = useState<boolean>(false);
-  const [mcqPlaceholder, setMcqPlaceholder] = useState<string>('');
-  const [mcqMaxWordCount, setMcqMaxWordCount] = useState<number>(300);
-  const [mcqQuestionText, setMcqQuestionText] = useState<string>('');
-  const [mcqOptions, setMcqOptions] = useState<string[]>(['', '', '', '']);
-  const [mcqCorrectAnswerIndex, setMcqCorrectAnswerIndex] = useState<number>(0);
-  const [mcqExplanation, setMcqExplanation] = useState<string>('');
 
   useEffect(() => {
     syncJobRolesFromServer().then((synced) => {
@@ -96,177 +85,6 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
     }
 
     navigate('/admin/pipeline');
-  };
-
-  const resetMcqForm = () => {
-    setIsEditingMcq(false);
-    setEditingQuestionId(null);
-    setMcqType('mcq');
-    setMcqMediaType('image');
-    setMcqMediaUrl('');
-    setMcqIsOneTimePlay(false);
-    setMcqPlaceholder('');
-    setMcqMaxWordCount(300);
-    setMcqQuestionText('');
-    setMcqOptions(['', '', '', '']);
-    setMcqCorrectAnswerIndex(0);
-    setMcqExplanation('');
-  };
-
-  const handleStartAddMcq = () => {
-    resetMcqForm();
-    setIsEditingMcq(true);
-  };
-
-  const handleStartEditMcq = (question: AssessmentQuizQuestion) => {
-    setEditingQuestionId(question.id);
-    setMcqType(question.type || 'mcq');
-    setMcqMediaType(question.mediaType || 'image');
-    setMcqMediaUrl(question.mediaUrl || '');
-    setMcqIsOneTimePlay(Boolean(question.isOneTimePlay));
-    setMcqPlaceholder(question.placeholder || '');
-    setMcqMaxWordCount(question.maxWordCount || 300);
-    setMcqQuestionText(question.question);
-    setMcqOptions(question.options?.length > 0 ? [...question.options] : ['', '']);
-
-    const correctIdx = question.options?.findIndex((opt) => opt === question.correctAnswer) ?? -1;
-    const hasValidIdx = correctIdx >= 0;
-
-    if (hasValidIdx) {
-      setMcqCorrectAnswerIndex(correctIdx);
-    } else {
-      setMcqCorrectAnswerIndex(0);
-    }
-
-    setMcqExplanation(question.explanation || '');
-    setIsEditingMcq(true);
-  };
-
-  const handleAddOption = () => {
-    setMcqOptions([...mcqOptions, '']);
-  };
-
-  const handleRemoveOption = (index: number) => {
-    const hasRemainingCapacity = mcqOptions.length > 2;
-
-    if (!hasRemainingCapacity) {
-      toast.error('An assessment question must have at least 2 options');
-      return;
-    }
-
-    const updated = mcqOptions.filter((_, idx) => idx !== index);
-    setMcqOptions(updated);
-
-    const isCurrentCorrectRemoved = mcqCorrectAnswerIndex === index;
-
-    if (isCurrentCorrectRemoved) {
-      setMcqCorrectAnswerIndex(0);
-    } else {
-      const isShiftNeeded = mcqCorrectAnswerIndex > index;
-
-      if (isShiftNeeded) {
-        setMcqCorrectAnswerIndex(mcqCorrectAnswerIndex - 1);
-      }
-    }
-  };
-
-  const handleOptionChange = (index: number, val: string) => {
-    const updated = [...mcqOptions];
-    updated[index] = val;
-    setMcqOptions(updated);
-  };
-
-  const handleSaveMcq = () => {
-    const cleanQuestion = mcqQuestionText.trim();
-    const hasCleanQuestion = cleanQuestion.length > 0;
-
-    if (!hasCleanQuestion) {
-      toast.error('Question prompt is required');
-      return;
-    }
-
-    const cleanOptions = mcqOptions.map((opt) => opt.trim()).filter((opt) => opt.length > 0);
-    const hasEnoughOptions = cleanOptions.length >= 2;
-
-    if (!hasEnoughOptions) {
-      toast.error('Please provide at least 2 non-empty options');
-      return;
-    }
-
-    const targetRole = rolesList.find((r) => r.id === selectedRoleForMcq);
-    const hasTargetRole = Boolean(targetRole);
-
-    if (!hasTargetRole) {
-      toast.error('Selected job role not found');
-      return;
-    }
-
-    const role = targetRole!;
-    const correctVal = cleanOptions[mcqCorrectAnswerIndex] || cleanOptions[0];
-    const existingQuestions = [...role.secondPhaseQuestions];
-    const isExisting = Boolean(editingQuestionId);
-
-    if (isExisting) {
-      const idx = existingQuestions.findIndex((q) => q.id === editingQuestionId);
-      const isFound = idx >= 0;
-
-      if (isFound) {
-        existingQuestions[idx] = {
-          ...existingQuestions[idx],
-          question: cleanQuestion,
-          options: cleanOptions,
-          correctAnswer: correctVal,
-          explanation: mcqExplanation.trim() || `Technical competency evaluation for ${role.title}.`,
-        };
-      }
-    } else {
-      existingQuestions.push({
-        id: `${role.id}_q_${Date.now()}`,
-        question: cleanQuestion,
-        options: cleanOptions,
-        correctAnswer: correctVal,
-        explanation: mcqExplanation.trim() || `Technical competency evaluation for ${role.title}.`,
-      });
-    }
-
-    const updatedRole: JobRole = {
-      ...role,
-      secondPhaseQuestions: existingQuestions,
-      isCustom: true,
-    };
-
-    persistJobRoleToServer(updatedRole);
-    setRolesList(getJobRoles());
-    toast.success(isExisting ? 'Assessment question updated!' : 'New assessment question added!');
-    resetMcqForm();
-  };
-
-  const handleDeleteMcq = (questionId: string) => {
-    const targetRole = rolesList.find((r) => r.id === selectedRoleForMcq);
-    const hasTargetRole = Boolean(targetRole);
-
-    if (!hasTargetRole) {
-      return;
-    }
-
-    const role = targetRole!;
-    const remaining = role.secondPhaseQuestions.filter((q) => q.id !== questionId);
-    const hasQuestionsLeft = remaining.length > 0;
-
-    if (!hasQuestionsLeft) {
-      toast.error('An assessment must contain at least 1 question');
-      return;
-    }
-
-    const updatedRole: JobRole = {
-      ...role,
-      secondPhaseQuestions: remaining,
-      isCustom: true,
-    };
-
-    persistJobRoleToServer(updatedRole);
-    setRolesList(getJobRoles());
-    toast.success('Question deleted');
   };
 
   const handleSaveNewRole = () => {
@@ -409,7 +227,7 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
                 </Badge>
               </div>
               <p className="text-xs text-muted-foreground ml-0 sm:ml-9">
-                Manage position profiles, technical competency tracks, and role-specific assessment MCQs.
+                Manage position profiles, technical competency tracks, and role-specific assessment questions.
               </p>
             </div>
 
@@ -431,7 +249,7 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
                 className="h-9 text-xs gap-1.5 cursor-pointer font-medium"
               >
                 <Award className="w-3.5 h-3.5" />
-                <span>Assessment MCQ Editor</span>
+                <span>Assessment Question Editor</span>
               </Button>
             </div>
           </div>
@@ -597,7 +415,7 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
                       <div className="flex items-center gap-1.5">
                         <Award className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
                         <span className="font-mono text-[11px] text-muted-foreground">
-                          {role.secondPhaseQuestions.length} MCQ{role.secondPhaseQuestions.length === 1 ? '' : 's'}
+                          {role.secondPhaseQuestions.length} Question{role.secondPhaseQuestions.length === 1 ? '' : 's'}
                         </span>
                       </div>
                       <div className="flex items-center gap-1">
@@ -614,11 +432,10 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
                       onClick={() => {
                         setSelectedRoleForMcq(role.id);
                         setActiveTab('mcqs');
-                        resetMcqForm();
                       }}
                       className="h-8 text-xs gap-1.5 cursor-pointer border-primary/40 text-primary hover:bg-primary/10"
                     >
-                      <span>Manage MCQs</span>
+                      <span>Manage Questions</span>
                       <ChevronRight className="w-3 h-3" />
                     </Button>
                   </div>
@@ -628,484 +445,14 @@ export const JobRolesManager: React.FC<JobRolesManagerProps> = ({ onNavigateTab 
           </div>
         )}
 
-        {/* Tab 2: Technical Assessment MCQ Editor */}
+        {/* Tab 2: Enhanced Technical Assessment Question Builder */}
         {activeTab === 'mcqs' && (
-          <div className="space-y-6">
-            {/* Role Switcher Toolbar */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-card border border-border/60 shadow-2xs">
-              <div className="space-y-1">
-                <div className="flex items-center gap-2">
-                  <Award className="w-4 h-4 text-primary" />
-                  <h2 className="text-sm font-bold text-foreground">
-                    Technical Assessment MCQs
-                  </h2>
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Questions configured here are administered in the 10-minute proctored exam for this role.
-                </p>
-              </div>
-
-              <div className="flex items-center gap-2.5 flex-wrap sm:flex-nowrap">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs font-semibold text-muted-foreground whitespace-nowrap">Role:</span>
-                  <select
-                    value={selectedRoleForMcq}
-                    onChange={(e) => {
-                      setSelectedRoleForMcq(e.target.value);
-                      resetMcqForm();
-                    }}
-                    className="rounded-md border border-input bg-background px-3 py-1.5 text-xs text-foreground shadow-xs font-medium max-w-[260px] truncate"
-                  >
-                    {rolesList.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.title} ({r.secondPhaseQuestions.length} MCQs)
-                      </option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="flex items-center gap-1.5 bg-muted/40 px-2.5 py-1 rounded-md border border-border/60">
-                  <Clock className="w-3.5 h-3.5 text-primary shrink-0" />
-                  <span className="text-[11px] font-semibold text-muted-foreground whitespace-nowrap">Time Limit:</span>
-                  <select
-                    value={selectedRole?.durationMinutes || 30}
-                    onChange={(e) => handleUpdateRoleDuration(selectedRoleForMcq, Number(e.target.value))}
-                    className="rounded border border-input bg-background px-2 py-0.5 text-xs text-foreground font-medium"
-                  >
-                    <option value={10}>10 Mins</option>
-                    <option value={15}>15 Mins</option>
-                    <option value={20}>20 Mins</option>
-                    <option value={30}>30 Mins</option>
-                    <option value={45}>45 Mins</option>
-                    <option value={60}>60 Mins</option>
-                    <option value={90}>90 Mins</option>
-                  </select>
-                </div>
-
-                {!isEditingMcq && (
-                  <Button
-                    size="sm"
-                    onClick={handleStartAddMcq}
-                    className="h-8 text-xs gap-1.5 bg-primary text-primary-foreground font-semibold cursor-pointer shrink-0"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>Add MCQ</span>
-                  </Button>
-                )}
-              </div>
-            </div>
-
-            {/* Assessment Details Alert Banner */}
-            <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/20 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-              <div className="flex items-center gap-2.5">
-                <Clock className="w-4 h-4 text-primary shrink-0" />
-                <span className="text-foreground">
-                  <strong>Active Assessment:</strong> {selectedRole?.title} — {selectedRole?.secondPhaseQuestions.length || 0} Questions configured ({selectedRole?.durationMinutes || 30} Minutes)
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5 text-muted-foreground text-[11px]">
-                <FileCheck className="w-3.5 h-3.5 text-emerald-500" />
-                <span>{selectedRole?.durationMinutes || 30}-Minute Proctored Delivery with Tab Switch Sentinel</span>
-              </div>
-            </div>
-
-            {/* Authoring & Editing Form */}
-            {isEditingMcq && (
-              <Card className="border-2 border-primary/40 shadow-lg">
-                <CardHeader className="pb-3 border-b border-border/50">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <HelpCircle className="w-4 h-4 text-primary" />
-                      <CardTitle className="text-sm font-bold">
-                        {editingQuestionId ? 'Edit Assessment Question' : 'Author New Assessment Question'}
-                      </CardTitle>
-                    </div>
-                    <Badge variant="outline" className="text-[10px] font-mono">
-                      {editingQuestionId ? 'Editing' : 'New Question'}
-                    </Badge>
-                  </div>
-                  <CardDescription className="text-xs">
-                    Define the question prompt, answer choices, and mark the correct option.
-                  </CardDescription>
-                </CardHeader>
-
-                <CardContent className="pt-4 space-y-4 text-xs">
-                  {/* Question Type Selector */}
-                  <div className="space-y-1.5">
-                    <label className="font-semibold text-foreground block">
-                      Question Format & Delivery Type *
-                    </label>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                      {[
-                        { id: 'mcq', label: 'Standard MCQ', desc: 'Choice options' },
-                        { id: 'media_mcq', label: 'Media MCQ', desc: 'Image/Video + choices' },
-                        { id: 'text_open', label: 'Written Response', desc: 'Textarea response' },
-                        { id: 'media_prompt', label: 'Media Prompt', desc: '1-time audio/video + written' },
-                      ].map((t) => {
-                        const isSelected = mcqType === t.id;
-                        return (
-                          <button
-                            key={t.id}
-                            type="button"
-                            onClick={() => setMcqType(t.id as AssessmentQuestionType)}
-                            className={`p-2.5 rounded-lg border text-left cursor-pointer transition-all ${
-                              isSelected
-                                ? 'border-primary bg-primary/10 text-primary font-semibold ring-1 ring-primary/40'
-                                : 'border-border/60 bg-muted/20 text-muted-foreground hover:bg-muted/40'
-                            }`}
-                          >
-                            <div className="text-xs">{t.label}</div>
-                            <div className="text-[10px] opacity-75 font-normal">{t.desc}</div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  {/* Question Prompt */}
-                  <div className="space-y-1.5">
-                    <label className="font-semibold text-foreground block">
-                      Question Prompt / Statement *
-                    </label>
-                    <Input
-                      placeholder="e.g. Analyze the architectural pattern illustrated in the diagram..."
-                      value={mcqQuestionText}
-                      onChange={(e) => setMcqQuestionText(e.target.value)}
-                      className="text-xs"
-                    />
-                  </div>
-
-                  {/* Media Attachment Fields (for media_mcq and media_prompt) */}
-                  {(mcqType === 'media_mcq' || mcqType === 'media_prompt') && (
-                    <div className="p-3.5 rounded-xl bg-primary/5 border border-primary/20 space-y-3">
-                      <div className="flex items-center gap-2">
-                        {mcqMediaType === 'image' && <ImageIcon className="w-4 h-4 text-primary" />}
-                        {mcqMediaType === 'video' && <Video className="w-4 h-4 text-primary" />}
-                        {mcqMediaType === 'audio' && <Volume2 className="w-4 h-4 text-primary" />}
-                        <span className="font-semibold text-foreground text-xs">Media Attachment & Playback Controls</span>
-                      </div>
-
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <div>
-                          <label className="text-[11px] text-muted-foreground block mb-1">Media Type</label>
-                          <select
-                            value={mcqMediaType}
-                            onChange={(e) => setMcqMediaType(e.target.value as 'image' | 'video' | 'audio')}
-                            className="w-full text-xs h-8 rounded-md border border-border/60 bg-background px-2"
-                          >
-                            <option value="image">Image (PNG, JPG, SVG, WebP)</option>
-                            <option value="video">Video (MP4, WebM)</option>
-                            <option value="audio">Audio (MP3, WAV, AAC)</option>
-                          </select>
-                        </div>
-                        <div className="sm:col-span-2">
-                          <label className="text-[11px] text-muted-foreground block mb-1">Media Direct URL *</label>
-                          <Input
-                            placeholder="https://example.com/assets/prompt-audio.mp3 or /assets/diagram.png"
-                            value={mcqMediaUrl}
-                            onChange={(e) => setMcqMediaUrl(e.target.value)}
-                            className="h-8 text-xs font-mono"
-                          />
-                        </div>
-                      </div>
-
-                      {mcqType === 'media_prompt' && (
-                        <label className="flex items-center gap-2 text-xs text-foreground cursor-pointer pt-1">
-                          <input
-                            type="checkbox"
-                            checked={mcqIsOneTimePlay}
-                            onChange={(e) => setMcqIsOneTimePlay(e.target.checked)}
-                            className="h-4 w-4 rounded border-border text-primary cursor-pointer"
-                          />
-                          <span className="font-medium text-amber-700 dark:text-amber-300">
-                            Enforce Single-Play Restriction (Audio/Video locks after 1 listening session to assess real-time comprehension)
-                          </span>
-                        </label>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Open-Ended Written Configuration (for text_open and media_prompt) */}
-                  {(mcqType === 'text_open' || mcqType === 'media_prompt') && (
-                    <div className="p-3.5 rounded-xl bg-muted/30 border border-border/50 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <FileEdit className="w-4 h-4 text-primary" />
-                        <span className="font-semibold text-foreground text-xs">Written Response Constraints</span>
-                      </div>
-                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                        <div className="sm:col-span-2">
-                          <label className="text-[11px] text-muted-foreground block mb-1">Textarea Placeholder</label>
-                          <Input
-                            placeholder="e.g. Summarize the key customer pain points and recommended solution..."
-                            value={mcqPlaceholder}
-                            onChange={(e) => setMcqPlaceholder(e.target.value)}
-                            className="h-8 text-xs"
-                          />
-                        </div>
-                        <div>
-                          <label className="text-[11px] text-muted-foreground block mb-1">Maximum Word Count</label>
-                          <Input
-                            type="number"
-                            min="50"
-                            max="2000"
-                            step="50"
-                            value={mcqMaxWordCount}
-                            onChange={(e) => setMcqMaxWordCount(Number(e.target.value))}
-                            className="h-8 text-xs font-mono"
-                          />
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Options List with Radio Button for Correct Answer (for mcq and media_mcq) */}
-                  {(mcqType === 'mcq' || mcqType === 'media_mcq') && (
-                  <div className="space-y-2.5">
-                    <div className="flex items-center justify-between">
-                      <label className="font-semibold text-foreground block">
-                        Answer Choices & Correct Selection *
-                      </label>
-                      <span className="text-[11px] text-muted-foreground">
-                        Select the radio button next to the correct answer
-                      </span>
-                    </div>
-
-                    <div className="space-y-2">
-                      {mcqOptions.map((option, idx) => {
-                        const isCorrect = mcqCorrectAnswerIndex === idx;
-
-                        return (
-                          <div
-                            key={idx}
-                            className={`flex items-center gap-2 p-2.5 rounded-lg border transition-all ${
-                              isCorrect
-                                ? 'border-emerald-500/70 bg-emerald-500/5 ring-1 ring-emerald-500/30'
-                                : 'border-border/60 bg-muted/20'
-                            }`}
-                          >
-                            <label className="flex items-center gap-2 cursor-pointer shrink-0 px-1">
-                              <input
-                                type="radio"
-                                name="jobRolesMcqCorrectRadio"
-                                checked={isCorrect}
-                                onChange={() => setMcqCorrectAnswerIndex(idx)}
-                                className="h-4 w-4 text-emerald-600 focus:ring-emerald-500 cursor-pointer"
-                              />
-                              <span
-                                className={`text-[11px] font-semibold ${
-                                  isCorrect ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
-                                }`}
-                              >
-                                {isCorrect ? 'Correct Answer' : `Option ${idx + 1}`}
-                              </span>
-                            </label>
-
-                            <Input
-                              value={option}
-                              onChange={(e) => handleOptionChange(idx, e.target.value)}
-                              placeholder={`Option text ${idx + 1}...`}
-                              className="h-8 text-xs flex-1"
-                            />
-
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleRemoveOption(idx)}
-                              disabled={mcqOptions.length <= 2}
-                              className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive cursor-pointer disabled:opacity-30"
-                              title="Delete Option"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <Button
-                      type="button"
-                      variant="outline"
-                      size="sm"
-                      onClick={handleAddOption}
-                      className="h-8 text-xs gap-1.5 cursor-pointer mt-1"
-                    >
-                      <Plus className="w-3 h-3" />
-                      <span>Add Option</span>
-                    </Button>
-                  </div>
-                  )}
-
-                  {/* Explanation / Rationale */}
-                  <div className="space-y-1.5">
-                    <label className="font-semibold text-foreground block">
-                      Explanation / Learning Feedback (Optional)
-                    </label>
-                    <Input
-                      placeholder="e.g. rest_api_init ensures endpoint routes are registered during the REST request lifecycle."
-                      value={mcqExplanation}
-                      onChange={(e) => setMcqExplanation(e.target.value)}
-                      className="text-xs"
-                    />
-                  </div>
-
-                  {/* Form Actions */}
-                  <div className="pt-3 flex items-center justify-end gap-2 border-t border-border/50">
-                    <Button variant="outline" size="sm" onClick={resetMcqForm}>
-                      Cancel
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={handleSaveMcq}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold gap-1.5 cursor-pointer"
-                    >
-                      <CheckCircle2 className="w-3.5 h-3.5" />
-                      <span>{editingQuestionId ? 'Update Question' : 'Save Question'}</span>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Configured Questions List */}
-            {(() => {
-              const questions = selectedRole?.secondPhaseQuestions || [];
-              const hasQuestions = questions.length > 0;
-
-              if (!hasQuestions) {
-                return (
-                  <div className="p-12 text-center rounded-xl border-2 border-dashed border-border/70 text-muted-foreground space-y-3">
-                    <HelpCircle className="w-10 h-10 mx-auto text-muted-foreground/40" />
-                    <div className="space-y-1">
-                      <p className="font-semibold text-foreground text-sm">No assessment questions configured for this role</p>
-                      <p className="text-xs">Add technical evaluation questions to assess applicants for {selectedRole?.title}.</p>
-                    </div>
-                    <Button size="sm" onClick={handleStartAddMcq} className="text-xs gap-1.5 mt-2">
-                      <Plus className="w-3.5 h-3.5" />
-                      Add First Question
-                    </Button>
-                  </div>
-                );
-              }
-
-              return (
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between text-xs text-muted-foreground px-1">
-                    <span className="font-medium text-foreground">
-                      Configured Questions ({questions.length})
-                    </span>
-                    <span>All questions presented sequentially during exam</span>
-                  </div>
-
-                  {questions.map((q, qIdx) => (
-                    <Card key={q.id || qIdx} className="border border-border/70 bg-card shadow-2xs">
-                      <CardContent className="p-4 space-y-3">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="space-y-1 flex-1">
-                            <div className="flex items-center gap-2">
-                              <Badge variant="outline" className="font-mono text-[10px] bg-muted/40">
-                                Q{qIdx + 1}
-                              </Badge>
-                              <span className="font-semibold text-foreground text-xs leading-snug">
-                                {q.question}
-                              </span>
-                            </div>
-                          </div>
-
-                          <div className="flex items-center gap-1.5 shrink-0">
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleStartEditMcq(q)}
-                              className="h-7 text-xs px-2.5 text-primary hover:bg-primary/10 cursor-pointer"
-                              title="Edit Question"
-                            >
-                              Edit
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => handleDeleteMcq(q.id)}
-                              disabled={questions.length <= 1}
-                              className="h-7 w-7 p-0 text-muted-foreground hover:text-destructive cursor-pointer disabled:opacity-30"
-                              title="Delete Question"
-                            >
-                              <Trash2 className="w-3.5 h-3.5" />
-                            </Button>
-                          </div>
-                        </div>
-
-                        {/* Format Badges & Media Metadata */}
-                        <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                          <Badge variant="outline" className="text-[10px] font-semibold">
-                            {q.type === 'media_mcq' && 'Media MCQ'}
-                            {q.type === 'text_open' && 'Written Response'}
-                            {q.type === 'media_prompt' && '1-Time Media Prompt'}
-                            {(!q.type || q.type === 'mcq') && 'Multiple Choice'}
-                          </Badge>
-                          {Boolean(q.mediaUrl) && (
-                            <Badge variant="secondary" className="text-[10px] font-mono">
-                              {q.mediaType?.toUpperCase() || 'MEDIA'}
-                            </Badge>
-                          )}
-                          {Boolean(q.isOneTimePlay) && (
-                            <Badge variant="outline" className="text-[10px] text-amber-600 dark:text-amber-400 border-amber-500/30">
-                              Single Play
-                            </Badge>
-                          )}
-                        </div>
-
-                        {/* Options Grid for Choice Questions */}
-                        {Boolean(q.options && q.options.length > 0) && (
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 pt-1">
-                            {q.options.map((opt, optIdx) => {
-                              const isCorrect = opt === q.correctAnswer;
-
-                              return (
-                                <div
-                                  key={optIdx}
-                                  className={`p-2.5 rounded-lg text-xs flex items-center justify-between gap-2 border ${
-                                    isCorrect
-                                      ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-800 dark:text-emerald-300 font-medium'
-                                      : 'bg-muted/20 border-border/40 text-muted-foreground'
-                                  }`}
-                                >
-                                  <span className="truncate">{opt}</span>
-                                  {isCorrect && (
-                                    <Badge className="bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 text-[9px] py-0 px-1.5 font-semibold">
-                                      Correct
-                                    </Badge>
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        )}
-
-                        {/* Open-Ended Summary for Written / Media Prompts */}
-                        {Boolean(q.type === 'text_open' || q.type === 'media_prompt') && (
-                          <div className="p-2.5 rounded-lg bg-muted/20 border border-border/40 text-[11px] text-muted-foreground flex items-center justify-between">
-                            <span className="flex items-center gap-1.5">
-                              <FileEdit className="w-3.5 h-3.5 text-primary" />
-                              Open-ended written response
-                            </span>
-                            <span className="font-mono text-[10px]">Max limit: {q.maxWordCount || 300} words</span>
-                          </div>
-                        )}
-
-                        {/* Explanation */}
-                        {q.explanation && (
-                          <p className="text-[11px] text-muted-foreground bg-muted/30 p-2.5 rounded-lg border border-border/30 italic">
-                            💡 {q.explanation}
-                          </p>
-                        )}
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              );
-            })()}
-          </div>
+          <JobAssessmentBuilder
+            rolesList={rolesList}
+            selectedRoleId={selectedRoleForMcq}
+            onSelectRole={(roleId) => setSelectedRoleForMcq(roleId)}
+            onRolesUpdated={() => setRolesList(getJobRoles())}
+          />
         )}
       </main>
     </div>

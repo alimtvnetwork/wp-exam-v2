@@ -763,6 +763,42 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
     setCalculatedScore(result);
     setCurrentStage('completed');
 
+    if (typeof window !== 'undefined') {
+      try {
+        const wrongIds: string[] = [];
+        config.questions.forEach((q, idx) => {
+          const questionLabel = 'Question ' + (idx + 1) + ':';
+          const hasWrongMatch = wrong.some((w) => w.startsWith(questionLabel));
+          if (hasWrongMatch) {
+            wrongIds.push(q.id || ('q_' + (idx + 1)));
+          }
+        });
+
+        const submission = {
+          id: 'sub_' + Date.now() + '_' + Math.random().toString(36).slice(2, 7),
+          quiz_id: config.id,
+          quiz_title: config.title,
+          candidate_name: reporterEmail ? reporterEmail.split('@')[0] : 'Candidate',
+          candidate_email: reporterEmail || 'anonymous_candidate',
+          is_anonymous: !reporterEmail,
+          score: earned,
+          total,
+          percentage,
+          is_passed: isPassed,
+          wrong_question_ids: wrongIds,
+          answers,
+          submitted_at: new Date().toISOString(),
+        };
+
+        const existingRaw = localStorage.getItem('wp_exam_quiz_submissions');
+        const existing = existingRaw ? JSON.parse(existingRaw) : [];
+        localStorage.setItem('wp_exam_quiz_submissions', JSON.stringify([submission, ...existing]));
+        window.dispatchEvent(new Event('wp_exam_submissions_updated'));
+      } catch {
+        // LocalStorage fallback
+      }
+    }
+
     if (onComplete) {
       onComplete({
         score: earned,
@@ -794,6 +830,7 @@ export const FocusQuizRunner: React.FC<FocusQuizRunnerProps> = ({
       try {
         const storedReports = JSON.parse(localStorage.getItem('wp_exam_question_reports') || '[]');
         localStorage.setItem('wp_exam_question_reports', JSON.stringify([newReport, ...storedReports]));
+        window.dispatchEvent(new Event('wp_exam_reports_updated'));
       } catch {
         // LocalStorage fallback
       }

@@ -606,11 +606,18 @@ class SqliteDatabase {
     public function getTableCounts(): array {
         if ($this->pdo === null) {
             return [
-                'has_driver' => false,
-                'db_path'    => $this->dbPath,
-                'forms'      => 0,
-                'submissions'=> 0,
-                'invites'    => 0,
+                'has_driver'     => false,
+                'db_path'        => $this->dbPath,
+                'forms'          => 0,
+                'submissions'    => 0,
+                'invites'        => 0,
+                'categories'     => 0,
+                'projects'       => 0,
+                'applicants'     => 0,
+                'reports'        => 0,
+                'project_dbs'    => 0,
+                'history_dbs'    => 0,
+                'file_size'      => 0,
             ];
         }
 
@@ -618,13 +625,94 @@ class SqliteDatabase {
         $submissions = (int) ($this->pdo->query('SELECT COUNT(*) FROM form_submissions')->fetchColumn() ?: 0);
         $invites = (int) ($this->pdo->query('SELECT COUNT(*) FROM user_invites')->fetchColumn() ?: 0);
 
+        $categories = 0;
+        try {
+            $categories = (int) ($this->pdo->query('SELECT COUNT(*) FROM categories')->fetchColumn() ?: 0);
+        } catch (Throwable $e) {
+            // Silently handle if table not created
+        }
+
+        $projects = 0;
+        try {
+            $projects = (int) ($this->pdo->query('SELECT COUNT(*) FROM projects')->fetchColumn() ?: 0);
+        } catch (Throwable $e) {
+            // Silently handle
+        }
+
+        $applicants = 0;
+        try {
+            $applicants = (int) ($this->pdo->query('SELECT COUNT(*) FROM applicants')->fetchColumn() ?: 0);
+        } catch (Throwable $e) {
+            // Silently handle
+        }
+
+        $reports = 0;
+        try {
+            $reports = (int) ($this->pdo->query('SELECT COUNT(*) FROM question_reports')->fetchColumn() ?: 0);
+        } catch (Throwable $e) {
+            // Silently handle
+        }
+
+        $baseDir = dirname($this->dbPath);
+        $projectFiles = glob($baseDir . '/projects/*.sqlite') ?: [];
+        $historyFiles = glob($baseDir . '/history/*.sqlite') ?: [];
+
+        $hasFile = file_exists($this->dbPath);
+        $fileSize = $hasFile ? filesize($this->dbPath) : 0;
+
         return [
-            'has_driver' => true,
-            'db_path'    => $this->dbPath,
-            'forms'      => $forms,
-            'submissions'=> $submissions,
-            'invites'    => $invites,
-            'file_size'  => file_exists($this->dbPath) ? filesize($this->dbPath) : 0,
+            'has_driver'     => true,
+            'db_path'        => $this->dbPath,
+            'forms'          => $forms,
+            'submissions'    => $submissions,
+            'invites'        => $invites,
+            'categories'     => $categories,
+            'projects'       => $projects,
+            'applicants'     => $applicants,
+            'reports'        => $reports,
+            'project_dbs'    => count($projectFiles),
+            'history_dbs'    => count($historyFiles),
+            'file_size'      => $fileSize,
         ];
+    }
+
+    public function vacuum(): array {
+        if ($this->pdo === null) {
+            return [
+                'has_driver' => false,
+                'is_success' => false,
+                'message'    => 'PDO connection not initialized',
+            ];
+        }
+
+        try {
+            $this->pdo->exec('PRAGMA wal_checkpoint(TRUNCATE);');
+            $this->pdo->exec('VACUUM;');
+
+            foreach ($this->projectPdos as $projectId => $pdo) {
+                try {
+                    $pdo->exec('PRAGMA wal_checkpoint(TRUNCATE);');
+                    $pdo->exec('VACUUM;');
+                } catch (Throwable $e) {
+                    // Ignore single project errors
+                }
+            }
+
+            $hasFile = file_exists($this->dbPath);
+            $fileSize = $hasFile ? filesize($this->dbPath) : 0;
+
+            return [
+                'has_driver' => true,
+                'is_success' => true,
+                'message'    => 'SQLite WAL checkpoints synchronized and database vacuum completed successfully.',
+                'file_size'  => $fileSize,
+            ];
+        } catch (Throwable $e) {
+            return [
+                'has_driver' => true,
+                'is_success' => false,
+                'message'    => 'VACUUM error: ' . $e->getMessage(),
+            ];
+        }
     }
 }

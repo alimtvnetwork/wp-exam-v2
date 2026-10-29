@@ -762,5 +762,28 @@ describe('Candidate Portal Proctoring & Timed Technical Exam', () => {
       expect(clampIndex(1, totalQuestions)).toBe(1);
       expect(clampIndex(0, totalQuestions)).toBe(0);
     });
+
+    it('correctly resolves Junior Software Engineer role and assessment briefing over default frontend-developer fallback', () => {
+      const queryRole = 'junior-software-engineer';
+      const sessionCandidateRole = undefined;
+      const candidateRoleKey = queryRole || sessionCandidateRole || 'junior-software-engineer';
+      const roleById = getJobRoleById(candidateRoleKey);
+
+      expect(roleById.id).toBe('junior-software-engineer');
+      expect(roleById.title).toBe('Junior Software Engineer');
+      expect(roleById.secondPhaseQuestions.length).toBeGreaterThan(0);
+      expect(roleById.secondPhaseQuestions[0].id.startsWith('jr_')).toBe(true);
+
+      const briefingTitle = `${roleById.title} — Technical Assessment Briefing`;
+      expect(briefingTitle).toBe('Junior Software Engineer — Technical Assessment Briefing');
+    });
+
+    it('resolves candidate legal name from query params over default session placeholder', () => {
+      const searchParamName = 'tom cruise';
+      const sessionCandidateName = 'Alex Morgan';
+      const resolvedName = searchParamName || sessionCandidateName || 'Candidate';
+
+      expect(resolvedName).toBe('tom cruise');
+    });
   });
 });

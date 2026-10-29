@@ -2096,7 +2096,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
       </div>
 
       {/* Question Sequence List with Navigation & Sequential Locking */}
-      <div className="space-y-1.5 max-h-[380px] overflow-y-auto pr-1 flex-1 custom-scrollbar">
+      <div className="space-y-1.5 max-h-[calc(100vh-14rem)] overflow-y-auto pr-1 flex-1 custom-scrollbar">
         <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider px-1 mb-1">
           Questions Sequence
         </div>
@@ -2697,7 +2697,7 @@ export const FormRunner: React.FC<FormRunnerProps> = ({
             )
           ) : isSidebarVisible ? (
             <aside className="w-full lg:w-72 xl:w-80 shrink-0 space-y-4 animate-in fade-in duration-150">
-              <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4 sticky top-4">
+              <div className="bg-card border border-border rounded-2xl p-4 sm:p-5 shadow-xs space-y-4 sticky top-4 max-h-[calc(100vh-2rem)] flex flex-col overflow-hidden">
                 {renderSidebarInner()}
               </div>
             </aside>

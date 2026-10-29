@@ -34,6 +34,9 @@ export interface AssessmentQuizQuestion {
   isOneTimePlay?: boolean;
   placeholder?: string;
   maxWordCount?: number;
+  points?: number;
+  isRequired?: boolean;
+  helpText?: string;
 }
 
 export interface JobRole {
@@ -43,6 +46,7 @@ export interface JobRole {
   type: string;
   description: string;
   durationMinutes?: number;
+  passThresholdPercent?: number;
   isCustom?: boolean;
   firstPhaseQuestion: FirstPhaseQuestion;
   secondPhaseQuestions: AssessmentQuizQuestion[];

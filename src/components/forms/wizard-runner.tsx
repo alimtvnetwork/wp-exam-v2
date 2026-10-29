@@ -18,7 +18,6 @@ import {
   Bug,
   ChevronDown,
   ChevronUp,
-  Clock,
   ShieldAlert,
   Copy
 } from 'lucide-react';
@@ -435,6 +434,7 @@ export const WizardRunner: React.FC = () => {
         phone: phone.trim(),
         stage_key: 'applied',
         job_role: selectedJob.id,
+        portal_token: fallbackToken,
         notes: `Applied for ${selectedJob.title} (${selectedJob.department}) via Public Application Wizard.`,
       };
 
@@ -980,22 +980,6 @@ export const WizardRunner: React.FC = () => {
                     <span className="text-xs text-muted-foreground block">Portfolio / GitHub</span>
                     <span className="font-semibold text-foreground font-mono truncate block">{portfolioUrl || 'None provided'}</span>
                   </div>
-                </div>
-
-                {/* Pre-Exam Information Notice Box */}
-                <div className="p-4 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-900 dark:text-amber-200 space-y-2">
-                  <div className="flex items-center gap-2 font-bold font-heading text-sm text-amber-800 dark:text-amber-300">
-                    <Clock className="w-4 h-4 shrink-0 text-amber-600 dark:text-amber-400" />
-                    <span>Upcoming Next Step: 10-Minute Proctored Technical Assessment</span>
-                  </div>
-                  <p className="text-xs leading-relaxed text-amber-900/90 dark:text-amber-200/90">
-                    Upon submitting, your candidate profile is created and you will be directed to your private Candidate Portal. The formal technical assessment for <strong>{selectedJob.title}</strong> will take place there under proctoring:
-                  </p>
-                  <ul className="text-xs space-y-1 list-disc list-inside text-amber-800 dark:text-amber-200 pl-1">
-                    <li><strong>Strict 10-Minute Time Limit:</strong> The technical assessment has a strict 10-minute countdown with automatic submission upon expiration.</li>
-                    <li><strong>No Tab Switching:</strong> Active window focus and tab switching are strictly monitored. 3 strikes will trigger immediate auto-submission.</li>
-                    <li><strong>Pre-Exam Briefing:</strong> You will review full proctoring instructions and confirm readiness before starting the exam timer.</li>
-                  </ul>
                 </div>
 
                 {/* Candidate Agreement Checkbox */}

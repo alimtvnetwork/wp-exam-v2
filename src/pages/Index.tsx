@@ -271,11 +271,11 @@ export const Index: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen ${themeClassMap[theme] || themeClassMap.riseup} transition-colors duration-300 font-sans`}>
+    <div className={`h-screen overflow-hidden flex flex-col ${themeClassMap[theme] || themeClassMap.riseup} transition-colors duration-300 font-sans`}>
       <GuidedTourManager />
 
       {/* WordPress Top Admin Bar */}
-      <header className="h-12 border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-4 flex items-center justify-between">
+      <header className="h-12 border-b border-border bg-card/90 backdrop-blur-md sticky top-0 z-40 px-3 sm:px-4 flex items-center justify-between shrink-0">
         {/* Left Side: Brand, Portal Link */}
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-2">
@@ -341,7 +341,7 @@ export const Index: React.FC = () => {
       </header>
 
       {/* WordPress 2-Column Administrative Dashboard */}
-      <div className="flex min-h-[calc(100vh-48px)]">
+      <div className="flex flex-1 min-h-0 overflow-hidden">
         {/* Persistent Left-Hand Admin Sidebar */}
         <WpAdminSidebar
           activeTab={activeTab}
@@ -352,7 +352,7 @@ export const Index: React.FC = () => {
         />
 
         {/* Fluid Right Content Canvas */}
-        <main className="flex-1 min-w-0 bg-background/50 overflow-y-auto">
+        <main className="flex-1 min-w-0 bg-background/50 overflow-y-auto h-full custom-scrollbar">
           <div className="p-0">
             <div key={activeTab} className={isLeaving ? 'animate-tab-panel-out' : 'animate-tab-panel-in'}>
               {previousTab === 'builder' && <QuizEditor />}

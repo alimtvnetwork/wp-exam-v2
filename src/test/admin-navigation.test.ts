@@ -73,7 +73,7 @@ describe('WordPress Admin Navigation & Layout Standards', () => {
 
     const source = fs.readFileSync(jobRolesManagerPath, 'utf-8');
     expect(source).toContain('Job Roles & Technical Assessments');
-    expect(source).toContain('Assessment MCQ Editor');
+    expect(source).toContain('Assessment Question Editor');
     expect(source).toContain('Job Openings');
   });
 });

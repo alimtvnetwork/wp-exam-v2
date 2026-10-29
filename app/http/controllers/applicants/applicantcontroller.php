@@ -206,6 +206,8 @@ class ApplicantController
         $email = trim((string) ($body['candidate_email'] ?? ''));
         $phone = trim((string) ($body['phone'] ?? ''));
         $stageKey = trim((string) ($body['stage_key'] ?? 'applied'));
+        $jobRole = trim((string) ($body['job_role'] ?? ''));
+        $portalToken = trim((string) ($body['portal_token'] ?? ''));
         $formId = (int) ($body['form_id'] ?? 0);
         $notes = trim((string) ($body['notes'] ?? ''));
 
@@ -235,12 +237,18 @@ class ApplicantController
             $stageKey = 'applied';
         }
 
+        $isTokenEmpty = (strlen($portalToken) === 0);
+
+        if ($isTokenEmpty) {
+            $portalToken = 'cpt_' . bin2hex(random_bytes(12));
+        }
+
         try {
             $db = SqliteDatabase::getInstance();
             $db->init();
 
-            $sql = 'INSERT INTO applicants (candidate_name, candidate_email, phone, current_stage_key, form_id, notes) VALUES (?, ?, ?, ?, ?, ?)';
-            $db->execute($sql, [$name, $email, $phone, $stageKey, $formId, $notes]);
+            $sql = 'INSERT INTO applicants (candidate_name, candidate_email, phone, job_role, portal_token, current_stage_key, form_id, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)';
+            $db->execute($sql, [$name, $email, $phone, $jobRole, $portalToken, $stageKey, $formId, $notes]);
 
             $newApplicantRows = $db->query('SELECT * FROM applicants WHERE candidate_email = ? ORDER BY id DESC LIMIT 1', [$email]);
             $newApplicant = $newApplicantRows[0] ?? null;
@@ -268,6 +276,8 @@ class ApplicantController
             'candidate_name' => $name,
             'candidate_email' => $email,
             'phone' => $phone,
+            'job_role' => $jobRole,
+            'portal_token' => $portalToken,
             'current_stage_key' => $stageKey,
             'form_id' => $formId,
             'rating' => null,

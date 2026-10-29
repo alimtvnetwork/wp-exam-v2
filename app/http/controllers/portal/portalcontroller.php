@@ -87,41 +87,75 @@ class PortalController
                     ];
                 }
 
-                $userRows = $db->query(
-                    'SELECT u.id, u.name, u.email, u.phone FROM users u WHERE u.email = ? OR u.username = ? LIMIT 1',
-                    [$token, $token]
-                );
+                // 1. Direct match by portal_token in applicants table
+                $tokenRows = $db->query('SELECT * FROM applicants WHERE portal_token = ? LIMIT 1', [$token]);
+                $hasTokenMatch = !empty($tokenRows);
 
-                $hasUser = !empty($userRows);
+                if ($hasTokenMatch) {
+                    $directScore = null;
+                    $hasScoreCol = isset($tokenRows[0]['score']);
 
-                if ($hasUser) {
-                    $uEmail = $userRows[0]['email'];
-                    $appRows = $db->query('SELECT * FROM applicants WHERE candidate_email = ? LIMIT 1', [$uEmail]);
-                    $stage = !empty($appRows) ? ($appRows[0]['current_stage_key'] ?? 'screening') : 'screening';
-                    $userScore = null;
-                    $hasAppRows = !empty($appRows);
-
-                    if ($hasAppRows) {
-                        $hasScoreCol = isset($appRows[0]['score']);
-
-                        if ($hasScoreCol) {
-                            $userScore = (int) $appRows[0]['score'];
-                        }
+                    if ($hasScoreCol) {
+                        $directScore = (int) $tokenRows[0]['score'];
                     }
 
                     $applicant = [
-                        'id' => (int) $userRows[0]['id'],
-                        'candidate_name' => $userRows[0]['name'],
-                        'candidate_email' => $userRows[0]['email'],
-                        'phone' => $userRows[0]['phone'] ?? '',
-                        'current_stage_key' => $stage,
-                        'score' => $userScore,
+                        'id' => (int) $tokenRows[0]['id'],
+                        'candidate_name' => $tokenRows[0]['candidate_name'],
+                        'candidate_email' => $tokenRows[0]['candidate_email'],
+                        'phone' => $tokenRows[0]['phone'] ?? '',
+                        'current_stage_key' => $tokenRows[0]['current_stage_key'] ?? 'screening',
+                        'score' => $directScore,
+                        'job_role' => $tokenRows[0]['job_role'] ?? '',
+                        'portal_token' => $tokenRows[0]['portal_token'] ?? $token,
+                        'assigned_tasks_json' => $tokenRows[0]['assigned_tasks_json'] ?? '[]',
                     ];
                 }
 
+                // 2. Lookup in users table
                 $hasNoApplicant = ($applicant === null);
 
                 if ($hasNoApplicant) {
+                    $userRows = $db->query(
+                        'SELECT u.id, u.name, u.email, u.phone FROM users u WHERE u.email = ? OR u.username = ? LIMIT 1',
+                        [$token, $token]
+                    );
+
+                    $hasUser = !empty($userRows);
+
+                    if ($hasUser) {
+                        $uEmail = $userRows[0]['email'];
+                        $appRows = $db->query('SELECT * FROM applicants WHERE candidate_email = ? LIMIT 1', [$uEmail]);
+                        $stage = !empty($appRows) ? ($appRows[0]['current_stage_key'] ?? 'screening') : 'screening';
+                        $userScore = null;
+                        $hasAppRows = !empty($appRows);
+
+                        if ($hasAppRows) {
+                            $hasScoreCol = isset($appRows[0]['score']);
+
+                            if ($hasScoreCol) {
+                                $userScore = (int) $appRows[0]['score'];
+                            }
+                        }
+
+                        $applicant = [
+                            'id' => (int) $userRows[0]['id'],
+                            'candidate_name' => $userRows[0]['name'],
+                            'candidate_email' => $userRows[0]['email'],
+                            'phone' => $userRows[0]['phone'] ?? '',
+                            'current_stage_key' => $stage,
+                            'score' => $userScore,
+                            'job_role' => !empty($appRows) ? ($appRows[0]['job_role'] ?? '') : '',
+                            'portal_token' => !empty($appRows) ? ($appRows[0]['portal_token'] ?? $token) : $token,
+                            'assigned_tasks_json' => !empty($appRows) ? ($appRows[0]['assigned_tasks_json'] ?? '[]') : '[]',
+                        ];
+                    }
+                }
+
+                // 3. Fallback lookup in applicants table by email or id
+                $stillNoApplicant = ($applicant === null);
+
+                if ($stillNoApplicant) {
                     $appRows = $db->query(
                         'SELECT * FROM applicants WHERE candidate_email = ? OR candidate_email LIKE ? OR id = ? LIMIT 1',
                         [$token, $token . '@%', (int) $token]
@@ -143,10 +177,14 @@ class PortalController
                             'phone' => $appRows[0]['phone'] ?? '',
                             'current_stage_key' => $appRows[0]['current_stage_key'] ?? 'screening',
                             'score' => $directScore,
+                            'job_role' => $appRows[0]['job_role'] ?? '',
+                            'portal_token' => $appRows[0]['portal_token'] ?? $token,
+                            'assigned_tasks_json' => $appRows[0]['assigned_tasks_json'] ?? '[]',
                         ];
                     }
                 }
 
+                // 4. Fallback to latest applicant if token is demo or generic
                 $stillNoApplicant = ($applicant === null);
 
                 if ($stillNoApplicant) {
@@ -168,6 +206,9 @@ class PortalController
                             'phone' => $latestRows[0]['phone'] ?? '',
                             'current_stage_key' => $latestRows[0]['current_stage_key'] ?? 'screening',
                             'score' => $latestScore,
+                            'job_role' => $latestRows[0]['job_role'] ?? '',
+                            'portal_token' => $latestRows[0]['portal_token'] ?? $token,
+                            'assigned_tasks_json' => $latestRows[0]['assigned_tasks_json'] ?? '[]',
                         ];
                     }
                 }
@@ -197,7 +238,24 @@ class PortalController
         $totalSteps = count(self::PORTAL_STEPS);
         $progressPct = ($totalSteps > 0) ? (int) round(($completedCount / $totalSteps) * 100) : 0;
 
-        $candidateName = $applicant['candidate_name'] ?? ucwords(str_replace(['-', '_', '.'], ' ', $token));
+        $queryName = trim((string) ($params['name'] ?? ($body['name'] ?? '')));
+        $candidateName = $applicant['candidate_name'] ?? '';
+        $hasCandName = (strlen($candidateName) > 0);
+
+        if (!$hasCandName) {
+            $hasQueryName = (strlen($queryName) > 0);
+
+            if ($hasQueryName) {
+                $candidateName = $queryName;
+            }
+        }
+
+        $isNameEmpty = (strlen($candidateName) === 0);
+
+        if ($isNameEmpty) {
+            $candidateName = ucwords(str_replace(['-', '_', '.'], ' ', $token));
+        }
+
         $candidateEmail = $applicant['candidate_email'] ?? (strtolower($token) . '@example.com');
         $phone = $applicant['phone'] ?? '+1 (555) 019-2834';
         $stageKey = $applicant['current_stage_key'] ?? 'screening';
@@ -257,6 +315,23 @@ class PortalController
         $rawRoles = $db->getSetting('custom_job_roles_json', '[]');
         $customRoles = json_decode($rawRoles, true) ?: [];
         $targetRoleKey = (string) ($applicant['job_role'] ?? '');
+        $hasAppRole = (strlen($targetRoleKey) > 0);
+
+        if (!$hasAppRole) {
+            $queryRole = trim((string) ($params['role'] ?? ($body['role'] ?? '')));
+            $hasQueryRole = (strlen($queryRole) > 0);
+
+            if ($hasQueryRole) {
+                $targetRoleKey = $queryRole;
+            }
+        }
+
+        $isStillEmpty = (strlen($targetRoleKey) === 0);
+
+        if ($isStillEmpty) {
+            $targetRoleKey = 'junior-software-engineer';
+        }
+
         $jobRoleData = null;
 
         foreach ($customRoles as $cr) {
@@ -290,7 +365,7 @@ class PortalController
                     'name' => $candidateName,
                     'email' => $candidateEmail,
                     'phone' => $phone,
-                    'job_role' => $applicant['job_role'] ?? 'frontend-developer',
+                    'job_role' => $targetRoleKey,
                     'current_stage_key' => $stageKey,
                     'current_stage' => $stageKey,
                     'applied_at' => '2026-10-18',

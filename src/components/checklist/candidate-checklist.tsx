@@ -150,7 +150,7 @@ export const CandidateChecklist: React.FC = () => {
               aria-label="Checklist progress"
             >
               <div
-                className="h-full bg-primary rounded-full transition-[width] duration-300 ease-[var(--ease-state)]"
+                className="h-full bg-primary rounded-full transition-[width] duration-300 ease-state"
                 style={{ width: `${progressPercent}%` }}
               />
             </div>

@@ -1496,8 +1496,8 @@ export const FormBuilder: React.FC = () => {
             </Button>
           </div>
         ) : (
-        <div className="lg:col-span-4 sticky top-6">
-          <div className="flex justify-end -mb-1">
+        <div className="lg:col-span-4 sticky top-4 max-h-[calc(100vh-5rem)] flex flex-col">
+          <div className="flex justify-end -mb-1 shrink-0 pb-1">
             <Button
               type="button"
               variant="ghost"
@@ -1510,10 +1510,10 @@ export const FormBuilder: React.FC = () => {
               <span>Hide Dock</span>
             </Button>
           </div>
-          <Card className="border border-border bg-card shadow-md rounded-xl overflow-hidden">
-            <Tabs value={inspectorTab} onValueChange={setInspectorTab} className="w-full">
+          <Card className="border border-border bg-card shadow-md rounded-xl overflow-hidden flex flex-col flex-1 min-h-0">
+            <Tabs value={inspectorTab} onValueChange={setInspectorTab} className="w-full flex flex-col flex-1 min-h-0">
               {/* Sleek Segmented Dock Tabs Header (Larger, more tactile) */}
-              <div className="p-2 border-b border-border/80 bg-muted/20">
+              <div className="p-2 border-b border-border/80 bg-muted/20 shrink-0">
                 <TabsList className="grid grid-cols-4 h-11 p-1 bg-muted/60 rounded-xl gap-1">
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -1571,7 +1571,7 @@ export const FormBuilder: React.FC = () => {
               </div>
 
               {/* Tab 1: Component Palette */}
-              <TabsContent value="palette" className="p-3 m-0 focus-visible:outline-none">
+              <TabsContent value="palette" className="p-3 m-0 focus-visible:outline-none flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 <FieldPalette
                   onAddField={handleQuickAdd}
                   activeCount={fields.length}
@@ -1586,7 +1586,7 @@ export const FormBuilder: React.FC = () => {
               </TabsContent>
 
               {/* Tab 2: Questions Outline */}
-              <TabsContent value="outline" className="p-3 m-0 space-y-3 focus-visible:outline-none">
+              <TabsContent value="outline" className="p-3 m-0 space-y-3 focus-visible:outline-none flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 <div className="space-y-2">
                   {/* Outline Search Filter */}
                   <div className="relative">
@@ -1714,7 +1714,7 @@ export const FormBuilder: React.FC = () => {
               </TabsContent>
 
               {/* Tab 3: Embedded Design Validation Audit */}
-              <TabsContent value="audit" className="p-3 m-0 focus-visible:outline-none">
+              <TabsContent value="audit" className="p-3 m-0 focus-visible:outline-none flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 <DesignValidationSidebarView
                   report={designReport}
                   fields={fields}
@@ -1725,7 +1725,7 @@ export const FormBuilder: React.FC = () => {
               </TabsContent>
 
               {/* Tab 4: Form Settings / Config */}
-              <TabsContent value="settings" className="p-3 m-0 space-y-3 focus-visible:outline-none text-sm">
+              <TabsContent value="settings" className="p-3 m-0 space-y-3 focus-visible:outline-none text-sm flex-1 min-h-0 overflow-y-auto custom-scrollbar">
                 {/* 1. Access & Candidate Permissions */}
                 <div className="p-3 rounded-xl border border-border/70 bg-card/60 space-y-2">
                   <div className="flex items-center gap-1.5 text-foreground font-semibold">

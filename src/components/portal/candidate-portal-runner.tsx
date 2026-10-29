@@ -69,7 +69,6 @@ import {
 } from '@/lib/exam-session-storage';
 import {
   isValidVideoUrl,
-  isValidPortfolioUrl,
   normalizeWebUrl,
   isRecognizedVideoPlatform,
 } from '@/lib/portal-validation';
@@ -839,6 +838,38 @@ export const CandidatePortalRunner: React.FC = () => {
 
     setTaskQuizScore(scorePercent);
     handleUpdateTaskStatus(activeTask.id, 'completed', scorePercent);
+
+    if (typeof window !== 'undefined') {
+      try {
+        const wrongIds = questions
+          .filter((q) => taskQuizAnswers[q.id] !== q.correctAnswer)
+          .map((q) => q.id);
+
+        const sub = {
+          id: `sub_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
+          quiz_id: activeTask.slug || activeTask.id,
+          quiz_title: activeTask.title,
+          candidate_name: session.candidate.candidate_name,
+          candidate_email: session.candidate.candidate_email,
+          is_anonymous: false,
+          score: correctCount,
+          total,
+          percentage: scorePercent,
+          is_passed: scorePercent >= 70,
+          wrong_question_ids: wrongIds,
+          answers: taskQuizAnswers,
+          submitted_at: new Date().toISOString(),
+        };
+
+        const existingRaw = localStorage.getItem('wp_exam_quiz_submissions');
+        const existing = existingRaw ? JSON.parse(existingRaw) : [];
+        localStorage.setItem('wp_exam_quiz_submissions', JSON.stringify([sub, ...existing]));
+        window.dispatchEvent(new Event('wp_exam_submissions_updated'));
+      } catch {
+        // Storage fallback
+      }
+    }
+
     toast.success("Assessment submitted successfully! Your submission is now in review.");
   };
 
@@ -877,8 +908,11 @@ export const CandidatePortalRunner: React.FC = () => {
     };
   }, []);
 
-  const candidateRoleKey = session.candidate?.job_role || queryRole || 'frontend-developer';
-  const currentJobRole = session.job_role_data || getJobRoleById(candidateRoleKey);
+  const candidateRoleKey = queryRole || session.candidate?.job_role || 'junior-software-engineer';
+  const roleById = getJobRoleById(candidateRoleKey);
+  const currentJobRole = (session.job_role_data && session.job_role_data.id === candidateRoleKey)
+    ? session.job_role_data
+    : roleById;
   const roleQuestions = currentJobRole.secondPhaseQuestions;
 
   const [assessmentAnswers, setAssessmentAnswers] = useState<Record<string, string>>({});
@@ -919,7 +953,6 @@ export const CandidatePortalRunner: React.FC = () => {
 
   // Step 4 Submission State
   const [videoUrl, setVideoUrl] = useState<string>('');
-  const [portfolioUrl, setPortfolioUrl] = useState<string>('');
   const [submissionNotes, setSubmissionNotes] = useState<string>('');
   const [showReceiptModal, setShowReceiptModal] = useState<boolean>(false);
 
@@ -946,7 +979,7 @@ export const CandidatePortalRunner: React.FC = () => {
         if (sessionData?.steps) {
           setIsSessionNotFound(false);
           const rawCandidate = sessionData.candidate || {};
-          const candidateName = rawCandidate.candidate_name || rawCandidate.name || searchParams.get('name') || 'Candidate';
+          const candidateName = searchParams.get('name') || rawCandidate.candidate_name || rawCandidate.name || 'Candidate';
           const candidateEmail = rawCandidate.candidate_email || rawCandidate.email || 'candidate@example.com';
           const currentStage = rawCandidate.current_stage_key || rawCandidate.current_stage || 'assessment';
           const phone = rawCandidate.phone || '';
@@ -961,7 +994,7 @@ export const CandidatePortalRunner: React.FC = () => {
             current_stage_key: currentStage,
             notes: rawCandidate.notes || '',
             score: hasCandScore ? candScoreRaw : undefined,
-            job_role: rawCandidate.job_role,
+            job_role: queryRole || rawCandidate.job_role,
             portal_token: rawCandidate.portal_token || activeToken,
           };
 
@@ -1202,7 +1235,7 @@ export const CandidatePortalRunner: React.FC = () => {
   };
 
 
-  const candidateName = session?.candidate?.candidate_name || session?.candidate?.name || 'Candidate';
+  const candidateName = searchParams.get('name') || session?.candidate?.candidate_name || session?.candidate?.name || 'Candidate';
   const candidateEmail = session?.candidate?.candidate_email || session?.candidate?.email || 'candidate@example.com';
   const candidateInitial = (candidateName.trim().charAt(0) || 'C').toUpperCase();
 
@@ -1258,9 +1291,7 @@ export const CandidatePortalRunner: React.FC = () => {
   const isStep4Done = Boolean(session.steps.find((s) => s.id === 'step_submission')?.is_completed);
   const isVideoEmpty = (videoUrl.trim().length === 0);
   const isVideoValid = isValidVideoUrl(videoUrl);
-  const isPortfolioEmpty = (portfolioUrl.trim().length === 0);
-  const isPortfolioValid = isValidPortfolioUrl(portfolioUrl);
-  const isStep4InputValid = (isVideoValid && isPortfolioValid);
+  const isStep4InputValid = isVideoValid;
   const isStep4Satisfied = (isStep4InputValid || isStep4Done);
 
   // Step 5 satisfaction / completion
@@ -1542,11 +1573,9 @@ export const CandidatePortalRunner: React.FC = () => {
     }
 
     const cleanVideoUrl = normalizeWebUrl(videoUrl);
-    const cleanPortfolioUrl = normalizeWebUrl(portfolioUrl);
 
     handleCompleteStep('step_submission', {
       video_url: cleanVideoUrl,
-      portfolio_url: cleanPortfolioUrl,
       notes: submissionNotes,
     });
   };
@@ -2719,7 +2748,7 @@ export const CandidatePortalRunner: React.FC = () => {
                       onClick={() => setActiveStepId('step_submission')}
                       className="gap-2 bg-primary text-primary-foreground font-semibold cursor-pointer shadow-md"
                     >
-                      <span>Proceed to Step 4: Video & Portfolio</span>
+                      <span>Proceed to Step 4: Video Introduction</span>
                       <ArrowRight className="w-4 h-4" />
                     </Button>
                   </div>
@@ -3468,7 +3497,7 @@ export const CandidatePortalRunner: React.FC = () => {
                   <CardTitle className="text-xl">Work Sample & Video Introduction</CardTitle>
                 </div>
                 <p className="text-sm text-muted-foreground">
-                  Provide an introductory video recording link and portfolio code repository.
+                  Provide an introductory video recording link and technical highlights.
                 </p>
               </CardHeader>
               <CardContent className="p-6 pt-0 space-y-4">
@@ -3494,33 +3523,6 @@ export const CandidatePortalRunner: React.FC = () => {
                           <div className="flex items-center gap-1.5 text-[11px] text-destructive font-medium">
                             <AlertCircle className="w-3.5 h-3.5" />
                             <span>Please enter a valid web URL (e.g. https://www.loom.com/share/...)</span>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                      <ExternalLink className="w-4 h-4 text-primary" />
-                      GitHub / Portfolio Repository URL
-                    </label>
-                    <Input
-                      placeholder="https://github.com/..."
-                      value={portfolioUrl}
-                      onChange={(e) => setPortfolioUrl(e.target.value)}
-                    />
-                    {!isPortfolioEmpty && (
-                      <div className="pt-0.5">
-                        {isPortfolioValid ? (
-                          <div className="flex items-center gap-1.5 text-[11px] text-emerald-500 font-medium">
-                            <Check className="w-3.5 h-3.5" />
-                            <span>Valid portfolio URL</span>
-                          </div>
-                        ) : (
-                          <div className="flex items-center gap-1.5 text-[11px] text-destructive font-medium">
-                            <AlertCircle className="w-3.5 h-3.5" />
-                            <span>Please enter a valid web URL (e.g. https://github.com/...)</span>
                           </div>
                         )}
                       </div>
@@ -3607,76 +3609,6 @@ export const CandidatePortalRunner: React.FC = () => {
                         Thank you, <strong className="text-foreground">{candidateName}</strong>! We have received your completed assessment, work sample, and submission details.
                       </p>
                     </div>
-
-                    {/* Official Assessment & Exam Result Card */}
-                    {displayScore !== null && (
-                      <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border/70 shadow-xs space-y-4">
-                        <div className="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-border/40">
-                          <div className="flex items-center gap-2.5">
-                            <div className="w-9 h-9 rounded-xl bg-primary/10 border border-primary/20 text-primary flex items-center justify-center">
-                              <Award className="w-5 h-5" />
-                            </div>
-                            <div>
-                              <h4 className="text-sm sm:text-base font-bold text-foreground">
-                                Your Assessment & Exam Result
-                              </h4>
-                              <p className="text-xs text-muted-foreground">
-                                Official score recorded and filed with your candidate profile
-                              </p>
-                            </div>
-                          </div>
-
-                          <Badge
-                            className={`font-semibold text-xs px-2.5 py-1 ${
-                              displayScore >= 70
-                                ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/30'
-                                : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/30'
-                            }`}
-                          >
-                            {displayScore >= 70 ? 'Passed (Benchmark Met)' : 'Score Under Review'}
-                          </Badge>
-                        </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                          <div className="p-4 rounded-xl bg-primary/5 border border-primary/20 space-y-1">
-                            <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
-                              Final Exam Score
-                            </span>
-                            <div className="text-3xl font-extrabold font-mono text-primary">
-                              {displayScore}%
-                            </div>
-                          </div>
-
-                          <div className="p-4 rounded-xl bg-muted/30 border border-border/40 space-y-1">
-                            <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
-                              Questions Verified
-                            </span>
-                            <div className="text-3xl font-extrabold font-mono text-foreground">
-                              {correctQuestionsCount} / 3
-                            </div>
-                          </div>
-
-                          <div className="p-4 rounded-xl bg-muted/30 border border-border/40 space-y-1">
-                            <span className="text-[11px] text-muted-foreground font-medium uppercase tracking-wider">
-                              Verification Status
-                            </span>
-                            <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1.5 pt-2">
-                              <CheckCircle2 className="w-4 h-4 shrink-0" />
-                              <span>Official Record Saved</span>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className="p-3.5 rounded-xl bg-emerald-500/5 border border-emerald-500/20 flex items-start gap-2.5 text-xs text-emerald-700 dark:text-emerald-300">
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
-                          <span>
-                            {displayScore >= 70
-                              ? `Congratulations! Your score of ${displayScore}% meets our hiring technical benchmark. Your results, video presentation, and signed NDA have been delivered to our recruitment team.`
-                              : `Your score of ${displayScore}% has been recorded in your application packet. Our recruiting committee will review your overall profile including your video submission.`}
-                          </span>
-                        </div>
-                      </div>
-                    )}
 
                     {/* What Happens Next Roadmap */}
                     <div className="p-5 sm:p-6 rounded-2xl bg-card border border-border/60 shadow-xs space-y-4">

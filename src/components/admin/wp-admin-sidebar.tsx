@@ -123,7 +123,7 @@ const NAV_SECTIONS: NavSection[] = [
         id: 'roles',
         label: 'Job Roles & Assessments',
         icon: Briefcase,
-        description: 'Position definitions & MCQ editor',
+        description: 'Position definitions & question editor',
       },
       {
         id: 'invites',
@@ -248,12 +248,12 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
 
   return (
     <aside
-      className={`relative flex flex-col bg-card border-r border-border transition-[width] duration-300 ease-[var(--ease-out-editorial)] overflow-hidden z-30 select-none ${
+      className={`relative flex flex-col bg-card border-r border-border transition-[width] duration-300 ease-out-editorial overflow-hidden z-30 select-none h-full shrink-0 ${
         isCollapsed ? 'w-16' : 'w-64'
       }`}
     >
       {/* WordPress Admin Brand Header */}
-      <div className="h-14 px-3 flex items-center justify-between border-b border-border bg-muted/30">
+      <div className="h-14 px-3 flex items-center justify-between border-b border-border bg-muted/30 shrink-0">
         <div
           onClick={onNavigateHome}
           className="flex items-center gap-2.5 cursor-pointer group min-w-0"
@@ -292,7 +292,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
           title="Collapse Sidebar"
           tabIndex={isCollapsed ? -1 : undefined}
           aria-hidden={isCollapsed}
-          className={`w-6 h-6 rounded-md shrink-0 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-[opacity,transform,background-color,color] duration-200 ease-[var(--ease-state)] cursor-pointer ${
+          className={`w-6 h-6 rounded-md shrink-0 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-[opacity,transform,background-color,color] duration-200 ease-state cursor-pointer ${
             isCollapsed ? 'opacity-0 pointer-events-none' : 'opacity-100'
           }`}
         >
@@ -301,7 +301,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
       </div>
 
       {/* Navigation Sections */}
-      <div className="relative flex-1 overflow-y-auto py-3 space-y-4 px-2 custom-scrollbar">
+      <div className="relative flex-1 min-h-0 overflow-y-auto py-3 space-y-4 px-2 custom-scrollbar">
         <span
           aria-hidden="true"
           className="admin-active-indicator pointer-events-none z-10 top-0"
@@ -328,7 +328,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
               </div>
 
               <div
-                className={`mx-1 overflow-hidden transition-[opacity] duration-200 ease-[var(--ease-state)] ${
+                className={`mx-1 overflow-hidden transition-[opacity] duration-200 ease-state ${
                   showDivider ? 'my-2 border-t border-border opacity-100' : 'my-0 h-0 opacity-0'
                 }`}
                 aria-hidden={!showDivider}
@@ -348,7 +348,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
                       }}
                       onClick={() => onSelectTab(item.id)}
                       title={isCollapsed ? item.label : undefined}
-                      className={`relative w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-[background-color,color,border-color,transform,box-shadow] duration-200 ease-[var(--ease-state)] group cursor-pointer ${
+                      className={`relative w-full flex items-center gap-3 px-2.5 py-2 rounded-lg text-xs font-medium transition-[background-color,color,border-color,transform,box-shadow] duration-200 ease-state group cursor-pointer ${
                         isActive
                           ? 'bg-primary/15 text-foreground font-semibold shadow-xs ring-1 ring-primary/40'
                           : 'text-foreground/85 hover:text-foreground hover:bg-primary/10 hover:translate-x-1 hover:border-l-2 hover:border-primary/60'
@@ -397,10 +397,10 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
       </div>
 
       {/* Sidebar Footer & Collapse Toggle */}
-      <div className="p-2 border-t border-border bg-muted/20">
+      <div className="p-2 border-t border-border bg-muted/20 shrink-0">
         <div className="relative h-8">
           <div
-            className={`absolute inset-0 flex items-center justify-between px-2 text-xs text-muted-foreground transition-[opacity,transform] duration-200 ease-[var(--ease-state)] ${
+            className={`absolute inset-0 flex items-center justify-between px-2 text-xs text-muted-foreground transition-[opacity,transform] duration-200 ease-state ${
               isCollapsed ? 'opacity-0 -translate-x-2 pointer-events-none' : 'opacity-100 translate-x-0'
             }`}
             aria-hidden={isCollapsed}
@@ -423,7 +423,7 @@ export const WpAdminSidebar: React.FC<WpAdminSidebarProps> = ({
             title="Expand Sidebar"
             tabIndex={isCollapsed ? undefined : -1}
             aria-hidden={!isCollapsed}
-            className={`absolute inset-0 w-full rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-[opacity,transform,background-color,color] duration-200 ease-[var(--ease-state)] cursor-pointer ${
+            className={`absolute inset-0 w-full rounded-lg flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-[opacity,transform,background-color,color] duration-200 ease-state cursor-pointer ${
               isCollapsed ? 'opacity-100 translate-x-0' : 'opacity-0 translate-x-2 pointer-events-none'
             }`}
           >
