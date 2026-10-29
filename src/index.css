@@ -312,6 +312,16 @@ All colors MUST be HSL.
   animation: steady-beam 3.5s ease-in-out infinite;
 }
 
+@keyframes v2-fade {
+  from { opacity: 0; transform: translate3d(0, 14px, 0); }
+  to { opacity: 1; transform: translate3d(0, 0, 0); }
+}
+
+@keyframes v2-rule {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
 @keyframes v3-draw {
   from { stroke-dashoffset: 1; }
   to { stroke-dashoffset: 0; }
@@ -403,6 +413,22 @@ All colors MUST be HSL.
 @keyframes v7-flow {
   0%, 100% { opacity: 0.45; }
   50% { opacity: 1; }
+}
+
+.font-v2 {
+  font-family: 'Fraunces', Georgia, serif;
+}
+
+.font-v2 :is(h1, h2, h3, h4, button) {
+  font-family: inherit;
+}
+
+.v2-fade {
+  animation: v2-fade 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.v2-rule {
+  animation: v2-rule 900ms cubic-bezier(0.65, 0, 0.35, 1) both;
 }
 
 .font-v3 {
@@ -546,6 +572,8 @@ All colors MUST be HSL.
   .animate-radar-sweep,
   .animate-steady-pulse,
   .animate-steady-beam,
+  .v2-fade,
+  .v2-rule,
   .v3-draw,
   .v3-fade,
   .v4-rise,

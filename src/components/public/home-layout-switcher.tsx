@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   LayoutTemplate,
   Check,
-  Sparkles,
+  BookOpen,
   Layers,
   Route,
   Rows3,
@@ -51,13 +51,13 @@ export const HOME_LAYOUT_OPTIONS: HomeLayoutOption[] = [
   },
   {
     id: 'v2',
-    title: 'V2: Live Test-Drive Hub',
-    tagline: 'Interactive 3-question mini-exam & live scoring',
-    badgeText: 'Test-Drive',
-    signatureTheme: 'purple',
-    themeName: 'Electric Purple',
-    themeDotColor: '#5C45FD',
-    icon: Sparkles,
+    title: 'V2: House Programme',
+    tagline: 'An ivory programme on a bottle-green desk',
+    badgeText: 'House',
+    signatureTheme: 'obsidian',
+    themeName: 'Bottle Green & Ivory',
+    themeDotColor: '#14211B',
+    icon: BookOpen,
   },
   {
     id: 'v3',
@@ -113,7 +113,7 @@ export const HOME_LAYOUT_OPTIONS: HomeLayoutOption[] = [
 
 export const LAYOUT_SIGNATURE_THEMES: Record<HomeLayoutType, AppThemeType> = {
   v1: 'green-choice',
-  v2: 'purple',
+  v2: 'obsidian',
   v3: 'riseup',
   v4: 'dracula',
   v5: 'clean-wide',
