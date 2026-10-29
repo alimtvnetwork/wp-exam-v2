@@ -3,79 +3,54 @@ import { act, cleanup, fireEvent, render, screen } from '@testing-library/react'
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Version4DeveloperPlatform } from '@/components/public/layouts/version-4-developer-platform';
 
-const renderDeveloperPlatform = () => {
+const renderProductPage = () => {
   const onAdminClick = vi.fn();
   const onCandidateClick = vi.fn();
-  const onNavigate = vi.fn();
 
   render(
     <Version4DeveloperPlatform
       onAdminClick={onAdminClick}
       onCandidateClick={onCandidateClick}
-      onNavigate={onNavigate}
+      onNavigate={vi.fn()}
       isAuthenticated={false}
     />,
   );
 
-  return { onAdminClick, onCandidateClick, onNavigate };
+  return { onAdminClick, onCandidateClick };
 };
 
-describe('Version 4 sovereign developer platform', () => {
+describe('Version 4 product-led homepage', () => {
   afterEach(() => {
     cleanup();
     vi.useRealTimers();
-    vi.restoreAllMocks();
   });
 
-  it(
-    'validates candidate token format and triggers candidate and admin callbacks',
-    () => {
-      const { onAdminClick, onCandidateClick } = renderDeveloperPlatform();
-      const tokenInput = screen.getByLabelText(/session access token/i);
-      const enterButton = screen.getByRole('button', { name: /enter candidate portal/i });
+  it('routes the hero actions to the candidate portal and the builder', () => {
+    const { onAdminClick, onCandidateClick } = renderProductPage();
 
-      fireEvent.change(tokenInput, { target: { value: 'short' } });
-      expect(enterButton).toBeDisabled();
+    fireEvent.click(screen.getByRole('button', { name: /try the candidate experience/i }));
+    fireEvent.click(screen.getAllByRole('button', { name: /open the builder/i })[0]);
 
-      fireEvent.change(tokenInput, { target: { value: 'TOK-VALID-8819' } });
-      expect(enterButton).not.toBeDisabled();
+    expect(onCandidateClick).toHaveBeenCalledTimes(1);
+    expect(onAdminClick).toHaveBeenCalledTimes(1);
+  });
 
-      fireEvent.click(enterButton);
-      fireEvent.click(screen.getByRole('button', { name: /open admin workspace/i }));
+  it('types the demo question into the builder and mirrors it in the candidate view', () => {
+    vi.useFakeTimers();
+    renderProductPage();
 
-      expect(onCandidateClick).toHaveBeenCalledTimes(1);
-      expect(onAdminClick).toHaveBeenCalledTimes(1);
-    },
-    15000,
-  );
+    const replayButton = screen.getByRole('button', { name: /replay/i });
+    expect(replayButton).toBeDisabled();
 
-  it(
-    'runs the cryptographic handshake verification and switches diagnostic specs',
-    () => {
-      vi.useFakeTimers();
-      vi.spyOn(Math, 'random').mockReturnValue(0.5);
-      renderDeveloperPlatform();
-
-      fireEvent.click(screen.getByRole('button', { name: /verify cryptographic handshake/i }));
-      expect(screen.getByRole('status')).toHaveTextContent(/computing sha-256 token digest/i);
-
+    for (let step = 0; step < 200; step += 1) {
       act(() => {
-        vi.advanceTimersByTime(550);
+        vi.advanceTimersByTime(40);
       });
-      expect(screen.getByRole('status')).toHaveTextContent(/enforcing casbin rbac policy/i);
+    }
 
-      act(() => {
-        vi.advanceTimersByTime(750);
-      });
-      expect(screen.getByRole('status')).toHaveTextContent(/handshake verified/i);
-      expect(screen.getByRole('status')).toHaveTextContent(/commit #49209/i);
-
-      fireEvent.click(screen.getByRole('tab', { name: /casbin rbac/i }));
-      expect(screen.getByText(/zero-trust multi-tenant rbac matrix/i)).toBeVisible();
-
-      fireEvent.click(screen.getByRole('option', { name: /database write contention/i }));
-      expect(screen.getByText(/PRAGMA journal_mode = WAL; ATTACH DATABASE/i)).toBeVisible();
-    },
-    15000,
-  );
+    const question = 'A page takes six seconds to load. What do you check first?';
+    expect(screen.getAllByText(question)).toHaveLength(2);
+    expect(screen.getAllByText('The network waterfall in DevTools')).toHaveLength(2);
+    expect(replayButton).not.toBeDisabled();
+  }, 15000);
 });
