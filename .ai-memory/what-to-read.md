@@ -74,3 +74,6 @@
 - .ai-memory/plans/completed/03-fileutil-pathinfo-and-enum-architecture.md
 - .ai-memory/plans/completed/04-applogger-taxonomy-streaming-and-task-db.md
 - .ai-memory/plans/completed/12-regex-centralization-and-generic-dbengine.md
+- .ai-memory/memory/readme.md
+- .ai-memory/memory/learned/01-recent-session-2026-10-29.md
+- .ai-memory/plans/readme.md
