@@ -18,7 +18,7 @@ import {
   Rows3,
   Link2,
   Clock,
-  Armchair,
+  Columns2,
   ChevronDown,
   X,
   Palette,
@@ -101,13 +101,13 @@ export const HOME_LAYOUT_OPTIONS: HomeLayoutOption[] = [
   },
   {
     id: 'v7',
-    title: 'V7: The Table',
-    tagline: 'Four seats, one paper',
-    badgeText: 'Table',
+    title: 'V7: Two Views',
+    tagline: 'The question they answer, and the record you keep',
+    badgeText: 'Views',
     signatureTheme: 'clean-wide',
-    themeName: 'Chalk & Cadmium',
-    themeDotColor: '#E3B505',
-    icon: Armchair,
+    themeName: 'Sage & Pine',
+    themeDotColor: '#0C6B52',
+    icon: Columns2,
   },
 ];
 

@@ -527,7 +527,7 @@ All colors MUST be HSL.
 }
 
 .font-v7 {
-  font-family: 'Familjen Grotesk', 'Ubuntu', sans-serif;
+  font-family: 'Public Sans', 'Ubuntu', sans-serif;
 }
 
 .font-v7 :is(h1, h2, h3, h4, button) {

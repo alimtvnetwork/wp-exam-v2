@@ -1,9 +1,9 @@
 import React from 'react';
-import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Version7VelocityStudio } from '@/components/public/layouts/version-7-velocity-studio';
 
-const renderTheTable = () => {
+const renderTwoViews = () => {
   const onAdminClick = vi.fn();
   const onCandidateClick = vi.fn();
 
@@ -19,33 +19,36 @@ const renderTheTable = () => {
   return { onAdminClick, onCandidateClick };
 };
 
-describe('Version 7 table homepage', () => {
+describe('Version 7 two-views homepage', () => {
   afterEach(() => {
     cleanup();
   });
 
-  it('seats a candidate at the next empty place', () => {
-    renderTheTable();
+  it('writes the chosen answer into the reviewer record', () => {
+    renderTwoViews();
 
-    expect(screen.getByText('Maya Rossi')).toBeInTheDocument();
-    expect(screen.getAllByText('Empty')).toHaveLength(2);
+    const reviewer = screen.getByRole('region', { name: 'Reviewer' });
 
-    fireEvent.change(screen.getByLabelText('Candidate name'), { target: { value: 'Sofia Lopez' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Seat them' }));
+    expect(within(reviewer).getByText('Not answered yet')).toBeInTheDocument();
+    expect(within(reviewer).getByText('Priya Shah')).toBeInTheDocument();
 
-    expect(screen.getByText('Sofia Lopez')).toBeInTheDocument();
-    expect(screen.getAllByText('Same paper · 30 minutes')).toHaveLength(4);
-    expect(screen.getAllByText('Empty')).toHaveLength(1);
+    fireEvent.click(screen.getByRole('button', { name: /send the document again/i }));
 
-    fireEvent.click(screen.getByRole('button', { name: 'Clear Sofia Lopez' }));
-    expect(screen.queryByText('Sofia Lopez')).not.toBeInTheDocument();
-    expect(screen.getAllByText('Empty')).toHaveLength(2);
+    expect(screen.getByRole('button', { name: /send the document again/i })).toHaveAttribute('aria-pressed', 'true');
+    expect(within(reviewer).getByText('Send the document again, and say where it lives.')).toBeInTheDocument();
+    expect(within(reviewer).queryByText('Not answered yet')).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('button', { name: /search the shared drive/i }));
+
+    expect(screen.getByRole('button', { name: /send the document again/i })).toHaveAttribute('aria-pressed', 'false');
+    expect(within(reviewer).getByText('Tell them to search the shared drive.')).toBeInTheDocument();
+    expect(within(reviewer).queryByText('Send the document again, and say where it lives.')).not.toBeInTheDocument();
   }, 15000);
 
   it('routes the actions', () => {
-    const { onAdminClick, onCandidateClick } = renderTheTable();
+    const { onAdminClick, onCandidateClick } = renderTwoViews();
 
-    fireEvent.click(screen.getByRole('button', { name: /take an open seat/i }));
+    fireEvent.click(screen.getByRole('button', { name: /try the paper/i }));
     fireEvent.click(screen.getByRole('button', { name: /open the builder/i }));
 
     expect(onCandidateClick).toHaveBeenCalledTimes(1);
