@@ -3,7 +3,7 @@ import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Version5CinematicShowcase } from '@/components/public/layouts/version-5-cinematic-showcase';
 
-const renderAnswerSheetPage = () => {
+const renderLinkPage = () => {
   const onAdminClick = vi.fn();
   const onCandidateClick = vi.fn();
 
@@ -19,47 +19,40 @@ const renderAnswerSheetPage = () => {
   return { onAdminClick, onCandidateClick };
 };
 
-describe('Version 5 answer sheet homepage', () => {
+describe('Version 5 one-link homepage', () => {
   afterEach(() => {
     cleanup();
   });
 
-  it('routes the visitor based on the answer to question 1', () => {
-    const { onAdminClick, onCandidateClick } = renderAnswerSheetPage();
+  it('changes the sample link and the paper behind it', () => {
+    renderLinkPage();
 
-    fireEvent.click(screen.getByRole('radio', { name: /i hire people/i }));
-    fireEvent.click(screen.getAllByRole('button', { name: /open the builder/i })[0]);
-    expect(onAdminClick).toHaveBeenCalledTimes(1);
+    const frontendButton = screen.getByRole('button', { name: 'Frontend developer' });
+    expect(frontendButton).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByText('/ frontend')).toBeInTheDocument();
+    expect(screen.getByText(/code reading/i)).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('radio', { name: /been sent an assessment/i }));
-    fireEvent.click(screen.getByRole('button', { name: /start your assessment/i }));
-    expect(onCandidateClick).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Customer support' }));
+
+    expect(frontendButton).toHaveAttribute('aria-pressed', 'false');
+    expect(screen.getByText('/ support')).toBeInTheDocument();
+    expect(screen.getByText(/upset caller/i)).toBeInTheDocument();
+    expect(screen.queryByText(/code reading/i)).not.toBeInTheDocument();
   }, 15000);
 
-  it('marks the fairness question and awards full marks', () => {
-    renderAnswerSheetPage();
+  it('copies the link and routes the actions', () => {
+    const { onAdminClick, onCandidateClick } = renderLinkPage();
+    const writeText = vi.fn().mockResolvedValue(undefined);
+    Object.assign(navigator, { clipboard: { writeText } });
 
-    const unfairStatement = screen.getByRole('checkbox', { name: /reviewer decides/i });
-    fireEvent.click(unfairStatement);
-    expect(screen.getByText(/that’s the problem we fix/i)).toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Copy link' }));
+    expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument();
+    expect(writeText).toHaveBeenCalledWith('onboardingquiz/frontend');
 
-    fireEvent.click(unfairStatement);
-    expect(screen.queryByText(/that’s the problem we fix/i)).not.toBeInTheDocument();
+    fireEvent.click(screen.getByRole('button', { name: 'Sales' }));
+    expect(screen.getByRole('button', { name: 'Copy link' })).toBeInTheDocument();
 
-    fireEvent.click(screen.getByRole('checkbox', { name: /same questions/i }));
-    fireEvent.click(screen.getByRole('checkbox', { name: /same time limit/i }));
-    fireEvent.click(screen.getByRole('checkbox', { name: /marked the same way/i }));
-    expect(screen.getByRole('status')).toHaveTextContent('3/3, well done');
-    expect(screen.queryByText('Full marks')).not.toBeInTheDocument();
-
-    fireEvent.click(screen.getByRole('radio', { name: /i hire people/i }));
-    expect(screen.getByText('Full marks')).toBeInTheDocument();
-  }, 15000);
-
-  it('routes the footer actions', () => {
-    const { onAdminClick, onCandidateClick } = renderAnswerSheetPage();
-
-    fireEvent.click(screen.getByRole('button', { name: /take a sample assessment/i }));
+    fireEvent.click(screen.getByRole('button', { name: /open this link/i }));
     fireEvent.click(screen.getByRole('button', { name: /open the builder/i }));
 
     expect(onCandidateClick).toHaveBeenCalledTimes(1);

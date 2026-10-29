@@ -342,14 +342,9 @@ All colors MUST be HSL.
   to { opacity: 1; transform: translate3d(0, 0, 0); }
 }
 
-@keyframes v5-draw {
-  from { stroke-dashoffset: 1; }
-  to { stroke-dashoffset: 0; }
-}
-
-@keyframes v5-write {
-  from { clip-path: inset(-0.3em 100% -0.3em -0.3em); }
-  to { clip-path: inset(-0.3em -0.3em -0.3em -0.3em); }
+@keyframes v5-rule {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
 }
 
 @keyframes v6-reveal {
@@ -490,40 +485,25 @@ All colors MUST be HSL.
 .v4-delay-2 { animation-delay: 180ms; }
 .v4-delay-3 { animation-delay: 420ms; }
 
-.font-v5-serif {
-  font-family: 'Newsreader', Georgia, serif;
+.font-v5 {
+  font-family: 'Manrope', 'Ubuntu', sans-serif;
 }
 
-.font-v5-hand {
-  font-family: 'Caveat', 'Segoe Print', cursive;
+.font-v5 :is(h1, h2, h3, h4, button) {
+  font-family: inherit;
 }
 
-.v5-ruled {
-  background-image: repeating-linear-gradient(
-    to bottom,
-    transparent 0,
-    transparent 35px,
-    rgba(110, 140, 180, 0.22) 35px,
-    rgba(110, 140, 180, 0.22) 36px
-  );
+.font-v5-display {
+  font-family: 'Bodoni Moda', Georgia, serif;
 }
 
 .v5-fade {
   animation: v5-fade 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-.v5-draw {
-  stroke-dasharray: 1;
-  animation: v5-draw 650ms cubic-bezier(0.65, 0, 0.35, 1) both;
+.v5-rule {
+  animation: v5-rule 800ms cubic-bezier(0.65, 0, 0.35, 1) both;
 }
-
-.v5-write {
-  animation: v5-write 700ms steps(14, end) both;
-}
-
-.v5-delay-1 { animation-delay: 120ms; }
-.v5-delay-2 { animation-delay: 300ms; }
-.v5-delay-3 { animation-delay: 550ms; }
 
 .v6-reveal {
   animation: v6-reveal 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
@@ -587,8 +567,7 @@ All colors MUST be HSL.
   .v4-fade,
   .v4-flap,
   .v5-fade,
-  .v5-draw,
-  .v5-write,
+  .v5-rule,
   .v6-reveal,
   .v6-float,
   .v6-scan,
