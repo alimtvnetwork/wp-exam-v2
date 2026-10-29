@@ -1,9 +1,9 @@
 import React from 'react';
-import { cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Version2ModernSaas } from '@/components/public/layouts/version-2-modern-saas';
 
-const renderHouseProgramme = () => {
+const renderTheBar = () => {
   const onAdminClick = vi.fn();
   const onCandidateClick = vi.fn();
 
@@ -19,38 +19,45 @@ const renderHouseProgramme = () => {
   return { onAdminClick, onCandidateClick };
 };
 
-describe('Version 2 house programme homepage', () => {
+const row = (name: string) => {
+  const item = screen.getByText(name).closest('li');
+
+  if (!item) {
+    throw new Error(`No row for ${name}`);
+  }
+
+  return item;
+};
+
+describe('Version 2 pass-mark homepage', () => {
   afterEach(() => {
     cleanup();
   });
 
-  it('shows the scenes of the chosen paper', () => {
-    renderHouseProgramme();
+  it('splits the sample round on the pass mark', () => {
+    renderTheBar();
 
-    const frontendButton = screen.getByRole('button', { name: 'Frontend developer' });
-    expect(frontendButton).toHaveAttribute('aria-pressed', 'true');
+    const slider = screen.getByRole('slider', { name: /pass mark/i });
+    expect(slider).toHaveValue('70');
+    expect(row('Sofia Lopez')).toHaveTextContent('Through');
+    expect(row('Tom Ward')).toHaveTextContent('Below');
+    expect(screen.getByText('4 through')).toBeInTheDocument();
 
-    const frontendPaper = screen.getByRole('list', { name: /frontend developer paper/i });
-    expect(within(frontendPaper).getByText('JavaScript')).toBeInTheDocument();
+    fireEvent.change(slider, { target: { value: '80' } });
 
-    fireEvent.click(screen.getByRole('button', { name: 'Product designer' }));
-
-    expect(frontendButton).toHaveAttribute('aria-pressed', 'false');
-    const designPaper = screen.getByRole('list', { name: /product designer paper/i });
-    expect(within(designPaper).getByText('A visual critique')).toBeInTheDocument();
-    expect(within(designPaper).getByText('Image prompt')).toBeInTheDocument();
-    expect(screen.getByText(/pass mark 75%/i)).toBeInTheDocument();
+    expect(slider).toHaveValue('80');
+    expect(row('Sofia Lopez')).toHaveTextContent('Below');
+    expect(row('Daniel Kim')).toHaveTextContent('Through');
+    expect(screen.getByText('3 through')).toBeInTheDocument();
   }, 15000);
 
-  it('routes the programme actions to the candidate portal and the builder', () => {
-    const { onAdminClick, onCandidateClick } = renderHouseProgramme();
+  it('routes the actions to the candidate portal and the builder', () => {
+    const { onAdminClick, onCandidateClick } = renderTheBar();
 
-    fireEvent.click(screen.getByRole('button', { name: /take a sitting/i }));
-    fireEvent.click(screen.getByRole('button', { name: /sit this paper/i }));
+    fireEvent.click(screen.getByRole('button', { name: /try a paper/i }));
     fireEvent.click(screen.getByRole('button', { name: /open the builder/i }));
-    fireEvent.click(screen.getByRole('button', { name: /arrange a sitting/i }));
 
-    expect(onCandidateClick).toHaveBeenCalledTimes(2);
-    expect(onAdminClick).toHaveBeenCalledTimes(2);
+    expect(onCandidateClick).toHaveBeenCalledTimes(1);
+    expect(onAdminClick).toHaveBeenCalledTimes(1);
   }, 15000);
 });

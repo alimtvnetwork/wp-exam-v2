@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import {
   LayoutTemplate,
   Check,
-  BookOpen,
+  Ruler,
   Layers,
   Route,
   Rows3,
@@ -51,13 +51,13 @@ export const HOME_LAYOUT_OPTIONS: HomeLayoutOption[] = [
   },
   {
     id: 'v2',
-    title: 'V2: House Programme',
-    tagline: 'An ivory programme on a bottle-green desk',
-    badgeText: 'House',
+    title: 'V2: The Bar',
+    tagline: 'One pass mark, applied to every candidate',
+    badgeText: 'Bar',
     signatureTheme: 'obsidian',
-    themeName: 'Bottle Green & Ivory',
-    themeDotColor: '#14211B',
-    icon: BookOpen,
+    themeName: 'Stone & Ultramarine',
+    themeDotColor: '#243FDB',
+    icon: Ruler,
   },
   {
     id: 'v3',

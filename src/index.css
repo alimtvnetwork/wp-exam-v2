@@ -312,16 +312,6 @@ All colors MUST be HSL.
   animation: steady-beam 3.5s ease-in-out infinite;
 }
 
-@keyframes v2-fade {
-  from { opacity: 0; transform: translate3d(0, 14px, 0); }
-  to { opacity: 1; transform: translate3d(0, 0, 0); }
-}
-
-@keyframes v2-rule {
-  from { transform: scaleX(0); }
-  to { transform: scaleX(1); }
-}
-
 @keyframes v3-draw {
   from { stroke-dashoffset: 1; }
   to { stroke-dashoffset: 0; }
@@ -416,19 +406,38 @@ All colors MUST be HSL.
 }
 
 .font-v2 {
-  font-family: 'Fraunces', Georgia, serif;
+  font-family: 'Schibsted Grotesk', 'Ubuntu', sans-serif;
 }
 
 .font-v2 :is(h1, h2, h3, h4, button) {
   font-family: inherit;
 }
 
-.v2-fade {
-  animation: v2-fade 800ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.v2-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 2px;
+  background: #1a1a18;
+  cursor: pointer;
 }
 
-.v2-rule {
-  animation: v2-rule 900ms cubic-bezier(0.65, 0, 0.35, 1) both;
+.v2-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 14px;
+  height: 14px;
+  background: #243fdb;
+  border: 0;
+  cursor: grab;
+}
+
+.v2-range::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  background: #243fdb;
+  border: 0;
+  border-radius: 0;
+  cursor: grab;
 }
 
 .font-v3 {
@@ -572,8 +581,6 @@ All colors MUST be HSL.
   .animate-radar-sweep,
   .animate-steady-pulse,
   .animate-steady-beam,
-  .v2-fade,
-  .v2-rule,
   .v3-draw,
   .v3-fade,
   .v4-rise,
