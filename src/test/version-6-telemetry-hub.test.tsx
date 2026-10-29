@@ -1,9 +1,9 @@
 import React from 'react';
-import { act, fireEvent, render, screen } from '@testing-library/react';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Version6TelemetryHub } from '@/components/public/layouts/version-6-telemetry-hub';
 
-const renderTelemetryHub = () => {
+const renderTheHour = () => {
   const onAdminClick = vi.fn();
   const onCandidateClick = vi.fn();
 
@@ -19,45 +19,31 @@ const renderTelemetryHub = () => {
   return { onAdminClick, onCandidateClick };
 };
 
-describe('Version 6 telemetry hub', () => {
+describe('Version 6 hour homepage', () => {
   afterEach(() => {
+    cleanup();
     vi.useRealTimers();
-    vi.restoreAllMocks();
   });
 
-  it('validates candidate access and exposes both navigation paths', () => {
-    const { onAdminClick, onCandidateClick } = renderTelemetryHub();
-    const tokenInput = screen.getByLabelText('Candidate access token');
-    const startButton = screen.getByRole('button', { name: /start assessment/i });
+  it('sets one time limit for the paper', () => {
+    vi.useFakeTimers();
+    renderTheHour();
 
-    fireEvent.change(tokenInput, { target: { value: 'bad' } });
-    expect(startButton).toBeDisabled();
+    const choice = screen.getByRole('button', { name: '45 min' });
+    fireEvent.click(choice);
 
-    fireEvent.change(tokenInput, { target: { value: 'TOK-VALID-42' } });
-    fireEvent.click(startButton);
-    fireEvent.click(screen.getByRole('button', { name: /open admin control room/i }));
+    expect(choice).toHaveAttribute('aria-pressed', 'true');
+    expect(screen.getByLabelText('45:00')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: '30 min' })).toHaveAttribute('aria-pressed', 'false');
+  }, 15000);
+
+  it('routes the actions', () => {
+    const { onAdminClick, onCandidateClick } = renderTheHour();
+
+    fireEvent.click(screen.getByRole('button', { name: /try a timed paper/i }));
+    fireEvent.click(screen.getByRole('button', { name: /open the builder/i }));
 
     expect(onCandidateClick).toHaveBeenCalledTimes(1);
     expect(onAdminClick).toHaveBeenCalledTimes(1);
-  });
-
-  it('announces the secure simulation result and increments its commit', () => {
-    vi.useFakeTimers();
-    vi.spyOn(Math, 'random').mockReturnValue(0.5);
-    renderTelemetryHub();
-
-    fireEvent.click(screen.getByRole('button', { name: /run secure simulation/i }));
-    expect(screen.getByRole('status')).toHaveTextContent(/routing encrypted request/i);
-
-    act(() => {
-      vi.advanceTimersByTime(650);
-    });
-    expect(screen.getByRole('status')).toHaveTextContent(/scoring server-side/i);
-
-    act(() => {
-      vi.advanceTimersByTime(800);
-    });
-    expect(screen.getByRole('status')).toHaveTextContent(/result signed/i);
-    expect(screen.getByRole('status')).toHaveTextContent(/commit #18421/i);
-  });
+  }, 15000);
 });

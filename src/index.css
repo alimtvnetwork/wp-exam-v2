@@ -505,6 +505,35 @@ All colors MUST be HSL.
   animation: v5-rule 800ms cubic-bezier(0.65, 0, 0.35, 1) both;
 }
 
+.font-v6 {
+  font-family: 'Instrument Sans', 'Ubuntu', sans-serif;
+}
+
+.font-v6 :is(h1, h2, h3, h4, button) {
+  font-family: inherit;
+}
+
+.font-v6-display {
+  font-family: 'Instrument Serif', Georgia, serif;
+}
+
+@keyframes v6-blink {
+  0%, 45% { opacity: 1; }
+  55%, 100% { opacity: 0.2; }
+}
+
+.v6-blink {
+  animation: v6-blink 1s steps(1, end) infinite;
+}
+
+.font-v7 {
+  font-family: 'Familjen Grotesk', 'Ubuntu', sans-serif;
+}
+
+.font-v7 :is(h1, h2, h3, h4, button) {
+  font-family: inherit;
+}
+
 .v6-reveal {
   animation: v6-reveal 700ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -568,6 +597,7 @@ All colors MUST be HSL.
   .v4-flap,
   .v5-fade,
   .v5-rule,
+  .v6-blink,
   .v6-reveal,
   .v6-float,
   .v6-scan,

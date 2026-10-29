@@ -1,19 +1,9 @@
 import React from 'react';
-import { fireEvent, render, screen } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { cleanup, fireEvent, render, screen } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { Version7VelocityStudio } from '@/components/public/layouts/version-7-velocity-studio';
 
-class ResizeObserverMock {
-  observe = vi.fn();
-
-  unobserve = vi.fn();
-
-  disconnect = vi.fn();
-}
-
-vi.stubGlobal('ResizeObserver', ResizeObserverMock);
-
-const renderYieldStudio = () => {
+const renderTheTable = () => {
   const onAdminClick = vi.fn();
   const onCandidateClick = vi.fn();
 
@@ -29,32 +19,36 @@ const renderYieldStudio = () => {
   return { onAdminClick, onCandidateClick };
 };
 
-describe('Version 7 hiring yield studio', () => {
-  it('renders transparent default calculations and conversion actions', () => {
-    const { onAdminClick, onCandidateClick } = renderYieldStudio();
+describe('Version 7 table homepage', () => {
+  afterEach(() => {
+    cleanup();
+  });
 
-    expect(screen.getByText('92 h')).toBeVisible();
-    expect(screen.getByText('$7,820')).toBeVisible();
-    expect(screen.getAllByText('67').length).toBeGreaterThan(0);
-    expect(screen.getByText('(240 × 28 ÷ 60) × 82%')).toBeVisible();
-    expect(screen.getByRole('slider', { name: 'Monthly applicants' })).toBeVisible();
-    expect(screen.getByRole('slider', { name: 'Candidate completion rate' })).toBeVisible();
+  it('seats a candidate at the next empty place', () => {
+    renderTheTable();
 
-    fireEvent.click(screen.getByRole('button', { name: /enter candidate experience/i }));
-    fireEvent.click(screen.getByRole('button', { name: /admin sign in/i }));
+    expect(screen.getByText('Maya Rossi')).toBeInTheDocument();
+    expect(screen.getAllByText('Empty')).toHaveLength(2);
+
+    fireEvent.change(screen.getByLabelText('Candidate name'), { target: { value: 'Sofia Lopez' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Seat them' }));
+
+    expect(screen.getByText('Sofia Lopez')).toBeInTheDocument();
+    expect(screen.getAllByText('Same paper · 30 minutes')).toHaveLength(4);
+    expect(screen.getAllByText('Empty')).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole('button', { name: 'Clear Sofia Lopez' }));
+    expect(screen.queryByText('Sofia Lopez')).not.toBeInTheDocument();
+    expect(screen.getAllByText('Empty')).toHaveLength(2);
+  }, 15000);
+
+  it('routes the actions', () => {
+    const { onAdminClick, onCandidateClick } = renderTheTable();
+
+    fireEvent.click(screen.getByRole('button', { name: /take an open seat/i }));
+    fireEvent.click(screen.getByRole('button', { name: /open the builder/i }));
 
     expect(onCandidateClick).toHaveBeenCalledTimes(1);
     expect(onAdminClick).toHaveBeenCalledTimes(1);
-  });
-
-  it('supports accessible stage selection and pauses autoplay after interaction', () => {
-    renderYieldStudio();
-    const assessTab = screen.getByRole('tab', { name: /measure signal/i });
-
-    fireEvent.click(assessTab);
-
-    expect(assessTab).toHaveAttribute('aria-selected', 'true');
-    expect(screen.getByRole('tabpanel')).toHaveTextContent(/role-calibrated questions/i);
-    expect(screen.getByRole('button', { name: /play lifecycle autoplay/i })).toBeVisible();
-  });
+  }, 15000);
 });
