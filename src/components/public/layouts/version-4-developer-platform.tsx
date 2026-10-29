@@ -192,7 +192,7 @@ export const Version4DeveloperPlatform: React.FC<LayoutProps> = ({
 
       {/* Hero */}
       <section className="mx-auto max-w-7xl px-4 pt-14 sm:px-6 sm:pt-20">
-        <h1 className="font-v4-display text-[clamp(3.4rem,12.5vw,11.5rem)] uppercase leading-[0.84]">
+        <h1 className="font-v4-display text-[clamp(2.6rem,7.5vw,6.75rem)] uppercase leading-[0.88]">
           <span className="block overflow-hidden">
             <span className="v4-rise block">Every candidate.</span>
           </span>
@@ -251,7 +251,7 @@ export const Version4DeveloperPlatform: React.FC<LayoutProps> = ({
         </div>
 
         <div className="mt-3 overflow-x-auto border border-[#ece8df]/15 bg-[#050505]">
-          <div className="min-w-[680px] p-5 font-v4-mono text-[14px] font-medium sm:p-8 md:text-[17px] lg:p-10 lg:text-[21px]">
+          <div className="min-w-[680px] p-5 font-v4-mono text-[13px] font-medium sm:p-8 md:text-[15px] lg:p-10 lg:text-[17px]">
             <div className="mb-4 grid gap-x-6 sm:gap-x-8" style={BOARD_GRID_STYLE}>
               {['Candidate', 'Role', 'Score', 'Status'].map((label) => (
                 <span key={label} className="text-[10px] uppercase tracking-[0.2em] text-[#ece8df]/40">
@@ -281,13 +281,13 @@ export const Version4DeveloperPlatform: React.FC<LayoutProps> = ({
 
       {/* Steps */}
       <section id="features" className="mx-auto mt-28 max-w-7xl px-4 sm:mt-40 sm:px-6">
-        <h2 className="font-v4-display text-[clamp(2.5rem,7vw,5.5rem)] uppercase leading-[0.9]">
+        <h2 className="font-v4-display text-[clamp(2rem,4.5vw,3.75rem)] uppercase leading-[0.92]">
           How the board fills up
         </h2>
         <ol className="mt-14 grid gap-12 md:grid-cols-3 md:gap-8">
           {STEPS.map((step) => (
             <li key={step.number} className="group border-t border-[#ece8df]/25 pt-6">
-              <span className="font-v4-display block text-[5.5rem] leading-none text-[#ff5a1f] transition-transform duration-300 group-hover:-translate-y-1">
+              <span className="font-v4-display block text-[3.5rem] leading-none text-[#ff5a1f] transition-transform duration-300 group-hover:-translate-y-1">
                 {step.number}
               </span>
               <h3 className="mt-6 text-xl font-semibold">{step.title}</h3>
@@ -299,7 +299,7 @@ export const Version4DeveloperPlatform: React.FC<LayoutProps> = ({
 
       {/* Index */}
       <section className="mx-auto mt-28 grid max-w-7xl gap-10 px-4 sm:mt-40 sm:px-6 md:grid-cols-12">
-        <h2 className="font-v4-display text-[clamp(2.5rem,6vw,4.5rem)] uppercase leading-[0.9] md:col-span-4">
+        <h2 className="font-v4-display text-[clamp(2rem,4vw,3.25rem)] uppercase leading-[0.92] md:col-span-4">
           What goes into the test
         </h2>
         <dl className="md:col-span-8">
@@ -317,7 +317,7 @@ export const Version4DeveloperPlatform: React.FC<LayoutProps> = ({
 
       {/* Closing */}
       <section className="mx-auto max-w-7xl px-4 pb-28 pt-28 sm:px-6 sm:pb-40 sm:pt-40">
-        <h2 className="font-v4-display text-[clamp(3.4rem,12vw,10.5rem)] uppercase leading-[0.84]">
+        <h2 className="font-v4-display text-[clamp(2.6rem,7vw,6.25rem)] uppercase leading-[0.88]">
           Your board
           <span className="block text-[#ff5a1f]">is empty.</span>
         </h2>
