@@ -88,8 +88,10 @@
   transform: scale(1.05);
 }
 :root {
-  --option-text-shadow-rest: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
-  --option-text-shadow-hover: rgba(0, 0, 0, 0.35) 1px 0.7px 0px;
+  --text-shadow-rest: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.08);
+  --text-shadow-hover: rgba(0, 0, 0, 0.35) 1px 0.7px 0px;
+  --option-text-shadow-rest: var(--text-shadow-rest);
+  --option-text-shadow-hover: var(--text-shadow-hover);
 }
 .dark,
 [data-theme="riseup-asia"],
@@ -99,16 +101,21 @@
 [data-theme="vscode-dark"],
 [data-theme="obsidian"],
 [data-theme="vscode-navy-gold"] {
-  --option-text-shadow-rest: 0 1px 4px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.25);
-  --option-text-shadow-hover: #000000 1px 0.7px 0px;
+  --text-shadow-rest: 0 1px 4px rgba(0, 0, 0, 0.45), 0 2px 8px rgba(0, 0, 0, 0.25);
+  --text-shadow-hover: #000000 1px 0.7px 0px;
+  --option-text-shadow-rest: var(--text-shadow-rest);
+  --option-text-shadow-hover: var(--text-shadow-hover);
 }
 .light,
 [data-theme="clean"],
 [data-theme="clean-wide"],
 [data-theme="green-choice"],
+[data-theme="botanical-light"],
 [data-theme="sweet-digs"] {
-  --option-text-shadow-rest: 0 1px 2px rgba(0, 0, 0, 0.06);
-  --option-text-shadow-hover: rgba(0, 0, 0, 0.3) 1px 0.7px 0px;
+  --text-shadow-rest: 0 1px 2px rgba(0, 0, 0, 0.06);
+  --text-shadow-hover: rgba(0, 0, 0, 0.3) 1px 0.7px 0px;
+  --option-text-shadow-rest: var(--text-shadow-rest);
+  --option-text-shadow-hover: var(--text-shadow-hover);
 }
 .option-text,
 .option-text-shadow {
@@ -443,6 +450,27 @@
 .theme-green-choice,
 [data-theme="green-choice"] {
   background-image: radial-gradient(ellipse 70% 50% at 50% -10%, rgba(22, 163, 74, 0.07), transparent 70%), radial-gradient(circle 500px at 100% 100%, rgba(13, 148, 136, 0.03), transparent 60%);
+  background-attachment: fixed;
+}
+[data-theme="botanical-light"],
+[data-theme="green-choice"] {
+  --primary: 142 70% 30%;
+  --primary-foreground: 0 0% 100%;
+  --background: 140 18% 97%;
+  --foreground: 160 22% 10%;
+  --card: 0 0% 100%;
+  --card-foreground: 160 22% 10%;
+  --secondary: 142 45% 93%;
+  --secondary-foreground: 142 55% 28%;
+  --muted: 150 14% 96%;
+  --muted-foreground: 160 9% 42%;
+  --border: 150 14% 90%;
+  --ring: 142 70% 30%;
+  --card-active-bg: 142 48% 94%;
+  --radius: 0.75rem;
+  color-scheme: light;
+  background-color: hsl(var(--background));
+  background-image: radial-gradient(ellipse 70% 50% at 50% -10%, hsl(142 70% 30% / 0.06), transparent 70%), radial-gradient(circle 500px at 100% 100%, hsl(160 35% 40% / 0.03), transparent 60%);
   background-attachment: fixed;
 }
 .theme-green-choice.dark,
