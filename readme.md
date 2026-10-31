@@ -1,6 +1,6 @@
 # WordPress Q&A App - WP Exam & Onboarding Quiz
 
-[![Version](https://img.shields.io/badge/version-v0.4.17-blue.svg)](version.json)
+[![Version](https://img.shields.io/badge/version-v0.4.18-blue.svg)](version.json)
 [![License: GPL-2.0](https://img.shields.io/badge/License-GPL--2.0-green.svg)](license.txt)
 [![PHP](https://img.shields.io/badge/PHP-8.2%2B-purple.svg)](wp-exam.php)
 [![React](https://img.shields.io/badge/React-18-blue.svg)](package.json)

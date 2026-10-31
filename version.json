@@ -7,11 +7,12 @@
     "inheritanceRule": "When a section is set to 'inherit', all tooling and codebases resolving that sub-package must inherit the root global Version.",
     "prohibition": "Never hardcode version numbers in code, scripts, or documentation. Always read from or sync with version.json."
   },
-  "version": "0.4.17",
-  "Version": "0.4.17",
+  "version": "0.4.18",
+  "Version": "0.4.18",
   "Title": "WordPress Q&A App - WP Exam",
   "RepoSlug": "wp-exam-v2",
   "RepoUrl": "https://github.com/alimtvnetwork/wp-exam-v2",
   "backend": "2.0.0",
-  "frontend": "inherit"
+  "frontend": "inherit",
+  "releaseDate": "2026-10-31"
 }
