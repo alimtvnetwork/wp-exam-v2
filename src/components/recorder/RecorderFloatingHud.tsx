@@ -68,20 +68,20 @@ export function RecorderFloatingHud(): React.JSX.Element | null {
         data-recorder-hud="true"
         className="fixed top-12 left-1/2 -translate-x-1/2 z-[10050] flex flex-col items-center gap-1.5 pointer-events-auto"
       >
-        <div className="flex items-center gap-2 rounded-full border border-rose-500/50 bg-[#0c1017]/95 px-3.5 py-1.5 text-xs text-slate-200 shadow-2xl backdrop-blur-md">
-          <span className="flex items-center gap-1.5 font-mono font-bold text-rose-400">
-            <span className="h-2 w-2 rounded-full bg-rose-500 animate-ping" />
+        <div className="flex items-center gap-2 rounded-full border border-border bg-popover/95 px-3.5 py-1.5 text-xs text-foreground shadow-xl backdrop-blur-md">
+          <span className="flex items-center gap-1.5 font-mono font-bold text-destructive">
+            <span className="h-2 w-2 rounded-full bg-destructive animate-ping" />
             {isPaused ? "PAUSED" : timer}
           </span>
-          <span className="text-slate-500">|</span>
-          <span className="font-mono text-cyan-300">{session.events.length} evts</span>
-          <span className="font-mono text-emerald-300">{session.screenshots.length} snaps</span>
+          <span className="text-muted-foreground">|</span>
+          <span className="font-mono text-primary">{session.events.length} evts</span>
+          <span className="font-mono text-primary">{session.screenshots.length} snaps</span>
 
           <button
             type="button"
             onClick={() => captureManualScreenshotWithNote("User captured screen")}
             title="Take Screenshot Now"
-            className="flex items-center gap-1 rounded bg-slate-800 px-2 py-0.5 hover:bg-slate-700 text-cyan-300"
+            className="flex items-center gap-1 rounded bg-secondary px-2 py-0.5 hover:bg-secondary/80 text-secondary-foreground"
           >
             <Camera className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Snap</span>
@@ -91,7 +91,7 @@ export function RecorderFloatingHud(): React.JSX.Element | null {
             type="button"
             onClick={() => setIsNoteInputVisible(!isNoteInputVisible)}
             title="Add Note to Step"
-            className="flex items-center gap-1 rounded bg-slate-800 px-2 py-0.5 hover:bg-slate-700 text-amber-300"
+            className="flex items-center gap-1 rounded bg-secondary px-2 py-0.5 hover:bg-secondary/80 text-secondary-foreground"
           >
             <MessageSquare className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Note</span>
@@ -101,7 +101,7 @@ export function RecorderFloatingHud(): React.JSX.Element | null {
             type="button"
             onClick={openEventExplorer}
             title="Explore Recorded Events Stream"
-            className="flex items-center gap-1 rounded bg-slate-800 px-2 py-0.5 hover:bg-slate-700 text-sky-300"
+            className="flex items-center gap-1 rounded bg-secondary px-2 py-0.5 hover:bg-secondary/80 text-secondary-foreground"
           >
             <ListTree className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Events</span>
@@ -112,9 +112,9 @@ export function RecorderFloatingHud(): React.JSX.Element | null {
             onClick={isPaused ? resumeRecording : pauseRecording}
             title={isPaused ? "Resume Recording" : "Pause Recording"}
             aria-label={isPaused ? "Resume Recording" : "Pause Recording"}
-            className="flex items-center gap-1 rounded bg-slate-800 px-2 py-0.5 hover:bg-slate-700 text-amber-300"
+            className="flex items-center gap-1 rounded bg-secondary px-2 py-0.5 hover:bg-secondary/80 text-secondary-foreground"
           >
-            {isPaused ? <Play className="h-3.5 w-3.5 fill-amber-400 text-amber-400" /> : <Pause className="h-3.5 w-3.5" />}
+            {isPaused ? <Play className="h-3.5 w-3.5 fill-current" /> : <Pause className="h-3.5 w-3.5" />}
             <span className="hidden sm:inline">{isPaused ? "Resume" : "Pause"}</span>
           </button>
 
@@ -123,9 +123,9 @@ export function RecorderFloatingHud(): React.JSX.Element | null {
             onClick={stopRecording}
             title="Stop Recording"
             aria-label="Stop Recording"
-            className="flex items-center gap-1 rounded bg-rose-950/80 px-2 py-0.5 hover:bg-rose-900 border border-rose-500/40 text-rose-300"
+            className="flex items-center gap-1 rounded bg-destructive px-2 py-0.5 hover:bg-destructive/90 border border-destructive/50 text-destructive-foreground"
           >
-            <Square className="h-3.5 w-3.5 fill-rose-400 text-rose-400" />
+            <Square className="h-3.5 w-3.5 fill-current" />
             <span className="hidden sm:inline">Stop</span>
           </button>
 
@@ -134,9 +134,9 @@ export function RecorderFloatingHud(): React.JSX.Element | null {
             onClick={openPreviousBugs}
             title="Browse Previous Bugs"
             aria-label="Previous Bugs"
-            className="flex items-center gap-1 rounded bg-slate-800 px-2 py-0.5 hover:bg-slate-700 text-cyan-300"
+            className="flex items-center gap-1 rounded bg-secondary px-2 py-0.5 hover:bg-secondary/80 text-secondary-foreground"
           >
-            <History className="h-3.5 w-3.5 text-cyan-400" />
+            <History className="h-3.5 w-3.5" />
             <span className="hidden sm:inline">Bugs</span>
           </button>
 
@@ -154,7 +154,7 @@ export function RecorderFloatingHud(): React.JSX.Element | null {
             type="button"
             onClick={cancelRecording}
             title="Discard Recording"
-            className="rounded p-1 text-slate-400 hover:bg-rose-950/80 hover:text-rose-300"
+            className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
           >
             <X className="h-3.5 w-3.5" />
           </button>

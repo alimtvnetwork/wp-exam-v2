@@ -14,7 +14,6 @@ import { CandidatePortalRunner } from "@/components/portal/candidate-portal-runn
 import { ThemeProvider } from "@/lib/theme-context";
 import { AuthProvider } from "@/lib/auth-context";
 import { ActivityRecorderRoot } from "@/components/recorder/ActivityRecorderRoot";
-import { RecorderLauncherButton } from "@/components/recorder/RecorderLauncherButton";
 
 import React, { Component, ErrorInfo, ReactNode } from "react";
 
@@ -84,9 +83,6 @@ const App = () => (
           <Toaster />
           <Sonner />
           <ActivityRecorderRoot />
-          <div className="fixed bottom-4 right-4 z-[10040]">
-            <RecorderLauncherButton />
-          </div>
           <BrowserRouter>
             <Routes>
               <Route path="/" element={<LandingPage />} />

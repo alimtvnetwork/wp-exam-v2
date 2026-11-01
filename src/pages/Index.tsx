@@ -17,6 +17,7 @@ import { JobRolesManager } from '@/components/admin/job-roles-manager';
 import { AdminUsersManager } from '@/components/admin/admin-users-manager';
 import { ThemeBuilder } from '@/components/theme-builder';
 import { GuidedTourManager, GuidedTourReplayButton } from '@/components/onboarding/guided-tour';
+import { RecorderLauncherButton } from '@/components/recorder/RecorderLauncherButton';
 import { useQuizStore } from '@/quiz/store/useQuizStore';
 import { useAdminAuth } from '@/components/auth/AdminLoginModal';
 import { ThemeSwitcher, useTheme, AppThemeType } from '@/lib/theme-context';
@@ -299,6 +300,8 @@ export const Index: React.FC = () => {
           <GuidedTourReplayButton />
 
           <ThemeSwitcher />
+
+          <RecorderLauncherButton />
 
           <div className="h-4 w-px bg-border" />
 

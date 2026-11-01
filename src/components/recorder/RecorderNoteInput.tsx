@@ -21,19 +21,19 @@ export function RecorderNoteInput({ onSave, onClose }: RecorderNoteInputProps): 
   };
 
   return (
-    <div className="flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-900/95 p-1.5 shadow-xl">
+    <div className="flex items-center gap-1.5 rounded-lg border border-border bg-popover/95 p-1.5 shadow-xl">
       <input
         type="text"
         value={text}
         onChange={(e) => setText(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleSave()}
         placeholder="What looks wrong here?"
-        className="w-56 rounded bg-slate-800 px-2 py-1 text-xs text-white focus:outline-none focus:ring-1 focus:ring-cyan-400"
+        className="w-56 rounded bg-background px-2 py-1 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
       />
       <button
         type="button"
         onClick={handleSave}
-        className="rounded bg-cyan-600 px-2 py-1 text-xs font-semibold text-white hover:bg-cyan-500"
+        className="rounded bg-primary px-2 py-1 text-xs font-semibold text-primary-foreground hover:bg-primary/90"
       >
         Save
       </button>

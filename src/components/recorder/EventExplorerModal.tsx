@@ -213,12 +213,12 @@ export function EventExplorerModal({
     label: string;
     color: string;
   }> = [
-    { id: "all", label: "All", color: "text-cyan-400 border-cyan-500/40 bg-cyan-950/30" },
-    { id: "error", label: "Errors", color: "text-rose-400 border-rose-500/40 bg-rose-950/30" },
-    { id: "analysis", label: "Analysis", color: "text-emerald-400 border-emerald-500/40 bg-emerald-950/30" },
-    { id: "recording", label: "Recording", color: "text-amber-400 border-amber-500/40 bg-amber-950/30" },
-    { id: "simulation", label: "Simulation", color: "text-purple-400 border-purple-500/40 bg-purple-950/30" },
-    { id: "interaction", label: "Interactions", color: "text-sky-400 border-sky-500/40 bg-sky-950/30" },
+    { id: "all", label: "All", color: "text-primary border-primary/40 bg-primary/10" },
+    { id: "error", label: "Errors", color: "text-destructive border-destructive/40 bg-destructive/10" },
+    { id: "analysis", label: "Analysis", color: "text-secondary-foreground border-border bg-secondary/40" },
+    { id: "recording", label: "Recording", color: "text-accent-foreground border-border bg-accent/60" },
+    { id: "simulation", label: "Simulation", color: "text-muted-foreground border-border bg-muted/60" },
+    { id: "interaction", label: "Interactions", color: "text-muted-foreground border-border bg-background" },
   ];
 
   return (
@@ -229,23 +229,23 @@ export function EventExplorerModal({
       data-recorder-modal="true"
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 animate-in fade-in duration-200"
     >
-      <div className="flex h-[88vh] w-full max-w-6xl flex-col rounded-2xl border border-cyan-500/30 bg-[#0c1017] text-slate-100 shadow-[0_0_50px_rgba(6,182,212,0.15)] overflow-hidden font-sans">
+      <div className="flex h-[88vh] w-full max-w-6xl flex-col rounded-2xl border border-border bg-popover text-foreground shadow-2xl overflow-hidden font-sans">
         {/* Header Bar */}
-        <div className="flex items-center justify-between border-b border-slate-800/80 px-6 py-4 bg-slate-900/60 backdrop-blur-md">
+        <div className="flex items-center justify-between border-b border-border/80 px-6 py-4 bg-muted/60 backdrop-blur-md">
           <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-cyan-500/40 bg-cyan-950/40 text-cyan-400 shadow-[0_0_15px_rgba(6,182,212,0.3)]">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl border border-primary/40 bg-primary/10 text-primary">
               <ListTree className="h-5 w-5" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h2 className="text-sm font-bold tracking-wider uppercase text-cyan-400 font-mono">
+                <h2 className="text-sm font-bold tracking-wider uppercase text-primary font-mono">
                   Event Explorer // Timeline & Diagnostics
                 </h2>
-                <span className="rounded-full border border-slate-700 bg-slate-800/70 px-2 py-0.5 text-[10px] font-mono text-slate-300">
+                <span className="rounded-full border border-border bg-secondary/70 px-2 py-0.5 text-[10px] font-mono text-secondary-foreground">
                   {session?.id ?? "local-session"}
                 </span>
               </div>
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-muted-foreground">
                 Audit fine-grained inspection phases, interactions, and Split-DB error stack traces
               </p>
             </div>
@@ -255,14 +255,14 @@ export function EventExplorerModal({
             type="button"
             onClick={handleModalClose}
             aria-label="Close Event Explorer"
-            className="flex h-8 w-8 items-center justify-center rounded-lg border border-slate-700 bg-slate-800 text-slate-300 hover:border-slate-500 hover:text-white transition-colors"
+            className="flex h-8 w-8 items-center justify-center rounded-lg border border-border bg-secondary text-secondary-foreground hover:text-foreground transition-colors"
           >
             <X className="h-4 w-4" />
           </button>
         </div>
 
         {/* Filter and Search Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-slate-800/60 bg-slate-950/40 px-6 py-3">
+        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border/60 bg-muted/40 px-6 py-3">
           <div className="flex flex-wrap items-center gap-1.5">
             {categories.map((cat) => {
               const isSelected = selectedCategory === cat.id;
@@ -275,12 +275,12 @@ export function EventExplorerModal({
                   onClick={() => setSelectedCategory(cat.id)}
                   className={`inline-flex items-center gap-1.5 rounded-lg border px-3 py-1 text-xs font-mono font-medium transition-all ${
                     isSelected
-                      ? `${cat.color} shadow-[0_0_12px_rgba(6,182,212,0.25)]`
-                      : "border-slate-800 bg-slate-900/50 text-slate-400 hover:border-slate-700 hover:text-slate-200"
+                      ? cat.color
+                      : "border-border bg-secondary/50 text-muted-foreground hover:border-border hover:text-foreground"
                   }`}
                 >
                   <span>{cat.label}</span>
-                  <span className="rounded-full bg-slate-800 px-1.5 py-0.2 text-[10px] font-bold">
+                  <span className="rounded-full bg-muted px-1.5 py-0.2 text-[10px] font-bold text-muted-foreground">
                     {count}
                   </span>
                 </button>
@@ -289,13 +289,13 @@ export function EventExplorerModal({
           </div>
 
           <div className="relative min-w-[260px] max-w-sm flex-1">
-            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-slate-400" />
+            <Search className="absolute left-3 top-2.5 h-3.5 w-3.5 text-muted-foreground" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search descriptions, selectors, routes..."
-              className="w-full rounded-xl border border-slate-800 bg-slate-900/80 py-1.5 pl-9 pr-3 text-xs font-mono text-slate-200 placeholder:text-slate-500 focus:border-cyan-500/60 focus:outline-none focus:ring-1 focus:ring-cyan-500/30"
+              className="w-full rounded-xl border border-input bg-background py-1.5 pl-9 pr-3 text-xs font-mono text-foreground placeholder:text-muted-foreground focus:border-primary/60 focus:outline-none focus:ring-1 focus:ring-primary/30"
             />
           </div>
         </div>
@@ -303,11 +303,11 @@ export function EventExplorerModal({
         {/* Main Split Body */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left: Event Stream Timeline */}
-          <div className="w-1/2 border-r border-slate-800/80 overflow-y-auto p-4 space-y-2 bg-[#0c1017]">
+          <div className="w-1/2 border-r border-border/80 overflow-y-auto p-4 space-y-2 bg-popover">
             {filteredEvents.length === 0 ? (
               <div className="flex h-64 flex-col items-center justify-center text-center">
-                <AlertCircle className="h-8 w-8 text-slate-600 mb-2" />
-                <p className="text-xs text-slate-400 font-mono uppercase tracking-wider">
+                <AlertCircle className="h-8 w-8 text-muted-foreground mb-2" />
+                <p className="text-xs text-muted-foreground font-mono uppercase tracking-wider">
                   No events found matching category or search query
                 </p>
               </div>
@@ -329,17 +329,17 @@ export function EventExplorerModal({
                     onClick={() => setSelectedEventId(evt.id)}
                     className={`cursor-pointer rounded-xl border p-3 transition-all ${
                       isSelected
-                        ? "border-cyan-500/60 bg-cyan-950/20 shadow-[0_0_15px_rgba(6,182,212,0.15)]"
-                        : "border-slate-800/70 bg-slate-900/40 hover:border-slate-700 hover:bg-slate-900/70"
+                        ? "border-primary/60 bg-primary/10"
+                        : "border-border/70 bg-card/40 hover:border-border hover:bg-card/70"
                     }`}
                   >
-                    <div className="flex items-center justify-between text-[11px] font-mono text-slate-400 mb-1">
+                    <div className="flex items-center justify-between text-[11px] font-mono text-muted-foreground mb-1">
                       <div className="flex items-center gap-2">
-                        <span className="rounded bg-cyan-950/80 px-1.5 py-0.5 text-[9px] font-bold text-cyan-300 border border-cyan-500/30 font-mono">
+                        <span className="rounded bg-primary/10 px-1.5 py-0.5 text-[9px] font-bold text-primary border border-primary/30 font-mono">
                           Step #{String(stepNumber).padStart(2, "0")}
                         </span>
                         <div className="flex items-center gap-1">
-                          <Clock className="h-3 w-3 text-cyan-400" />
+                          <Clock className="h-3 w-3 text-primary" />
                           <span>
                             {new Date(evt.timestamp).toISOString().substring(11, 23)}
                           </span>
@@ -348,26 +348,26 @@ export function EventExplorerModal({
                       <span
                         className={`rounded px-1.5 py-0.2 text-[9px] font-bold uppercase tracking-wider ${
                           isError
-                            ? "bg-rose-950/80 text-rose-300 border border-rose-500/30"
+                            ? "bg-destructive/10 text-destructive border border-destructive/30"
                             : isAnalysis
-                              ? "bg-emerald-950/80 text-emerald-300 border border-emerald-500/30"
-                              : "bg-slate-800 text-slate-300"
+                              ? "bg-primary/10 text-primary border border-primary/30"
+                              : "bg-secondary text-secondary-foreground"
                         }`}
                       >
                         {evt.eventType}
                       </span>
                     </div>
 
-                    <p className="text-xs font-semibold text-slate-200 line-clamp-2">
+                    <p className="text-xs font-semibold text-foreground line-clamp-2">
                       {evt.description}
                     </p>
 
-                    <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-slate-400">
+                    <div className="mt-2 flex items-center justify-between text-[10px] font-mono text-muted-foreground">
                       <span className="truncate max-w-[200px]">
                         {evt.targetComponent || evt.selector || "system"}
                       </span>
                       {evt.hasScreenshot && (
-                        <span className="flex items-center gap-1 text-cyan-400">
+                        <span className="flex items-center gap-1 text-primary">
                           <Camera className="h-3 w-3" />
                           <span>Snap</span>
                         </span>
@@ -380,26 +380,26 @@ export function EventExplorerModal({
           </div>
 
           {/* Right: Detailed Event Inspector */}
-          <div className="w-1/2 flex flex-col overflow-y-auto p-5 bg-slate-950/50">
+          <div className="w-1/2 flex flex-col overflow-y-auto p-5 bg-muted/40">
             {activeEvent ? (
               <div className="space-y-4">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                <div className="flex items-center justify-between border-b border-border pb-3">
                   <div>
-                    <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-cyan-400">
+                    <h3 className="text-xs font-mono font-bold uppercase tracking-wider text-primary">
                       Step #{String(activeStepNumber).padStart(2, "0")} // {activeEvent.id}
                     </h3>
-                    <p className="text-xs text-slate-400">{activeEvent.route || "/"}</p>
+                    <p className="text-xs text-muted-foreground">{activeEvent.route || "/"}</p>
                   </div>
 
                   <button
                     type="button"
                     onClick={handleCopyJson}
-                    className="inline-flex items-center gap-1.5 rounded-lg border border-slate-700 bg-slate-800 px-3 py-1.5 text-xs font-mono text-slate-200 hover:border-cyan-500 hover:text-cyan-400 transition-colors"
+                    className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-secondary px-3 py-1.5 text-xs font-mono text-secondary-foreground hover:border-primary hover:text-primary transition-colors"
                   >
                     {isCopied ? (
                       <>
-                        <Check className="h-3.5 w-3.5 text-emerald-400" />
-                        <span className="text-emerald-400">Copied</span>
+                        <Check className="h-3.5 w-3.5 text-primary" />
+                        <span className="text-primary">Copied</span>
                       </>
                     ) : (
                       <>
@@ -420,23 +420,23 @@ export function EventExplorerModal({
                   const hasDualViews = Boolean(snap?.fullScreenDataUrl && snap?.viewportDataUrl);
 
                   return (
-                    <div className="rounded-xl border border-slate-800 bg-slate-900/60 p-3">
-                      <div className="flex items-center justify-between text-xs font-mono text-slate-300 mb-2">
-                        <span className="flex items-center gap-1 text-cyan-400">
+                    <div className="rounded-xl border border-border bg-card/60 p-3">
+                      <div className="flex items-center justify-between text-xs font-mono text-foreground mb-2">
+                        <span className="flex items-center gap-1 text-primary">
                           <Camera className="h-3.5 w-3.5" />
                           <span>Visual Snapshot Attachment</span>
                         </span>
 
                         <div className="flex items-center gap-2">
                           {hasDualViews && (
-                            <div className="flex items-center rounded border border-slate-700 bg-slate-800/80 p-0.5 text-[10px]">
+                            <div className="flex items-center rounded border border-border bg-secondary/80 p-0.5 text-[10px]">
                               <button
                                 type="button"
                                 onClick={() => setSnapshotViewMode("fullScreen")}
                                 className={`rounded px-1.5 py-0.5 transition ${
                                   snapshotViewMode === "fullScreen"
-                                    ? "bg-cyan-500/30 text-cyan-300 font-bold"
-                                    : "text-slate-400 hover:text-slate-200"
+                                    ? "bg-primary/20 text-primary font-bold"
+                                    : "text-muted-foreground hover:text-foreground"
                                 }`}
                               >
                                 Full Screen
@@ -446,8 +446,8 @@ export function EventExplorerModal({
                                 onClick={() => setSnapshotViewMode("viewport")}
                                 className={`rounded px-1.5 py-0.5 transition ${
                                   snapshotViewMode === "viewport"
-                                    ? "bg-cyan-500/30 text-cyan-300 font-bold"
-                                    : "text-slate-400 hover:text-slate-200"
+                                    ? "bg-primary/20 text-primary font-bold"
+                                    : "text-muted-foreground hover:text-foreground"
                                 }`}
                               >
                                 Inspection Viewport
@@ -462,7 +462,7 @@ export function EventExplorerModal({
                                 setPreviewScreenshotUrl(activeSnapUrl);
                               }
                             }}
-                            className="text-[10px] font-bold text-cyan-400 hover:underline flex items-center gap-1"
+                            className="text-[10px] font-bold text-primary hover:underline flex items-center gap-1"
                           >
                             <ExternalLink className="h-3 w-3" />
                             <span>Enlarge</span>
@@ -474,10 +474,10 @@ export function EventExplorerModal({
                         <img
                           src={activeSnapUrl}
                           alt="Event Snapshot"
-                          className="max-h-56 w-full object-contain rounded-lg border border-slate-800 bg-black/40"
+                          className="max-h-56 w-full object-contain rounded-lg border border-border bg-black/40"
                         />
                       ) : (
-                        <p className="text-[11px] text-slate-500 italic">
+                        <p className="text-[11px] text-muted-foreground italic">
                           Snapshot data stored in session archive
                         </p>
                       )}
@@ -487,20 +487,20 @@ export function EventExplorerModal({
 
                 {/* Telemetry Key Attributes */}
                 <div className="grid grid-cols-2 gap-2 text-xs font-mono">
-                  <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-2.5">
-                    <span className="text-[10px] uppercase text-slate-500 block mb-1">
+                  <div className="rounded-lg border border-border bg-card/40 p-2.5">
+                    <span className="text-[10px] uppercase text-muted-foreground block mb-1">
                       Actor & Event Type
                     </span>
-                    <span className="text-slate-200 font-semibold">
+                    <span className="text-foreground font-semibold">
                       {activeEvent.actor} :: {activeEvent.eventType}
                     </span>
                   </div>
 
-                  <div className="rounded-lg border border-slate-800 bg-slate-900/40 p-2.5">
-                    <span className="text-[10px] uppercase text-slate-500 block mb-1">
+                  <div className="rounded-lg border border-border bg-card/40 p-2.5">
+                    <span className="text-[10px] uppercase text-muted-foreground block mb-1">
                       Target Component
                     </span>
-                    <span className="text-cyan-400 truncate block">
+                    <span className="text-primary truncate block">
                       {activeEvent.targetComponent || "N/A"}
                     </span>
                   </div>
@@ -508,16 +508,16 @@ export function EventExplorerModal({
 
                 {/* Raw JSON Payload */}
                 <div className="space-y-1.5">
-                  <span className="text-[10px] font-mono uppercase tracking-wider text-slate-500">
+                  <span className="text-[10px] font-mono uppercase tracking-wider text-muted-foreground">
                     Raw Telemetry Payload
                   </span>
-                  <pre className="max-h-80 overflow-auto rounded-xl border border-slate-800 bg-[#080b11] p-3 text-[11px] font-mono text-cyan-300 leading-relaxed">
+                  <pre className="max-h-80 overflow-auto rounded-xl border border-border bg-muted/60 p-3 text-[11px] font-mono text-foreground leading-relaxed">
                     {JSON.stringify(activeEvent, null, 2)}
                   </pre>
                 </div>
               </div>
             ) : (
-              <div className="flex h-full items-center justify-center text-xs text-slate-500 font-mono">
+              <div className="flex h-full items-center justify-center text-xs text-muted-foreground font-mono">
                 Select an event from the stream to inspect details
               </div>
             )}
@@ -533,11 +533,11 @@ export function EventExplorerModal({
           onClick={() => setPreviewScreenshotUrl(null)}
           className="fixed inset-0 z-60 flex items-center justify-center bg-black/90 p-6 backdrop-blur-lg"
         >
-          <div className="relative max-h-full max-w-5xl rounded-2xl border border-cyan-500/40 bg-slate-950 p-2 shadow-2xl">
+          <div className="relative max-h-full max-w-5xl rounded-2xl border border-border bg-popover p-2 shadow-2xl">
             <button
               type="button"
               onClick={() => setPreviewScreenshotUrl(null)}
-              className="absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full bg-rose-600 text-white shadow-lg"
+              className="absolute -top-3 -right-3 flex h-7 w-7 items-center justify-center rounded-full bg-destructive text-destructive-foreground shadow-lg"
             >
               <X className="h-4 w-4" />
             </button>

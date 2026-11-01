@@ -13,7 +13,7 @@ export function RecorderSummaryForm({
   return (
     <div className="flex flex-col gap-3 text-xs">
       <div>
-        <label className="block mb-1 font-semibold text-slate-300">
+        <label className="block mb-1 font-semibold text-foreground">
           Issue Title / One-line Summary
         </label>
         <input
@@ -21,19 +21,19 @@ export function RecorderSummaryForm({
           value={summary.title}
           onChange={(e) => onChange({ ...summary, title: e.target.value })}
           placeholder="e.g. Pocket 2 inspection false reject on high threshold"
-          className="w-full rounded border border-slate-700 bg-slate-800 px-3 py-1.5 text-white focus:border-cyan-400 focus:outline-none"
+          className="w-full rounded border border-input bg-background px-3 py-1.5 text-foreground focus:border-primary focus:outline-none"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="block mb-1 font-semibold text-slate-300">Category</label>
+          <label className="block mb-1 font-semibold text-foreground">Category</label>
           <select
             value={summary.category}
             onChange={(e) =>
               onChange({ ...summary, category: e.target.value as IssueCategoryType })
             }
-            className="w-full rounded border border-slate-700 bg-slate-800 px-2.5 py-1.5 text-white focus:border-cyan-400 focus:outline-none"
+            className="w-full rounded border border-input bg-background px-2.5 py-1.5 text-foreground focus:border-primary focus:outline-none"
           >
             <option value={IssueCategoryType.UiGlitch}>UI Glitch / Layout</option>
             <option value={IssueCategoryType.InspectionDefect}>Inspection Accuracy / Defect</option>
@@ -44,7 +44,7 @@ export function RecorderSummaryForm({
         </div>
 
         <div>
-          <label className="block mb-1 font-semibold text-slate-300">
+          <label className="block mb-1 font-semibold text-foreground">
             Reporter Name (Optional)
           </label>
           <input
@@ -52,13 +52,13 @@ export function RecorderSummaryForm({
             value={summary.reporterName ?? ""}
             onChange={(e) => onChange({ ...summary, reporterName: e.target.value })}
             placeholder="Operator / Tester"
-            className="w-full rounded border border-slate-700 bg-slate-800 px-3 py-1.5 text-white focus:border-cyan-400 focus:outline-none"
+            className="w-full rounded border border-input bg-background px-3 py-1.5 text-foreground focus:border-primary focus:outline-none"
           />
         </div>
       </div>
 
       <div>
-        <label className="block mb-1 font-semibold text-slate-300">
+        <label className="block mb-1 font-semibold text-foreground">
           What went wrong? (Observed Behavior)
         </label>
         <textarea
@@ -68,12 +68,12 @@ export function RecorderSummaryForm({
             onChange({ ...summary, actualBehavior: e.target.value, description: e.target.value })
           }
           placeholder="Describe what happened when you clicked or ran the test..."
-          className="w-full rounded border border-slate-700 bg-slate-800 px-3 py-1.5 text-white focus:border-cyan-400 focus:outline-none resize-none"
+          className="w-full rounded border border-input bg-background px-3 py-1.5 text-foreground focus:border-primary focus:outline-none resize-none"
         />
       </div>
 
       <div>
-        <label className="block mb-1 font-semibold text-slate-300">
+        <label className="block mb-1 font-semibold text-foreground">
           What was expected? (Expected Behavior)
         </label>
         <textarea
@@ -81,7 +81,7 @@ export function RecorderSummaryForm({
           value={summary.expectedBehavior}
           onChange={(e) => onChange({ ...summary, expectedBehavior: e.target.value })}
           placeholder="What should have happened instead?"
-          className="w-full rounded border border-slate-700 bg-slate-800 px-3 py-1.5 text-white focus:border-cyan-400 focus:outline-none resize-none"
+          className="w-full rounded border border-input bg-background px-3 py-1.5 text-foreground focus:border-primary focus:outline-none resize-none"
         />
       </div>
     </div>

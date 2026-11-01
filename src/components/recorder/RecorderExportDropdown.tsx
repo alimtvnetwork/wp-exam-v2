@@ -268,7 +268,7 @@ export function RecorderExportDropdown({
       sublabel: "Download archive with snapshots & JSON",
       shortcut: "Ctrl+Z",
       icon: Download,
-      iconColor: "text-emerald-400",
+      iconColor: "text-primary",
       action: handleExportZip,
       isLoading: isExportingZip,
     },
@@ -278,7 +278,7 @@ export function RecorderExportDropdown({
       sublabel: "Tree Swarm (A=3, H=2, Cap=6) + Brain roadmap",
       shortcut: "Ctrl+6",
       icon: FileCode,
-      iconColor: "text-cyan-400",
+      iconColor: "text-primary",
       action: handleCopyPromptV6,
       isLoading: isCopyingPrompt,
     },
@@ -288,7 +288,7 @@ export function RecorderExportDropdown({
       sublabel: "Dual modes + GitMap telemetry + AI Bot identity",
       shortcut: "Ctrl+7",
       icon: Bot,
-      iconColor: "text-purple-400",
+      iconColor: "text-primary",
       action: handleCopyPromptV7,
       isLoading: isCopyingPrompt,
     },
@@ -298,7 +298,7 @@ export function RecorderExportDropdown({
       sublabel: "Dispatch bug report directly to engineering",
       shortcut: "Ctrl+E",
       icon: Mail,
-      iconColor: "text-sky-400",
+      iconColor: "text-primary",
       action: handleOpenEmail,
       isLoading: false,
     },
@@ -308,7 +308,7 @@ export function RecorderExportDropdown({
       sublabel: "Persist via backend or local IndexedDB",
       shortcut: "Ctrl+S",
       icon: HardDrive,
-      iconColor: "text-blue-400",
+      iconColor: "text-primary",
       action: async () => {
         await handleSaveLocal();
       },
@@ -320,7 +320,7 @@ export function RecorderExportDropdown({
       sublabel: "Copy full session + summary JSON to clipboard",
       shortcut: "Ctrl+J",
       icon: FileJson,
-      iconColor: "text-amber-400",
+      iconColor: "text-primary",
       action: handleCopySessionJson,
       isLoading: false,
     },
@@ -378,20 +378,20 @@ export function RecorderExportDropdown({
       onKeyDown={handleKeyDown}
       className={`relative inline-flex items-center ${className}`}
     >
-      <div className="inline-flex items-center rounded-lg border border-slate-700 bg-slate-800 shadow-sm">
+      <div className="inline-flex items-center rounded-lg border border-border bg-secondary shadow-sm">
         <button
           type="button"
           onClick={onPrimaryClick || handleExportZip}
           disabled={isExportingZip}
           title="Quick Export: ZIP Archive"
-          className={`flex items-center gap-1.5 font-medium text-slate-100 hover:bg-slate-700/80 rounded-l-lg transition-colors focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:outline-none disabled:opacity-50 ${
+          className={`flex items-center gap-1.5 font-medium text-secondary-foreground hover:bg-secondary/80 rounded-l-lg transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none disabled:opacity-50 ${
             isCompact ? "px-2 py-1 text-xs" : "px-3 py-1.5 text-xs"
           }`}
         >
           {isExportingZip ? (
-            <Loader2 className="h-3.5 w-3.5 animate-spin text-emerald-400" />
+            <Loader2 className="h-3.5 w-3.5 animate-spin text-primary" />
           ) : (
-            <Download className="h-3.5 w-3.5 text-emerald-400" />
+            <Download className="h-3.5 w-3.5 text-primary" />
           )}
           <span>{isExportingZip ? "Exporting..." : isCompact ? "Export ZIP" : "Download ZIP"}</span>
         </button>
@@ -402,7 +402,7 @@ export function RecorderExportDropdown({
           aria-expanded={isDropdownOpen}
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           title="Choose Export Format"
-          className={`border-l border-slate-700 text-slate-300 hover:text-white hover:bg-slate-700/80 rounded-r-lg transition-colors focus-visible:ring-2 focus-visible:ring-cyan-500 focus-visible:outline-none ${
+          className={`border-l border-border text-secondary-foreground hover:bg-secondary/80 rounded-r-lg transition-colors focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none ${
             isCompact ? "p-1" : "p-1.5"
           }`}
         >
@@ -419,11 +419,11 @@ export function RecorderExportDropdown({
           ref={menuRef}
           role="menu"
           aria-orientation="vertical"
-          className={`absolute right-0 ${placementClasses} w-[360px] max-h-[min(380px,80vh)] overflow-y-auto scrollbar-thin rounded-xl border border-slate-700 bg-[#0e131f] p-1.5 shadow-2xl backdrop-blur-xl z-[10070] animate-in fade-in zoom-in-95`}
+          className={`absolute right-0 ${placementClasses} w-[360px] max-h-[min(380px,80vh)] overflow-y-auto scrollbar-thin rounded-xl border border-border bg-popover p-1.5 shadow-xl backdrop-blur-xl z-[10070] animate-in fade-in zoom-in-95`}
         >
-          <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-slate-400 border-b border-slate-800 mb-1 flex items-center justify-between">
+          <div className="px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider text-muted-foreground border-b border-border mb-1 flex items-center justify-between">
             <span>Unified Export Suite</span>
-            <span className="text-[9px] text-slate-500 font-mono">{items.length} options</span>
+            <span className="text-[9px] text-muted-foreground font-mono">{items.length} options</span>
           </div>
 
           <div className="flex flex-col gap-0.5">
@@ -441,27 +441,27 @@ export function RecorderExportDropdown({
                   disabled={item.isLoading}
                   className={`flex w-full items-center justify-between gap-2.5 rounded-lg px-2.5 py-1.5 text-left text-xs transition-colors disabled:opacity-50 ${
                     isSelected
-                      ? "bg-slate-800/90 text-white"
-                      : "text-slate-300 hover:bg-slate-800/60 hover:text-slate-100"
+                      ? "bg-accent text-accent-foreground"
+                      : "text-foreground hover:bg-accent/60 hover:text-accent-foreground"
                   }`}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
                     {item.isLoading ? (
-                      <Loader2 className="h-4 w-4 animate-spin text-cyan-400 shrink-0" />
+                      <Loader2 className="h-4 w-4 animate-spin text-primary shrink-0" />
                     ) : (
                       <Icon className={`h-4 w-4 ${item.iconColor} shrink-0`} />
                     )}
                     <div className="flex flex-col min-w-0">
-                      <span className="font-medium text-slate-100 truncate">
+                      <span className="font-medium text-foreground truncate">
                         {item.label}
                       </span>
-                      <span className="text-[10px] text-slate-400 truncate">
+                      <span className="text-[10px] text-muted-foreground truncate">
                         {item.sublabel}
                       </span>
                     </div>
                   </div>
 
-                  <span className="shrink-0 text-[10px] font-mono text-slate-400 px-1.5 py-0.5 rounded border border-slate-800 bg-slate-900/60">
+                  <span className="shrink-0 text-[10px] font-mono text-muted-foreground px-1.5 py-0.5 rounded border border-border bg-muted/60">
                     {item.shortcut}
                   </span>
                 </button>

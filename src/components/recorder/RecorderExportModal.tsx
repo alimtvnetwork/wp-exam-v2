@@ -167,11 +167,11 @@ ${summary.actualBehavior || "N/A"}`;
         data-recorder-modal="true"
         className="fixed inset-0 z-[10060] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4"
       >
-        <div className="relative w-full max-w-xl max-h-[90vh] rounded-xl border border-slate-700 bg-[#0f172a] p-5 shadow-2xl flex flex-col text-slate-100 animate-in fade-in zoom-in-95">
-          <div className="shrink-0 flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
+        <div className="relative w-full max-w-xl max-h-[90vh] rounded-xl border border-border bg-popover p-5 shadow-xl flex flex-col text-popover-foreground animate-in fade-in zoom-in-95">
+          <div className="shrink-0 flex items-center justify-between border-b border-border pb-3 mb-4">
             <div>
-              <h2 className="text-base font-bold text-white">Export Activity & Bug Report</h2>
-              <p className="text-xs text-slate-400">
+              <h2 className="text-base font-bold text-foreground">Export Activity & Bug Report</h2>
+              <p className="text-xs text-muted-foreground">
                 Unified multi-action export suite: ZIP, V6/V7 prompts, email, and cloud dispatch.
               </p>
             </div>
@@ -181,23 +181,23 @@ ${summary.actualBehavior || "N/A"}`;
                 type="button"
                 onClick={() => setIsTelegramModalOpen(true)}
                 title="Configure Telegram Bot"
-                className="flex items-center gap-1 rounded-md border border-white/10 bg-white/5 px-2 py-1 text-xs text-slate-300 hover:text-white hover:bg-white/10"
+                className="flex items-center gap-1 rounded-md border border-border bg-secondary px-2 py-1 text-xs text-secondary-foreground hover:bg-secondary/80"
               >
-                <Settings className="h-3.5 w-3.5 text-sky-400" />
+                <Settings className="h-3.5 w-3.5 text-primary" />
                 <span>Telegram Setup</span>
               </button>
 
               <button
                 type="button"
                 onClick={resumeRecording}
-                className="rounded p-1 text-slate-400 hover:text-white"
+                className="rounded p-1 text-muted-foreground hover:text-foreground hover:bg-accent"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
           </div>
 
-          <div className="flex-1 overflow-y-auto pr-1 space-y-4 scrollbar-thin scrollbar-thumb-slate-700 scrollbar-track-transparent">
+          <div className="flex-1 overflow-y-auto pr-1 space-y-4 scrollbar-thin scrollbar-thumb-border scrollbar-track-transparent">
             <RecorderSummaryForm summary={summary} onChange={setSummary} />
 
             <RecorderTimelinePreview events={session.events} screenshots={session.screenshots} />
@@ -206,8 +206,8 @@ ${summary.actualBehavior || "N/A"}`;
               <div
                 className={`flex items-center gap-2 rounded-lg p-2.5 text-xs ${
                   telegramStatus.isSuccess
-                    ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                    : "border border-rose-500/30 bg-rose-500/10 text-rose-300"
+                    ? "border border-primary/30 bg-primary/10 text-primary"
+                    : "border border-destructive/30 bg-destructive/10 text-destructive"
                 }`}
               >
                 {telegramStatus.isSuccess ? (
@@ -223,8 +223,8 @@ ${summary.actualBehavior || "N/A"}`;
               <div
                 className={`flex items-center gap-2 rounded-lg p-2.5 text-xs ${
                   bugReportStatus.isSuccess
-                    ? "border border-emerald-500/30 bg-emerald-500/10 text-emerald-300"
-                    : "border border-rose-500/30 bg-rose-500/10 text-rose-300"
+                    ? "border border-primary/30 bg-primary/10 text-primary"
+                    : "border border-destructive/30 bg-destructive/10 text-destructive"
                 }`}
               >
                 {bugReportStatus.isSuccess ? (
@@ -237,12 +237,12 @@ ${summary.actualBehavior || "N/A"}`;
             ) : null}
           </div>
 
-          <div className="shrink-0 flex flex-wrap items-center justify-between border-t border-slate-800 pt-3 mt-4 gap-2">
+          <div className="shrink-0 flex flex-wrap items-center justify-between border-t border-border pt-3 mt-4 gap-2">
             <div className="flex items-center gap-2">
               <button
                 type="button"
                 onClick={resumeRecording}
-                className="rounded border border-slate-700 px-3 py-1.5 text-xs text-slate-300 hover:bg-slate-800"
+                className="rounded border border-border px-3 py-1.5 text-xs text-foreground hover:bg-accent hover:text-accent-foreground"
               >
                 Resume Recording
               </button>
@@ -250,7 +250,7 @@ ${summary.actualBehavior || "N/A"}`;
               <button
                 type="button"
                 onClick={cancelRecording}
-                className="rounded px-2.5 py-1.5 text-xs text-rose-400 hover:bg-rose-950/40"
+                className="rounded px-2.5 py-1.5 text-xs text-destructive hover:bg-destructive/10"
               >
                 Discard
               </button>
@@ -261,7 +261,7 @@ ${summary.actualBehavior || "N/A"}`;
                 type="button"
                 onClick={openEventExplorer}
                 title="Explore and Filter All Recorded Events (Antigravity Tools Pattern)"
-                className="flex items-center gap-1.5 rounded border border-cyan-500/40 bg-cyan-500/10 px-3 py-1.5 text-xs font-semibold text-cyan-300 hover:bg-cyan-500/20"
+                className="flex items-center gap-1.5 rounded border border-primary/40 bg-primary/10 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/20"
               >
                 <ListTree className="h-3.5 w-3.5" />
                 <span>Events</span>
@@ -272,7 +272,7 @@ ${summary.actualBehavior || "N/A"}`;
                 disabled={isSendingTelegram}
                 onClick={handleSendTelegram}
                 title="Send directly to Telegram chat"
-                className="flex items-center gap-1.5 rounded border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-500/20 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded border border-border bg-secondary px-3 py-1.5 text-xs font-semibold text-secondary-foreground hover:bg-secondary/80 disabled:opacity-50"
               >
                 {isSendingTelegram ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />
@@ -287,7 +287,7 @@ ${summary.actualBehavior || "N/A"}`;
                 disabled={isSendingBugReport}
                 onClick={handleSendBugReport}
                 title="Send bug report directly to backend (POST /bug-reports)"
-                className="flex items-center gap-1.5 rounded border border-indigo-500/40 bg-indigo-500/15 px-3 py-1.5 text-xs font-semibold text-indigo-300 hover:bg-indigo-500/25 disabled:opacity-50"
+                className="flex items-center gap-1.5 rounded bg-primary px-3 py-1.5 text-xs font-semibold text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
               >
                 {isSendingBugReport ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />

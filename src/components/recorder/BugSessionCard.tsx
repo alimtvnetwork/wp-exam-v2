@@ -47,17 +47,17 @@ function getCategoryColor(category: string): string {
   switch (category.toLowerCase()) {
     case "inspectiondefect":
     case "inspection_defect":
-      return "bg-rose-500/20 text-rose-300 border-rose-500/40";
+      return "bg-secondary text-secondary-foreground border-border";
     case "crashorerror":
     case "crash_or_error":
-      return "bg-red-500/20 text-red-300 border-red-500/40";
+      return "bg-destructive/10 text-destructive border-destructive/40";
     case "performance":
-      return "bg-amber-500/20 text-amber-300 border-amber-500/40";
+      return "bg-secondary text-secondary-foreground border-border";
     case "workflowconfusion":
     case "workflow_confusion":
-      return "bg-purple-500/20 text-purple-300 border-purple-500/40";
+      return "bg-secondary text-secondary-foreground border-border";
     default:
-      return "bg-cyan-500/20 text-cyan-300 border-cyan-500/40";
+      return "bg-secondary text-secondary-foreground border-border";
   }
 }
 
@@ -175,7 +175,7 @@ export function BugSessionCard({ item, onOpenEmail }: BugSessionCardProps): Reac
   };
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/40 p-4 hover:border-slate-700 hover:bg-slate-900/70 transition group">
+    <div className="rounded-xl border border-border bg-card/40 p-4 hover:border-border hover:bg-card/70 transition group">
       <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
         {/* Metadata */}
         <div className="flex-1 space-y-2">
@@ -187,47 +187,47 @@ export function BugSessionCard({ item, onOpenEmail }: BugSessionCardProps): Reac
             >
               {item.category}
             </span>
-            <h3 className="text-sm font-bold text-white group-hover:text-cyan-300 transition">
+            <h3 className="text-sm font-bold text-foreground group-hover:text-primary transition">
               {item.title}
             </h3>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-slate-400">
-            <span className="text-slate-300 font-semibold">{item.sessionId}</span>
+          <div className="flex flex-wrap items-center gap-3 text-[11px] font-mono text-muted-foreground">
+            <span className="text-foreground font-semibold">{item.sessionId}</span>
             <span>•</span>
             <span>{formatTimestamp(item.createdAt)}</span>
             <span>•</span>
-            <span className="text-slate-300">
-              Route: <code className="text-cyan-400">{item.initialRoute}</code>
+            <span className="text-foreground">
+              Route: <code className="text-primary">{item.initialRoute}</code>
               {item.finalRoute && item.finalRoute !== item.initialRoute && (
-                <> → <code className="text-cyan-400">{item.finalRoute}</code></>
+                <> → <code className="text-primary">{item.finalRoute}</code></>
               )}
             </span>
           </div>
 
           {item.description && (
-            <p className="text-xs text-slate-300 line-clamp-2 leading-relaxed">
+            <p className="text-xs text-foreground line-clamp-2 leading-relaxed">
               {item.description}
             </p>
           )}
 
           {/* Badges */}
           <div className="flex flex-wrap items-center gap-2 pt-1">
-            <span className="flex items-center gap-1 rounded bg-slate-800/80 px-2 py-0.5 text-[10px] font-mono text-slate-300 border border-slate-700/60">
-              <Clock className="h-3 w-3 text-cyan-400" />
+            <span className="flex items-center gap-1 rounded bg-secondary/80 px-2 py-0.5 text-[10px] font-mono text-secondary-foreground border border-border/60">
+              <Clock className="h-3 w-3 text-primary" />
               <span>{formatDuration(item.durationMs)}</span>
             </span>
-            <span className="flex items-center gap-1 rounded bg-slate-800/80 px-2 py-0.5 text-[10px] font-mono text-slate-300 border border-slate-700/60">
+            <span className="flex items-center gap-1 rounded bg-secondary/80 px-2 py-0.5 text-[10px] font-mono text-secondary-foreground border border-border/60">
               <span>📋</span>
               <span>{item.eventCount} events</span>
             </span>
-            <span className="flex items-center gap-1 rounded bg-slate-800/80 px-2 py-0.5 text-[10px] font-mono text-slate-300 border border-slate-700/60">
-              <Camera className="h-3 w-3 text-cyan-400" />
+            <span className="flex items-center gap-1 rounded bg-secondary/80 px-2 py-0.5 text-[10px] font-mono text-secondary-foreground border border-border/60">
+              <Camera className="h-3 w-3 text-primary" />
               <span>{item.screenshotCount} snapshots</span>
             </span>
             {item.errorCount > 0 && (
-              <span className="flex items-center gap-1 rounded bg-rose-500/10 px-2 py-0.5 text-[10px] font-mono text-rose-300 border border-rose-500/30">
-                <AlertTriangle className="h-3 w-3 text-rose-400" />
+              <span className="flex items-center gap-1 rounded bg-destructive/10 px-2 py-0.5 text-[10px] font-mono text-destructive border border-destructive/30">
+                <AlertTriangle className="h-3 w-3 text-destructive" />
                 <span>{item.errorCount} SplitDB errors</span>
               </span>
             )}
@@ -242,9 +242,9 @@ export function BugSessionCard({ item, onOpenEmail }: BugSessionCardProps): Reac
               onClick={() => void handleExportZip()}
               disabled={isExportingZip}
               title="Export complete session ZIP archive"
-              className="flex items-center gap-1 rounded-lg border border-slate-700/70 bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition disabled:opacity-50"
+              className="flex items-center gap-1 rounded-lg border border-border/70 bg-secondary px-2 py-1 text-xs font-semibold text-secondary-foreground hover:bg-secondary/80 hover:text-foreground transition disabled:opacity-50"
             >
-              {isExportingZip ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5 text-cyan-400" />}
+              {isExportingZip ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Download className="h-3.5 w-3.5 text-primary" />}
               <span>ZIP</span>
             </button>
 
@@ -252,9 +252,9 @@ export function BugSessionCard({ item, onOpenEmail }: BugSessionCardProps): Reac
               type="button"
               onClick={() => void handleExportMarkdown()}
               title="Download Markdown bug report"
-              className="flex items-center gap-1 rounded-lg border border-slate-700/70 bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition"
+              className="flex items-center gap-1 rounded-lg border border-border/70 bg-secondary px-2 py-1 text-xs font-semibold text-secondary-foreground hover:bg-secondary/80 hover:text-foreground transition"
             >
-              <FileText className="h-3.5 w-3.5 text-amber-400" />
+              <FileText className="h-3.5 w-3.5 text-primary" />
               <span>MD</span>
             </button>
 
@@ -262,9 +262,9 @@ export function BugSessionCard({ item, onOpenEmail }: BugSessionCardProps): Reac
               type="button"
               onClick={() => void handleExportJson()}
               title="Download JSON session dump"
-              className="flex items-center gap-1 rounded-lg border border-slate-700/70 bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition"
+              className="flex items-center gap-1 rounded-lg border border-border/70 bg-secondary px-2 py-1 text-xs font-semibold text-secondary-foreground hover:bg-secondary/80 hover:text-foreground transition"
             >
-              <FileSpreadsheet className="h-3.5 w-3.5 text-blue-400" />
+              <FileSpreadsheet className="h-3.5 w-3.5 text-primary" />
               <span>JSON</span>
             </button>
           </div>
@@ -274,9 +274,9 @@ export function BugSessionCard({ item, onOpenEmail }: BugSessionCardProps): Reac
               type="button"
               onClick={() => void handleCopyV6()}
               title="Copy V6 Letterly Prompt to clipboard"
-              className="flex items-center gap-1 rounded-lg border border-slate-700/70 bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition"
+              className="flex items-center gap-1 rounded-lg border border-border/70 bg-secondary px-2 py-1 text-xs font-semibold text-secondary-foreground hover:bg-secondary/80 hover:text-foreground transition"
             >
-              {isCopiedV6 ? <Check className="h-3.5 w-3.5 text-emerald-400" /> : <FileCode className="h-3.5 w-3.5 text-emerald-400" />}
+              {isCopiedV6 ? <Check className="h-3.5 w-3.5 text-primary" /> : <FileCode className="h-3.5 w-3.5 text-primary" />}
               <span>V6</span>
             </button>
 
@@ -284,9 +284,9 @@ export function BugSessionCard({ item, onOpenEmail }: BugSessionCardProps): Reac
               type="button"
               onClick={() => void handleCopyV7()}
               title="Copy V7 Autonomous Prompt to clipboard"
-              className="flex items-center gap-1 rounded-lg border border-slate-700/70 bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition"
+              className="flex items-center gap-1 rounded-lg border border-border/70 bg-secondary px-2 py-1 text-xs font-semibold text-secondary-foreground hover:bg-secondary/80 hover:text-foreground transition"
             >
-              {isCopiedV7 ? <Check className="h-3.5 w-3.5 text-violet-400" /> : <Bot className="h-3.5 w-3.5 text-violet-400" />}
+              {isCopiedV7 ? <Check className="h-3.5 w-3.5 text-primary" /> : <Bot className="h-3.5 w-3.5 text-primary" />}
               <span>V7</span>
             </button>
 
@@ -294,9 +294,9 @@ export function BugSessionCard({ item, onOpenEmail }: BugSessionCardProps): Reac
               type="button"
               onClick={() => onOpenEmail(item)}
               title="Deliver session report and snapshots via Email"
-              className="flex items-center gap-1 rounded-lg border border-slate-700/70 bg-slate-800 px-2 py-1 text-xs font-semibold text-slate-200 hover:bg-slate-700 hover:text-white transition"
+              className="flex items-center gap-1 rounded-lg border border-border/70 bg-secondary px-2 py-1 text-xs font-semibold text-secondary-foreground hover:bg-secondary/80 hover:text-foreground transition"
             >
-              <Mail className="h-3.5 w-3.5 text-sky-400" />
+              <Mail className="h-3.5 w-3.5 text-primary" />
               <span>Email</span>
             </button>
           </div>

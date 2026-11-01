@@ -22,23 +22,23 @@ export function RecorderLauncherButton(): React.JSX.Element {
   const openPreviousBugs = useRecorderStore((s) => s.openPreviousBugs);
 
   return (
-    <div className="inline-flex items-center gap-1.5 shrink-0">
+    <div className="inline-flex items-center gap-1 shrink-0">
       {/* Button 1: Recording Controller */}
       {isRecording ? (
-        <div className="inline-flex items-center gap-1 rounded border border-rose-800/60 bg-rose-950/40 p-0.5">
+        <div className="inline-flex items-center gap-1 rounded-md border border-destructive/30 bg-destructive/5 px-1 py-0.5">
           {/* Status Badge */}
           <div
             className={cn(
-              "flex shrink-0 items-center gap-1.5 rounded px-2 py-0.5 text-xs font-semibold uppercase tracking-wider font-mono",
+              "flex shrink-0 items-center gap-1.5 rounded-md px-2 h-8 text-xs font-semibold uppercase tracking-wider font-mono border",
               isPaused
-                ? "bg-amber-950/80 text-amber-300 border border-amber-500/80"
-                : "bg-rose-950/80 text-rose-300 border border-rose-500/80 animate-pulse",
+                ? "border-border text-muted-foreground"
+                : "border-destructive/40 text-destructive animate-pulse",
             )}
           >
             {isPaused ? (
-              <Play className="h-3 w-3 fill-amber-400 text-amber-400" />
+              <Play className="h-3 w-3 text-muted-foreground" />
             ) : (
-              <Circle className="h-2.5 w-2.5 fill-rose-500 text-rose-500 animate-ping" />
+              <Circle className="h-2.5 w-2.5 fill-destructive text-destructive animate-ping" />
             )}
             <span>
               {isPaused ? `PAUSED ${formatTimer(elapsedSec)}` : `REC ${formatTimer(elapsedSec)}`}
@@ -51,16 +51,16 @@ export function RecorderLauncherButton(): React.JSX.Element {
             onClick={isPaused ? resumeRecording : pauseRecording}
             title={isPaused ? "Resume Recording" : "Pause Recording"}
             aria-label={isPaused ? "Resume Recording" : "Pause Recording"}
-            className="flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wider transition-all border border-slate-700 bg-slate-800 text-slate-200 hover:bg-slate-700 hover:text-white"
+            className="flex shrink-0 items-center gap-1 rounded-md px-2 h-8 text-xs transition-colors text-muted-foreground hover:text-foreground hover:bg-accent/50"
           >
             {isPaused ? (
               <>
-                <Play className="h-3 w-3 fill-amber-400 text-amber-400" />
+                <Play className="h-4 w-4" />
                 <span className="hidden sm:inline">Resume</span>
               </>
             ) : (
               <>
-                <Pause className="h-3 w-3 text-amber-300" />
+                <Pause className="h-4 w-4" />
                 <span className="hidden sm:inline">Pause</span>
               </>
             )}
@@ -72,9 +72,9 @@ export function RecorderLauncherButton(): React.JSX.Element {
             onClick={() => void stopRecording()}
             title="Stop Recording"
             aria-label="Stop Recording"
-            className="flex shrink-0 items-center gap-1 rounded px-1.5 py-0.5 text-xs font-semibold uppercase tracking-wider transition-all border border-rose-600/70 bg-rose-900/60 text-rose-200 hover:bg-rose-800 hover:text-white"
+            className="flex shrink-0 items-center gap-1 rounded-md px-2 h-8 text-xs transition-colors bg-destructive text-destructive-foreground hover:bg-destructive/90"
           >
-            <Square className="h-3 w-3 fill-rose-300 text-rose-300" />
+            <Square className="h-3 w-3 fill-current" />
             <span className="hidden sm:inline">Stop</span>
           </button>
         </div>
@@ -84,10 +84,10 @@ export function RecorderLauncherButton(): React.JSX.Element {
           onClick={() => startRecording()}
           title="Record Activity & Bug Report"
           aria-label="Start Bug Recorder"
-          className="flex shrink-0 items-center gap-1.5 rounded px-2.5 sm:px-3 py-1 text-xs font-semibold uppercase tracking-wider transition-all text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/60 bg-slate-900/60"
+          className="flex shrink-0 items-center gap-1.5 rounded-md px-2 h-8 text-xs transition-colors text-muted-foreground hover:text-foreground hover:bg-accent/50"
         >
-          <Radio className="h-3.5 w-3.5 text-rose-400" />
-          <span>Record Bug</span>
+          <Radio className="h-4 w-4 text-destructive" />
+          <span className="hidden sm:inline">Record Bug</span>
         </button>
       )}
 
@@ -97,10 +97,10 @@ export function RecorderLauncherButton(): React.JSX.Element {
         onClick={openExportModal}
         title="Export Suite (ZIP, Prompts, Telemetry)"
         aria-label="Export Bug Report"
-        className="flex shrink-0 items-center gap-1 rounded px-2 sm:px-2.5 py-1 text-xs font-semibold uppercase tracking-wider transition-all border border-cyan-600/70 bg-cyan-950/70 text-cyan-200 hover:bg-cyan-900 hover:text-white"
+        className="flex shrink-0 items-center gap-1 rounded-md px-2 h-8 text-xs transition-colors bg-primary text-primary-foreground hover:bg-primary/90"
       >
-        <ChevronDown className="h-3 w-3 text-cyan-400" />
-        <Download className="h-3 w-3 text-cyan-300" />
+        <ChevronDown className="h-4 w-4" />
+        <Download className="h-4 w-4" />
         <span className="hidden sm:inline">Export</span>
       </button>
 
@@ -110,9 +110,9 @@ export function RecorderLauncherButton(): React.JSX.Element {
         onClick={openPreviousBugs}
         title="Browse and export historical bug sessions"
         aria-label="Previous Bugs"
-        className="flex shrink-0 items-center gap-1 rounded px-2 sm:px-2.5 py-1 text-xs font-semibold uppercase tracking-wider transition-all text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/60 bg-slate-900/60"
+        className="flex shrink-0 items-center gap-1 rounded-md px-2 h-8 text-xs transition-colors text-muted-foreground hover:text-foreground hover:bg-accent/50"
       >
-        <History className="h-3.5 w-3.5 text-cyan-400" />
+        <History className="h-4 w-4" />
         <span className="hidden sm:inline">Previous Bugs</span>
       </button>
     </div>
